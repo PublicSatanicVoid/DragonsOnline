@@ -1,0 +1,51 @@
+name: DragonsCore
+main: mc.dragons.core.Dragons
+version: 1.0.0
+author: DragonRider747
+depend: [ProtocolLib]
+loadbefore: [WorldEdit]
+load: POSTWORLD
+commands:
+  channel:
+    description: Set speaking and listening chat channels.
+    aliases: [c, ch, chat]
+  fastforwarddialogue:
+    description: Fast-forward through active quest dialogue.
+  feedback:
+    description: Send feedback about the game.
+  friend:
+    description: Make friends!
+    aliases: f
+  help:
+    description: Halp
+    aliases: '?'
+  ilostthelousystick:
+  msg:
+    description: Send a private message.
+    aliases: [tell, t, m, pm, whisper, w]
+  myquests:
+    description: List your active quests.
+  news:
+    description: View unread changelogs and announcements.
+    aliases: whatsnew
+  party:
+    description: Create, join, and manage parties.
+    aliases: p
+    description: Log on to system console.
+  questchoice:
+  reply:
+    description: Reply to your last incoming message.
+    aliases: [r, re]
+  syslogon:
+    description: Log on to the system console.
+  bypassdeathcountdown:
+    description: (TESTER) Skip the death countdown and respawn instantly.
+  chatspy:
+    description: (MOD) View other players' private messages.
+  shout:
+    description: (MOD) Broadcast to the entire server.
+    aliases: [broadcast, bc]
+  newsmanager:
+    description: (GM) Manage announcements and changelogs.
+  rank:
+    description: (ADMIN) Set a player's rank.

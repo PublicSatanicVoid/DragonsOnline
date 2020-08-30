@@ -1,0 +1,29 @@
+name: DragonsContentTools
+main: mc.dragons.tools.content.DragonsContentToolsPlugin
+version: 1.0.0
+author: UniverseCraft
+depend: [DragonsCore]
+commands:
+  clear:
+  floor:
+  gamemode:
+    aliases: gm
+  gmc:
+  gms:
+  gma:
+  gotofloor:
+  item:
+    aliases: i
+  npc:
+  quest:
+    aliases: q
+  region:
+  relore:
+  rename:
+  speed:
+  testquest:
+  updatestats:
+  warp:
+  warps:
+  setwarp:
+  delwarp:

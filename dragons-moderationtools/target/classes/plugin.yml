@@ -1,0 +1,21 @@
+name: DragonsModerationTools
+main: mc.dragons.tools.moderation.DragonsModerationToolsPlugin
+version: 1.0.0
+author: UniverseCraft
+depend: [DragonsCore]
+commands:
+  escalate:
+  godmode:
+  info:
+  warn:
+  kick:
+  mute:
+  ban:
+  unmute:
+  unban:
+  removepunishment:
+  viewpunishments:
+  vanish:
+    aliases: v
+  unvanish:
+    aliases: uv

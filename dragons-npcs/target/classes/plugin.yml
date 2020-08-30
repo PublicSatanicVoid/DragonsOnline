@@ -1,0 +1,11 @@
+name: DragonsNPCs
+main: mc.dragons.npcs.DragonsNPCAddons
+version: 1.0.0
+author: UniverseCraft
+depend: [DragonsCore]
+commands:
+  companion:
+    description: Manage your companion.
+  testcompanion:
+  /slay:
+    description: '[GM] Kill nearby mobs.'

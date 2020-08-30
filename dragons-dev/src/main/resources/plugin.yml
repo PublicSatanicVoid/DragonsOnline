@@ -1,0 +1,26 @@
+name: DragonsDev
+main: mc.dragons.dev.DragonsDevPlugin
+version: 1.0.0
+author: UniverseCraft
+depend: [DragonsCore]
+commands:
+  starttrial:
+    description: Create a build trial for the specified player.
+  task:
+    description: Create a task.
+  tasks:
+    description: List active tasks.
+  taskinfo:
+    description: Information about the specified task.
+  assign:
+    description: Assign a player to a task.
+  done:
+    description: Mark a task as completed.
+  close:
+    description: Close a completed task.
+  approve:
+    description: Approve a task.
+  reject:
+    description: Reject a task.
+  backup:
+    description: (BUILDER) Force a backup of the server floor worlds.

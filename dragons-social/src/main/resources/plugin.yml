@@ -1,0 +1,11 @@
+name: DragonsSocial
+main: mc.dragons.social.DragonsSocialPlugin
+version: 1.0.0
+author: UniverseCraft
+depend: [DragonsCore]
+commands:
+  guild:
+    description: Create, join, and manage guilds.
+    aliases: g
+  guildadmin:
+    description: (ADMIN) Manage guilds.
