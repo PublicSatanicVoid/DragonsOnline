@@ -12,7 +12,6 @@ import org.bson.Document;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.storage.impl.MongoConfig;
 import mc.dragons.core.storage.impl.loader.AbstractLightweightLoader;
 import mc.dragons.dev.TaskLoader.Task;
 
@@ -97,7 +96,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	private static final String TASK_COLLECTION = "tasks";
 	
 	public TaskLoader() {
-		super("tasks", TASK_COLLECTION);
+		super(Dragons.getInstance().getMongoConfig(), "tasks", TASK_COLLECTION);
 	}
 
 	public List<Task> asTasks(FindIterable<Document> tasks) {
@@ -159,7 +158,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	
 	public Task addTask(String by, String name) {
 		String date = Date.from(Instant.now()).toString();
-		int id = MongoConfig.getCounter().reserveNextId("tasks");
+		int id = Dragons.getInstance().getMongoConfig().getCounter().reserveNextId("tasks");
 		Task task = new Task(id, name, date, by, false, null, new ArrayList<>(), false, false);
 		collection.insertOne(task.toDocument());
 		return task;

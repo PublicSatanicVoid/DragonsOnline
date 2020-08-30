@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.material.Door;
+import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -23,11 +24,11 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
-import mc.dragons.core.storage.impl.MongoConfig;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.res.ResLoader.Residence.ResAccess;
@@ -112,7 +113,7 @@ public class ResLoader {
 	private static List<Integer> generated = new ArrayList<>();
 	
 	static {
-		database = MongoConfig.getDatabase();
+		database = Dragons.getInstance().getMongoConfig().getDatabase();
 		resCollection = database.getCollection(RES_COLLECTION);
 		resPointCollection = database.getCollection(RES_POINT_COLLECTION);
 	}
@@ -146,7 +147,7 @@ public class ResLoader {
 	}
 	
 	public static Residence addResidence(User owner, ResPoint resPoint, ResAccess access) {
-		int id = MongoConfig.getCounter().reserveNextId("res");
+		int id = Dragons.getInstance().getMongoConfig().getCounter().reserveNextId("res");
 		Residence task = new Residence(id, resPoint, false, owner, new Document(), access);
 		resCollection.insertOne(task.toDocument());
 		return task;
@@ -254,7 +255,7 @@ public class ResLoader {
 	}
 	
 	public static int getLatestResId() {
-		return MongoConfig.getCounter().getCurrentId("res");
+		return Dragons.getInstance().getMongoConfig().getCounter().getCurrentId("res");
 	}
 
 	
@@ -346,7 +347,13 @@ public class ResLoader {
 	
 	public static void createResPointHologram(ResPoint resPoint) {
 		Location doorLoc = resPoint.getDoorLocation();
-		Door door = (Door) doorLoc.getBlock().getState().getData();
+		MaterialData materialData = doorLoc.getBlock().getState().getData();
+		if(!(materialData instanceof Door)) {
+			JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().warning("Could not load res point at " + StringUtil.locToString(doorLoc));
+			HologramUtil.makeHologram(ChatColor.RED + "Invalid res point!", doorLoc.add(0, 1, 0));
+			return;
+		}
+		Door door = (Door) materialData;
 		Location holoLoc = doorLoc.add((door.getFacing().getModX() - door.getFacing().getModZ()) * 0.5, 0.5, (door.getFacing().getModZ() - door.getFacing().getModX()) * 0.5);
 		JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().info("Door at " + StringUtil.locToString(holoLoc) + " has direction " + door.getFacing().getModX() + ", " + door.getFacing().getModZ());
 		HologramUtil.makeHologram(ChatColor.GRAY + "Price: " + ChatColor.YELLOW + resPoint.getPrice() + "g", holoLoc);

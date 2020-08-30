@@ -1,12 +1,16 @@
 package mc.dragons.core.storage.impl.loader;
 
-import com.mongodb.client.FindIterable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import com.mongodb.client.FindIterable;
+
+import mc.dragons.core.storage.impl.MongoConfig;
 
 public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.ChangeLogEntry> {
 	public static class ChangeLogEntry {
@@ -48,8 +52,8 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 		}
 	}
 
-	public ChangeLogLoader() {
-		super("changelogs", "changelogs");
+	public ChangeLogLoader(MongoConfig config) {
+		super(config, "changelogs", "changelogs");
 	}
 
 	public List<ChangeLogEntry> getUnreadChangelogs(int lastReadChangelog) {

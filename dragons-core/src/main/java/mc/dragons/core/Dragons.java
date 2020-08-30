@@ -81,6 +81,7 @@ public class Dragons extends JavaPlugin {
 	private static Dragons INSTANCE;
 	private Bridge bridge;
 
+	private MongoConfig mongoConfig;
 	private StorageManager persistentStorageManager;
 	private LocalStorageManager localStorageManager;
 	private GameObjectRegistry gameObjectRegistry;
@@ -124,7 +125,9 @@ public class Dragons extends JavaPlugin {
 				return;
 			}
 			getLogger().info("Initializing storage and registries...");
-			this.persistentStorageManager = (StorageManager) new MongoStorageManager(this, MongoConfig.HOST, MongoConfig.PORT, MongoConfig.USER, MongoConfig.PASSWORD, MongoConfig.AUTH_DB);
+			saveDefaultConfig();
+			this.mongoConfig = new MongoConfig(this);
+			this.persistentStorageManager = new MongoStorageManager(this);
 			this.localStorageManager = new LocalStorageManager();
 			this.gameObjectRegistry = new GameObjectRegistry(this, this.persistentStorageManager);
 			this.addonRegistry = new AddonRegistry(this);
@@ -140,7 +143,6 @@ public class Dragons extends JavaPlugin {
 			org.apache.logging.log4j.core.Logger pluginLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(getLogger().getName());
 			this.serverOptions = new ServerOptions(pluginLogger);
 			getLogger().setLevel(this.serverOptions.getLogLevel());
-			saveDefaultConfig();
 			((org.apache.logging.log4j.core.Logger) org.apache.logging.log4j.LogManager.getRootLogger()).addFilter((Filter) new LogFilter());
 			this.serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
 			this.debug = getConfig().getBoolean("debug");
@@ -185,10 +187,10 @@ public class Dragons extends JavaPlugin {
 		}).runTaskLater(this, 20L);
 
 		getLogger().info("Registering lightweight object loaders...");
-		this.lightweightLoaderRegistry.register(new ChangeLogLoader());
-		this.lightweightLoaderRegistry.register(new FeedbackLoader());
+		this.lightweightLoaderRegistry.register(new ChangeLogLoader(mongoConfig));
+		this.lightweightLoaderRegistry.register(new FeedbackLoader(mongoConfig));
 		this.lightweightLoaderRegistry.register(new SystemProfileLoader(this));
-		this.lightweightLoaderRegistry.register(new WarpLoader());
+		this.lightweightLoaderRegistry.register(new WarpLoader(mongoConfig));
 
 		getLogger().info("Registering events...");
 		PluginManager pluginManager = getServer().getPluginManager();
@@ -272,6 +274,10 @@ public class Dragons extends JavaPlugin {
 		return INSTANCE;
 	}
 
+	public MongoConfig getMongoConfig() {
+		return this.mongoConfig;
+	}
+	
 	public StorageManager getPersistentStorageManager() {
 		return this.persistentStorageManager;
 	}

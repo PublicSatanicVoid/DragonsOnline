@@ -22,7 +22,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 	private Logger LOGGER;
 
 	public SystemProfileLoader(Dragons instance) {
-		super("#unused#", "sysprofiles");
+		super(instance.getMongoConfig(), "#unused#", "sysprofiles");
 		this.LOGGER = instance.getLogger();
 		this.profiles = new HashSet<>();
 	}

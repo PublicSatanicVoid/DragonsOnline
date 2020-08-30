@@ -1,10 +1,14 @@
 package mc.dragons.core.storage.impl.loader;
 
-import com.mongodb.client.FindIterable;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import com.mongodb.client.FindIterable;
+
+import mc.dragons.core.storage.impl.MongoConfig;
 
 public class FeedbackLoader extends AbstractLightweightLoader<FeedbackLoader.FeedbackEntry> {
 	public static class FeedbackEntry {
@@ -33,8 +37,8 @@ public class FeedbackLoader extends AbstractLightweightLoader<FeedbackLoader.Fee
 		}
 	}
 
-	public FeedbackLoader() {
-		super("feedback", "feedback");
+	public FeedbackLoader(MongoConfig config) {
+		super(config, "feedback", "feedback");
 	}
 
 	public List<FeedbackEntry> getUnreadFeedback() {

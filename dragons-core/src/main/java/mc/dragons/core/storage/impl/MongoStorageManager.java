@@ -21,13 +21,15 @@ import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
 public class MongoStorageManager implements StorageManager {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private Logger LOGGER;
+	
+	private MongoDatabase database;
+	private MongoCollection<Document> gameObjectCollection;
 
-	private MongoDatabase database = MongoConfig.getDatabase();
-
-	private MongoCollection<Document> gameObjectCollection = this.database.getCollection("gameobjects");
-
-	public MongoStorageManager(Dragons instance, String host, int port, String username, String password, String authDB) {
+	public MongoStorageManager(Dragons instance) {
+		LOGGER = instance.getLogger();
+		database = instance.getMongoConfig().getDatabase();
+		gameObjectCollection = database.getCollection(MongoConfig.GAMEOBJECTS_COLLECTION);
 	}
 
 	public StorageAccess getStorageAccess(GameObjectType objectType, UUID objectUUID) {

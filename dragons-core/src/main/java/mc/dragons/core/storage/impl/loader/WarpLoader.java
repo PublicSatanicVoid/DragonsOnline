@@ -3,10 +3,13 @@ package mc.dragons.core.storage.impl.loader;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import mc.dragons.core.storage.StorageUtil;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bukkit.Location;
+
+import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.storage.impl.MongoConfig;
 
 public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> {
 	private Map<String, WarpEntry> warps;
@@ -38,8 +41,8 @@ public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> 
 		}
 	}
 
-	public WarpLoader() {
-		super("#unused#", "warps");
+	public WarpLoader(MongoConfig config) {
+		super(config, "#unused#", "warps");
 		this.warps = new LinkedHashMap<>();
 		for (Document doc : this.collection.find()) {
 			WarpEntry entry = new WarpEntry(doc);

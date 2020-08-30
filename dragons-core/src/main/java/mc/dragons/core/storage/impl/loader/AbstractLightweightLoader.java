@@ -17,12 +17,12 @@ public abstract class AbstractLightweightLoader<E> {
 
 	protected Counter counter;
 
-	protected AbstractLightweightLoader(String counterName, String collectionName) {
+	protected AbstractLightweightLoader(MongoConfig config, String counterName, String collectionName) {
 		this.counterName = counterName;
 		this.collectionName = collectionName;
-		this.database = MongoConfig.getDatabase();
-		this.collection = this.database.getCollection(collectionName);
-		this.counter = MongoConfig.getCounter();
+		this.database = config.getDatabase();
+		this.collection = database.getCollection(collectionName);
+		this.counter = config.getCounter();
 	}
 
 	protected int reserveNextId() {

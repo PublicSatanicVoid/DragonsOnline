@@ -16,7 +16,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-import mc.dragons.core.storage.impl.MongoConfig;
+import mc.dragons.core.Dragons;
 
 public class GuildLoader {
 	
@@ -89,7 +89,7 @@ public class GuildLoader {
 	private static final String GUILD_COLLECTION = "guilds";
 	
 	static {
-		database = MongoConfig.getDatabase();
+		database = Dragons.getInstance().getMongoConfig().getDatabase();
 		guildCollection = database.getCollection(GUILD_COLLECTION);
 	}
 
@@ -123,7 +123,7 @@ public class GuildLoader {
 	
 	public static Guild addGuild(UUID owner, String name) {
 		Date date = Date.from(Instant.now());
-		int id = MongoConfig.getCounter().reserveNextId("guilds");
+		int id = Dragons.getInstance().getMongoConfig().getCounter().reserveNextId("guilds");
 		Guild guild = new Guild(id, name, owner, "No description set", 0, new ArrayList<>(), date);
 		guildCollection.insertOne(guild.toDocument());
 		guildPool.put(guild.getId(), guild);
@@ -136,7 +136,7 @@ public class GuildLoader {
 	}
 	
 	public static int getLatestGuildId() {
-		return MongoConfig.getCounter().getCurrentId("guilds");
+		return Dragons.getInstance().getMongoConfig().getCounter().getCurrentId("guilds");
 	}
 
 }
