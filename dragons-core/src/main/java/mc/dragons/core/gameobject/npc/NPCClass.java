@@ -3,6 +3,7 @@ package mc.dragons.core.gameobject.npc;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -14,15 +15,14 @@ import org.bukkit.entity.EntityType;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
 public class NPCClass extends GameObject {
 	private LootTable lootTable;
-
 	private NPCConditionalActions[] conditionals = new NPCConditionalActions[(NPCConditionalActions.NPCTrigger.values()).length];
-
 	private List<NPCAddon> addons;
 
 	@SuppressWarnings("unchecked")
@@ -31,16 +31,12 @@ public class NPCClass extends GameObject {
 		LOGGER.fine("Constructing NPC Class (" + storageManager + ", " + storageAccess + ")");
 		this.lootTable = new LootTable(this);
 		int i = 0;
-		byte b;
-		int j;
-		NPCConditionalActions.NPCTrigger[] arrayOfNPCTrigger;
-		for (j = (arrayOfNPCTrigger = NPCConditionalActions.NPCTrigger.values()).length, b = 0; b < j;) {
-			NPCConditionalActions.NPCTrigger trigger = arrayOfNPCTrigger[b];
-			this.conditionals[i] = new NPCConditionalActions(trigger, this);
+		for(NPCTrigger trigger : NPCTrigger.values()) {
+			conditionals[i] = new NPCConditionalActions(trigger, this);
 			i++;
-			b++;
 		}
-		this.addons = (List<NPCAddon>) ((List<String>) getData("addons")).stream().map(addonName -> (NPCAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName))
+		this.addons = (List<NPCAddon>) ((List<String>) getData("addons")).stream()
+				.map(addonName -> (NPCAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName))
 				.collect(Collectors.toList());
 	}
 
@@ -80,26 +76,14 @@ public class NPCClass extends GameObject {
 
 	public void executeConditionals(NPCConditionalActions.NPCTrigger trigger, User user, NPC npc) {
 		user.debug("Executing conditionals");
-		byte b;
-		int i;
-		NPCConditionalActions[] arrayOfNPCConditionalActions;
-		for (i = (arrayOfNPCConditionalActions = this.conditionals).length, b = 0; b < i;) {
-			NPCConditionalActions conditionalAction = arrayOfNPCConditionalActions[b];
-			if (conditionalAction.getTrigger() == trigger)
-				conditionalAction.executeConditionals(user, npc);
-			b++;
+		for(NPCConditionalActions conditionalAction : conditionals) {
+			if (conditionalAction.getTrigger() == trigger) conditionalAction.executeConditionals(user, npc);
 		}
 	}
 
 	public NPCConditionalActions getConditionalActions(NPCConditionalActions.NPCTrigger trigger) {
-		byte b;
-		int i;
-		NPCConditionalActions[] arrayOfNPCConditionalActions;
-		for (i = (arrayOfNPCConditionalActions = this.conditionals).length, b = 0; b < i;) {
-			NPCConditionalActions conditionalAction = arrayOfNPCConditionalActions[b];
-			if (conditionalAction.getTrigger() == trigger)
-				return conditionalAction;
-			b++;
+		for(NPCConditionalActions conditionalAction : conditionals) {
+			if (conditionalAction.getTrigger() == trigger) return conditionalAction;
 		}
 		return null;
 	}
@@ -160,7 +144,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public boolean isImmortal() {
-		return ((Boolean) getData("immortal")).booleanValue();
+		return (boolean) getData("immortal");
 	}
 
 	public void setImmortal(boolean immortal) {
@@ -168,7 +152,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public boolean hasAI() {
-		return ((Boolean) getData("ai")).booleanValue();
+		return (boolean) getData("ai");
 	}
 
 	public void setAI(boolean hasAI) {
@@ -176,7 +160,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public double getMaxHealth() {
-		return ((Double) getData("maxHealth")).doubleValue();
+		return (double) getData("maxHealth");
 	}
 
 	public void setMaxHealth(double maxHealth) {
@@ -184,7 +168,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public int getLevel() {
-		return ((Integer) getData("level")).intValue();
+		return (int) getData("level");
 	}
 
 	public void setLevel(int level) {
@@ -201,8 +185,8 @@ public class NPCClass extends GameObject {
 
 	public Map<Attribute, Double> getCustomAttributes() {
 		Map<Attribute, Double> result = new HashMap<>();
-		for (Map.Entry<String, Object> attribute : (Iterable<Map.Entry<String, Object>>) ((Document) getData("attributes")).entrySet())
-			result.put(Attribute.valueOf(attribute.getKey()), Double.valueOf(((Double) attribute.getValue()).doubleValue()));
+		for (Entry<String, Object> attribute : (Iterable<Entry<String, Object>>) ((Document) getData("attributes")).entrySet())
+			result.put(Attribute.valueOf(attribute.getKey()), (double) attribute.getValue());
 		return result;
 	}
 

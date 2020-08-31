@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-import mc.dragons.core.gameobject.user.User;
+
 import org.bson.Document;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import mc.dragons.core.gameobject.user.User;
+
 public class GUIElement {
 	private int slot;
-
 	private ItemStack itemStack;
-
 	private Consumer<User> callback;
 
 	public GUIElement(int slot, ItemStack itemStack, Consumer<User> callback) {

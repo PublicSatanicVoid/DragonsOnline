@@ -1,6 +1,7 @@
 package mc.dragons.core.util;
 
 import java.nio.charset.Charset;
+
 import org.bukkit.ChatColor;
 
 public class HiddenStringUtil {

@@ -13,8 +13,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.material.Door;
 
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.util.StringUtil;

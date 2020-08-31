@@ -7,41 +7,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.floor.Floor;
-import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.QuestLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.quest.Quest;
-import mc.dragons.core.gameobject.quest.QuestStep;
-import mc.dragons.core.gameobject.region.Region;
-import mc.dragons.core.gui.GUI;
-import mc.dragons.core.storage.StorageAccess;
-import mc.dragons.core.storage.StorageManager;
-import mc.dragons.core.storage.StorageUtil;
-import mc.dragons.core.storage.impl.SystemProfile;
-import mc.dragons.core.storage.impl.loader.ChangeLogLoader;
-import mc.dragons.core.storage.impl.loader.SystemProfileLoader;
-import mc.dragons.core.util.MathUtil;
-import mc.dragons.core.util.PermissionUtil;
-import mc.dragons.core.util.StringUtil;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -57,6 +30,36 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.floor.Floor;
+import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.core.gameobject.item.Item;
+import mc.dragons.core.gameobject.item.ItemClass;
+import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.quest.Quest;
+import mc.dragons.core.gameobject.quest.QuestLoader;
+import mc.dragons.core.gameobject.quest.QuestStep;
+import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gui.GUI;
+import mc.dragons.core.storage.StorageAccess;
+import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.storage.impl.SystemProfile;
+import mc.dragons.core.storage.impl.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.storage.impl.loader.ChangeLogLoader;
+import mc.dragons.core.storage.impl.loader.SystemProfileLoader;
+import mc.dragons.core.util.MathUtil;
+import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.StringUtil;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class User extends GameObject {
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
@@ -95,16 +98,16 @@ public class User extends GameObject {
 	private boolean joined;
 
 	public enum PunishmentType {
-		BAN("ban", true, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION),
-		MUTE("mute", true, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION),
-		KICK("kick", false, SystemProfile.SystemProfileFlags.SystemProfileFlag.HELPER),
-		WARNING("warn", false, SystemProfile.SystemProfileFlags.SystemProfileFlag.HELPER);
+		BAN("ban", true, SystemProfileFlag.MODERATION),
+		MUTE("mute", true, SystemProfileFlag.MODERATION),
+		KICK("kick", false, SystemProfileFlag.HELPER),
+		WARNING("warn", false, SystemProfileFlag.HELPER);
 
 		private String dataHeader;
 		private boolean hasDuration;
-		private SystemProfile.SystemProfileFlags.SystemProfileFlag requiredFlag;
+		private SystemProfileFlag requiredFlag;
 
-		PunishmentType(String dataHeader, boolean hasDuration, SystemProfile.SystemProfileFlags.SystemProfileFlag requiredFlagToApply) {
+		PunishmentType(String dataHeader, boolean hasDuration, SystemProfileFlag requiredFlagToApply) {
 			this.dataHeader = dataHeader;
 			this.hasDuration = hasDuration;
 			this.requiredFlag = requiredFlagToApply;
@@ -118,19 +121,15 @@ public class User extends GameObject {
 			return this.hasDuration;
 		}
 
-		public SystemProfile.SystemProfileFlags.SystemProfileFlag getRequiredFlagToApply() {
+		public SystemProfileFlag getRequiredFlagToApply() {
 			return this.requiredFlag;
 		}
 
 		public static PunishmentType fromDataHeader(String header) {
-			byte b;
-			int i;
-			PunishmentType[] arrayOfPunishmentType;
-			for (i = (arrayOfPunishmentType = values()).length, b = 0; b < i;) {
-				PunishmentType type = arrayOfPunishmentType[b];
-				if (type.getDataHeader().equalsIgnoreCase(header))
+			for(PunishmentType type : values()) {
+				if(type.getDataHeader().equalsIgnoreCase(header)) {
 					return type;
-				b++;
+				}
 			}
 			return null;
 		}
@@ -224,10 +223,10 @@ public class User extends GameObject {
 			player.getInventory().clear();
 			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
 			if (getData("health") != null)
-				player.setHealth(((Double) getData("health")).doubleValue());
+				player.setHealth((double) getData("health"));
 			Document inventory = (Document) getData("inventory");
 			List<String> brokenItems = new ArrayList<>();
-			for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) inventory.entrySet()) {
+			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
 				String[] labels = ((String) entry.getKey()).split(Pattern.quote("-"));
 				String part = labels[0];
 				int slot = Integer.valueOf(labels[1]).intValue();
@@ -265,11 +264,11 @@ public class User extends GameObject {
 		this.questActionIndices = new HashMap<>();
 		this.questPauseStates = new HashMap<>();
 		Document questProgressDoc = (Document) getData("quests");
-		for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) questProgressDoc.entrySet()) {
+		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) questProgressDoc.entrySet()) {
 			Quest quest = questLoader.getQuestByName(entry.getKey());
 			if (quest == null)
 				continue;
-			this.questProgress.put(quest, quest.getSteps().get(((Integer) entry.getValue()).intValue()));
+			this.questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
 			this.questActionIndices.put(quest, Integer.valueOf(0));
 			this.questPauseStates.put(quest, QuestPauseState.NORMAL);
 		}
@@ -303,7 +302,7 @@ public class User extends GameObject {
 		LOGGER.finest("Update user state: " + getName() + " (applyQuestTriggers=" + applyQuestTriggers + ", notify=" + notify + ")");
 		String worldName = this.player.getWorld().getName();
 		boolean privilegedWorld = (!worldName.equals("staff_verification") && !worldName.equals("trials") && !worldName.equalsIgnoreCase("trial-" + this.player.getName()));
-		if (PermissionUtil.verifyActiveProfileFlag(this, SystemProfile.SystemProfileFlags.SystemProfileFlag.TRIAL_BUILD_ONLY, false) && privilegedWorld) {
+		if (PermissionUtil.verifyActiveProfileFlag(this, SystemProfileFlag.TRIAL_BUILD_ONLY, false) && privilegedWorld) {
 			this.player.sendMessage(ChatColor.RED + "Trial builders can only access the trial world!");
 			if (this.cachedLocation.getWorld().getName().equals("trials") || this.cachedLocation.getWorld().getName().equalsIgnoreCase("trial-" + this.player.getName())) {
 				this.player.teleport(this.cachedLocation);
@@ -442,7 +441,7 @@ public class User extends GameObject {
 			debug("- Cancelled quest update because of active dialogue");
 			return;
 		}
-		for (Map.Entry<Quest, QuestStep> questStep : this.questProgress.entrySet()) {
+		for (Entry<Quest, QuestStep> questStep : this.questProgress.entrySet()) {
 			debug("- Step " + ((QuestStep) questStep.getValue()).getStepName() + " of " + ((Quest) questStep.getKey()).getName());
 			if (((QuestStep) questStep.getValue()).getStepName().equalsIgnoreCase("Complete"))
 				continue;
@@ -501,7 +500,7 @@ public class User extends GameObject {
 	}
 
 	public int getQuestActionIndex(Quest quest) {
-		return ((Integer) this.questActionIndices.getOrDefault(quest, Integer.valueOf(0))).intValue();
+		return (int) this.questActionIndices.getOrDefault(quest, Integer.valueOf(0));
 	}
 
 	public void updateQuestProgress(Quest quest, QuestStep questStep) {
@@ -873,15 +872,15 @@ public class User extends GameObject {
 	}
 
 	public double getSavedHealth() {
-		return ((Double) getData("health")).doubleValue();
+		return (double) getData("health");
 	}
 
 	public double getSavedMaxHealth() {
-		return ((Double) getData("maxHealth")).doubleValue();
+		return (double) getData("maxHealth");
 	}
 
 	public double getGold() {
-		return ((Double) getData("gold")).doubleValue();
+		return (double) getData("gold");
 	}
 
 	public void setGold(double gold, boolean notify) {
@@ -942,17 +941,12 @@ public class User extends GameObject {
 		if (this.isOverridingWalkSpeed)
 			return this.player.getWalkSpeed();
 		double speed = instance.getServerOptions().getDefaultWalkSpeed();
-		byte b;
-		int i;
-		ItemStack[] arrayOfItemStack;
-		for (i = (arrayOfItemStack = this.player.getInventory().getArmorContents()).length, b = 0; b < i;) {
-			ItemStack itemStack = arrayOfItemStack[b];
+		for(ItemStack itemStack : player.getInventory().getArmorContents()) {
 			if (itemStack != null) {
-				Item item1 = ItemLoader.fromBukkit(itemStack);
-				if (item1 != null)
-					speed += item1.getSpeedBoost();
+				Item item = ItemLoader.fromBukkit(itemStack);
+				if (item != null)
+					speed += item.getSpeedBoost();
 			}
-			b++;
 		}
 		ItemStack held = this.player.getInventory().getItemInMainHand();
 		Item item = ItemLoader.fromBukkit(held);
@@ -997,7 +991,7 @@ public class User extends GameObject {
 		Long deathTime = (Long) getData("deathTime");
 		if (deathTime == null)
 			return false;
-		int deathCountdown = ((Integer) getData("deathCountdown")).intValue();
+		int deathCountdown = (int) getData("deathCountdown");
 		long now = System.currentTimeMillis();
 		return (deathTime.longValue() + (1000 * deathCountdown) > now);
 	}
@@ -1038,11 +1032,11 @@ public class User extends GameObject {
 	}
 
 	public int getXP() {
-		return ((Integer) getData("xp")).intValue();
+		return (int) getData("xp");
 	}
 
 	public int getLevel() {
-		return ((Integer) getData("level")).intValue();
+		return (int) getData("level");
 	}
 
 	public float getLevelProgress() {
@@ -1142,24 +1136,24 @@ public class User extends GameObject {
 		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
 		this.activePermissionLevel = permissionLevel;
 		SystemProfile.SystemProfileFlags flags = getSystemProfile().getFlags();
-		this.player.addAttachment((Plugin) instance, "worldedit.*", flags.hasFlag(SystemProfile.SystemProfileFlags.SystemProfileFlag.WORLDEDIT));
+		this.player.addAttachment((Plugin) instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		this.player.addAttachment((Plugin) instance, "minecraft.command.teleport",
-				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfile.SystemProfileFlags.SystemProfileFlag.CMD)));
+				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
 		this.player.addAttachment((Plugin) instance, "minecraft.command.tp",
-				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfile.SystemProfileFlags.SystemProfileFlag.CMD)));
+				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
 		this.player.addAttachment((Plugin) instance, "minecraft.command.give",
-				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfile.SystemProfileFlags.SystemProfileFlag.CMD)));
+				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
 		this.player.addAttachment((Plugin) instance, "minecraft.command.summon",
-				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfile.SystemProfileFlags.SystemProfileFlag.CMD)));
+				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
 		this.player.addAttachment((Plugin) instance, "minecraft.command.setworldspawn", (permissionLevel.ordinal() >= PermissionLevel.GM.ordinal()));
-		this.player.setOp(flags.hasFlag(SystemProfile.SystemProfileFlags.SystemProfileFlag.CMD));
+		this.player.setOp(flags.hasFlag(SystemProfileFlag.CMD));
 		sendActionBar(ChatColor.GRAY + "Active permission level changed to " + permissionLevel.toString());
 		updateVanishStatesOnSelf();
 		return true;
 	}
 
 	public int getLastReadChangeLogId() {
-		return ((Integer) getData("lastReadChangeLog")).intValue();
+		return (int) getData("lastReadChangeLog");
 	}
 
 	public List<ChangeLogLoader.ChangeLogEntry> getUnreadChangeLogs() {

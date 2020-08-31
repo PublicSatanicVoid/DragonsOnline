@@ -18,10 +18,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;

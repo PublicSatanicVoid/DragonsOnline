@@ -12,13 +12,13 @@ import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.User.PunishmentData;
 import mc.dragons.core.gameobject.user.User.PunishmentType;
 import mc.dragons.core.util.MathUtil;

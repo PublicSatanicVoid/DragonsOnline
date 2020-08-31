@@ -36,15 +36,15 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.loader.ItemClassLoader;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
+import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -52,13 +52,10 @@ public class PlayerEventListeners implements Listener {
 	public static final String GOLD_CURRENCY_DISPLAY_NAME = ChatColor.RESET + "" + ChatColor.GOLD + "Currency:Gold";
 
 	private Dragons plugin;
-
 	private Logger LOGGER;
 
 	private UserLoader userLoader;
-
 	private ItemClassLoader itemClassLoader;
-
 	private ItemLoader itemLoader;
 
 	private ItemClass[] defaultInventory;
@@ -230,13 +227,8 @@ public class PlayerEventListeners implements Listener {
 			this.plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
 			user = this.userLoader.registerNew(player);
 			user.sendToFloor("BeginnerTown");
-			byte b;
-			int i;
-			ItemClass[] arrayOfItemClass;
-			for (i = (arrayOfItemClass = this.defaultInventory).length, b = 0; b < i;) {
-				ItemClass itemClass = arrayOfItemClass[b];
+			for(ItemClass itemClass : defaultInventory) {
 				user.giveItem(this.itemLoader.registerNew(itemClass), true, false, true);
-				b++;
 			}
 		}
 		User.PunishmentData banData = user.getActivePunishmentData(User.PunishmentType.BAN);

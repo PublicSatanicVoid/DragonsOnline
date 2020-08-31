@@ -11,27 +11,18 @@ import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import net.md_5.bungee.api.ChatColor;
 
 public class CustomLayout extends AbstractStringLayout {
-	private boolean hideEmpty = true;
-
-	private boolean hideMinecraft = true;
-
-	private boolean truncatePackageNames = true;
-
-	private boolean specialPackageNames = true;
-
-	private String formatWithLogger = "[%t %l] [%s] %m";
-
-	private String formatWithoutLogger = "[%t %l] %m";
-
 	private final String DAY_PATTERN = Pattern.quote("%d");
-
 	private final String TIME_PATTERN = Pattern.quote("%t");
-
 	private final String LEVEL_PATTERN = Pattern.quote("%l");
-
 	private final String SOURCE_PATTERN = Pattern.quote("%s");
-
 	private final String MESSAGE_PATTERN = Pattern.quote("%m");
+	
+	private boolean hideEmpty = true;
+	private boolean hideMinecraft = true;
+	private boolean truncatePackageNames = true;
+	private boolean specialPackageNames = true;
+	private String formatWithLogger = "[%t %l] [%s] %m";
+	private String formatWithoutLogger = "[%t %l] %m";
 
 	public CustomLayout(Charset charset) {
 		super(charset);
@@ -80,14 +71,9 @@ public class CustomLayout extends AbstractStringLayout {
 			message = String.valueOf(message) + "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName,
 					String.valueOf(buf.getClass().getName()) + ": " + buf.getMessage());
 			while (buf != null) {
-				byte b;
-				int i;
-				StackTraceElement[] arrayOfStackTraceElement;
-				for (i = (arrayOfStackTraceElement = buf.getStackTrace()).length, b = 0; b < i;) {
-					StackTraceElement elem = arrayOfStackTraceElement[b];
+				for(StackTraceElement elem : buf.getStackTrace()) {
 					message = String.valueOf(message) + "\n"
 							+ format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "    " + elem.toString());
-					b++;
 				}
 				buf = buf.getCause();
 				if (buf != null)

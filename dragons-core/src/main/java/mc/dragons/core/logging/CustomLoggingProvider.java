@@ -13,9 +13,9 @@ public class CustomLoggingProvider {
 	public static void enableCustomLogging() {
 		Dragons.getInstance().getLogger().info("Switching to custom logging system...");
 		Logger logger = (Logger) LogManager.getRootLogger();
-		for (Appender appender1 : logger.getAppenders().values()) {
-			if (appender1.getName().equals("TerminalConsole"))
-				logger.removeAppender(appender1);
+		for (Appender appender : logger.getAppenders().values()) {
+			if (appender.getName().equals("TerminalConsole"))
+				logger.removeAppender(appender);
 		}
 		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", new LogFilter(), new CustomLayout(Charset.defaultCharset()), false);
 		appender.initialize();

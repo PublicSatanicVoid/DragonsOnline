@@ -1,5 +1,19 @@
 package mc.dragons.core.util;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Map;
+
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.plugin.Plugin;
+
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -10,18 +24,6 @@ import com.comphenix.protocol.events.PacketListener;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Map;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.plugin.Plugin;
 
 public class EntityHider implements Listener {
 	protected Table<Integer, Integer, Boolean> observerEntityMap = HashBasedTable.create();
@@ -99,14 +101,10 @@ public class EntityHider implements Listener {
 
 			@EventHandler
 			public void onChunkUnload(ChunkUnloadEvent e) {
-				byte b;
-				int i;
-				Entity[] arrayOfEntity;
-				for (i = (arrayOfEntity = e.getChunk().getEntities()).length, b = 0; b < i;) {
-					Entity entity = arrayOfEntity[b];
+				for(Entity entity : e.getChunk().getEntities()) {
 					EntityHider.this.removeEntity(entity, false);
-					b++;
 				}
+
 			}
 
 			@EventHandler
@@ -120,7 +118,7 @@ public class EntityHider implements Listener {
 		return new PacketAdapter(plugin, ENTITY_PACKETS) {
 			public void onPacketSending(PacketEvent event) {
 				int index = (event.getPacketType() == PacketType.Play.Server.COMBAT_EVENT) ? 1 : 0;
-				Integer entityID = (Integer) event.getPacket().getIntegers().readSafely(index);
+				Integer entityID = event.getPacket().getIntegers().readSafely(index);
 				if (entityID != null && !EntityHider.this.isVisible(event.getPlayer(), entityID.intValue()))
 					event.setCancelled(true);
 			}
@@ -173,7 +171,7 @@ public class EntityHider implements Listener {
 	public void close() {
 		if (this.manager != null) {
 			HandlerList.unregisterAll(this.bukkitListener);
-			this.manager.removePacketListener((PacketListener) this.protocolListener);
+			this.manager.removePacketListener(this.protocolListener);
 			this.manager = null;
 		}
 	}

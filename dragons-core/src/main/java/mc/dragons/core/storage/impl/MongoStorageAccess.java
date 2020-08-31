@@ -1,6 +1,6 @@
 package mc.dragons.core.storage.impl;
 
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.bson.Document;
@@ -12,9 +12,7 @@ import mc.dragons.core.storage.StorageAccess;
 
 public class MongoStorageAccess implements StorageAccess {
 	private Identifier identifier;
-
 	private Document document;
-
 	private MongoCollection<Document> collection;
 
 	public MongoStorageAccess(Identifier identifier, Document document, MongoCollection<Document> collection) {
@@ -39,7 +37,7 @@ public class MongoStorageAccess implements StorageAccess {
 		return this.document.get(key);
 	}
 
-	public Set<Map.Entry<String, Object>> getAll() {
+	public Set<Entry<String, Object>> getAll() {
 		return this.document.entrySet();
 	}
 

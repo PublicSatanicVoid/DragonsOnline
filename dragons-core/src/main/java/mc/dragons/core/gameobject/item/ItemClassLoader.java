@@ -1,18 +1,21 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.item;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.storage.StorageAccess;
-import mc.dragons.core.storage.StorageManager;
+
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.storage.StorageAccess;
+import mc.dragons.core.storage.StorageManager;
 
 public class ItemClassLoader extends GameObjectLoader<ItemClass> {
 	private static ItemClassLoader INSTANCE;

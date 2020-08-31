@@ -8,12 +8,12 @@ import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.gameobject.loader.GameObjectRegistry;
-import mc.dragons.core.gameobject.loader.UserLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.impl.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;

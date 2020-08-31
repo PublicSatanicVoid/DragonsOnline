@@ -1,8 +1,7 @@
 package mc.dragons.core.events;
 
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.util.StringUtil;
+
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,8 +11,15 @@ import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 
+import mc.dragons.core.Dragons;
+import mc.dragons.core.util.StringUtil;
+
 public class WorldEventListeners implements Listener {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private Logger LOGGER;
+	
+	public WorldEventListeners(Dragons instance) {
+		LOGGER = instance.getLogger();
+	}
 
 	@EventHandler
 	public void onLeavesDecay(LeavesDecayEvent event) {

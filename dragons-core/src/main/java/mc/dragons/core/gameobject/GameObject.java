@@ -2,11 +2,13 @@ package mc.dragons.core.gameobject;
 
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import org.bson.Document;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import org.bson.Document;
 
 public abstract class GameObject {
 	protected static Logger LOGGER = Dragons.getInstance().getLogger();

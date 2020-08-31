@@ -1,6 +1,6 @@
 package mc.dragons.core.gameobject.npc;
 
-import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,9 +22,8 @@ import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.GameObjectRegistry;
-import mc.dragons.core.gameobject.loader.NPCClassLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.EntityHider;
@@ -127,8 +126,8 @@ public class NPC extends GameObject {
 			this.entity.getVehicle().eject();
 		if (this.entity instanceof Attributable) {
 			Attributable att = (Attributable) this.entity;
-			for (Map.Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet())
-				att.getAttribute(a.getKey()).setBaseValue(((Double) a.getValue()).doubleValue());
+			for (Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet())
+				att.getAttribute(a.getKey()).setBaseValue((double) a.getValue());
 		}
 		Material heldItemType = getNPCClass().getHeldItemType();
 		if (heldItemType != null)
@@ -245,7 +244,7 @@ public class NPC extends GameObject {
 	}
 
 	public int getLevel() {
-		return ((Integer) getData("level")).intValue();
+		return (int) getData("level");
 	}
 
 	public void setTarget(LivingEntity target) {

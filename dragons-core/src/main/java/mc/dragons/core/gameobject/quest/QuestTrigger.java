@@ -5,24 +5,27 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.loader.ItemClassLoader;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.NPCClassLoader;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCClass;
-import mc.dragons.core.gameobject.region.Region;
-import mc.dragons.core.gameobject.user.User;
+import java.util.Map.Entry;
+
 import org.bson.Document;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
+
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.Item;
+import mc.dragons.core.gameobject.item.ItemClass;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
+import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCClass;
+import mc.dragons.core.gameobject.npc.NPCClassLoader;
+import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.user.User;
 
 public class QuestTrigger {
 	private static RegionLoader regionLoader;
@@ -172,15 +175,15 @@ public class QuestTrigger {
 		case KILL_NPC:
 			npcClassDeferredLoad();
 			document.append("npcClass", this.npcClass.getClassName());
-			document.append("quantity", Integer.valueOf(this.quantity));
+			document.append("quantity", this.quantity);
 			break;
 		case HAS_ITEM:
 			document.append("itemClass", this.itemClass.getClassName()).append("quantity", Integer.valueOf(this.quantity));
 			break;
 		case BRANCH_CONDITIONAL:
 			conditions = new ArrayList<>();
-			for (Map.Entry<QuestTrigger, QuestAction> entry : this.branchPoints.entrySet())
-				conditions.add((new Document("trigger", ((QuestTrigger) entry.getKey()).toDocument())).append("action", ((QuestAction) entry.getValue()).toDocument()));
+			for (Entry<QuestTrigger, QuestAction> entry : this.branchPoints.entrySet())
+				conditions.add((new Document("trigger", entry.getKey().toDocument()).append("action", entry.getValue().toDocument())));
 			document.append("branchPoints", conditions);
 			break;
 
@@ -202,15 +205,10 @@ public class QuestTrigger {
 		if (this.type == TriggerType.HAS_ITEM) {
 			user.debug(" [ - Testing if has item " + this.itemClass.getClassName());
 			int has = 0;
-			byte b;
-			int i;
-			ItemStack[] arrayOfItemStack;
-			for (i = (arrayOfItemStack = user.getPlayer().getInventory().getContents()).length, b = 0; b < i;) {
-				ItemStack itemStack = arrayOfItemStack[b];
+			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
 				Item item = ItemLoader.fromBukkit(itemStack);
 				if (item != null && item.getClassName().equals(this.itemClass.getClassName()))
-					has += itemStack.getAmount();
-				b++;
+					has += itemStack.getAmount();	
 			}
 			user.debug("    [ - has " + has + " vs. needs " + this.quantity);
 			return (has >= this.quantity);
@@ -250,16 +248,16 @@ public class QuestTrigger {
 				if (npc == null)
 					return false;
 				if (npc.getNPCClass().equals(this.npcClass)) {
-					this.killQuantity.put(user, Integer.valueOf(((Integer) this.killQuantity.getOrDefault(user, Integer.valueOf(0))).intValue() + 1));
-					if (((Integer) this.killQuantity.getOrDefault(user, Integer.valueOf(0))).intValue() >= this.quantity)
+					this.killQuantity.put(user, Integer.valueOf((int) this.killQuantity.getOrDefault(user, Integer.valueOf(0)) + 1));
+					if (this.killQuantity.getOrDefault(user, 0) >= this.quantity)
 						return true;
 				}
 			}
 		}
 		if (this.type == TriggerType.BRANCH_CONDITIONAL)
-			for (Map.Entry<QuestTrigger, QuestAction> conditional : this.branchPoints.entrySet()) {
-				if (((QuestTrigger) conditional.getKey()).test(user, event)) {
-					((QuestAction) conditional.getValue()).execute(user);
+			for (Entry<QuestTrigger, QuestAction> conditional : this.branchPoints.entrySet()) {
+				if (conditional.getKey().test(user, event)) {
+					conditional.getValue().execute(user);
 					return true;
 				}
 			}

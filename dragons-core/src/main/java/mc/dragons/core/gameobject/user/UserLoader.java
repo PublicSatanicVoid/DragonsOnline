@@ -1,4 +1,4 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.user;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,11 +18,9 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.user.ChatChannel;
-import mc.dragons.core.gameobject.user.Rank;
-import mc.dragons.core.gameobject.user.SkillType;
-import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import net.md_5.bungee.api.ChatColor;
@@ -112,14 +110,9 @@ public class UserLoader extends GameObjectLoader<User> {
 		LOGGER.fine("Registering new user " + player.getName());
 		Document skills = new Document();
 		Document skillProgress = new Document();
-		byte b;
-		int i;
-		SkillType[] arrayOfSkillType;
-		for (i = (arrayOfSkillType = SkillType.values()).length, b = 0; b < i;) {
-			SkillType skill = arrayOfSkillType[b];
+		for(SkillType skill : SkillType.values()) {
 			skills.append(skill.toString(), Integer.valueOf(0));
 			skillProgress.append(skill.toString(), Double.valueOf(0.0D));
-			b++;
 		}
 		Document data = (new Document("_id", player.getUniqueId())).append("username", player.getName())
 				.append("maxHealth", Double.valueOf(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())).append("xp", Integer.valueOf(0)).append("level", Integer.valueOf(1))

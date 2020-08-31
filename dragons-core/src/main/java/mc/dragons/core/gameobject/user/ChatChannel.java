@@ -1,7 +1,8 @@
 package mc.dragons.core.gameobject.user;
 
+import org.bukkit.ChatColor;
+
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.user.channel_handlers.AlvadorChannelHandler;
 import mc.dragons.core.gameobject.user.channel_handlers.HelpChannelHandler;
 import mc.dragons.core.gameobject.user.channel_handlers.LocalChannelHandler;
@@ -10,7 +11,6 @@ import mc.dragons.core.gameobject.user.channel_handlers.TradeChannelHandler;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.ChatColor;
 
 public enum ChatChannel {
 	ALVADOR("A", "Global chat for all of Alvador", (ChannelHandler) new AlvadorChannelHandler()), LOCAL("L", "Local chat for your current floor", (ChannelHandler) new LocalChannelHandler()),
@@ -18,9 +18,7 @@ public enum ChatChannel {
 	HELP("H", "Global chat to ask for help", (ChannelHandler) new HelpChannelHandler()), STAFF("S", "Staff-only channel", (ChannelHandler) new StaffChannelHandler());
 
 	private String abbreviation;
-
 	private String description;
-
 	private ChannelHandler handler;
 
 	ChatChannel(String abbreviation, String description, ChannelHandler handler) {
@@ -74,14 +72,10 @@ public enum ChatChannel {
 	}
 
 	public static ChatChannel parse(String str) {
-		byte b;
-		int i;
-		ChatChannel[] arrayOfChatChannel;
-		for (i = (arrayOfChatChannel = values()).length, b = 0; b < i;) {
-			ChatChannel ch = arrayOfChatChannel[b];
-			if (str.equalsIgnoreCase(ch.toString()) || str.equalsIgnoreCase(ch.getAbbreviation()))
+		for(ChatChannel ch : values()) {
+			if(ch.toString().equalsIgnoreCase(str) || ch.getAbbreviation().equalsIgnoreCase(str)) {
 				return ch;
-			b++;
+			}
 		}
 		return null;
 	}

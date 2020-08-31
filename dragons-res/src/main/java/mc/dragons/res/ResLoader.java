@@ -26,8 +26,8 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;

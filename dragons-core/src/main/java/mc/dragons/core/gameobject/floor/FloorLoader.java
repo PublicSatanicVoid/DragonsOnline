@@ -1,4 +1,4 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.floor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,8 +10,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 

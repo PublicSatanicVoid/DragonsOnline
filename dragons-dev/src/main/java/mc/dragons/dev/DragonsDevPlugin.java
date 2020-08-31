@@ -17,7 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.floor.Floor;
-import mc.dragons.core.gameobject.loader.FloorLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 
 public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 	

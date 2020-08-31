@@ -9,15 +9,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.QuestLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.quest.Quest;
+import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.PermissionUtil;
 
 public class ReloadObjectsCommands implements CommandExecutor  {

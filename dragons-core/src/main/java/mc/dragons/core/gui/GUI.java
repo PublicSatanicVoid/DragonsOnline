@@ -4,17 +4,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import mc.dragons.core.gameobject.user.User;
+import java.util.Map.Entry;
+
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
+import mc.dragons.core.gameobject.user.User;
+
 public class GUI {
 	private Map<Integer, GUIElement> elements;
-
 	private int rows;
-
 	private String name;
 
 	public GUI(int rows, String menuName) {
@@ -42,8 +43,8 @@ public class GUI {
 
 	public void open(User user) {
 		Inventory inventory = Bukkit.createInventory((InventoryHolder) user.getPlayer(), this.rows * 9, this.name);
-		for (Map.Entry<Integer, GUIElement> element : this.elements.entrySet())
-			inventory.setItem(((Integer) element.getKey()).intValue(), ((GUIElement) element.getValue()).getItemStack());
+		for (Entry<Integer, GUIElement> element : this.elements.entrySet())
+			inventory.setItem((int) element.getKey(), ((GUIElement) element.getValue()).getItemStack());
 		user.openGUI(this, inventory);
 	}
 
@@ -59,7 +60,7 @@ public class GUI {
 	public Document toDocument() {
 		Document document = (new Document("name", this.name)).append("rows", Integer.valueOf(this.rows));
 		List<Document> items = new ArrayList<>();
-		for (Map.Entry<Integer, GUIElement> element : this.elements.entrySet())
+		for (Entry<Integer, GUIElement> element : this.elements.entrySet())
 			items.add(((GUIElement) element.getValue()).toDocument());
 		document.append("items", items);
 		return document;

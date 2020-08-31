@@ -12,9 +12,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.tasks.LagMeter;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.PermissionUtil;

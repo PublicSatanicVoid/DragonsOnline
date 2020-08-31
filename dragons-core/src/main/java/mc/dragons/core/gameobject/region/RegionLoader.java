@@ -1,4 +1,4 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.region;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,17 +6,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import org.bson.Document;
+import org.bukkit.Location;
+import org.bukkit.World;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.StringUtil;
-import org.bson.Document;
-import org.bukkit.Location;
-import org.bukkit.World;
 
 public class RegionLoader extends GameObjectLoader<Region> {
 	private static RegionLoader INSTANCE;

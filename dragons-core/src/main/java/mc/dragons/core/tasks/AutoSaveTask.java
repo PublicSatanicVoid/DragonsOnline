@@ -1,10 +1,11 @@
 package mc.dragons.core.tasks;
 
+import org.bukkit.scheduler.BukkitRunnable;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.GameObjectRegistry;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class AutoSaveTask extends BukkitRunnable {
 	private Dragons plugin;

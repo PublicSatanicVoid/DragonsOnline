@@ -2,9 +2,12 @@ package mc.dragons.core.storage.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.bson.Document;
+
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
-import org.bson.Document;
 
 public class SystemProfile {
 	private String profileName;
@@ -25,14 +28,10 @@ public class SystemProfile {
 			}
 
 			public static SystemProfileFlag parse(String str) {
-				byte b;
-				int i;
-				SystemProfileFlag[] arrayOfSystemProfileFlag;
-				for (i = (arrayOfSystemProfileFlag = values()).length, b = 0; b < i;) {
-					SystemProfileFlag flag = arrayOfSystemProfileFlag[b];
-					if (flag.getName().equalsIgnoreCase(str))
+				for(SystemProfileFlag flag : values()) {
+					if(flag.getName().equalsIgnoreCase(str)) {
 						return flag;
-					b++;
+					}
 				}
 				return null;
 			}
@@ -44,20 +43,15 @@ public class SystemProfile {
 
 		public static Document emptyFlagsDocument() {
 			Document document = new Document();
-			byte b;
-			int i;
-			SystemProfileFlag[] arrayOfSystemProfileFlag;
-			for (i = (arrayOfSystemProfileFlag = SystemProfileFlag.values()).length, b = 0; b < i;) {
-				SystemProfileFlag flag = arrayOfSystemProfileFlag[b];
+			for(SystemProfileFlag flag : SystemProfileFlag.values()) {
 				document.append(flag.toString(), Boolean.valueOf(false));
-				b++;
 			}
 			return document;
 		}
 
 		public SystemProfileFlags(Document flags) {
 			this.flags = new HashMap<>();
-			for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) flags.entrySet())
+			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) flags.entrySet())
 				this.flags.put(SystemProfileFlag.valueOf(entry.getKey()), Boolean.valueOf(((Boolean) entry.getValue()).booleanValue()));
 		}
 
@@ -71,7 +65,7 @@ public class SystemProfile {
 
 		public String toString() {
 			String result = "";
-			for (Map.Entry<SystemProfileFlag, Boolean> flag : this.flags.entrySet())
+			for (Entry<SystemProfileFlag, Boolean> flag : this.flags.entrySet())
 				result = String.valueOf(result) + ((SystemProfileFlag) flag.getKey()).getName() + "(" + flagToAccess(((Boolean) flag.getValue()).booleanValue()) + ") ";
 			return result.trim();
 		}

@@ -2,31 +2,30 @@ package mc.dragons.core.gameobject.region;
 
 import java.util.HashMap;
 import java.util.Map;
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.floor.Floor;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.storage.StorageAccess;
-import mc.dragons.core.storage.StorageManager;
-import mc.dragons.core.storage.StorageUtil;
+import java.util.Map.Entry;
+
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.floor.Floor;
+import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.core.storage.StorageAccess;
+import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.storage.StorageUtil;
+
 public class Region extends GameObject {
 	private CachedRegionData regionData;
-
 	private Floor floor;
 
 	private class CachedRegionData {
 		private Location min;
-
 		private Location max;
-
 		private double area;
-
 		private Map<String, Double> spawnRates;
 
 		public CachedRegionData(StorageAccess storageAccess) {
@@ -39,8 +38,8 @@ public class Region extends GameObject {
 			this.max = Vector.getMaximum(vec1, vec2).toLocation(world);
 			this.area = (this.max.getX() - this.min.getX()) * (this.max.getZ() - this.min.getZ());
 			this.spawnRates = new HashMap<>();
-			for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) ((Document) Region.this.getData("spawnRates")).entrySet())
-				this.spawnRates.put(entry.getKey(), Double.valueOf(((Double) entry.getValue()).doubleValue()));
+			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) ((Document) Region.this.getData("spawnRates")).entrySet())
+				this.spawnRates.put(entry.getKey(), Double.valueOf((double) entry.getValue()));
 		}
 
 		public Location getMin() {
@@ -99,9 +98,9 @@ public class Region extends GameObject {
 	}
 
 	public double getSpawnRate(String npcClass) {
-		for (Map.Entry<String, Double> entry : this.regionData.getSpawnRates().entrySet()) {
+		for (Entry<String, Double> entry : this.regionData.getSpawnRates().entrySet()) {
 			if (((String) entry.getKey()).equalsIgnoreCase(npcClass))
-				return ((Double) entry.getValue()).doubleValue();
+				return (double) entry.getValue();
 		}
 		return 0.0D;
 	}

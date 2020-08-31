@@ -1,20 +1,22 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.npc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCClass;
-import mc.dragons.core.gameobject.npc.NPCConditionalActions;
-import mc.dragons.core.storage.StorageAccess;
-import mc.dragons.core.storage.StorageManager;
+
 import org.bson.Document;
 import org.bukkit.entity.EntityType;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
+import mc.dragons.core.storage.StorageAccess;
+import mc.dragons.core.storage.StorageManager;
 
 public class NPCClassLoader extends GameObjectLoader<NPCClass> {
 	private static NPCClassLoader INSTANCE;
@@ -64,13 +66,8 @@ public class NPCClassLoader extends GameObjectLoader<NPCClass> {
 		lazyLoadAll();
 		this.LOGGER.fine("Registering new NPC class (" + className + ")");
 		Document emptyConditionals = new Document();
-		byte b;
-		int i;
-		NPCConditionalActions.NPCTrigger[] arrayOfNPCTrigger;
-		for (i = (arrayOfNPCTrigger = NPCConditionalActions.NPCTrigger.values()).length, b = 0; b < i;) {
-			NPCConditionalActions.NPCTrigger trigger = arrayOfNPCTrigger[b];
+		for(NPCTrigger trigger : NPCTrigger.values()) {
 			emptyConditionals.append(trigger.toString(), new ArrayList<>());
-			b++;
 		}
 		Document data = (new Document("_id", UUID.randomUUID())).append("className", className).append("name", name).append("entityType", entityType.toString())
 				.append("maxHealth", Double.valueOf(maxHealth)).append("level", Integer.valueOf(level)).append("ai", Boolean.valueOf(npcType.hasAIByDefault()))

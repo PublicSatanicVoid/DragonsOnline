@@ -1,9 +1,9 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.structure;
 
 import java.util.logging.Logger;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.structure.Structure;
+import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 

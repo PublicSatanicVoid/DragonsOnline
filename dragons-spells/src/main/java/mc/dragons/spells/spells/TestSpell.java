@@ -10,8 +10,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.NPCLoader;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 
 public class TestSpell extends Spell {

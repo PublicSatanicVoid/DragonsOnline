@@ -7,18 +7,19 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.user.PermissionLevel;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.storage.impl.SystemProfile;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.user.PermissionLevel;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.storage.impl.SystemProfile;
+
 public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile> {
 	private Set<SystemProfile> profiles;
-
 	private Logger LOGGER;
 
 	public SystemProfileLoader(Dragons instance) {

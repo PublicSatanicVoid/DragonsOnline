@@ -1,16 +1,14 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageManager;
 
 public class GameObjectRegistry {
 	protected Dragons plugin;
-
 	protected StorageManager storageManager;
 
 	protected Set<GameObject> registeredObjects;
@@ -31,12 +29,10 @@ public class GameObjectRegistry {
 
 	public Set<GameObject> getRegisteredObjects(GameObjectType... types) {
 		return (Set<GameObject>) this.registeredObjects.stream().filter(obj -> {
-			GameObjectType[] arrayOfGameObjectType;
-			int i = (arrayOfGameObjectType = types).length;
-			for (byte b = 0; b < i; b++) {
-				GameObjectType type = arrayOfGameObjectType[b];
-				if (type == obj.getType())
+			for(GameObjectType type : types) {
+				if(type == obj.getType()) {
 					return true;
+				}
 			}
 			return false;
 		}).collect(Collectors.toSet());

@@ -15,14 +15,13 @@ import org.bukkit.scoreboard.Team;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
 
 public class SidebarManager {
 	private Dragons instance;
-
+	
 	private Map<Player, Map<String, Integer>> scoreboardScrollIndices = new HashMap<>();
 
 	public SidebarManager(Dragons instance) {

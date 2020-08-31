@@ -13,9 +13,7 @@ import mc.dragons.core.storage.impl.MongoConfig;
 public class FeedbackLoader extends AbstractLightweightLoader<FeedbackLoader.FeedbackEntry> {
 	public static class FeedbackEntry {
 		private int id;
-
 		private String from;
-
 		private String feedback;
 
 		public FeedbackEntry(int id, String from, String feedback) {

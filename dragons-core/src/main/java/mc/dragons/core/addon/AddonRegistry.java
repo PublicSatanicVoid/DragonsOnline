@@ -3,6 +3,7 @@ package mc.dragons.core.addon;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
 import mc.dragons.core.Dragons;
 
 public class AddonRegistry {

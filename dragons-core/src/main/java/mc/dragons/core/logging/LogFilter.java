@@ -13,7 +13,6 @@ import mc.dragons.core.Dragons;
 
 public class LogFilter implements Filter {
 	private LifeCycle.State state;
-
 	private boolean hideDebugFromOtherLoggers = true;
 
 	public static Level fromLog4j(org.apache.logging.log4j.Level level) {

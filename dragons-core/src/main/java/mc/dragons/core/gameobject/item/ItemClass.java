@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.ItemAddon;
 import mc.dragons.core.gameobject.GameObject;
@@ -15,8 +19,6 @@ import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.HiddenStringUtil;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 
 public class ItemClass extends GameObject {
 	private List<ItemAddon> addons;
@@ -123,7 +125,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public int getLevelMin() {
-		return ((Integer) getData("lvMin")).intValue();
+		return (int) getData("lvMin");
 	}
 
 	public void setLevelMin(int lvMin) {
@@ -131,7 +133,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public double getCooldown() {
-		return ((Double) getData("cooldown")).doubleValue();
+		return (double) getData("cooldown");
 	}
 
 	public void setCooldown(double cooldown) {
@@ -155,7 +157,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public double getDamage() {
-		return ((Double) getData("damage")).doubleValue();
+		return (double) getData("damage");
 	}
 
 	public void setDamage(double damage) {
@@ -163,7 +165,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public double getArmor() {
-		return ((Double) getData("armor")).doubleValue();
+		return (double) getData("armor");
 	}
 
 	public void setArmor(double armor) {
@@ -171,7 +173,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public double getSpeedBoost() {
-		return ((Double) getData("speedBoost")).doubleValue();
+		return (double) getData("speedBoost");
 	}
 
 	public void setSpeedBoost(double speedBoost) {
@@ -188,7 +190,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public int getMaxStackSize() {
-		return ((Integer) getData("maxStackSize")).intValue();
+		return (int) getData("maxStackSize");
 	}
 
 	public void setMaxStackSize(int maxStackSize) {

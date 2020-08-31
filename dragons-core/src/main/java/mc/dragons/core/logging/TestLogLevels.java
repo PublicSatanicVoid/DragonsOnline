@@ -91,13 +91,8 @@ public class TestLogLevels {
 
 	private static void logOnAllLevels(Logger logger) {
 		System.out.println("------ Logging on all levels");
-		byte b;
-		int i;
-		Level[] arrayOfLevel;
-		for (i = (arrayOfLevel = LEVEL_VALUES).length, b = 0; b < i;) {
-			Level level = arrayOfLevel[b];
+		for(Level level : LEVEL_VALUES) {
 			logger.log(level, "A message with level " + level.getName());
-			b++;
 		}
 		System.out.println("------");
 	}

@@ -1,16 +1,15 @@
 package mc.dragons.core.gameobject;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.gameobject.loader.GameObjectLoader;
-import mc.dragons.core.gameobject.loader.ItemClassLoader;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.NPCClassLoader;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.QuestLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.StructureLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
+import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.npc.NPCClassLoader;
+import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.quest.QuestLoader;
+import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.structure.StructureLoader;
+import mc.dragons.core.gameobject.user.UserLoader;
 
 public enum GameObjectType {
 	USER(UserLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
@@ -35,14 +34,8 @@ public enum GameObjectType {
 	}
 
 	public static GameObjectType get(String type) {
-		byte b;
-		int i;
-		GameObjectType[] arrayOfGameObjectType;
-		for (i = (arrayOfGameObjectType = values()).length, b = 0; b < i;) {
-			GameObjectType objType = arrayOfGameObjectType[b];
-			if (objType.toString().equalsIgnoreCase(type))
-				return objType;
-			b++;
+		for(GameObjectType objType : values()) {
+			if(objType.toString().equalsIgnoreCase(type)) return objType;
 		}
 		return null;
 	}

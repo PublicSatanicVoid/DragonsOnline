@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
@@ -22,14 +23,14 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.loader.ItemClassLoader;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.NPCClassLoader;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
+import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCClass;
+import mc.dragons.core.gameobject.npc.NPCClassLoader;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
@@ -307,7 +308,7 @@ public class QuestAction {
 			document.append("waitTime", Integer.valueOf(this.waitTime));
 		case CHOICES:
 			choices = new ArrayList<>();
-			for (Map.Entry<String, Integer> choice : this.choices.entrySet())
+			for (Entry<String, Integer> choice : this.choices.entrySet())
 				choices.add((new Document("choice", choice.getKey())).append("stage", choice.getValue()));
 			document.append("choices", choices);
 			break;
@@ -435,20 +436,18 @@ public class QuestAction {
 					}
 					if (this.action == QuestActionType.TAKE_ITEM) {
 						int remaining = this.quantity;
-						byte b;
-						int i;
-						ItemStack[] arrayOfItemStack;
-						for (i = (arrayOfItemStack = user.getPlayer().getInventory().getContents()).length, b = 0; b < i;) {
-							ItemStack itemStack = arrayOfItemStack[b];
+						for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
 							Item item = ItemLoader.fromBukkit(itemStack);
-							if (item != null && item.getClassName().equals(this.itemClass.getClassName())) {
-								int removeAmount = Math.min(remaining, item.getQuantity());
-								user.takeItem(item, removeAmount, true, true, false);
-								remaining -= item.getQuantity();
-								if (remaining <= 0)
-									return new QuestActionResult(false, false);
+							if (item != null) {
+								if(item.getClassName().equals(this.itemClass.getClassName())) {							
+									int removeAmount = Math.min(remaining, item.getQuantity());
+									user.takeItem(item, removeAmount, true, true, false);
+									remaining -= item.getQuantity();
+									if (remaining <= 0)
+										return new QuestActionResult(false, false);
+								}
 							}
-							b++;
+
 						}
 					} else if (this.action == QuestActionType.GIVE_ITEM) {
 						Item item = itemLoader.registerNew(this.itemClass);
@@ -461,7 +460,6 @@ public class QuestAction {
 					} else if (this.action == QuestActionType.COMPLETION_HEADER) {
 						(new BukkitRunnable() {
 							private float pitch = 1.0F;
-
 							public void run() {
 								user.getPlayer().playSound(user.getPlayer().getLocation(), Sound.BLOCK_NOTE_BASS, 1.0F, this.pitch);
 								this.pitch = (float) (this.pitch + 0.05D);
@@ -488,7 +486,7 @@ public class QuestAction {
 						}
 						if (this.action == QuestActionType.CHOICES) {
 							user.getPlayer().sendMessage(" ");
-							for (Map.Entry<String, Integer> choice : this.choices.entrySet()) {
+							for (Entry<String, Integer> choice : this.choices.entrySet()) {
 								TextComponent choiceMessage = new TextComponent(ChatColor.YELLOW + " • " + ChatColor.GRAY + (String) choice.getKey());
 								choiceMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 										(new ComponentBuilder(ChatColor.YELLOW + "Click to respond\n")).append(ChatColor.GRAY + "Quest: " + ChatColor.RESET + this.quest.getQuestName() + "\n")

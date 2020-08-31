@@ -1,16 +1,17 @@
 package mc.dragons.core.storage.impl;
 
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+
+import org.bson.Document;
+
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
-import org.bson.Document;
 
 public class LocalStorageAccess implements StorageAccess {
 	private Document data;
-
 	private Identifier id;
 
 	public LocalStorageAccess(Identifier identifier, Document data) {
@@ -39,7 +40,7 @@ public class LocalStorageAccess implements StorageAccess {
 		return this.data.get(key);
 	}
 
-	public Set<Map.Entry<String, Object>> getAll() {
+	public Set<Entry<String, Object>> getAll() {
 		return this.data.entrySet();
 	}
 

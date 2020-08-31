@@ -15,13 +15,9 @@ import mc.dragons.core.storage.impl.MongoConfig;
 public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.ChangeLogEntry> {
 	public static class ChangeLogEntry {
 		private int id;
-
 		private String date;
-
 		private String by;
-
 		private String title;
-
 		private List<String> changelog;
 
 		public ChangeLogEntry(int id, String date, String by, String title, List<String> changelog) {

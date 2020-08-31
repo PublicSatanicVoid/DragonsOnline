@@ -19,9 +19,9 @@ import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.npcs.ComplexAddon;
 import mc.dragons.npcs.DragonsNPCAddons;
 import mc.dragons.npcs.util.NPCUtil;

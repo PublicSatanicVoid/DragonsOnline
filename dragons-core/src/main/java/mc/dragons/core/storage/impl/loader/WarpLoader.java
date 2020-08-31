@@ -15,7 +15,6 @@ public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> 
 
 	public static class WarpEntry {
 		private String warpName;
-
 		private Location location;
 
 		public WarpEntry(String warpName, Location location) {

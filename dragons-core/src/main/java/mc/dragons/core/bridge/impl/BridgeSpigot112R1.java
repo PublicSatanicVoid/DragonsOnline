@@ -1,19 +1,21 @@
 package mc.dragons.core.bridge.impl;
 
-import io.github.bananapuncher714.nbteditor.NBTEditor;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.bridge.Bridge;
-import mc.dragons.core.util.StringUtil;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_12_R1.AxisAlignedBB;
+
 import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import io.github.bananapuncher714.nbteditor.NBTEditor;
+import mc.dragons.core.Dragons;
+import mc.dragons.core.bridge.Bridge;
+import mc.dragons.core.util.StringUtil;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.minecraft.server.v1_12_R1.AxisAlignedBB;
 
 public class BridgeSpigot112R1 implements Bridge {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
@@ -44,12 +46,12 @@ public class BridgeSpigot112R1 implements Bridge {
 	}
 
 	public void setEntityAI(Entity entity, boolean ai) {
-		NBTEditor.set(entity, Byte.valueOf((byte) (!ai ? 1 : 0)), new Object[] { "NoAI" });
+		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), new Object[] { "NoAI" });
 		this.LOGGER.finest("Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
 
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {
-		NBTEditor.set(itemStack, Integer.valueOf(unbreakable ? 1 : 0), new Object[] { "Unbreakable" });
+		NBTEditor.set(itemStack, unbreakable ? 1 : 0, new Object[] { "Unbreakable" });
 		this.LOGGER.finest("Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
 	}
 

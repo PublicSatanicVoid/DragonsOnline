@@ -2,23 +2,7 @@ package mc.dragons.core.events;
 
 import java.util.Set;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCConditionalActions;
-import mc.dragons.core.gameobject.region.Region;
-import mc.dragons.core.gameobject.user.SkillType;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.util.HologramUtil;
-import mc.dragons.core.util.MathUtil;
-import mc.dragons.core.util.ProgressBarUtil;
-import mc.dragons.core.util.StringUtil;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -32,16 +16,34 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.Item;
+import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCConditionalActions;
+import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.user.SkillType;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.util.HologramUtil;
+import mc.dragons.core.util.MathUtil;
+import mc.dragons.core.util.ProgressBarUtil;
+import mc.dragons.core.util.StringUtil;
+
 public class EntityDamageByEntityEventListener implements Listener {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private Dragons dragons;
+	private Logger LOGGER;
 
 	private RegionLoader regionLoader;
 
-	private Dragons plugin;
-
 	public EntityDamageByEntityEventListener(Dragons instance) {
 		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-		this.plugin = instance;
+		this.dragons = instance;
+		this.LOGGER = instance.getLogger();
 	}
 
 	@EventHandler
@@ -84,7 +86,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 						Item item = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
 						if (item != null && item.getClassName().equals("Special:ImmortalOverride")) {
 							npcTarget.getEntity().remove();
-							this.plugin.getGameObjectRegistry().removeFromDatabase((GameObject) npcTarget);
+							this.dragons.getGameObjectRegistry().removeFromDatabase((GameObject) npcTarget);
 							userDamager.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 							return;
 						}
@@ -167,7 +169,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 							cancel();
 						}
 					}
-				}).runTaskTimer((Plugin) this.plugin, 0L, 5L);
+				}).runTaskTimer((Plugin) this.dragons, 0L, 5L);
 				itemDamage = attackerHeldItem.getDamage();
 				damage += itemDamage;
 			}
@@ -199,15 +201,10 @@ public class EntityDamageByEntityEventListener implements Listener {
 			double itemDefense = 0.0D;
 			if (targetHeldItem != null)
 				itemDefense = targetHeldItem.getArmor();
-			byte b;
-			int i;
-			ItemStack[] arrayOfItemStack;
-			for (i = (arrayOfItemStack = userTarget.getPlayer().getInventory().getArmorContents()).length, b = 0; b < i;) {
-				ItemStack itemStack = arrayOfItemStack[b];
+			for(ItemStack itemStack : userTarget.getPlayer().getInventory().getArmorContents()) {
 				Item armorItem = ItemLoader.fromBukkit(itemStack);
 				if (armorItem != null)
 					itemDefense += armorItem.getArmor();
-				b++;
 			}
 			double actualItemDefense = Math.min(damage, Math.random() * itemDefense);
 			damage -= actualItemDefense;

@@ -1,16 +1,19 @@
 package mc.dragons.core.gameobject.quest;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.bson.Document;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import org.bson.Document;
 
 public class Quest extends GameObject {
 	private List<QuestStep> steps;
@@ -79,7 +82,7 @@ public class Quest extends GameObject {
 	}
 
 	public int getLevelMin() {
-		return ((Integer) getData("lvMin")).intValue();
+		return (int) getData("lvMin");
 	}
 
 	public void setLevelMin(int lvMin) {

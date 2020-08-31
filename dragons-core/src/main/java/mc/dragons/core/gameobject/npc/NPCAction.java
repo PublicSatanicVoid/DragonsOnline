@@ -2,24 +2,25 @@ package mc.dragons.core.gameobject.npc;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.loader.ItemClassLoader;
-import mc.dragons.core.gameobject.loader.NPCClassLoader;
-import mc.dragons.core.gameobject.loader.QuestLoader;
-import mc.dragons.core.gameobject.quest.Quest;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gui.GUI;
-import mc.dragons.core.gui.GUIElement;
-import mc.dragons.core.storage.StorageUtil;
-import mc.dragons.core.util.PathfindingUtil;
+
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.ItemClass;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
+import mc.dragons.core.gameobject.quest.Quest;
+import mc.dragons.core.gameobject.quest.QuestLoader;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gui.GUI;
+import mc.dragons.core.gui.GUIElement;
+import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.util.PathfindingUtil;
 
 public class NPCAction {
 	private static ItemClassLoader itemClassLoader;

@@ -7,8 +7,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.NPCLoader;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.util.StringUtil;

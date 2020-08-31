@@ -5,7 +5,8 @@ import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.npc.NPC;
 
 public enum AddonType {
-	ITEM(Item.class), NPC(NPC.class);
+	ITEM(Item.class), 
+	NPC(NPC.class);
 
 	private Class<? extends GameObject> bindType;
 

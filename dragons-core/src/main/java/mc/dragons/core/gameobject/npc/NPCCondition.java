@@ -1,11 +1,12 @@
 package mc.dragons.core.gameobject.npc;
 
+import org.bson.Document;
+
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.QuestLoader;
 import mc.dragons.core.gameobject.quest.Quest;
+import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.user.User;
-import org.bson.Document;
 
 public class NPCCondition {
 	private NPCConditionType type;

@@ -1,8 +1,10 @@
 package mc.dragons.core.storage;
 
 import java.util.UUID;
-import mc.dragons.core.gameobject.GameObjectType;
+
 import org.bson.Document;
+
+import mc.dragons.core.gameobject.GameObjectType;
 
 public class Identifier {
 	private Document identifierData;

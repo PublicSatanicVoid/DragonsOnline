@@ -1,5 +1,6 @@
 package mc.dragons.core;
 
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -137,14 +138,7 @@ public class ServerOptions {
 		this.logLevel = level;
 		this.LOGGER.setLevel(level);
 		this.pluginLogger.setLevel(LogFilter.fromJUL(level));
-		byte b;
-		int i;
-		Plugin[] arrayOfPlugin;
-		for (i = (arrayOfPlugin = Bukkit.getPluginManager().getPlugins()).length, b = 0; b < i;) {
-			Plugin plugin = arrayOfPlugin[b];
-			plugin.getLogger().setLevel(level);
-			b++;
-		}
+		Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(Plugin::getLogger).forEach(logger -> logger.setLevel(level));
 		this.LOGGER.info("Log level changed to " + level);
 	}
 

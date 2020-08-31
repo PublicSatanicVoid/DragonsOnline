@@ -1,4 +1,4 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.npc;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -16,9 +16,9 @@ import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;

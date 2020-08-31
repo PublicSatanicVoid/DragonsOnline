@@ -2,8 +2,10 @@ package mc.dragons.core.gameobject.quest;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import mc.dragons.core.gameobject.user.User;
+
 import org.bson.Document;
+
+import mc.dragons.core.gameobject.user.User;
 
 public class QuestStep {
 	private QuestTrigger trigger;

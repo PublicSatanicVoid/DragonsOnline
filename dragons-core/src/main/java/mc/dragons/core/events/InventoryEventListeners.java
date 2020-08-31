@@ -1,11 +1,5 @@
 package mc.dragons.core.events;
 
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.loader.ItemLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gui.GUI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,6 +11,13 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.Item;
+import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gui.GUI;
 
 public class InventoryEventListeners implements Listener {
 	private ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();

@@ -1,12 +1,14 @@
 package mc.dragons.core.util;
 
 import java.util.function.Consumer;
-import mc.dragons.core.Dragons;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+
+import mc.dragons.core.Dragons;
 
 public class PathfindingUtil {
 	public static void walkToLocation(final Entity entity, final Location location, final double speed, final Consumer<Entity> callback) {

@@ -4,18 +4,20 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.storage.impl.loader.ChangeLogLoader;
-import mc.dragons.core.util.PermissionUtil;
-import mc.dragons.core.util.StringUtil;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.user.PermissionLevel;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.storage.impl.loader.ChangeLogLoader;
+import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.StringUtil;
 
 public class ChangeLogCommands implements CommandExecutor {
 	private ChangeLogLoader changeLogLoader;

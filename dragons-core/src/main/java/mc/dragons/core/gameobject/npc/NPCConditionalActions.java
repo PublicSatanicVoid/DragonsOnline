@@ -5,10 +5,13 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
+
+import org.bson.Document;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
-import org.bson.Document;
 
 public class NPCConditionalActions {
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
@@ -62,7 +65,7 @@ public class NPCConditionalActions {
 
 	public void executeConditionals(User user, NPC npc) {
 		user.debug("Executing conditional actions");
-		for (Map.Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
 			boolean meetsConditions = true;
 			for (NPCCondition condition : entry.getKey()) {
 				if (!condition.test(user)) {
@@ -79,9 +82,9 @@ public class NPCConditionalActions {
 		}
 	}
 
-	public Map.Entry<List<NPCCondition>, List<NPCAction>> getConditional(int index) {
+	public Entry<List<NPCCondition>, List<NPCAction>> getConditional(int index) {
 		int i = 0;
-		for (Map.Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
 			if (i == index)
 				return entry;
 			i++;
@@ -96,7 +99,7 @@ public class NPCConditionalActions {
 	public void removeLocalEntry(int index) {
 		List<NPCCondition> key = null;
 		int i = 0;
-		for (Map.Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
 			if (i == index)
 				key = entry.getKey();
 			i++;
@@ -107,7 +110,7 @@ public class NPCConditionalActions {
 
 	public List<Document> toDocument() {
 		List<Document> result = new ArrayList<>();
-		for (Map.Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
 			Document pair = new Document();
 			List<Document> conditions = new ArrayList<>();
 			List<Document> actions = new ArrayList<>();

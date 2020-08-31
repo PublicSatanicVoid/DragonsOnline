@@ -17,21 +17,22 @@ import org.bukkit.event.entity.EntityDeathEvent;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.loader.GameObjectRegistry;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class EntityDeathEventListener implements Listener {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private Logger LOGGER;
 
 	private GameObjectRegistry registry;
 
 	public EntityDeathEventListener(Dragons instance) {
+		this.LOGGER = instance.getLogger();
 		this.registry = instance.getGameObjectRegistry();
 	}
 

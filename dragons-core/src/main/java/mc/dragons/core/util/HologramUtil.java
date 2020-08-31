@@ -1,6 +1,5 @@
 package mc.dragons.core.util;
 
-import mc.dragons.core.Dragons;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -9,6 +8,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import mc.dragons.core.Dragons;
 
 public class HologramUtil {
 	public static ArmorStand makeHologram(String text, Location loc) {

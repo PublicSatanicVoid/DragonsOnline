@@ -2,8 +2,9 @@ package mc.dragons.core.util;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -24,7 +25,7 @@ public class StringUtil {
 
 	public static String docToString(Document doc) {
 		String result = "";
-		for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) doc.entrySet())
+		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) doc.entrySet())
 			result = String.valueOf(result) + (String) entry.getKey() + "=" + entry.getValue().toString() + "; ";
 		if (result.equals(""))
 			return "";
@@ -64,11 +65,7 @@ public class StringUtil {
 		long timespanSeconds = 0L;
 		int buffer = 0;
 		char[] chars = timespan.toCharArray();
-		byte b;
-		int i;
-		char[] arrayOfChar1;
-		for (i = (arrayOfChar1 = chars).length, b = 0; b < i;) {
-			char ch = arrayOfChar1[b];
+		for(char ch : chars) {
 			switch (ch) {
 			case 'y':
 				timespanSeconds += (31536000 * buffer);
@@ -99,7 +96,6 @@ public class StringUtil {
 				buffer += Integer.parseInt(new String(new char[] { ch }));
 				break;
 			}
-			b++;
 		}
 		return timespanSeconds;
 	}

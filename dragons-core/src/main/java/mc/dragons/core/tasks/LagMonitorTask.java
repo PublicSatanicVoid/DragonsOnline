@@ -3,8 +3,10 @@ package mc.dragons.core.tasks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
+
 import org.bukkit.scheduler.BukkitRunnable;
+
+import mc.dragons.core.Dragons;
 
 public class LagMonitorTask extends BukkitRunnable {
 	public static final double TPS_RECORD_LENGTH = 3000.0D;

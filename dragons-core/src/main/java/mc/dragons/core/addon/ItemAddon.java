@@ -2,16 +2,16 @@ package mc.dragons.core.addon;
 
 import java.util.HashMap;
 import java.util.Map;
-import mc.dragons.core.gameobject.user.User;
+
 import org.bukkit.ChatColor;
+
+import mc.dragons.core.gameobject.user.User;
 
 public abstract class ItemAddon implements Addon {
 	private static final int MAX_COMBO_TIME_MS = 2000;
-
 	private static final int COMBO_LENGTH = 3;
-
+	
 	private Map<User, String> combos;
-
 	private Map<User, Long> comboStartTimes;
 
 	public final AddonType getType() {

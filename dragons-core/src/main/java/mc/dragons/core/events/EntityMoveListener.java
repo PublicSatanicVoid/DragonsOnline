@@ -1,20 +1,23 @@
 package mc.dragons.core.events;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketEvent;
 import java.util.Set;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.RegionLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.region.Region;
-import mc.dragons.core.gameobject.user.User;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 
 public class EntityMoveListener extends PacketAdapter {
 	private RegionLoader regionLoader;

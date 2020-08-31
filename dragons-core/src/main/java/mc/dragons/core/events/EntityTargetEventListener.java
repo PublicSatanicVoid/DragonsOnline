@@ -2,18 +2,20 @@ package mc.dragons.core.events;
 
 import java.util.Set;
 import java.util.logging.Logger;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.NPCLoader;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.region.Region;
-import mc.dragons.core.gameobject.user.User;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.region.Region;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 
 public class EntityTargetEventListener implements Listener {
 	Logger LOGGER;

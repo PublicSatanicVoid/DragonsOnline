@@ -1,15 +1,18 @@
-package mc.dragons.core.gameobject.loader;
+package mc.dragons.core.gameobject.quest;
 
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import org.bson.Document;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectLoader;
+import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import org.bson.Document;
 
 public class QuestLoader extends GameObjectLoader<Quest> {
 	private static QuestLoader INSTANCE;

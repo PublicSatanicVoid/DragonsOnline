@@ -34,7 +34,7 @@ import com.sk89q.worldedit.world.registry.WorldData;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
-import mc.dragons.core.gameobject.loader.FloorLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.res.ResLoader.ResPoint;

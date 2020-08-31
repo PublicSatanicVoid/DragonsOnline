@@ -11,7 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import mc.dragons.core.addon.ItemAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.loader.ItemLoader;
+import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.spells.spells.Spell;
 import mc.dragons.spells.spells.Spell.BindStatus;

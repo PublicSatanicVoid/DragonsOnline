@@ -1,13 +1,13 @@
 package mc.dragons.core.gameobject.floor;
 
-import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.loader.FloorLoader;
-import mc.dragons.core.storage.StorageAccess;
-import mc.dragons.core.storage.StorageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
+
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.storage.StorageAccess;
+import mc.dragons.core.storage.StorageManager;
 
 public class Floor extends GameObject {
 	public Floor(StorageManager storageManager, StorageAccess storageAccess, boolean superflat) {
@@ -56,7 +56,7 @@ public class Floor extends GameObject {
 	}
 
 	public int getLevelMin() {
-		return ((Integer) getData("levelMin")).intValue();
+		return (int) getData("levelMin");
 	}
 
 	public void setLevelMin(int levelMin) {

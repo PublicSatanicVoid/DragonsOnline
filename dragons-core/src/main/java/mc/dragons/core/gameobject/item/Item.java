@@ -12,7 +12,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.loader.ItemClassLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
@@ -75,7 +74,7 @@ public class Item extends GameObject {
 	}
 
 	public int getQuantity() {
-		return ((Integer) getData("quantity")).intValue();
+		return (int) getData("quantity");
 	}
 
 	public void setQuantity(int quantity) {
@@ -104,7 +103,7 @@ public class Item extends GameObject {
 	}
 
 	public double getSpeedBoost() {
-		return ((Double) getData("speedBoost")).doubleValue();
+		return (double) getData("speedBoost");
 	}
 
 	public void setSpeedBoost(double speedBoost) {
@@ -148,7 +147,7 @@ public class Item extends GameObject {
 	}
 
 	public int getLevelMin() {
-		return ((Integer) getData("lvMin")).intValue();
+		return (int) getData("lvMin");
 	}
 
 	public void setLevelMin(int lvMin) {
@@ -156,7 +155,7 @@ public class Item extends GameObject {
 	}
 
 	public double getCooldown() {
-		return ((Double) getData("cooldown")).doubleValue();
+		return (double) getData("cooldown");
 	}
 
 	public void setCooldown(double cooldown) {
@@ -180,7 +179,7 @@ public class Item extends GameObject {
 	}
 
 	public double getDamage() {
-		return ((Double) getData("damage")).doubleValue();
+		return (double) getData("damage");
 	}
 
 	public void setDamage(double damage) {
@@ -188,7 +187,7 @@ public class Item extends GameObject {
 	}
 
 	public double getArmor() {
-		return ((Double) getData("armor")).doubleValue();
+		return (double) getData("armor");
 	}
 
 	public void setArmor(double armor) {
@@ -231,7 +230,7 @@ public class Item extends GameObject {
 	}
 
 	public int getMaxStackSize() {
-		return ((Integer) getData("maxStackSize")).intValue();
+		return (int) getData("maxStackSize");
 	}
 
 	public void setMaxStackSize(int maxStackSize) {

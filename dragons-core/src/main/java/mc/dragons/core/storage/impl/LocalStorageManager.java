@@ -3,14 +3,17 @@ package mc.dragons.core.storage.impl;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+
+import org.bson.Document;
+
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import org.bson.Document;
 
 public class LocalStorageManager implements StorageManager {
 	private Map<Identifier, LocalStorageAccess> localStorageAccesses = new HashMap<>();
@@ -22,7 +25,7 @@ public class LocalStorageManager implements StorageManager {
 	public StorageAccess getStorageAccess(GameObjectType objectType, Document search) {
 		for (StorageAccess storageAccess : this.localStorageAccesses.values()) {
 			if (storageAccess.getIdentifier().getType() == objectType) {
-				for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) search.entrySet()) {
+				for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) search.entrySet()) {
 					if (!search.get(entry.getKey()).equals(entry.getValue()))
 						;
 				}
@@ -45,7 +48,7 @@ public class LocalStorageManager implements StorageManager {
 		Set<StorageAccess> results = new HashSet<>();
 		for (StorageAccess storageAccess : this.localStorageAccesses.values()) {
 			if (storageAccess.getIdentifier().getType() == objectType)
-				for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) filter.entrySet()) {
+				for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) filter.entrySet()) {
 					if (!filter.get(entry.getKey()).equals(entry.getValue()))
 						continue;
 					results.add(storageAccess);
@@ -90,7 +93,7 @@ public class LocalStorageManager implements StorageManager {
 	public void push(GameObjectType objectType, Document selector, Document update) {
 		for (StorageAccess storageAccess : this.localStorageAccesses.values()) {
 			if (storageAccess.getIdentifier().getType() == objectType)
-				for (Map.Entry<String, Object> entry : (Iterable<Map.Entry<String, Object>>) selector.entrySet()) {
+				for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) selector.entrySet()) {
 					if (!selector.get(entry.getKey()).equals(entry.getValue()))
 						continue;
 					storageAccess.update(update);

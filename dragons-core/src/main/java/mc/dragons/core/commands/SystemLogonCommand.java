@@ -2,19 +2,21 @@ package mc.dragons.core.commands;
 
 import java.util.HashMap;
 import java.util.Map;
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.loader.UserLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.storage.impl.SystemProfile;
-import mc.dragons.core.storage.impl.loader.SystemProfileLoader;
-import mc.dragons.core.util.PermissionUtil;
-import mc.dragons.core.util.StringUtil;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.user.PermissionLevel;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.storage.impl.SystemProfile;
+import mc.dragons.core.storage.impl.loader.SystemProfileLoader;
+import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.StringUtil;
 
 public class SystemLogonCommand implements CommandExecutor {
 	private SystemProfileLoader systemProfileLoader;
@@ -161,7 +163,7 @@ public class SystemLogonCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Successfully logged out of your system profile.");
 			return true;
 		}
-		long wait = ((Long) this.rateLimiting.getOrDefault(user, Long.valueOf(0L))).longValue() + (1000 * ((Integer) this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0))).intValue());
+		long wait = ((Long) this.rateLimiting.getOrDefault(user, Long.valueOf(0L))).longValue() + (1000 * (int) this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)));
 		if (wait > System.currentTimeMillis()) {
 			sender.sendMessage(ChatColor.RED + "Please wait " + this.rateLimitingCounter.get(user) + "s.");
 			return true;
@@ -175,7 +177,7 @@ public class SystemLogonCommand implements CommandExecutor {
 		if (profile == null) {
 			sender.sendMessage(ChatColor.RED + "Invalid credentials provided!");
 			this.rateLimiting.put(user, Long.valueOf(System.currentTimeMillis()));
-			this.rateLimitingCounter.put(user, Integer.valueOf(Math.max(((Integer) this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0))).intValue() * 2, 1)));
+			this.rateLimitingCounter.put(user, Integer.valueOf(Math.max((int) this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
 			return true;
 		}
 		user.setSystemProfile(profile);
