@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.logging.Level;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -37,7 +36,7 @@ import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import mc.dragons.res.ResLoader.ResPoint;
+import mc.dragons.res.ResPointLoader.ResPoint;
 
 @SuppressWarnings("deprecation")
 public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
@@ -45,15 +44,17 @@ public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
 	public static final int MAX_RES_PER_USER = 2;
 	
 	public void onEnable() {
-		
 		resetResWorld();
+		
+		ResLoader resLoader = new ResLoader(Dragons.getInstance().getMongoConfig());
+		ResPointLoader resPointLoader = new ResPointLoader(Dragons.getInstance().getMongoConfig());
+		
+		Dragons.getInstance().getLightweightLoaderRegistry().register(resLoader);
+		Dragons.getInstance().getLightweightLoaderRegistry().register(resPointLoader);
 		
 		Dragons.getInstance().getUserHookRegistry().registerHook(new ResUserHook());
 		
-		if(Dragons.getInstance().isDebug()) {
-			getLogger().info("Setting logger to trace mode because of DragonsCore setting");
-			getLogger().setLevel(Level.FINEST);
-		}
+		resPointLoader.loadAllResPoints();
 		
 		getServer().getPluginManager().registerEvents(new ResEvents(), this);
 		
@@ -63,10 +64,11 @@ public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
 		getCommand("restest").setExecutor(resCommands);
 		getCommand("testdoorplacement").setExecutor(resCommands);
 		getCommand("testschematic").setExecutor(resCommands);
+		getCommand("testcontextualholograms").setExecutor(resCommands);
 		
 		getLogger().info("Loading holograms for res points...");
-		for(ResPoint resPoint : ResLoader.getAllResPoints()) {
-			ResLoader.createResPointHologram(resPoint);
+		for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
+			resPointLoader.createResPointHologram(resPoint);
 		}
 	}
 	

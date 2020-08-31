@@ -107,7 +107,7 @@ public class NPC extends GameObject {
 		if (npcClassLoader == null)
 			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 		if (entityHider == null)
-			entityHider = new EntityHider((Plugin) Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
+			entityHider = Dragons.getInstance().getEntityHider();
 		this.entity = entity;
 		this.registry = Dragons.getInstance().getGameObjectRegistry();
 		initializeEntity();

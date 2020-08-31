@@ -28,8 +28,6 @@ public class HologramUtil {
 
 	public static ArmorStand makeArmorStandNameTag(final Entity entity, String nameTag, final double xOffset, final double yOffset, final double zOffset, final boolean bind) {
 		final Entity nameTagFix = entity.getWorld().spawnEntity(entity.getWorld().getSpawnLocation().add(0.0D, -5.0D, 0.0D), EntityType.ARMOR_STAND);
-		nameTagFix.setCustomName(nameTag);
-		nameTagFix.setCustomNameVisible(true);
 		nameTagFix.setGravity(false);
 		ArmorStand armorStand = (ArmorStand) nameTagFix;
 		armorStand.setVisible(false);
@@ -40,7 +38,9 @@ public class HologramUtil {
 		armorStand.setMetadata("allow", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), Boolean.valueOf(true)));
 		(new BukkitRunnable() {
 			public void run() {
-				nameTagFix.teleport(entity.getLocation().add(xOffset, yOffset, zOffset));
+				nameTagFix.teleport(entity.getLocation().add(xOffset, yOffset, zOffset));		
+				nameTagFix.setCustomName(nameTag);
+				nameTagFix.setCustomNameVisible(true);
 				if (bind)
 					entity.addPassenger(nameTagFix);
 			}

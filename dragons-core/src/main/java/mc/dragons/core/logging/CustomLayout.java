@@ -68,17 +68,15 @@ public class CustomLayout extends AbstractStringLayout {
 		String message = ChatColor.stripColor(logEvent.getMessage().getFormattedMessage());
 		if (logEvent.getThrown() != null) {
 			Throwable buf = logEvent.getThrown();
-			message = String.valueOf(message) + "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName,
-					String.valueOf(buf.getClass().getName()) + ": " + buf.getMessage());
 			while (buf != null) {
+				message += "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName,
+						String.valueOf(buf.getClass().getName()) + ": " + buf.getMessage());
 				for(StackTraceElement elem : buf.getStackTrace()) {
-					message = String.valueOf(message) + "\n"
-							+ format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "    " + elem.toString());
+					message += "\n"	+ format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "    " + elem.toString());
 				}
 				buf = buf.getCause();
 				if (buf != null)
-					message = String.valueOf(message) + "\n"
-							+ format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "Caused by:");
+					message += "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "Caused by:");
 			}
 		}
 		if (includeLogger)

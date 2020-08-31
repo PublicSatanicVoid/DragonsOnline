@@ -11,3 +11,4 @@ commands:
   restest:
   testdoorplacement:
   testschematic:
+  testcontextualholograms:

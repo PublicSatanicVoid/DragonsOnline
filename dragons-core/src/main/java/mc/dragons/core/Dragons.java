@@ -76,6 +76,7 @@ import mc.dragons.core.tasks.LagMonitorTask;
 import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
+import mc.dragons.core.util.EntityHider;
 
 public class Dragons extends JavaPlugin {
 	private static Dragons INSTANCE;
@@ -89,6 +90,7 @@ public class Dragons extends JavaPlugin {
 	private UserHookRegistry userHookRegistry;
 	private LightweightLoaderRegistry lightweightLoaderRegistry;
 	private SidebarManager sidebarManager;
+	private EntityHider entityHider;
 
 	private BukkitRunnable autoSaveRunnable;
 	private BukkitRunnable spawnEntityRunnable;
@@ -134,6 +136,7 @@ public class Dragons extends JavaPlugin {
 			this.userHookRegistry = new UserHookRegistry();
 			this.lightweightLoaderRegistry = new LightweightLoaderRegistry();
 			this.sidebarManager = new SidebarManager(this);
+			
 			this.autoSaveRunnable = (BukkitRunnable) new AutoSaveTask(this);
 			this.spawnEntityRunnable = (BukkitRunnable) new SpawnEntityTask(this);
 			this.verifyGameIntegrityRunnable = new VerifyGameIntegrityTask(this);
@@ -204,7 +207,8 @@ public class Dragons extends JavaPlugin {
 
 		getLogger().info("Registering packet listeners...");
 		ProtocolLibrary.getProtocolManager().addPacketListener((PacketListener) new EntityMoveListener(this));
-
+		this.entityHider = new EntityHider(Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
+		
 		getLogger().info("Registering commands...");
 		getCommand("rank").setExecutor(new RankCommand());
 		getCommand("syslogon").setExecutor(new SystemLogonCommand(this));
@@ -306,6 +310,10 @@ public class Dragons extends JavaPlugin {
 		return this.sidebarManager;
 	}
 
+	public EntityHider getEntityHider() {
+		return this.entityHider;
+	}
+	
 	public ServerOptions getServerOptions() {
 		return this.serverOptions;
 	}

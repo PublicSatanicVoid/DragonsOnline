@@ -27,6 +27,7 @@ public class Floor extends GameObject {
 		world.setGameRuleValue("doFireTick", "false");
 		world.setGameRuleValue("keepInventory", "true");
 		world.setGameRuleValue("mobGriefing", "false");
+		world.setGameRuleValue("reducedDebugInfo", "false");
 		world.setGameRuleValue("showDeathMessages", "false");
 	}
 

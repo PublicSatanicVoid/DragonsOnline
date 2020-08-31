@@ -205,13 +205,12 @@ public class ExperimentalCommands implements CommandExecutor {
 		
 		
 		if(label.equalsIgnoreCase("testphasing")) {
-			NPC npc = npcLoader.registerNew(player.getWorld(), player.getLocation(), "DemoVillager");
-			npc.phase(player);
-			if(Boolean.valueOf(args[1]).booleanValue()) {
+			Entity entity = player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(args[0]));
+			if(entity instanceof ArmorStand) {
+				((ArmorStand) entity).setCustomName("Test test test");
+				((ArmorStand) entity).setCustomNameVisible(true);
 			}
-			else {
-				npc.unphase(player);
-			}
+			Dragons.getInstance().getEntityHider().hideEntity(player, entity);
 		}
 		
 		if(label.equalsIgnoreCase("stresstest")) {

@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
@@ -25,11 +26,18 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.res.ResLoader.ResPoint;
 import mc.dragons.res.ResLoader.Residence;
 import mc.dragons.res.ResLoader.Residence.ResAccess;
+import mc.dragons.res.ResPointLoader.ResPoint;
 public class ResCommands implements CommandExecutor {
-
+	private ResLoader resLoader;
+	private ResPointLoader resPointLoader;
+	
+	public ResCommands() {
+		resLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResLoader.class);
+		resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
@@ -45,7 +53,7 @@ public class ResCommands implements CommandExecutor {
 			if(args.length == 0) {
 				sender.sendMessage(ChatColor.GRAY + "To create a residence, open the door");
 				sender.sendMessage(ChatColor.GRAY + "of the residence you would like to claim.");
-				sender.sendMessage(ChatColor.GRAY + "You have claimed " + ChatColor.RESET + ResLoader.getAllResidencesOf(user).size()
+				sender.sendMessage(ChatColor.GRAY + "You have claimed " + ChatColor.RESET + resLoader.getAllResidencesOf(user).size()
 						+ "/" + DragonsResPlugin.MAX_RES_PER_USER + " allowed residences.");
 				sender.sendMessage(ChatColor.YELLOW + "/res mine");
 				sender.sendMessage(ChatColor.YELLOW + "/res exit");
@@ -54,7 +62,7 @@ public class ResCommands implements CommandExecutor {
 			}
 			if(args[0].equalsIgnoreCase("mine")) {
 				sender.sendMessage(ChatColor.GREEN + "Listing your residences:");
-				for(Residence res : ResLoader.getAllResidencesOf(user)) {
+				for(Residence res : resLoader.getAllResidencesOf(user)) {
 					Location door = res.getResPoint().getDoorLocation();
 					sender.sendMessage(ChatColor.DARK_GREEN + "#" + res.getId() + ChatColor.GRAY + " (" + res.getAccessLevel() + ")"
 							+ " (" + FloorLoader.fromWorld(door.getWorld()).getDisplayName() + " " + door.getBlockX() + ", " + door.getBlockZ() + ")");
@@ -87,7 +95,7 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "ID must be a number! /res delete <ID>");
 					return true;
 				}
-				Residence res = ResLoader.getResidenceById(id);
+				Residence res = resLoader.getResidenceById(id);
 				if(res == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid residence ID! You can see your residences with /res mine");
 					return true;
@@ -100,7 +108,7 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "You do not own this residence! You can see your residences with /res mine");
 					return true;
 				}
-				ResLoader.deleteResidence(id);
+				resLoader.deleteResidence(id);
 				if(player.getWorld().getName().equals("res_temp") && user.getData().getInteger("lastResId") == id) {
 					Document saved = user.getData().get("resExitTo", Document.class);
 					Location to = StorageUtil.docToLoc(saved);
@@ -130,7 +138,6 @@ public class ResCommands implements CommandExecutor {
 				sender.sendMessage(ChatColor.YELLOW + "/resadmin flag <ID> <Flag> <Value>");
 				sender.sendMessage(ChatColor.YELLOW + "/resadmin goto <ID>");
 				sender.sendMessage(ChatColor.YELLOW + "/resadmin rebuild <ID>");
-				sender.sendMessage(ChatColor.YELLOW + "/resadmin loglevel <LogLevel>");
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("linkpoint")) {
@@ -151,7 +158,7 @@ public class ResCommands implements CommandExecutor {
 				if(door.isTopHalf()) {
 					target = target.getRelative(BlockFace.DOWN);
 				}
-				ResLoader.addResPoint(args[1], StringUtil.concatArgs(args, 3), Double.valueOf(args[2]), target.getLocation());
+				resPointLoader.addResPoint(args[1], StringUtil.concatArgs(args, 3), Double.valueOf(args[2]), target.getLocation());
 				sender.sendMessage(ChatColor.GREEN + "Added res point successfully.");
 				return true;
 			}
@@ -160,7 +167,7 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/resadmin setprice <Name> <NewPrice>");
 					return true;
 				}
-				ResPoint resPoint = ResLoader.getResPointByName(args[1]);
+				ResPoint resPoint = resPointLoader.getResPointByName(args[1]);
 				if(resPoint == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid res point! /respoint listpoints");
 					return true;
@@ -174,7 +181,7 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/resadmin displayname <Name> <New Display Name...>");
 					return true;
 				}
-				ResPoint resPoint = ResLoader.getResPointByName(args[1]);
+				ResPoint resPoint = resPointLoader.getResPointByName(args[1]);
 				if(resPoint == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid res point! /respoint listpoints");
 					return true;
@@ -188,13 +195,13 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/reasdmin delpoint <Name>");
 					return true;
 				}
-				ResLoader.deleteResPoint(args[1]);
+				resPointLoader.deleteResPoint(args[1]);
 				sender.sendMessage(ChatColor.GREEN + "If a res point by this name existed, it has been deleted successfully.");
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("listpoints")) {
 				sender.sendMessage(ChatColor.GREEN + "Listing all res points:");
-				for(ResPoint resPoint : ResLoader.getAllResPoints()) {
+				for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
 					sender.sendMessage(ChatColor.GRAY + "- " + resPoint.getName() + " - " + resPoint.getPrice() + " gold"
 							+ " (" + StringUtil.locToString(resPoint.getDoorLocation()) + ")");
 					if(!(resPoint.getDoorLocation().getBlock().getState().getData() instanceof Door)) {
@@ -209,7 +216,7 @@ public class ResCommands implements CommandExecutor {
 					return true;
 				}
 				sender.sendMessage(ChatColor.GREEN + "Listing residences owned by " + args[1] + ":");
-				for(Residence res : ResLoader.getAllResidencesOf(GameObjectType.USER.<User, UserLoader>getLoader().loadObject(args[1]))) {
+				for(Residence res : resLoader.getAllResidencesOf(GameObjectType.USER.<User, UserLoader>getLoader().loadObject(args[1]))) {
 					sender.sendMessage(ChatColor.DARK_GREEN + "#" + res.getId() + ChatColor.GRAY + ": " + res.getAccessLevel() + (res.isLocked() ? " (Locked)" : ""));
 				}
 				return true;
@@ -219,7 +226,7 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/resadmin " + args[0].toLowerCase() + " <ID>");
 					return true;
 				}
-				Residence res = ResLoader.getResidenceById(Integer.valueOf(args[1]));
+				Residence res = resLoader.getResidenceById(Integer.valueOf(args[1]));
 				if(res == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid residence ID!");
 					return true;
@@ -233,12 +240,12 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/resadmin delete <ID>");
 					return true;
 				}
-				Residence res = ResLoader.getResidenceById(Integer.valueOf(args[1]));
+				Residence res = resLoader.getResidenceById(Integer.valueOf(args[1]));
 				if(res == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid residence ID!");
 					return true;
 				}
-				ResLoader.deleteResidence(res.getId());
+				resLoader.deleteResidence(res.getId());
 				sender.sendMessage(ChatColor.GREEN + "Deleted residence #" + args[1]);
 				return true;
 			}
@@ -247,7 +254,7 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/resadmin flag <ID> <Flag> <Value>");
 					return true;
 				}
-				Residence res = ResLoader.getResidenceById(Integer.valueOf(args[1]));
+				Residence res = resLoader.getResidenceById(Integer.valueOf(args[1]));
 				if(res == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid residence ID!");
 					return true;
@@ -262,12 +269,12 @@ public class ResCommands implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/resadmin goto <ID>");
 					return true;
 				}
-				Residence res = ResLoader.getResidenceById(Integer.valueOf(args[1]));
+				Residence res = resLoader.getResidenceById(Integer.valueOf(args[1]));
 				if(res == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid residence ID!");
 					return true;
 				}
-				ResLoader.goToResidence(user, res.getId(), true);
+				resLoader.goToResidence(user, res.getId(), true);
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("rebuild")) {
@@ -276,27 +283,24 @@ public class ResCommands implements CommandExecutor {
 					return true;
 				}
 				int id = Integer.valueOf(args[1]);
-				Residence res = ResLoader.getResidenceById(id);
+				Residence res = resLoader.getResidenceById(id);
 				if(res == null) {
 					sender.sendMessage(ChatColor.RED + "Invalid residence ID!");
 					return true;
 				}
-				ResLoader.removeResidenceLocally(id);
-				ResLoader.generateResidence(id);
+				resLoader.removeResidenceLocally(id);
+				resLoader.generateResidence(id);
 				sender.sendMessage(ChatColor.GREEN + "Rebuilt residence #" + id + " successfully.");
-				return true;
-			}
-			if(args[0].equalsIgnoreCase("loglevel")) {
-				if(args.length == 1) {
-					sender.sendMessage(ChatColor.RED + "/resadmin loglevel <LogLevel>");
-					return true;
-				}
-				JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().setLevel(Level.parse(args[1].toUpperCase()));
-				sender.sendMessage(ChatColor.GREEN + "Updated the log level for DragonsRes successfully.");
 				return true;
 			}
 			sender.sendMessage(ChatColor.RED + "/resadmin");
 			return true;
+		}
+		
+		if(label.equalsIgnoreCase("testcontextualholograms")) {
+			for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
+				resPointLoader.updateResHologramOn(user, resPoint);
+			}
 		}
 		
 		if(label.equalsIgnoreCase("testdoorplacement")) {
@@ -356,21 +360,21 @@ public class ResCommands implements CommandExecutor {
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("new")) {
-				Residence res = ResLoader.addResidence(user, ResLoader.getResPointByName(args[1]), ResAccess.PRIVATE);
+				Residence res = resLoader.addResidence(user, resPointLoader.getResPointByName(args[1]), ResAccess.PRIVATE);
 				sender.sendMessage("Created new residence #" + res.getId());
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("go")) {
-				Residence res = ResLoader.getResidenceById(Integer.valueOf(args[1]));
+				Residence res = resLoader.getResidenceById(Integer.valueOf(args[1]));
 				if(res == null) {
-					sender.sendMessage("No residence by that ID exists! (highest ID=" + ResLoader.getLatestResId() + ")");
+					sender.sendMessage("No residence by that ID exists! (highest ID=" + resPointLoader.getCurrentMaxId() + ")");
 					return true;
 				}
-				ResLoader.goToResidence(user, res.getId(), true);
+				resLoader.goToResidence(user, res.getId(), true);
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("my")) {
-				for(Residence res : ResLoader.getAllResidencesOf(user)) {
+				for(Residence res : resLoader.getAllResidencesOf(user)) {
 					sender.sendMessage("#" + res.getId() + " (owner=" + res.getOwner().getName() + ", access=" + res.getAccessLevel() + ")");
 				}
 				return true;
@@ -383,7 +387,7 @@ public class ResCommands implements CommandExecutor {
 				}
 				sender.sendMessage("Target block is " + target.getType());
 				sender.sendMessage("Target block location is " + StringUtil.locToString(target.getLocation()));
-				ResPoint resPoint = ResLoader.getResPointByDoorLocation(target.getLocation());
+				ResPoint resPoint = resPointLoader.getResPointByDoorLocation(target.getLocation());
 				if(resPoint == null) {
 					sender.sendMessage("No res point here");
 					return true;

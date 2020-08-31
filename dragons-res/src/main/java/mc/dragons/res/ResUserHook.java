@@ -3,12 +3,20 @@ package mc.dragons.res;
 import org.bson.Document;
 import org.bukkit.Location;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.res.ResPointLoader.ResPoint;
 
 public class ResUserHook implements UserHook {
 
+	private ResPointLoader resPointLoader;
+	
+	public ResUserHook() {
+		resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
+	}
+	
 	@Override
 	public void onInitialize(User user) {
 		// TODO Auto-generated method stub
@@ -24,6 +32,9 @@ public class ResUserHook implements UserHook {
 		Location to = StorageUtil.docToLoc(saved);
 		user.getPlayer().teleport(to);
 		user.getStorageAccess().set("resExitTo", null);
+		for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
+			resPointLoader.updateResHologramOn(user, resPoint);
+		}
 	}
 
 	@Override

@@ -38,11 +38,8 @@ public class EntityHider implements Listener {
 			PacketType.Play.Server.BLOCK_BREAK_ANIMATION, PacketType.Play.Server.UPDATE_ENTITY_NBT, PacketType.Play.Server.COMBAT_EVENT };
 
 	private ProtocolManager manager;
-
 	private Listener bukkitListener;
-
 	private PacketAdapter protocolListener;
-
 	protected final Policy policy;
 
 	public enum Policy {
