@@ -3,10 +3,10 @@
 
 Dragons Online is a Minecraft-based MMORPG created by DragonRider747 (UniverseCraft) and licensed under the GNU GPL v2.
 
+**Note:** I accidentally deleted the code base for the `dragons-core` plugin due to a simultaneous backup failure and folder overwrite while attempting to move repository locations. I was able to _somewhat_ restore this by decompiling the plugin JAR. However, the decompiler was (obviously) unable to restore code comments, and (less obviously) failed to correctly translate certain idiomatic constructs such as the for-each loop. These have been mostly fixed with a combination of regex replacements and manual changes, but some unnecessary casts or unnatural constructs may remain. These are slowly being weeded out. This should never happen again going forward as I will be instituting a stricter commit policy and routinely backing up _all_ code files.
+ 
 ## Basic Code Structure
 The codebase is divided into several plugins, each with a specific purpose. The core plugin is `dragons-core` and contains all necessary functionality to create a minimally working game. All other plugins depend either directly or indirectly on `dragons-core`.
-
-Build servers or development servers should include `dragons-dev` which implements a routine backup protocol, announcements, and a tasks system to assign and track various projects. Further functionality for creating the game is included in `dragons-contenttools` which includes many useful GM commands. It is also recommended that both dev and production servers include `dragons-devtools` which contains many commands which allow for testing, debugging, and inspecting the server performance and locating the cause of errors without requiring a debugger to be attached.
 
 A full listing of current plugins:
 - `dragons-core` provides the base functionality for the game. Simple (vanilla) mobs/NPCs and items can function fully with just this plugin.
