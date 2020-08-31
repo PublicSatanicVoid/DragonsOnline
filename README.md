@@ -34,7 +34,6 @@ All game objects have a unique identifier, which consists of the game object's t
 
 The current game object types are:
 - `User`: A player in the game. Each user is associated with a player and contains additional properties such as the player's quest progress, saved inventory (as opposed to the online-only inventory of the Bukkit `Player`), and rank.
-
 - `Floor`: A world in the game. Each floor contains a short name (no spaces), a display name, a minimum level, and a world file. The short name is used by the content team or developers; the display name is shown to players. For nonzero minimum levels, there should be a one-to-one relationship between minimum level and floor (level-zero floors being reserved for various development and testing functions and thus not user-facing). Floors are persistent game objects.
 
 - `Region`: A cubic area in the game. Regions serve two main purposes: to give users a sense of where they are and a way of communicating this easily to others, and to restrict certain functionality to specific places. For example, a specific region may have an extremely high spawn rate of a particular mob. This spawn rate is tied to a specific region and is only applicable in that region.
