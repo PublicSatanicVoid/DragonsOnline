@@ -12,9 +12,7 @@ public abstract class GameObject {
 	protected static Logger LOGGER = Dragons.getInstance().getLogger();
 
 	protected StorageManager storageManager;
-
 	protected StorageAccess storageAccess;
-
 	protected Document localData;
 
 	protected GameObject(GameObjectType type, StorageManager storageManager) {

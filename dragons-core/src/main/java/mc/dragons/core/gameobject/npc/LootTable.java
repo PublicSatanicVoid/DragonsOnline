@@ -17,20 +17,18 @@ import mc.dragons.core.gameobject.loader.RegionLoader;
 import mc.dragons.core.gameobject.region.Region;
 
 public class LootTable {
-	private Document lootTable;
-
 	private static RegionLoader regionLoader;
-
 	private static ItemClassLoader itemClassLoader;
-
 	private static ItemLoader itemLoader;
+	
+	private Document lootTable;
 
 	public LootTable(NPCClass npcClass) {
 		this.lootTable = (Document) npcClass.getStorageAccess().get("lootTable");
 		if (regionLoader == null) {
-			regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
-			itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-			itemLoader = (ItemLoader) GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+			itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 		}
 	}
 

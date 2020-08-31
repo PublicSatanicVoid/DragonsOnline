@@ -15,7 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class QuestDialogueCommands implements CommandExecutor {
-	private QuestLoader questLoader = (QuestLoader) GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+	private QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (sender instanceof Player) {

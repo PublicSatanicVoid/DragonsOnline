@@ -40,7 +40,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 	private Dragons plugin;
 
 	public EntityDamageByEntityEventListener(Dragons instance) {
-		this.regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 		this.plugin = instance;
 	}
 

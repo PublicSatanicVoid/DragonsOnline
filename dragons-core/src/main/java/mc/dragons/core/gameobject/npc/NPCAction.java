@@ -82,9 +82,9 @@ public class NPCAction {
 
 	public static NPCAction fromDocument(NPCClass npcClass, Document document) {
 		if (npcClassLoader == null) {
-			npcClassLoader = (NPCClassLoader) GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-			questLoader = (QuestLoader) GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
-			itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+			questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		}
 		NPCActionType type = NPCActionType.valueOf(document.getString("type"));
 		switch (type) {

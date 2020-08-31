@@ -106,7 +106,7 @@ public class NPC extends GameObject {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing NPC (" + StringUtil.entityToString(entity) + ", " + storageManager + ", " + storageAccess + ")");
 		if (npcClassLoader == null)
-			npcClassLoader = (NPCClassLoader) GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 		if (entityHider == null)
 			entityHider = new EntityHider((Plugin) Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
 		this.entity = entity;

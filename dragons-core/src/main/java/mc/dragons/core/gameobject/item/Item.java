@@ -34,7 +34,7 @@ public class Item extends GameObject {
 	public Item(ItemStack itemStack, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		if (itemClassLoader == null)
-			itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		LOGGER.fine("Constructing RPG Item (" + itemStack.getType() + " x" + itemStack.getAmount() + ", " + storageManager + ", " + storageAccess + ")");
 		this.itemClass = itemClassLoader.getItemClassByClassName(getClassName());
 		ItemMeta meta = itemStack.getItemMeta();

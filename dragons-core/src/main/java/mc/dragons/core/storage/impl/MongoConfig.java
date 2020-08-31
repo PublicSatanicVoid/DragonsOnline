@@ -19,13 +19,6 @@ public class MongoConfig {
 	public static final String WARP_COLLECTION = "warps";
 	public static final String COUNTER_COLLECTION = "counters";
 	public static final String CHANGELOG_COLLECTION = "changelogs";
-	
-	private String USER;
-	private String PASSWORD;
-	private String HOST;
-	private int PORT;
-	private String AUTH_DB;
-	private String DATABASE;
 
 	private MongoDatabase database;
 	private Counter counter;
@@ -33,17 +26,19 @@ public class MongoConfig {
 	public MongoConfig(Dragons instance) {
 		ConfigurationSection dbConfig = instance.getConfig().getConfigurationSection("db.mongo");
 		
-		USER = dbConfig.getString("user");
-		PASSWORD = dbConfig.getString("password");
-		HOST = dbConfig.getString("host");
-		PORT = dbConfig.getInt("port");
-		AUTH_DB = dbConfig.getString("auth_db");
-		DATABASE = dbConfig.getString("database");
-		ConnectionString connectionString = new ConnectionString("mongodb://" + USER + ":" + PASSWORD + "@" + HOST + ":" + PORT + "/?authSource=" + AUTH_DB);
+		String user = dbConfig.getString("user");
+		String password = dbConfig.getString("password");
+		String host = dbConfig.getString("host");
+		int port = dbConfig.getInt("port");
+		String authDB = dbConfig.getString("auth_db");
+		String database = dbConfig.getString("database");
+		
+		ConnectionString connectionString = new ConnectionString("mongodb://" + user + ":" + password + "@" + host + ":" + port + "/?authSource=" + authDB);
 		MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connectionString).uuidRepresentation(UuidRepresentation.STANDARD).build();
 		MongoClient client = MongoClients.create(settings);
-		database = client.getDatabase(DATABASE);
-		counter = new MongoCounter(this);
+		
+		this.database = client.getDatabase(database);
+		this.counter = new MongoCounter(this);
 	}
 		
 

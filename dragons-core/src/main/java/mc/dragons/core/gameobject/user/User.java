@@ -64,69 +64,44 @@ public class User extends GameObject {
 	private static Dragons instance;
 
 	private static RegionLoader regionLoader;
-
 	private static FloorLoader floorLoader;
-
 	private static QuestLoader questLoader;
-
 	private static ItemLoader itemLoader;
-
 	private static UserLoader userLoader;
 
 	private static UserHookRegistry userHookRegistry;
-
 	private static ChangeLogLoader changeLogLoader;
-
 	private static SystemProfileLoader systemProfileLoader;
 
 	private Player player;
-
 	private Set<Region> cachedRegions;
-
 	private Location cachedLocation;
-
 	private PermissionLevel activePermissionLevel;
-
 	private SystemProfile profile;
-
 	private Map<Quest, QuestStep> questProgress;
-
 	private Map<Quest, Integer> questActionIndices;
-
 	private Map<Quest, QuestPauseState> questPauseStates;
-
 	private List<CommandSender> currentlyDebugging;
-
 	private List<String> currentDialogueBatch;
-
 	private String currentDialogueSpeaker;
-
 	private int currentDialogueIndex;
-
 	private long whenBeganDialogue;
-
 	private List<Consumer<User>> currentDialogueCompletionHandlers;
-
 	private boolean isOverridingWalkSpeed;
-
 	private CommandSender lastReceivedMessageFrom;
-
 	private boolean chatSpy;
-
 	private GUI currentGUI;
-
 	private List<String> guiHotfixOpenedBefore;
-
 	private boolean joined;
 
 	public enum PunishmentType {
-		BAN("ban", true, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION), MUTE("mute", true, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION),
-		KICK("kick", false, SystemProfile.SystemProfileFlags.SystemProfileFlag.HELPER), WARNING("warn", false, SystemProfile.SystemProfileFlags.SystemProfileFlag.HELPER);
+		BAN("ban", true, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION),
+		MUTE("mute", true, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION),
+		KICK("kick", false, SystemProfile.SystemProfileFlags.SystemProfileFlag.HELPER),
+		WARNING("warn", false, SystemProfile.SystemProfileFlags.SystemProfileFlag.HELPER);
 
 		private String dataHeader;
-
 		private boolean hasDuration;
-
 		private SystemProfile.SystemProfileFlags.SystemProfileFlag requiredFlag;
 
 		PunishmentType(String dataHeader, boolean hasDuration, SystemProfile.SystemProfileFlags.SystemProfileFlag requiredFlagToApply) {
@@ -221,15 +196,15 @@ public class User extends GameObject {
 		if (instance == null)
 			instance = Dragons.getInstance();
 		if (regionLoader == null)
-			regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
+			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 		if (floorLoader == null)
-			floorLoader = (FloorLoader) GameObjectType.FLOOR.<Floor, FloorLoader>getLoader();
+			floorLoader = GameObjectType.FLOOR.<Floor, FloorLoader>getLoader();
 		if (questLoader == null)
-			questLoader = (QuestLoader) GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+			questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 		if (itemLoader == null)
-			itemLoader = (ItemLoader) GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+			itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 		if (userLoader == null)
-			userLoader = (UserLoader) GameObjectType.USER.<User, UserLoader>getLoader();
+			userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 		if (userHookRegistry == null)
 			userHookRegistry = instance.getUserHookRegistry();
 		if (changeLogLoader == null)

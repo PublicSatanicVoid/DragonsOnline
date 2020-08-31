@@ -7,11 +7,8 @@ import org.bson.Document;
 
 public class QuestStep {
 	private QuestTrigger trigger;
-
 	private List<QuestAction> actions;
-
 	private String stepName;
-
 	private Quest quest;
 
 	public QuestStep(String stepName, QuestTrigger trigger, List<QuestAction> actions, Quest quest) {

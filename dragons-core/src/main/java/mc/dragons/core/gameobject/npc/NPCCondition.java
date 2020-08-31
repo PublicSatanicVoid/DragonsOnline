@@ -28,7 +28,7 @@ public class NPCCondition {
 
 	public static NPCCondition fromDocument(Document document) {
 		if (questLoader == null)
-			questLoader = (QuestLoader) GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+			questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 		NPCConditionType type = NPCConditionType.valueOf(document.getString("type"));
 		switch (type) {
 		case HAS_COMPLETED_QUEST:

@@ -26,25 +26,15 @@ import org.bukkit.inventory.ItemStack;
 
 public class QuestTrigger {
 	private static RegionLoader regionLoader;
-
 	private static NPCClassLoader npcClassLoader;
-
 	private static ItemClassLoader itemClassLoader;
-
 	private TriggerType type;
-
 	private String npcClassShortName;
-
 	private NPCClass npcClass;
-
 	private ItemClass itemClass;
-
 	private int quantity;
-
 	private Region region;
-
 	private Map<QuestTrigger, QuestAction> branchPoints;
-
 	private Map<User, Integer> killQuantity;
 
 	public enum TriggerType {
@@ -53,9 +43,9 @@ public class QuestTrigger {
 
 	public static QuestTrigger fromDocument(Document trigger, Quest quest) {
 		if (regionLoader == null) {
-			regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
-			npcClassLoader = (NPCClassLoader) GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-			itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		}
 		QuestTrigger questTrigger = new QuestTrigger();
 		questTrigger.type = TriggerType.valueOf(trigger.getString("type"));

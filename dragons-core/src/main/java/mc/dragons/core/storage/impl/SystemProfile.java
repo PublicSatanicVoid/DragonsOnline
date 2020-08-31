@@ -8,15 +8,10 @@ import org.bson.Document;
 
 public class SystemProfile {
 	private String profileName;
-
 	private String passwordHash;
-
 	private PermissionLevel maxPermissionLevel;
-
 	private SystemProfileFlags flags;
-
 	private boolean active;
-
 	private User currentUser;
 
 	public static class SystemProfileFlags {

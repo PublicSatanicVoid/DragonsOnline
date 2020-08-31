@@ -42,7 +42,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		super(instance, storageManager);
 		this.masterRegistry = instance.getGameObjectRegistry();
 		this.localStorageManager = instance.getLocalStorageManager();
-		this.npcClassLoader = (NPCClassLoader) GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+		this.npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 	}
 
 	public static synchronized NPCLoader getInstance(Dragons instance, StorageManager storageManager) {

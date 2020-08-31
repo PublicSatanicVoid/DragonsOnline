@@ -41,49 +41,28 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class QuestAction {
 	private static RegionLoader regionLoader;
-
 	private static NPCClassLoader npcClassLoader;
-
 	private static ItemClassLoader itemClassLoader;
-
 	private static NPCLoader npcLoader;
-
 	private static ItemLoader itemLoader;
-
+	
 	private Quest quest;
-
 	private QuestActionType action;
-
 	private String npcClassShortName;
-
 	private NPCClass npcClass;
-
 	private boolean phased;
-
 	private String npcReferenceName;
-
 	private List<String> dialogue;
-
 	private Location to;
-
 	private int xpAmount;
-
 	private int stage;
-
 	private ItemClass itemClass;
-
 	private int quantity;
-
 	private boolean notify;
-
 	private PotionEffectType effectType;
-
 	private int duration;
-
 	private int amplifier;
-
 	private int waitTime;
-
 	private Map<String, Integer> choices;
 
 	public static class QuestActionResult {
@@ -111,11 +90,11 @@ public class QuestAction {
 
 	public static QuestAction fromDocument(Document action, Quest quest) {
 		if (regionLoader == null) {
-			regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
-			npcClassLoader = (NPCClassLoader) GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-			itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-			npcLoader = (NPCLoader) GameObjectType.NPC.<NPC, NPCLoader>getLoader();
-			itemLoader = (ItemLoader) GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+			npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
+			itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 		}
 		QuestAction questAction = new QuestAction();
 		questAction.action = QuestActionType.valueOf(action.getString("type"));

@@ -14,6 +14,7 @@ public enum Rank {
 	NEW_BUILDER("New Builder", "New Builder", ChatColor.BLUE + "[New Builder]", ChatColor.BLUE, ChatColor.WHITE),
 	BUILDER("Builder", "Builder", ChatColor.BLUE + "[Builder]", ChatColor.BLUE, ChatColor.WHITE),
 	BUILDER_CMD("Builder + CMD", "Builder + CMD", ChatColor.BLUE + "[Build" + ChatColor.DARK_GRAY + "+" + ChatColor.DARK_PURPLE + "CMD" + ChatColor.BLUE + "]", ChatColor.BLUE, ChatColor.WHITE),
+	BUILD_MANAGER("Build Manager", "Build Manager", ChatColor.BLUE + "[Build Mgr]", ChatColor.BLUE, ChatColor.WHITE),
 	HEAD_BUILDER("Head Builder", "Head Builder", ChatColor.BLUE + "[Head Builder]", ChatColor.BLUE, ChatColor.WHITE),
 	HELPER("Helper", "Helper", ChatColor.GREEN + "[Helper]", ChatColor.GREEN, ChatColor.WHITE),
 	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[Moderator]", ChatColor.GREEN, ChatColor.WHITE),
@@ -24,13 +25,9 @@ public enum Rank {
 	ADMIN("Administrator", "Admin", ChatColor.DARK_RED + "[Admin]", ChatColor.RED, ChatColor.WHITE);
 
 	private String rankName;
-
 	private String shortName;
-
 	private String chatPrefix;
-
 	private ChatColor nameColor;
-
 	private ChatColor chatColor;
 
 	Rank(String rankName, String shortName, String chatPrefix, ChatColor nameColor, ChatColor chatColor) {

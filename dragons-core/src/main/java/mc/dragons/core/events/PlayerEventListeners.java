@@ -66,9 +66,9 @@ public class PlayerEventListeners implements Listener {
 	public PlayerEventListeners(Dragons instance) {
 		this.plugin = instance;
 		this.LOGGER = instance.getLogger();
-		this.userLoader = (UserLoader) GameObjectType.USER.<User, UserLoader>getLoader();
-		this.itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-		this.itemLoader = (ItemLoader) GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+		this.userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+		this.itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+		this.itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 		this.defaultInventory = new ItemClass[] { this.itemClassLoader.getItemClassByClassName("LousyStick") };
 	}
 

@@ -20,7 +20,7 @@ import com.comphenix.protocol.events.PacketListener;
 
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
-import mc.dragons.core.bridge.impl.Bridge_Spigot1_12_R1;
+import mc.dragons.core.bridge.impl.BridgeSpigot112R1;
 import mc.dragons.core.commands.BypassDeathCountdownCommand;
 import mc.dragons.core.commands.ChangeLogCommands;
 import mc.dragons.core.commands.ChannelCommand;
@@ -116,7 +116,7 @@ public class Dragons extends JavaPlugin {
 			getLogger().info("Searching for compatible version...");
 			switch (BUKKIT_API_VERSION) {
 			case "1_12_R1":
-				this.bridge = (Bridge) new Bridge_Spigot1_12_R1();
+				this.bridge = (Bridge) new BridgeSpigot112R1();
 				break;
 			default:
 				getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");
@@ -143,7 +143,7 @@ public class Dragons extends JavaPlugin {
 			org.apache.logging.log4j.core.Logger pluginLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(getLogger().getName());
 			this.serverOptions = new ServerOptions(pluginLogger);
 			getLogger().setLevel(this.serverOptions.getLogLevel());
-			((org.apache.logging.log4j.core.Logger) org.apache.logging.log4j.LogManager.getRootLogger()).addFilter((Filter) new LogFilter());
+			((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter((Filter) new LogFilter());
 			this.serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
 			this.debug = getConfig().getBoolean("debug");
 			if (this.debug) {

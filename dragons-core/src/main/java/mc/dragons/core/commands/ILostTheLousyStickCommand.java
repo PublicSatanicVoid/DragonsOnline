@@ -15,9 +15,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ILostTheLousyStickCommand implements CommandExecutor {
-	private ItemLoader itemLoader = (ItemLoader) GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+	private ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 
-	private ItemClassLoader itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+	private ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 
 	private ItemClass lousyStickClass = this.itemClassLoader.getItemClassByClassName("LousyStick");
 

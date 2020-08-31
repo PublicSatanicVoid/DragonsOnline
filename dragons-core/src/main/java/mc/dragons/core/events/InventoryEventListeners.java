@@ -19,7 +19,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class InventoryEventListeners implements Listener {
-	private ItemLoader itemLoader = (ItemLoader) GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+	private ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {

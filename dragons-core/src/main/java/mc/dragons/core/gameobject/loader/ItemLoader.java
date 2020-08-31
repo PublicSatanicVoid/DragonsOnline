@@ -33,7 +33,7 @@ public class ItemLoader extends GameObjectLoader<Item> {
 	private ItemLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
 		this.masterRegistry = instance.getGameObjectRegistry();
-		this.itemClassLoader = (ItemClassLoader) GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+		this.itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		uuidToItem = new HashMap<>();
 	}
 

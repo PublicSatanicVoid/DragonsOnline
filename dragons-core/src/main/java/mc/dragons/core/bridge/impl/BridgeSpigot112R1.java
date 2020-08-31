@@ -15,7 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class Bridge_Spigot1_12_R1 implements Bridge {
+public class BridgeSpigot112R1 implements Bridge {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 
 	public String getAPIVersion() {

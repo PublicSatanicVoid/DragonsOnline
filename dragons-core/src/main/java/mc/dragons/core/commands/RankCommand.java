@@ -15,7 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class RankCommand implements CommandExecutor {
-	private UserLoader userLoader = (UserLoader) GameObjectType.USER.<User, UserLoader>getLoader();
+	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;

@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.bukkit.Location;
 
 import mc.dragons.core.storage.StorageUtil;
@@ -25,7 +24,7 @@ public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> 
 		}
 
 		public WarpEntry(Document document) {
-			this(document.getString("name"), StorageUtil.docToLoc((Document) document.get("location", Document.class)));
+			this(document.getString("name"), StorageUtil.docToLoc(document.get("location", Document.class)));
 		}
 
 		public String getWarpName() {
@@ -51,10 +50,10 @@ public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> 
 	}
 
 	public Location getWarp(String warpName) {
-		warpName = warpName.toLowerCase();
-		if (!this.warps.containsKey(warpName))
+		String storedWarpName = warpName.toLowerCase();
+		if (!this.warps.containsKey(storedWarpName))
 			return null;
-		return ((WarpEntry) this.warps.get(warpName)).getLocation();
+		return this.warps.get(storedWarpName).getLocation();
 	}
 
 	public Collection<WarpEntry> getWarps() {
@@ -62,15 +61,15 @@ public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> 
 	}
 
 	public void addWarp(String warpName, Location location) {
-		warpName = warpName.toLowerCase();
-		WarpEntry entry = new WarpEntry(warpName, location);
+		String storedWarpName = warpName.toLowerCase();
+		WarpEntry entry = new WarpEntry(storedWarpName, location);
 		this.warps.put(entry.getWarpName(), entry);
 		this.collection.insertOne(entry.toDocument());
 	}
 
 	public void delWarp(String warpName) {
-		warpName = warpName.toLowerCase();
-		this.collection.deleteOne((Bson) new Document("name", warpName));
+		String storedWarpName = warpName.toLowerCase();
+		this.collection.deleteOne(new Document("name", storedWarpName));
 		this.warps.remove(warpName);
 	}
 }

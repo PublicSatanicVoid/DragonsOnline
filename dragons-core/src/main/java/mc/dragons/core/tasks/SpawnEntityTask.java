@@ -48,9 +48,9 @@ public class SpawnEntityTask extends BukkitRunnable {
 
 	public SpawnEntityTask(Dragons instance) {
 		this.plugin = instance;
-		this.npcClassLoader = (NPCClassLoader) GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-		this.npcLoader = (NPCLoader) GameObjectType.NPC.<NPC, NPCLoader>getLoader();
-		this.regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		this.npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+		this.npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
+		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 	}
 
 	public void run() {

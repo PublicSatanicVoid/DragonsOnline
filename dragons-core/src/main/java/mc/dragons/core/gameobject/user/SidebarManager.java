@@ -70,7 +70,7 @@ public class SidebarManager {
 			this.instance.getLogger().warning("Attempted to update scoreboard for " + player.getName() + " but they did not have a scoreboard");
 			return;
 		}
-		RegionLoader regionLoader = (RegionLoader) GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 		User user = UserLoader.fromPlayer(player);
 		Team floor = scoreboard.getTeam("FLOOR");
 		floor.setPrefix(ChatColor.GRAY + "Floor: ");
