@@ -36,7 +36,7 @@ public class Quest extends GameObject {
 	}
 
 	public List<Document> getRecalculatedStepsAsDoc() {
-		return (List<Document>) this.steps.stream().map(step -> step.toDocument()).collect(Collectors.toList());
+		return this.steps.stream().map(step -> step.toDocument()).collect(Collectors.toList());
 	}
 
 	public int getStepIndex(QuestStep questStep) {
@@ -66,7 +66,7 @@ public class Quest extends GameObject {
 	}
 
 	public NPC getNPCByReference(User user, String referenceName) {
-		return (NPC) this.referenceNames.get(user, referenceName);
+		return this.referenceNames.get(user, referenceName);
 	}
 
 	public String getQuestName() {

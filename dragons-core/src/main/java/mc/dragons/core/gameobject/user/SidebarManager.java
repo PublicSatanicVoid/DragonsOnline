@@ -36,7 +36,7 @@ public class SidebarManager {
 		int shift = this.scoreboardScrollIndices.get(player).getOrDefault(entry, Integer.valueOf(0)).intValue();
 		if (shift + 16 > value.length())
 			shift = 0;
-		((Map<String, Integer>) this.scoreboardScrollIndices.get(player)).put(entry, Integer.valueOf(shift + 1));
+		this.scoreboardScrollIndices.get(player).put(entry, Integer.valueOf(shift + 1));
 		return value.substring(shift, 16 + shift);
 	}
 

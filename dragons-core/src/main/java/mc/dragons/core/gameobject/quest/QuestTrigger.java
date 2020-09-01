@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bson.Document;
-import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -244,11 +243,11 @@ public class QuestTrigger {
 				return false;
 			if (event instanceof EntityDeathEvent) {
 				EntityDeathEvent deathEvent = (EntityDeathEvent) event;
-				NPC npc = NPCLoader.fromBukkit((Entity) deathEvent.getEntity());
+				NPC npc = NPCLoader.fromBukkit(deathEvent.getEntity());
 				if (npc == null)
 					return false;
 				if (npc.getNPCClass().equals(this.npcClass)) {
-					this.killQuantity.put(user, Integer.valueOf((int) this.killQuantity.getOrDefault(user, Integer.valueOf(0)) + 1));
+					this.killQuantity.put(user, Integer.valueOf(this.killQuantity.getOrDefault(user, Integer.valueOf(0)) + 1));
 					if (this.killQuantity.getOrDefault(user, 0) >= this.quantity)
 						return true;
 				}

@@ -25,16 +25,18 @@ public class Identifier {
 		return (UUID) this.identifierData.get("_id");
 	}
 
+	@Override
 	public String toString() {
 		return String.valueOf(getType().toString()) + "#" + getUUID().toString();
 	}
 
+	@Override
 	public boolean equals(Object other) {
 		if (other == null)
 			return false;
 		if (!(other instanceof Identifier))
 			return false;
 		Identifier otherId = (Identifier) other;
-		return (otherId.getType() == getType() && otherId.getUUID().equals(getUUID()));
+		return otherId.getType() == getType() && otherId.getUUID().equals(getUUID());
 	}
 }

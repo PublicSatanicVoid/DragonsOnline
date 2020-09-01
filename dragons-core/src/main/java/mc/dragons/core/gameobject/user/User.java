@@ -26,7 +26,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -207,9 +206,9 @@ public class User extends GameObject {
 		if (userHookRegistry == null)
 			userHookRegistry = instance.getUserHookRegistry();
 		if (changeLogLoader == null)
-			changeLogLoader = (ChangeLogLoader) instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
+			changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 		if (systemProfileLoader == null)
-			systemProfileLoader = (SystemProfileLoader) instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
+			systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 		this.joined = false;
 		initialize(player);
 	}
@@ -227,7 +226,7 @@ public class User extends GameObject {
 			Document inventory = (Document) getData("inventory");
 			List<String> brokenItems = new ArrayList<>();
 			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
-				String[] labels = ((String) entry.getKey()).split(Pattern.quote("-"));
+				String[] labels = entry.getKey().split(Pattern.quote("-"));
 				String part = labels[0];
 				int slot = Integer.valueOf(labels[1]).intValue();
 				Item item = itemLoader.loadObject((UUID) entry.getValue());
@@ -410,10 +409,10 @@ public class User extends GameObject {
 		debug(" - idx=" + this.currentDialogueIndex);
 		TextComponent message = new TextComponent(
 				TextComponent.fromLegacyText(ChatColor.GRAY + "[" + (this.currentDialogueIndex + 1) + "/" + this.currentDialogueBatch.size() + "] " + ChatColor.DARK_GREEN + this.currentDialogueSpeaker
-						+ ": " + ChatColor.GREEN + ((String) this.currentDialogueBatch.get(this.currentDialogueIndex++)).replaceAll(Pattern.quote("%PLAYER%"), getName())));
+						+ ": " + ChatColor.GREEN + this.currentDialogueBatch.get(this.currentDialogueIndex++).replaceAll(Pattern.quote("%PLAYER%"), getName())));
 		message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/fastforwarddialogue"));
 		message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, (new ComponentBuilder(ChatColor.YELLOW + "Click to fast-forward through the dialogue")).create()));
-		this.player.spigot().sendMessage((BaseComponent) message);
+		this.player.spigot().sendMessage(message);
 		if (this.currentDialogueIndex >= this.currentDialogueBatch.size()) {
 			resetDialogueAndHandleCompletion();
 			return false;
@@ -436,24 +435,22 @@ public class User extends GameObject {
 	}
 
 	public void updateQuests(Event event) {
-		debug("Updating quests...");
 		if (this.currentDialogueBatch != null && this.currentDialogueIndex < this.currentDialogueBatch.size()) {
-			debug("- Cancelled quest update because of active dialogue");
+			debug("updateQuests() : Cancelled quest update because of active dialogue");
 			return;
 		}
-		for (Entry<Quest, QuestStep> questStep : this.questProgress.entrySet()) {
-			debug("- Step " + ((QuestStep) questStep.getValue()).getStepName() + " of " + ((Quest) questStep.getKey()).getName());
-			if (((QuestStep) questStep.getValue()).getStepName().equalsIgnoreCase("Complete"))
-				continue;
+		for (Entry<Quest, QuestStep> questStep : this.questProgress.entrySet()) {			
+			if (questStep.getValue().getStepName().equalsIgnoreCase("Complete")) continue;
+			debug("updateQuests() : Step " + questStep.getValue().getStepName() + " of " + questStep.getKey().getName());
 			QuestPauseState pauseState = getQuestPauseState(questStep.getKey());
 			if (pauseState == QuestPauseState.PAUSED)
 				continue;
-			debug("  - Trigger: " + ((QuestStep) questStep.getValue()).getTrigger().getTriggerType());
-			if (((QuestStep) questStep.getValue()).getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED) {
+			debug("updateQuests() :   - Trigger = " + questStep.getValue().getTrigger().getTriggerType());
+			if (questStep.getValue().getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED) {
 				Quest quest = questStep.getKey();
-				debug("   - Triggered (starting @ action #" + getQuestActionIndex(quest) + ")");
-				if (((QuestStep) questStep.getValue()).executeActions(this, getQuestActionIndex(quest))) {
-					debug("      - Normal progression to next step");
+				debug("updateQuests() :     - Triggered (starting @ action #" + getQuestActionIndex(quest) + ")");
+				if (questStep.getValue().executeActions(this, getQuestActionIndex(quest))) {
+					debug("updateQuests() :      - Normal progression to next step");
 					int nextIndex = quest.getSteps().indexOf(questStep.getValue()) + 1;
 					if (nextIndex != quest.getSteps().size()) {
 						QuestStep nextStep = quest.getSteps().get(nextIndex);
@@ -476,7 +473,7 @@ public class User extends GameObject {
 			this.storageAccess.update(new Document("quests", updatedQuestProgress));
 			return;
 		}
-		debug("==UPDATING QUEST PROGRESS: " + quest.getName() + " step " + questStep.getStepName());
+		debug("updateQuestProgress(" + quest.getName() + ", " + questStep.getStepName() + ", notify=" + notify + ")");
 		this.questProgress.put(quest, questStep);
 		resetQuestPauseState(quest);
 		this.questActionIndices.put(quest, Integer.valueOf(0));
@@ -489,10 +486,11 @@ public class User extends GameObject {
 				this.player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
 			}
 		(new BukkitRunnable() {
+			@Override
 			public void run() {
 				User.this.updateQuests((Event) null);
 			}
-		}).runTaskLater((Plugin) instance, 1L);
+		}).runTaskLater(instance, 1L);
 	}
 
 	public void updateQuestAction(Quest quest, int actionIndex) {
@@ -500,7 +498,7 @@ public class User extends GameObject {
 	}
 
 	public int getQuestActionIndex(Quest quest) {
-		return (int) this.questActionIndices.getOrDefault(quest, Integer.valueOf(0));
+		return this.questActionIndices.getOrDefault(quest, Integer.valueOf(0));
 	}
 
 	public void updateQuestProgress(Quest quest, QuestStep questStep) {
@@ -532,10 +530,17 @@ public class User extends GameObject {
 			return;
 		this.guiHotfixOpenedBefore.add(this.currentGUI.getMenuName());
 		(new BukkitRunnable() {
+			@Override
 			public void run() {
 				User.this.currentGUI.open(User.this);
 			}
-		}).runTaskLater((Plugin) instance, 1L);
+		}).runTaskLater(instance, 1L);		
+		(new BukkitRunnable() {
+			@Override
+			public void run() {
+				player.closeInventory();
+			}
+		}).runTaskLater(instance, 2L);
 	}
 
 	public boolean hasOpenGUI() {
@@ -548,7 +553,7 @@ public class User extends GameObject {
 
 	@SuppressWarnings("unchecked")
 	public List<ChatChannel> getActiveChatChannels() {
-		return (List<ChatChannel>) ((List<String>) getData("chatChannels")).stream().map(ch -> ChatChannel.valueOf(ch)).collect(Collectors.toList());
+		return ((List<String>) getData("chatChannels")).stream().map(ch -> ChatChannel.valueOf(ch)).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -589,7 +594,7 @@ public class User extends GameObject {
 
 	public void sendMessage(ChatChannel channel, BaseComponent... message) {
 		if (getActiveChatChannels().contains(channel))
-			this.player.spigot().sendMessage((new ComponentBuilder((BaseComponent) channel.getPrefix())).append(" ").append(message).create());
+			this.player.spigot().sendMessage((new ComponentBuilder(channel.getPrefix())).append(" ").append(message).create());
 	}
 
 	public void chat(String message) {
@@ -637,7 +642,7 @@ public class User extends GameObject {
 			if (!channel.canHear(user, this) && !user.hasChatSpy())
 				continue;
 			LOGGER.finer("  -Yes!");
-			user.sendMessage(channel, location, new BaseComponent[] { (BaseComponent) messageComponent });
+			user.sendMessage(channel, location, new BaseComponent[] { messageComponent });
 			rec++;
 		}
 		if (rec <= 1 && tot > 1)
@@ -787,17 +792,17 @@ public class User extends GameObject {
 		TextComponent component = new TextComponent(ChatColor.AQUA + "Speaking in ");
 		TextComponent speaking = getSpeakingChannel().format();
 		speaking.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
-		component.addExtra((BaseComponent) speaking);
+		component.addExtra(speaking);
 		component.addExtra(ChatColor.AQUA + " and listening to ");
 		List<ChatChannel> channels = getActiveChatChannels();
 		for (int i = 0; i < channels.size(); i++) {
-			TextComponent listening = ((ChatChannel) channels.get(i)).format();
+			TextComponent listening = channels.get(i).format();
 			listening.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
-			component.addExtra((BaseComponent) listening);
+			component.addExtra(listening);
 			if (i < channels.size() - 1)
 				component.addExtra(", ");
 		}
-		this.player.spigot().sendMessage((BaseComponent) component);
+		this.player.spigot().sendMessage(component);
 		if (firstJoin)
 			this.player.sendMessage(ChatColor.AQUA + "Use " + ChatColor.DARK_AQUA + "/channel" + ChatColor.AQUA + " to change channels.");
 		if (getUnreadChangeLogs().size() > 0)
@@ -975,6 +980,7 @@ public class User extends GameObject {
 		(new BukkitRunnable() {
 			int counter = seconds;
 
+			@Override
 			public void run() {
 				if (User.this.hasDeathCountdown()) {
 					User.this.sendActionBar(ChatColor.DARK_RED + "Respawning in " + this.counter + "s");
@@ -984,7 +990,7 @@ public class User extends GameObject {
 					cancel();
 				}
 			}
-		}).runTaskTimer((Plugin) instance, 0L, 20L);
+		}).runTaskTimer(instance, 0L, 20L);
 	}
 
 	public boolean hasDeathCountdown() {
@@ -1075,9 +1081,9 @@ public class User extends GameObject {
 		if (userOf.player == null || userFor.player == null)
 			return;
 		if (userOf.isVanished() && userFor.getActivePermissionLevel().ordinal() < userOf.getActivePermissionLevel().ordinal()) {
-			userFor.player.hidePlayer((Plugin) instance, userOf.player);
+			userFor.player.hidePlayer(instance, userOf.player);
 		} else if (!userFor.player.canSee(userOf.player)) {
-			userFor.player.showPlayer((Plugin) instance, userOf.player);
+			userFor.player.showPlayer(instance, userOf.player);
 		}
 	}
 
@@ -1136,16 +1142,16 @@ public class User extends GameObject {
 		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
 		this.activePermissionLevel = permissionLevel;
 		SystemProfile.SystemProfileFlags flags = getSystemProfile().getFlags();
-		this.player.addAttachment((Plugin) instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
-		this.player.addAttachment((Plugin) instance, "minecraft.command.teleport",
+		this.player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		this.player.addAttachment(instance, "minecraft.command.teleport",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment((Plugin) instance, "minecraft.command.tp",
+		this.player.addAttachment(instance, "minecraft.command.tp",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment((Plugin) instance, "minecraft.command.give",
+		this.player.addAttachment(instance, "minecraft.command.give",
 				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment((Plugin) instance, "minecraft.command.summon",
+		this.player.addAttachment(instance, "minecraft.command.summon",
 				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment((Plugin) instance, "minecraft.command.setworldspawn", (permissionLevel.ordinal() >= PermissionLevel.GM.ordinal()));
+		this.player.addAttachment(instance, "minecraft.command.setworldspawn", (permissionLevel.ordinal() >= PermissionLevel.GM.ordinal()));
 		this.player.setOp(flags.hasFlag(SystemProfileFlag.CMD));
 		sendActionBar(ChatColor.GRAY + "Active permission level changed to " + permissionLevel.toString());
 		updateVanishStatesOnSelf();
@@ -1319,6 +1325,7 @@ public class User extends GameObject {
 		setData("lastStaffLocation", StorageUtil.locToDoc(loc));
 	}
 
+	@Override
 	public void autoSave() {
 		super.autoSave();
 		if (this.player == null)

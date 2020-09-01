@@ -12,8 +12,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
@@ -74,7 +72,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 		} else if (target instanceof org.bukkit.entity.ArmorStand) {
 			if (target.hasMetadata("partOf")) {
 				this.LOGGER.finer("-Target is part of a complex entity!");
-				npcTarget = (NPC) ((MetadataValue) target.getMetadata("partOf").get(0)).value();
+				npcTarget = (NPC) target.getMetadata("partOf").get(0).value();
 				external = true;
 			}
 		} else {
@@ -86,7 +84,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 						Item item = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
 						if (item != null && item.getClassName().equals("Special:ImmortalOverride")) {
 							npcTarget.getEntity().remove();
-							this.dragons.getGameObjectRegistry().removeFromDatabase((GameObject) npcTarget);
+							this.dragons.getGameObjectRegistry().removeFromDatabase(npcTarget);
 							userDamager.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 							return;
 						}
@@ -154,6 +152,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 					attackerHeldItem.registerUse();
 				final User fUserDamager = userDamager;
 				(new BukkitRunnable() {
+					@Override
 					public void run() {
 						Item currentHeldItem = ItemLoader.fromBukkit(fUserDamager.getPlayer().getInventory().getItemInMainHand());
 						if (currentHeldItem == null)
@@ -169,7 +168,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 							cancel();
 						}
 					}
-				}).runTaskTimer((Plugin) this.dragons, 0L, 5L);
+				}).runTaskTimer(this.dragons, 0L, 5L);
 				itemDamage = attackerHeldItem.getDamage();
 				damage += itemDamage;
 			}

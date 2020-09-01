@@ -224,6 +224,7 @@ public class Item extends GameObject {
 		return (Math.abs(getCooldownRemaining()) > 0.001D);
 	}
 
+	@Override
 	public void autoSave() {
 		super.autoSave();
 		setData("quantity", Integer.valueOf(this.itemStack.getAmount()));

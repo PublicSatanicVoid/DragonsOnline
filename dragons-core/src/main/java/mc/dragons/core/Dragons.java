@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Filter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -16,7 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketListener;
 
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
@@ -111,6 +109,7 @@ public class Dragons extends JavaPlugin {
 
 	public static final String STAFF_DOCUMENTATION = "https://bit.ly/30FS0cW";
 
+	@Override
 	public synchronized void onLoad() {
 		if (INSTANCE == null) {
 			INSTANCE = this;
@@ -118,7 +117,7 @@ public class Dragons extends JavaPlugin {
 			getLogger().info("Searching for compatible version...");
 			switch (BUKKIT_API_VERSION) {
 			case "1_12_R1":
-				this.bridge = (Bridge) new BridgeSpigot112R1();
+				this.bridge = new BridgeSpigot112R1();
 				break;
 			default:
 				getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");
@@ -137,8 +136,8 @@ public class Dragons extends JavaPlugin {
 			this.lightweightLoaderRegistry = new LightweightLoaderRegistry();
 			this.sidebarManager = new SidebarManager(this);
 			
-			this.autoSaveRunnable = (BukkitRunnable) new AutoSaveTask(this);
-			this.spawnEntityRunnable = (BukkitRunnable) new SpawnEntityTask(this);
+			this.autoSaveRunnable = new AutoSaveTask(this);
+			this.spawnEntityRunnable = new SpawnEntityTask(this);
 			this.verifyGameIntegrityRunnable = new VerifyGameIntegrityTask(this);
 			this.lagMeter = new LagMeter();
 			this.lagMonitorTask = new LagMonitorTask();
@@ -146,7 +145,7 @@ public class Dragons extends JavaPlugin {
 			org.apache.logging.log4j.core.Logger pluginLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(getLogger().getName());
 			this.serverOptions = new ServerOptions(pluginLogger);
 			getLogger().setLevel(this.serverOptions.getLogLevel());
-			((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter((Filter) new LogFilter());
+			((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
 			this.serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
 			this.debug = getConfig().getBoolean("debug");
 			if (this.debug) {
@@ -163,6 +162,7 @@ public class Dragons extends JavaPlugin {
 		}
 	}
 
+	@Override
 	public void onEnable() {
 		getLogger().info("Loading game objects...");
 		GameObjectType.FLOOR.<Floor, FloorLoader>getLoader().lazyLoadAll();
@@ -171,12 +171,14 @@ public class Dragons extends JavaPlugin {
 		GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader().lazyLoadAll();
 		GameObjectType.QUEST.<Quest, QuestLoader>getLoader().lazyLoadAll();
 		(new BukkitRunnable() {
+			@Override
 			public void run() {
 				GameObjectType.NPC.<NPC, NPCLoader>getLoader().lazyLoadAllPermanent();
 				getLogger().info("Flushing invalid game objects from initial load...");
 				(new BukkitRunnable() {
 					int i = 1;
 
+					@Override
 					public void run() {
 						verifyGameIntegrityRunnable.run(true);
 						this.i++;
@@ -206,7 +208,7 @@ public class Dragons extends JavaPlugin {
 		pluginManager.registerEvents(new EntityCombustListener(), this);
 
 		getLogger().info("Registering packet listeners...");
-		ProtocolLibrary.getProtocolManager().addPacketListener((PacketListener) new EntityMoveListener(this));
+		ProtocolLibrary.getProtocolManager().addPacketListener(new EntityMoveListener(this));
 		this.entityHider = new EntityHider(Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
 		
 		getLogger().info("Registering commands...");
@@ -242,6 +244,7 @@ public class Dragons extends JavaPlugin {
 		this.addonRegistry.enableAll();
 	}
 
+	@Override
 	public void onDisable() {
 		((AutoSaveTask) this.autoSaveRunnable).run(true);
 		for (User user : UserLoader.allUsers()) {
@@ -277,7 +280,7 @@ public class Dragons extends JavaPlugin {
 	public static Dragons getInstance() {
 		return INSTANCE;
 	}
-
+	
 	public MongoConfig getMongoConfig() {
 		return this.mongoConfig;
 	}

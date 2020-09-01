@@ -44,6 +44,7 @@ public class RegionLoader extends GameObjectLoader<Region> {
 		return INSTANCE;
 	}
 
+	@Override
 	public Region loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
 		this.LOGGER.fine("Loading region " + storageAccess.getIdentifier());

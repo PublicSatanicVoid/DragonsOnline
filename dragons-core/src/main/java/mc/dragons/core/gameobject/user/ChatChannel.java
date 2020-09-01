@@ -13,9 +13,9 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public enum ChatChannel {
-	ALVADOR("A", "Global chat for all of Alvador", (ChannelHandler) new AlvadorChannelHandler()), LOCAL("L", "Local chat for your current floor", (ChannelHandler) new LocalChannelHandler()),
-	GUILD("G", "Channel for your guild only", null), PARTY("P", "Channel for your party only", null), TRADE("T", "Global chat for trade discussion", (ChannelHandler) new TradeChannelHandler()),
-	HELP("H", "Global chat to ask for help", (ChannelHandler) new HelpChannelHandler()), STAFF("S", "Staff-only channel", (ChannelHandler) new StaffChannelHandler());
+	ALVADOR("A", "Global chat for all of Alvador", new AlvadorChannelHandler()), LOCAL("L", "Local chat for your current floor", new LocalChannelHandler()),
+	GUILD("G", "Channel for your guild only", null), PARTY("P", "Channel for your party only", null), TRADE("T", "Global chat for trade discussion", new TradeChannelHandler()),
+	HELP("H", "Global chat to ask for help", new HelpChannelHandler()), STAFF("S", "Staff-only channel", new StaffChannelHandler());
 
 	private String abbreviation;
 	private String description;

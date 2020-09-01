@@ -56,17 +56,18 @@ public class SystemProfile {
 		}
 
 		public boolean hasFlag(SystemProfileFlag flag) {
-			return ((Boolean) this.flags.getOrDefault(flag, Boolean.valueOf(false))).booleanValue();
+			return this.flags.getOrDefault(flag, Boolean.valueOf(false)).booleanValue();
 		}
 
 		public void setLocalFlag(SystemProfileFlag flag, boolean value) {
 			this.flags.put(flag, Boolean.valueOf(value));
 		}
 
+		@Override
 		public String toString() {
 			String result = "";
 			for (Entry<SystemProfileFlag, Boolean> flag : this.flags.entrySet())
-				result = String.valueOf(result) + ((SystemProfileFlag) flag.getKey()).getName() + "(" + flagToAccess(((Boolean) flag.getValue()).booleanValue()) + ") ";
+				result = String.valueOf(result) + flag.getKey().getName() + "(" + flagToAccess(flag.getValue().booleanValue()) + ") ";
 			return result.trim();
 		}
 	}

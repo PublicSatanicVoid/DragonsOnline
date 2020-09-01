@@ -3,7 +3,6 @@ package mc.dragons.core.events;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,7 +32,7 @@ public class EntityTargetEventListener implements Listener {
 		if (currTarget != null && (e.getTarget() == null || e.getTarget() instanceof LivingEntity) && currTarget != e.getTarget()) {
 			this.LOGGER.finest("- Cancelled due to having a declared target");
 			e.setCancelled(true);
-			e.setTarget((Entity) currTarget);
+			e.setTarget(currTarget);
 			return;
 		}
 		if (e.getTarget() instanceof Player) {

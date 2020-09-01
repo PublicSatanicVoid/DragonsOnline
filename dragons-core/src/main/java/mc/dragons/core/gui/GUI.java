@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 
 import mc.dragons.core.gameobject.user.User;
 
@@ -42,9 +41,9 @@ public class GUI {
 	}
 
 	public void open(User user) {
-		Inventory inventory = Bukkit.createInventory((InventoryHolder) user.getPlayer(), this.rows * 9, this.name);
+		Inventory inventory = Bukkit.createInventory(user.getPlayer(), this.rows * 9, this.name);
 		for (Entry<Integer, GUIElement> element : this.elements.entrySet())
-			inventory.setItem((int) element.getKey(), ((GUIElement) element.getValue()).getItemStack());
+			inventory.setItem(element.getKey(), element.getValue().getItemStack());
 		user.openGUI(this, inventory);
 	}
 
@@ -61,7 +60,7 @@ public class GUI {
 		Document document = (new Document("name", this.name)).append("rows", Integer.valueOf(this.rows));
 		List<Document> items = new ArrayList<>();
 		for (Entry<Integer, GUIElement> element : this.elements.entrySet())
-			items.add(((GUIElement) element.getValue()).toDocument());
+			items.add(element.getValue().toDocument());
 		document.append("items", items);
 		return document;
 	}

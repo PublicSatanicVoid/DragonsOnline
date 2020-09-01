@@ -23,9 +23,10 @@ public class ChangeLogCommands implements CommandExecutor {
 	private ChangeLogLoader changeLogLoader;
 
 	public ChangeLogCommands(Dragons instance) {
-		this.changeLogLoader = (ChangeLogLoader) instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
+		this.changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	}
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");

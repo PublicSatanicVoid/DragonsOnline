@@ -28,7 +28,7 @@ public class GameObjectRegistry {
 	}
 
 	public Set<GameObject> getRegisteredObjects(GameObjectType... types) {
-		return (Set<GameObject>) this.registeredObjects.stream().filter(obj -> {
+		return this.registeredObjects.stream().filter(obj -> {
 			for(GameObjectType type : types) {
 				if(type == obj.getType()) {
 					return true;

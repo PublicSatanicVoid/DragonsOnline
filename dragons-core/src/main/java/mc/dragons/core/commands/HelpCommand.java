@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 public class HelpCommand implements CommandExecutor {
 	public static final String INDENT = ChatColor.GRAY + "   " + ChatColor.ITALIC;
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		sender.sendMessage(ChatColor.GOLD + "Displaying help for DragonsOnline.");
 		sender.sendMessage(ChatColor.YELLOW + "/channel <speak|listen> <alvador|local|guild|party|trade|help>");

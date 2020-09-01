@@ -14,6 +14,7 @@ public abstract class ItemAddon implements Addon {
 	private Map<User, String> combos;
 	private Map<User, Long> comboStartTimes;
 
+	@Override
 	public final AddonType getType() {
 		return AddonType.ITEM;
 	}
@@ -26,13 +27,13 @@ public abstract class ItemAddon implements Addon {
 	public void onLeftClick(User user) {
 		user.debug("ItemAddon received left click");
 		if (this.comboStartTimes.containsKey(user)) {
-			if (System.currentTimeMillis() - ((Long) this.comboStartTimes.get(user)).longValue() > MAX_COMBO_TIME_MS) {
+			if (System.currentTimeMillis() - this.comboStartTimes.get(user).longValue() > MAX_COMBO_TIME_MS) {
 				resetCombo(user);
 				return;
 			}
 			this.combos.put(user, String.valueOf(this.combos.get(user)) + "L");
 			onPrepareCombo(user, this.combos.get(user));
-			if (((String) this.combos.get(user)).length() == 3) {
+			if (this.combos.get(user).length() == 3) {
 				onCombo(user, this.combos.get(user));
 				resetCombo(user);
 			}
@@ -43,11 +44,11 @@ public abstract class ItemAddon implements Addon {
 		user.debug("ItemAddon received right click");
 		if (!this.comboStartTimes.containsKey(user))
 			this.comboStartTimes.put(user, Long.valueOf(System.currentTimeMillis()));
-		if (System.currentTimeMillis() - ((Long) this.comboStartTimes.get(user)).longValue() > MAX_COMBO_TIME_MS)
+		if (System.currentTimeMillis() - this.comboStartTimes.get(user).longValue() > MAX_COMBO_TIME_MS)
 			resetCombo(user);
 		this.combos.put(user, String.valueOf(this.combos.getOrDefault(user, "")) + "R");
 		onPrepareCombo(user, this.combos.get(user));
-		if (((String) this.combos.get(user)).length() == COMBO_LENGTH) {
+		if (this.combos.get(user).length() == COMBO_LENGTH) {
 			onCombo(user, this.combos.get(user));
 			resetCombo(user);
 		}

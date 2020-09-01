@@ -35,7 +35,7 @@ public class NPCClass extends GameObject {
 			conditionals[i] = new NPCConditionalActions(trigger, this);
 			i++;
 		}
-		this.addons = (List<NPCAddon>) ((List<String>) getData("addons")).stream()
+		this.addons = ((List<String>) getData("addons")).stream()
 				.map(addonName -> (NPCAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName))
 				.collect(Collectors.toList());
 	}

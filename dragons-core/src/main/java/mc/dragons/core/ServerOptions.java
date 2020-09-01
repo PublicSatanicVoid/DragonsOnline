@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.tasks.AutoSaveTask;
@@ -54,8 +53,8 @@ public class ServerOptions {
 		this.autoSavePeriodTicks = period;
 		Dragons.getInstance().getAutoSaveRunnable().cancel();
 		AutoSaveTask task = new AutoSaveTask(Dragons.getInstance());
-		Dragons.getInstance().setAutoSaveRunnable((BukkitRunnable) task);
-		task.runTaskTimer((Plugin) Dragons.getInstance(), 0L, period);
+		Dragons.getInstance().setAutoSaveRunnable(task);
+		task.runTaskTimer(Dragons.getInstance(), 0L, period);
 		this.LOGGER.config("Set auto-save period to " + period + " ticks");
 	}
 
@@ -76,8 +75,8 @@ public class ServerOptions {
 		this.customSpawnRate = rate;
 		Dragons.getInstance().getSpawnEntityRunnable().cancel();
 		SpawnEntityTask task = new SpawnEntityTask(Dragons.getInstance());
-		Dragons.getInstance().setSpawnEntityRunnable((BukkitRunnable) task);
-		task.runTaskTimer((Plugin) Dragons.getInstance(), 0L, rate);
+		Dragons.getInstance().setSpawnEntityRunnable(task);
+		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
 		this.LOGGER.config("Custom spawn rate set to " + rate + "s.");
 	}
 
@@ -108,7 +107,7 @@ public class ServerOptions {
 		Dragons.getInstance().getVerifyGameIntegrityRunnable().cancel();
 		VerifyGameIntegrityTask task = new VerifyGameIntegrityTask(Dragons.getInstance());
 		Dragons.getInstance().setVerifyGameIntegrityRunnable(task);
-		task.runTaskTimer((Plugin) Dragons.getInstance(), 0L, rate);
+		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
 		this.LOGGER.config("Game verification sweep rate set to " + rate + "s.");
 	}
 

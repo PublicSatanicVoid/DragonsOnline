@@ -99,8 +99,8 @@ public class Region extends GameObject {
 
 	public double getSpawnRate(String npcClass) {
 		for (Entry<String, Double> entry : this.regionData.getSpawnRates().entrySet()) {
-			if (((String) entry.getKey()).equalsIgnoreCase(npcClass))
-				return (double) entry.getValue();
+			if (entry.getKey().equalsIgnoreCase(npcClass))
+				return entry.getValue();
 		}
 		return 0.0D;
 	}

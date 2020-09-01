@@ -14,13 +14,14 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 
 public class MyQuestsCommand implements CommandExecutor {
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (sender instanceof Player) {
 			User user = UserLoader.fromPlayer((Player) sender);
 			sender.sendMessage(ChatColor.GREEN + "Listing active quests:");
 			for (Entry<Quest, QuestStep> entry : (Iterable<Entry<Quest, QuestStep>>) user.getQuestProgress().entrySet())
-				sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.YELLOW + ((Quest) entry.getKey()).getQuestName() + ChatColor.GRAY + " (Step: "
-						+ ((QuestStep) entry.getValue()).getStepName().trim() + ChatColor.GRAY + ")");
+				sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.YELLOW + entry.getKey().getQuestName() + ChatColor.GRAY + " (Step: "
+						+ entry.getValue().getStepName().trim() + ChatColor.GRAY + ")");
 		}
 		return true;
 	}

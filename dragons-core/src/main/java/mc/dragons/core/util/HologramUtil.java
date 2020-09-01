@@ -5,8 +5,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
@@ -22,7 +20,7 @@ public class HologramUtil {
 		hologram.setCollidable(false);
 		hologram.setInvulnerable(true);
 		hologram.setSmall(true);
-		hologram.setMetadata("allow", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), Boolean.valueOf(true)));
+		hologram.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), Boolean.valueOf(true)));
 		return hologram;
 	}
 
@@ -35,8 +33,9 @@ public class HologramUtil {
 		armorStand.setCollidable(false);
 		armorStand.setInvulnerable(true);
 		armorStand.setSmall(true);
-		armorStand.setMetadata("allow", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), Boolean.valueOf(true)));
+		armorStand.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), Boolean.valueOf(true)));
 		(new BukkitRunnable() {
+			@Override
 			public void run() {
 				nameTagFix.teleport(entity.getLocation().add(xOffset, yOffset, zOffset));		
 				nameTagFix.setCustomName(nameTag);
@@ -44,7 +43,7 @@ public class HologramUtil {
 				if (bind)
 					entity.addPassenger(nameTagFix);
 			}
-		}).runTaskLater((Plugin) Dragons.getInstance(), 1L);
+		}).runTaskLater(Dragons.getInstance(), 1L);
 		return armorStand;
 	}
 
@@ -62,12 +61,13 @@ public class HologramUtil {
 		double zOffset = bind ? 0.0D : (Math.random() * 0.5D);
 		final ArmorStand tag = makeArmorStandNameTag(entity, label, xOffset, yOffset, zOffset, bind);
 		(new BukkitRunnable() {
+			@Override
 			public void run() {
 				if (bind)
-					entity.removePassenger((Entity) tag);
+					entity.removePassenger(tag);
 				tag.remove();
 			}
-		}).runTaskLater((Plugin) Dragons.getInstance(), durationTicks);
+		}).runTaskLater(Dragons.getInstance(), durationTicks);
 		return tag;
 	}
 }

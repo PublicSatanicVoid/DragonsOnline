@@ -18,6 +18,7 @@ import mc.dragons.core.util.StringUtil;
 public class QuestDialogueCommands implements CommandExecutor {
 	private QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (sender instanceof Player) {
 			User user = UserLoader.fromPlayer((Player) sender);
@@ -39,7 +40,7 @@ public class QuestDialogueCommands implements CommandExecutor {
 				Quest quest = this.questLoader.getQuestByName(questName);
 				if (quest == null)
 					return true;
-				QuestStep progress = (QuestStep) user.getQuestProgress().get(quest);
+				QuestStep progress = user.getQuestProgress().get(quest);
 				if (progress == null)
 					return true;
 				int actionIndex = user.getQuestActionIndex(quest) - 1;
@@ -49,7 +50,7 @@ public class QuestDialogueCommands implements CommandExecutor {
 				if (action == null)
 					return true;
 				if (action.getActionType() == QuestAction.QuestActionType.CHOICES) {
-					Integer stage = (Integer) action.getChoices().get(response);
+					Integer stage = action.getChoices().get(response);
 					if (stage == null)
 						return true;
 					sender.sendMessage(ChatColor.GRAY + "[1/1] " + ChatColor.DARK_GREEN + user.getName() + ": " + ChatColor.GREEN + response);

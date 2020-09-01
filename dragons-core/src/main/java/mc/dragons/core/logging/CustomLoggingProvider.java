@@ -20,6 +20,6 @@ public class CustomLoggingProvider {
 		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", new LogFilter(), new CustomLayout(Charset.defaultCharset()), false);
 		appender.initialize();
 		appender.start();
-		logger.addAppender((Appender) appender);
+		logger.addAppender(appender);
 	}
 }

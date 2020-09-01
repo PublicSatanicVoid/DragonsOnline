@@ -173,9 +173,6 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 				HologramUtil.makeHologram(ChatColor.GREEN + "You own this residence", holoLoc),
 				HologramUtil.makeHologram(ChatColor.DARK_GREEN + resPoint.getDisplayName(), holoLoc.clone().add(0, 0.3, 0))
 		};
-		Dragons.getInstance().getLogger().info("SETTING RES POINT HOLOGRAMS FOR " + resPoint.getName());
-		Dragons.getInstance().getLogger().info("-Owned=" + ownedHologram);
-		Dragons.getInstance().getLogger().info("-NotOwned=" + notOwnedHologram);
 		resPoint.setHolograms(ownedHologram, notOwnedHologram);
 	}
 	

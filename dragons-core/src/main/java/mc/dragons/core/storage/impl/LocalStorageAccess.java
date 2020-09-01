@@ -26,28 +26,34 @@ public class LocalStorageAccess implements StorageAccess {
 		this.data.putAll(this.id.getDocument());
 	}
 
+	@Override
 	public void set(String key, Object value) {
 		if (key.equals("type") || key.equals("_id"))
 			throw new IllegalArgumentException("Cannot modify type or UUID of storage access once instantiated");
 		this.data.append(key, value);
 	}
 
+	@Override
 	public void update(Document document) {
 		this.data.putAll(document);
 	}
 
+	@Override
 	public Object get(String key) {
 		return this.data.get(key);
 	}
 
+	@Override
 	public Set<Entry<String, Object>> getAll() {
 		return this.data.entrySet();
 	}
 
+	@Override
 	public Document getDocument() {
 		return this.data;
 	}
 
+	@Override
 	public Identifier getIdentifier() {
 		return this.id;
 	}

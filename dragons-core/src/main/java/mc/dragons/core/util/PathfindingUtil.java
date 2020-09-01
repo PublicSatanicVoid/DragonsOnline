@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -14,6 +13,7 @@ public class PathfindingUtil {
 	public static void walkToLocation(final Entity entity, final Location location, final double speed, final Consumer<Entity> callback) {
 		entity.teleport(BlockUtil.getClosestGroundXZ(entity.getLocation()).add(0.0D, 1.0D, 0.0D));
 		(new BukkitRunnable() {
+			@Override
 			public void run() {
 				Location curr = entity.getLocation();
 				if (entity.isValid() && entity.getLocation().distanceSquared(location) > 1.0D) {
@@ -31,6 +31,6 @@ public class PathfindingUtil {
 						callback.accept(entity);
 				}
 			}
-		}).runTaskTimer((Plugin) Dragons.getInstance(), 0L, 1L);
+		}).runTaskTimer(Dragons.getInstance(), 0L, 1L);
 	}
 }

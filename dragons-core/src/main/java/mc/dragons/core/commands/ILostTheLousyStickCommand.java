@@ -22,6 +22,7 @@ public class ILostTheLousyStickCommand implements CommandExecutor {
 
 	private ItemClass lousyStickClass = this.itemClassLoader.getItemClassByClassName("LousyStick");
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");

@@ -26,11 +26,12 @@ public class SystemLogonCommand implements CommandExecutor {
 	private Map<User, Integer> rateLimitingCounter;
 
 	public SystemLogonCommand(Dragons instance) {
-		this.systemProfileLoader = (SystemProfileLoader) instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
+		this.systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 		this.rateLimiting = new HashMap<>();
 		this.rateLimitingCounter = new HashMap<>();
 	}
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (args.length == 0) {
 			sender.sendMessage(ChatColor.GREEN + "System Logon Service");
@@ -163,7 +164,7 @@ public class SystemLogonCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Successfully logged out of your system profile.");
 			return true;
 		}
-		long wait = ((Long) this.rateLimiting.getOrDefault(user, Long.valueOf(0L))).longValue() + (1000 * (int) this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)));
+		long wait = this.rateLimiting.getOrDefault(user, Long.valueOf(0L)).longValue() + (1000 * this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)));
 		if (wait > System.currentTimeMillis()) {
 			sender.sendMessage(ChatColor.RED + "Please wait " + this.rateLimitingCounter.get(user) + "s.");
 			return true;
@@ -177,7 +178,7 @@ public class SystemLogonCommand implements CommandExecutor {
 		if (profile == null) {
 			sender.sendMessage(ChatColor.RED + "Invalid credentials provided!");
 			this.rateLimiting.put(user, Long.valueOf(System.currentTimeMillis()));
-			this.rateLimitingCounter.put(user, Integer.valueOf(Math.max((int) this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
+			this.rateLimitingCounter.put(user, Integer.valueOf(Math.max(this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
 			return true;
 		}
 		user.setSystemProfile(profile);

@@ -26,7 +26,7 @@ public class StringUtil {
 	public static String docToString(Document doc) {
 		String result = "";
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) doc.entrySet())
-			result = String.valueOf(result) + (String) entry.getKey() + "=" + entry.getValue().toString() + "; ";
+			result = String.valueOf(result) + entry.getKey() + "=" + entry.getValue().toString() + "; ";
 		if (result.equals(""))
 			return "";
 		return result.substring(0, result.length() - 1);

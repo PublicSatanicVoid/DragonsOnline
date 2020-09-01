@@ -21,6 +21,7 @@ public class LagMonitorTask extends BukkitRunnable {
 		return this.tpsRecord;
 	}
 
+	@Override
 	public void run() {
 		try {
 			while (true) {

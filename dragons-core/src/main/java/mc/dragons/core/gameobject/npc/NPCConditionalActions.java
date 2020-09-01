@@ -31,7 +31,7 @@ public class NPCConditionalActions {
 		this.trigger = trigger;
 		this.npcClass = npcClass;
 		this.conditionals = new LinkedHashMap<>();
-		Iterator<Document> iterator = ((Document) npcClass.getStorageAccess().getDocument().get("conditionals", Document.class)).getList(trigger.toString(), Document.class).iterator();
+		Iterator<Document> iterator = npcClass.getStorageAccess().getDocument().get("conditionals", Document.class).getList(trigger.toString(), Document.class).iterator();
 		while (iterator.hasNext()) {
 			Document conditional = iterator.next();
 			LOGGER.fine("- Found an action set");

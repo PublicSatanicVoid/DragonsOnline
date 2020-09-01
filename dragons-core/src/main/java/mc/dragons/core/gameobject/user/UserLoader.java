@@ -14,8 +14,6 @@ import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectLoader;
@@ -59,6 +57,7 @@ public class UserLoader extends GameObjectLoader<User> {
 		return user;
 	}
 
+	@Override
 	public User loadObject(StorageAccess storageAccess) {
 		LOGGER.finest("Loading user by storage access " + storageAccess.getIdentifier());
 		for (User user1 : users) {
@@ -133,8 +132,8 @@ public class UserLoader extends GameObjectLoader<User> {
 	public static void assign(Player player, User user) {
 		LOGGER.fine("Assigning player " + player + " to user " + user);
 		if (player != null) {
-			player.removeMetadata("handle", (Plugin) Dragons.getInstance());
-			player.setMetadata("handle", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), user));
+			player.removeMetadata("handle", Dragons.getInstance());
+			player.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), user));
 		}
 		user.setPlayer(player);
 	}
@@ -146,7 +145,7 @@ public class UserLoader extends GameObjectLoader<User> {
 			return null;
 		if (player.getMetadata("handle").size() == 0)
 			return null;
-		Object value = ((MetadataValue) player.getMetadata("handle").get(0)).value();
+		Object value = player.getMetadata("handle").get(0).value();
 		if (value instanceof User)
 			return (User) value;
 		return null;

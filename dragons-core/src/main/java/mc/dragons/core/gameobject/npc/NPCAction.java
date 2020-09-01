@@ -7,7 +7,6 @@ import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
@@ -94,11 +93,11 @@ public class NPCAction {
 		case BEGIN_DIALOGUE:
 			return beginDialogue(npcClass, document.getList("dialogue", String.class));
 		case TELEPORT_NPC:
-			return teleportNPC(npcClass, StorageUtil.docToLoc((Document) document.get("to", Document.class)));
+			return teleportNPC(npcClass, StorageUtil.docToLoc(document.get("to", Document.class)));
 		case PATHFIND_NPC:
-			return pathfindNPC(npcClass, StorageUtil.docToLoc((Document) document.get("to", Document.class)));
+			return pathfindNPC(npcClass, StorageUtil.docToLoc(document.get("to", Document.class)));
 		case OPEN_SHOP:
-			return openShop(npcClass, document.getString("name"), (List<ShopItem>) document.getList("items", Document.class).stream().map(doc -> new ShopItem(doc)).collect(Collectors.toList()));
+			return openShop(npcClass, document.getString("name"), document.getList("items", Document.class).stream().map(doc -> new ShopItem(doc)).collect(Collectors.toList()));
 		}
 		return null;
 	}
@@ -214,11 +213,12 @@ public class NPCAction {
 		case BEGIN_DIALOGUE:
 			user.setDialogueBatch(null, this.npcClass.getName(), this.dialogue);
 			(new BukkitRunnable() {
+				@Override
 				public void run() {
 					if (!user.nextDialogue())
 						cancel();
 				}
-			}).runTaskTimer((Plugin) Dragons.getInstance(), 0L, 40L);
+			}).runTaskTimer(Dragons.getInstance(), 0L, 40L);
 			break;
 		case TELEPORT_NPC:
 			npc.getEntity().teleport(this.to);

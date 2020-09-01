@@ -125,15 +125,15 @@ public class NPCCondition {
 		boolean result = false;
 		switch (this.type) {
 		case HAS_COMPLETED_QUEST:
-			step = (QuestStep) user.getQuestProgress().get(this.quest);
+			step = user.getQuestProgress().get(this.quest);
 			if (step == null) {
 				result = false;
 				break;
 			}
-			result = ((QuestStep) user.getQuestProgress().get(this.quest)).getStepName().equals("Complete");
+			result = user.getQuestProgress().get(this.quest).getStepName().equals("Complete");
 			break;
 		case HAS_QUEST_STAGE:
-			step2 = (QuestStep) user.getQuestProgress().get(this.quest);
+			step2 = user.getQuestProgress().get(this.quest);
 			if (step2 == null) {
 				result = false;
 				break;

@@ -18,9 +18,10 @@ public class FeedbackCommand implements CommandExecutor {
 	private FeedbackLoader feedbackLoader;
 
 	public FeedbackCommand(Dragons instance) {
-		this.feedbackLoader = (FeedbackLoader) instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
+		this.feedbackLoader = instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
 	}
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;
 		User user = null;

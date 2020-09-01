@@ -18,13 +18,13 @@ public class ResUserHook implements UserHook {
 	}
 	
 	@Override
-	public void onInitialize(User user) {
-		// TODO Auto-generated method stub
-	}
+	public void onInitialize(User user) { }
 
 	@Override
 	public void onVerifiedJoin(User user) {
-		// TODO Auto-generated method stub
+		for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
+			resPointLoader.updateResHologramOn(user, resPoint);
+		}
 		Document saved = user.getData().get("resExitTo", Document.class);
 		if(saved == null) {
 			return;
@@ -32,33 +32,16 @@ public class ResUserHook implements UserHook {
 		Location to = StorageUtil.docToLoc(saved);
 		user.getPlayer().teleport(to);
 		user.getStorageAccess().set("resExitTo", null);
-		for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
-			resPointLoader.updateResHologramOn(user, resPoint);
-		}
+
 	}
 
 	@Override
-	public void onUpdateState(User user, Location cachedLocation) {
-//		if(!cachedLocation.getWorld().getName().equals("res_temp") && user.getPlayer().getWorld().getName().equals("res_temp")) {
-//			List<Residence> owned = ResLoader.getAllResidencesOf(user.getName());
-//			if(owned.size() == 0) {
-//				user.getPlayer().sendMessage(ChatColor.RED + "You don't have any residences :cry:");
-//				return;
-//			}
-//			ResLoader.goToResidence(user, owned.get(0).getId());
-//		}
-	}
+	public void onUpdateState(User user, Location cachedLocation) { }
 
 	@Override
-	public void onAutoSave(User user, Document autoSaveData) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onAutoSave(User user, Document autoSaveData) { }
 
 	@Override
-	public void onQuit(User user) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onQuit(User user) { }
 
 }

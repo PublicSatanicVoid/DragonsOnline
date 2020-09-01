@@ -10,13 +10,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.npc.NPC;
@@ -42,7 +40,7 @@ public class EntityDeathEventListener implements Listener {
 
 	@EventHandler
 	public void onEntityDeath(EntityDeathEvent event) {
-		this.LOGGER.finer("Death event on " + StringUtil.entityToString((Entity) event.getEntity()));
+		this.LOGGER.finer("Death event on " + StringUtil.entityToString(event.getEntity()));
 		Player player = event.getEntity().getKiller();
 		User user = UserLoader.fromPlayer(player);
 		LivingEntity livingEntity = event.getEntity();
@@ -50,14 +48,14 @@ public class EntityDeathEventListener implements Listener {
 			livingEntity.removePassenger(passenger);
 			passenger.remove();
 		}
-		NPC npc = NPCLoader.fromBukkit((Entity) livingEntity);
+		NPC npc = NPCLoader.fromBukkit(livingEntity);
 		if (npc == null)
 			return;
 		if (npc.isImmortal() || npc.getNPCType().canRespawnOnDeath()) {
 			npc.setEntity(livingEntity.getLocation().getWorld().spawnEntity(livingEntity.getLocation(), npc.getEntity().getType()));
 			npc.initializeEntity();
 		} else {
-			this.registry.removeFromDatabase((GameObject) npc);
+			this.registry.removeFromDatabase(npc);
 			npc.getNPCClass().handleDeath(npc);
 		}
 		npc.updateHealthBar();
@@ -73,9 +71,9 @@ public class EntityDeathEventListener implements Listener {
 			String tag = "+ " + ChatColor.GREEN + ChatColor.BOLD + xpReward + " XP";
 			if (livingEntity.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L)
 				tag = String.valueOf(tag) + ChatColor.GRAY + " to " + user.getName();
-			HologramUtil.temporaryArmorStand((Entity) livingEntity, tag, 20, false);
+			HologramUtil.temporaryArmorStand(livingEntity, tag, 20, false);
 			user.addXP(xpReward);
 		}
-		user.updateQuests((Event) event);
+		user.updateQuests(event);
 	}
 }

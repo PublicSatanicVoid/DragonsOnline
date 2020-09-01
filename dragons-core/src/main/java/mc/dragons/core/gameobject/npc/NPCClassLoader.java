@@ -41,6 +41,7 @@ public class NPCClassLoader extends GameObjectLoader<NPCClass> {
 		return INSTANCE;
 	}
 
+	@Override
 	public NPCClass loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
 		this.LOGGER.fine("Loading NPC class " + storageAccess.getIdentifier());

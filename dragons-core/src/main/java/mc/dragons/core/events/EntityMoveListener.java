@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -23,12 +22,13 @@ public class EntityMoveListener extends PacketAdapter {
 	private RegionLoader regionLoader;
 
 	public EntityMoveListener(Dragons instance) {
-		super((Plugin) instance, new PacketType[] { PacketType.Play.Server.REL_ENTITY_MOVE, PacketType.Play.Server.REL_ENTITY_MOVE_LOOK });
+		super(instance, new PacketType[] { PacketType.Play.Server.REL_ENTITY_MOVE, PacketType.Play.Server.REL_ENTITY_MOVE_LOOK });
 		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 	}
 
+	@Override
 	public void onPacketSending(PacketEvent event) {
-		Entity entity = (Entity) event.getPacket().getEntityModifier(event.getPlayer().getWorld()).read(0);
+		Entity entity = event.getPacket().getEntityModifier(event.getPlayer().getWorld()).read(0);
 		NPC npc = NPCLoader.fromBukkit(entity);
 		if (npc == null)
 			return;

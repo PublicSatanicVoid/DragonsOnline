@@ -34,6 +34,7 @@ public class QuestLoader extends GameObjectLoader<Quest> {
 		return INSTANCE;
 	}
 
+	@Override
 	public Quest loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
 		this.LOGGER.fine("Loading quest " + storageAccess.getIdentifier());

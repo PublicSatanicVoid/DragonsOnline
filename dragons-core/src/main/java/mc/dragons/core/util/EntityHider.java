@@ -20,7 +20,6 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.events.PacketListener;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -51,7 +50,7 @@ public class EntityHider implements Listener {
 		this.policy = policy;
 		this.manager = ProtocolLibrary.getProtocolManager();
 		plugin.getServer().getPluginManager().registerEvents(this.bukkitListener = constructBukkit(), plugin);
-		this.manager.addPacketListener((PacketListener) (this.protocolListener = constructProtocol(plugin)));
+		this.manager.addPacketListener(this.protocolListener = constructProtocol(plugin));
 	}
 
 	protected boolean setVisibility(Player observer, int entityID, boolean visible) {
@@ -93,7 +92,7 @@ public class EntityHider implements Listener {
 		return new Listener() {
 			@EventHandler
 			public void onEntityDeath(EntityDeathEvent e) {
-				EntityHider.this.removeEntity((Entity) e.getEntity(), true);
+				EntityHider.this.removeEntity(e.getEntity(), true);
 			}
 
 			@EventHandler
@@ -113,6 +112,7 @@ public class EntityHider implements Listener {
 
 	private PacketAdapter constructProtocol(Plugin plugin) {
 		return new PacketAdapter(plugin, ENTITY_PACKETS) {
+			@Override
 			public void onPacketSending(PacketEvent event) {
 				int index = (event.getPacketType() == PacketType.Play.Server.COMBAT_EVENT) ? 1 : 0;
 				Integer entityID = event.getPacket().getIntegers().readSafely(index);

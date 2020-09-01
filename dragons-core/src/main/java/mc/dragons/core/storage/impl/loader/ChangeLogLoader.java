@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import com.mongodb.client.FindIterable;
 
@@ -54,14 +53,14 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 
 	public List<ChangeLogEntry> getUnreadChangelogs(int lastReadChangelog) {
 		List<ChangeLogEntry> result = new ArrayList<>();
-		FindIterable<Document> dbResults = this.collection.find((Bson) new Document("_id", new Document("$gt", Integer.valueOf(lastReadChangelog))));
+		FindIterable<Document> dbResults = this.collection.find(new Document("_id", new Document("$gt", Integer.valueOf(lastReadChangelog))));
 		for (Document d : dbResults)
 			result.add(new ChangeLogEntry(d.getInteger("_id").intValue(), d.getString("date"), d.getString("by"), d.getString("title"), d.getList("changelog", String.class)));
 		return result;
 	}
 
 	public void deleteChangeLog(int id) {
-		this.collection.deleteOne((Bson) new Document("_id", Integer.valueOf(id)));
+		this.collection.deleteOne(new Document("_id", Integer.valueOf(id)));
 	}
 
 	public void addChangeLog(String by, String title, List<String> changelog) {

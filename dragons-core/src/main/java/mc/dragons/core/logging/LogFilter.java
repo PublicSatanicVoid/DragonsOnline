@@ -62,6 +62,7 @@ public class LogFilter implements Filter {
 		return Filter.Result.DENY;
 	}
 
+	@Override
 	public Filter.Result filter(LogEvent record) {
 		if (record == null)
 			return Filter.Result.NEUTRAL;
@@ -71,77 +72,95 @@ public class LogFilter implements Filter {
 		return process(entry, record.getLevel(), record.getLoggerName());
 	}
 
+	@Override
 	public Filter.Result getOnMatch() {
 		return Filter.Result.NEUTRAL;
 	}
 
+	@Override
 	public Filter.Result getOnMismatch() {
 		return Filter.Result.NEUTRAL;
 	}
 
+	@Override
 	public LifeCycle.State getState() {
 		return this.state;
 	}
 
+	@Override
 	public void initialize() {
 		this.state = LifeCycle.State.INITIALIZED;
 	}
 
+	@Override
 	public boolean isStarted() {
 		return (this.state == LifeCycle.State.STARTED);
 	}
 
+	@Override
 	public boolean isStopped() {
 		return (this.state == LifeCycle.State.STOPPED);
 	}
 
+	@Override
 	public void start() {
 		this.state = LifeCycle.State.STARTED;
 	}
 
+	@Override
 	public void stop() {
 		this.state = LifeCycle.State.STOPPED;
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, Message arg3, Throwable arg4) {
 		return process(arg3.getFormattedMessage(), arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9,
 			Object arg10) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10,
 			Object arg11) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10,
 			Object arg11, Object arg12) {
 		return process(arg3, arg1, arg0.getName());
 	}
 
+	@Override
 	public Filter.Result filter(Logger arg0, org.apache.logging.log4j.Level arg1, Marker arg2, String arg3, Object arg4, Object arg5, Object arg6, Object arg7, Object arg8, Object arg9, Object arg10,
 			Object arg11, Object arg12, Object arg13) {
 		return process(arg3, arg1, arg0.getName());

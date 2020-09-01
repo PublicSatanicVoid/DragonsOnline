@@ -2,7 +2,6 @@ package mc.dragons.core.gameobject.item;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -61,7 +60,7 @@ public class ItemClass extends GameObject {
 		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + getLevelMin() + dataTag }));
 		if (customLore.length > 0)
 			lore.add("");
-		lore.addAll((Collection<? extends String>) Arrays.<String>asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
+		lore.addAll(Arrays.<String>asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
 		List<String> statsMeta = new ArrayList<>();
 		if (getDamage() > 0.0D)
 			statsMeta.add(ChatColor.GREEN + " " + getDamage() + " Damage");

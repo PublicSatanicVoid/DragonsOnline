@@ -12,6 +12,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.PermissionUtil;
 
 public class BypassDeathCountdownCommand implements CommandExecutor {
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;
 		User user = null;

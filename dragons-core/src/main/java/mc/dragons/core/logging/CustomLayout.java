@@ -33,6 +33,7 @@ public class CustomLayout extends AbstractStringLayout {
 				.replaceAll(this.MESSAGE_PATTERN, Matcher.quoteReplacement((message == null) ? "" : message));
 	}
 
+	@Override
 	public String toSerializable(LogEvent logEvent) {
 		String loggerName = logEvent.getLoggerName();
 		if (loggerName.contains(".")) {

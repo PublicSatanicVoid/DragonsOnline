@@ -18,6 +18,7 @@ import mc.dragons.core.util.StringUtil;
 public class RankCommand implements CommandExecutor {
 	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;
 		User user = null;

@@ -17,6 +17,7 @@ public class AutoSaveTask extends BukkitRunnable {
 		this.registry = instance.getGameObjectRegistry();
 	}
 
+	@Override
 	public void run() {
 		run(false);
 	}

@@ -11,8 +11,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
@@ -51,6 +49,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		return INSTANCE;
 	}
 
+	@Override
 	public NPC loadObject(StorageAccess storageAccess) {
 		lazyLoadAllPermanent();
 		this.LOGGER.fine("Loading NPC " + storageAccess.getIdentifier());
@@ -59,7 +58,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		Entity e = loc.getWorld().spawnEntity(loc, EntityType.valueOf((String) storageAccess.get("entityType")));
 		NPC npc = new NPC(e, npcType.isPersistent() ? this.storageManager : (StorageManager) this.localStorageManager,
 				npcType.isPersistent() ? storageAccess : (StorageAccess) this.localStorageManager.downgrade(storageAccess));
-		e.setMetadata("handle", (MetadataValue) new FixedMetadataValue((Plugin) this.plugin, npc));
+		e.setMetadata("handle", new FixedMetadataValue(this.plugin, npc));
 		this.masterRegistry.getRegisteredObjects().add(npc);
 		return npc;
 	}
@@ -105,7 +104,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 			return null;
 		if (entity.getMetadata("handle").size() == 0)
 			return null;
-		Object value = ((MetadataValue) entity.getMetadata("handle").get(0)).value();
+		Object value = entity.getMetadata("handle").get(0).value();
 		if (value instanceof NPC)
 			return (NPC) value;
 		return null;
@@ -127,7 +126,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 			this.LOGGER.warning("- Whoops! The storage access was null!");
 		npc.setMaxHealth(maxHealth);
 		npc.setHealth(maxHealth);
-		entity.setMetadata("handle", (MetadataValue) new FixedMetadataValue((Plugin) this.plugin, npc));
+		entity.setMetadata("handle", new FixedMetadataValue(this.plugin, npc));
 		this.masterRegistry.getRegisteredObjects().add(npc);
 		return npc;
 	}

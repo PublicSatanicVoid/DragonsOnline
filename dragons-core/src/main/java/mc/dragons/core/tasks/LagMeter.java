@@ -20,6 +20,7 @@ public class LagMeter extends BukkitRunnable {
 		return MathUtil.round(Math.min(20.0D, getEstimatedTPS()));
 	}
 
+	@Override
 	public void run() {
 		lastTick2 = lastTick;
 		lastTick = System.currentTimeMillis();

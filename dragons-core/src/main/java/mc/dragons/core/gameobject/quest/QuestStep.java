@@ -22,7 +22,7 @@ public class QuestStep {
 
 	public static QuestStep fromDocument(Document step, Quest quest) {
 		return new QuestStep(step.getString("stepName"), QuestTrigger.fromDocument((Document) step.get("trigger"), quest),
-				(List<QuestAction>) step.getList("actions", Document.class).stream().map(d -> QuestAction.fromDocument(d, quest)).collect(Collectors.toList()), quest);
+				step.getList("actions", Document.class).stream().map(d -> QuestAction.fromDocument(d, quest)).collect(Collectors.toList()), quest);
 	}
 
 	public Document toDocument() {
@@ -37,7 +37,7 @@ public class QuestStep {
 		this.trigger = trigger;
 		int stepIndex = this.quest.getStepIndex(this);
 		List<Document> steps = this.quest.getStepsAsDoc();
-		((Document) steps.get(stepIndex)).append("trigger", trigger.toDocument());
+		steps.get(stepIndex).append("trigger", trigger.toDocument());
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
@@ -45,19 +45,19 @@ public class QuestStep {
 		this.actions.add(action);
 		int stepIndex = this.quest.getStepIndex(this);
 		List<Document> steps = this.quest.getStepsAsDoc();
-		List<Document> actions = ((Document) steps.get(stepIndex)).getList("actions", Document.class);
+		List<Document> actions = steps.get(stepIndex).getList("actions", Document.class);
 		actions.add(action.toDocument());
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void addDialogue(int actionIndex, String dialogue) {
-		((QuestAction) this.actions.get(actionIndex)).getDialogue().add(dialogue);
+		this.actions.get(actionIndex).getDialogue().add(dialogue);
 		List<Document> steps = this.quest.getStepsAsDoc();
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public boolean removeDialogue(int actionIndex, int dialogueIndex) {
-		List<String> dialogue = ((QuestAction) this.actions.get(actionIndex)).getDialogue();
+		List<String> dialogue = this.actions.get(actionIndex).getDialogue();
 		if (dialogue == null)
 			return false;
 		if (dialogue.size() >= dialogueIndex)
@@ -72,13 +72,13 @@ public class QuestStep {
 		this.trigger.getBranchPoints().put(trigger, action);
 		int stepIndex = this.quest.getStepIndex(this);
 		List<Document> steps = this.quest.getStepsAsDoc();
-		((Document) ((Document) steps.get(stepIndex)).get("trigger", Document.class)).getList("branchPoints", Document.class)
+		steps.get(stepIndex).get("trigger", Document.class).getList("branchPoints", Document.class)
 				.add((new Document("trigger", trigger.toDocument())).append("action", action.toDocument()));
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void addChoice(int actionIndex, String choiceText, int goToStage) {
-		((QuestAction) this.actions.get(actionIndex)).getChoices().put(choiceText, Integer.valueOf(goToStage));
+		this.actions.get(actionIndex).getChoices().put(choiceText, Integer.valueOf(goToStage));
 		List<Document> steps = this.quest.getRecalculatedStepsAsDoc();
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
@@ -87,7 +87,7 @@ public class QuestStep {
 		this.actions.remove(actionIndex);
 		int stepIndex = this.quest.getStepIndex(this);
 		List<Document> steps = this.quest.getStepsAsDoc();
-		((Document) steps.get(stepIndex)).getList("actions", Document.class).remove(actionIndex);
+		steps.get(stepIndex).getList("actions", Document.class).remove(actionIndex);
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
@@ -103,7 +103,7 @@ public class QuestStep {
 		this.stepName = stepName;
 		int stepIndex = this.quest.getStepIndex(this);
 		List<Document> steps = this.quest.getStepsAsDoc();
-		((Document) steps.get(stepIndex)).append("stepName", stepName);
+		steps.get(stepIndex).append("stepName", stepName);
 		this.quest.getStorageAccess().update(new Document("steps", steps));
 	}
 

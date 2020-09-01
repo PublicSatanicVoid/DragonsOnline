@@ -17,8 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
@@ -127,12 +125,12 @@ public class NPC extends GameObject {
 		if (this.entity instanceof Attributable) {
 			Attributable att = (Attributable) this.entity;
 			for (Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet())
-				att.getAttribute(a.getKey()).setBaseValue((double) a.getValue());
+				att.getAttribute(a.getKey()).setBaseValue(a.getValue());
 		}
 		Material heldItemType = getNPCClass().getHeldItemType();
 		if (heldItemType != null)
 			setHeldItem(new ItemStack(heldItemType));
-		this.entity.setMetadata("handle", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), this));
+		this.entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
 	}
 
 	public boolean isDamageExternalized() {
@@ -213,7 +211,7 @@ public class NPC extends GameObject {
 
 	public void setExternalHealthIndicator(ArmorStand indicator) {
 		this.healthIndicator.setCustomNameVisible(false);
-		this.healthIndicator = (Entity) indicator;
+		this.healthIndicator = indicator;
 		indicator.setCustomNameVisible(true);
 		updateHealthBar(0.0D);
 	}
@@ -253,13 +251,13 @@ public class NPC extends GameObject {
 				Creature c = (Creature) this.entity;
 				c.setTarget(target);
 			}
-			this.entity.setMetadata("target", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), target));
+			this.entity.setMetadata("target", new FixedMetadataValue(Dragons.getInstance(), target));
 		}
 	}
 
 	public LivingEntity getDeclaredTarget() {
 		if (this.entity instanceof Creature && this.entity.getMetadata("target").size() > 0)
-			return (LivingEntity) ((MetadataValue) this.entity.getMetadata("target").get(0)).value();
+			return (LivingEntity) this.entity.getMetadata("target").get(0).value();
 		return null;
 	}
 
@@ -283,10 +281,10 @@ public class NPC extends GameObject {
 
 	public void setEntity(Entity entity) {
 		if (this.entity != null)
-			this.entity.removeMetadata("handle", (Plugin) Dragons.getInstance());
+			this.entity.removeMetadata("handle", Dragons.getInstance());
 		LOGGER.finer("Replacing entity backing NPC " + getIdentifier() + ": " + StringUtil.entityToString(this.entity) + " -> " + StringUtil.entityToString(entity));
 		this.entity = entity;
-		this.entity.setMetadata("handle", (MetadataValue) new FixedMetadataValue((Plugin) Dragons.getInstance(), this));
+		this.entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
 	}
 
 	public Entity getEntity() {

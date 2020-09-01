@@ -13,6 +13,7 @@ public class UpdateScoreboardTask extends BukkitRunnable {
 		this.plugin = instance;
 	}
 
+	@Override
 	public void run() {
 		for (Player player : Bukkit.getOnlinePlayers())
 			this.plugin.getSidebarManager().updateScoreboard(player);

@@ -54,6 +54,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 	}
 
+	@Override
 	public void run() {
 		if (!this.plugin.getServerOptions().isCustomSpawningEnabled())
 			return;
@@ -76,7 +77,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 					break;
 				}
 				for (Entry<String, Double> entry : (Iterable<Entry<String, Double>>) region.getSpawnRates().entrySet()) {
-					if ((double) entry.getValue() > (double) spawnRates.getOrDefault(entry.getKey(), 0.0D))
+					if (entry.getValue() > spawnRates.getOrDefault(entry.getKey(), 0.0D))
 						spawnRates.put(entry.getKey(), entry.getValue());
 				}
 				int regionCap = Integer.valueOf(region.getFlags().getString("spawncap")).intValue();
@@ -112,7 +113,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 				continue;
 			int priority = 1;
 			for (Entry<String, Double> spawnRate : optimizedSpawnRates.entrySet()) {
-				boolean spawn = (Math.random() <= (double) spawnRate.getValue() / Math.sqrt(priority) * 100.0D);
+				boolean spawn = (Math.random() <= spawnRate.getValue() / Math.sqrt(priority) * 100.0D);
 				if (spawn) {
 					double xOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);
 					double zOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);

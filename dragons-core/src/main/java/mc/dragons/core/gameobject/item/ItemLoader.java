@@ -43,6 +43,7 @@ public class ItemLoader extends GameObjectLoader<Item> {
 		return INSTANCE;
 	}
 
+	@Override
 	public Item loadObject(StorageAccess storageAccess) {
 		if (storageAccess == null)
 			return null;

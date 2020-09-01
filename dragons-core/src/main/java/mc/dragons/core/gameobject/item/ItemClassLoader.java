@@ -37,6 +37,7 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> {
 		return INSTANCE;
 	}
 
+	@Override
 	public ItemClass loadObject(StorageAccess storageAccess) {
 		this.LOGGER.fine("Loading item class " + storageAccess.getIdentifier());
 		ItemClass itemClass = new ItemClass(this.storageManager, storageAccess);

@@ -43,6 +43,7 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 		return INSTANCE;
 	}
 
+	@Override
 	public Floor loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
 		this.LOGGER.fine("Loading floor " + storageAccess.getIdentifier());

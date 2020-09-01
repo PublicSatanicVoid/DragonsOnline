@@ -7,6 +7,7 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.user.User;
 
 public abstract class NPCAddon implements Addon {
+	@Override
 	public final AddonType getType() {
 		return AddonType.NPC;
 	}

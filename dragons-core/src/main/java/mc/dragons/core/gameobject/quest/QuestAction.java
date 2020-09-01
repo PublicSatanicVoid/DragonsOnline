@@ -14,7 +14,6 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -34,7 +33,6 @@ import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -100,13 +98,13 @@ public class QuestAction {
 		QuestAction questAction = new QuestAction();
 		questAction.action = QuestActionType.valueOf(action.getString("type"));
 		if (questAction.action == QuestActionType.TELEPORT_PLAYER) {
-			questAction.to = StorageUtil.docToLoc((Document) action.get("tpTo", Document.class));
+			questAction.to = StorageUtil.docToLoc(action.get("tpTo", Document.class));
 		} else if (questAction.action == QuestActionType.SPAWN_NPC) {
 			questAction.npcClass = null;
 			questAction.npcClassShortName = action.getString("npcClass");
 			questAction.npcReferenceName = action.getString("npcReferenceName");
 			questAction.phased = action.getBoolean("phased").booleanValue();
-			questAction.to = StorageUtil.docToLoc((Document) action.get("location", Document.class));
+			questAction.to = StorageUtil.docToLoc(action.get("location", Document.class));
 		} else if (questAction.action == QuestActionType.BEGIN_DIALOGUE) {
 			questAction.npcClass = null;
 			questAction.npcClassShortName = action.getString("npcClass");
@@ -118,10 +116,10 @@ public class QuestAction {
 			questAction.notify = action.getBoolean("notify").booleanValue();
 		} else if (questAction.action == QuestActionType.TELEPORT_NPC) {
 			questAction.npcReferenceName = action.getString("npcReferenceName");
-			questAction.to = StorageUtil.docToLoc((Document) action.get("tpTo", Document.class));
+			questAction.to = StorageUtil.docToLoc(action.get("tpTo", Document.class));
 		} else if (questAction.action == QuestActionType.PATHFIND_NPC) {
 			questAction.npcReferenceName = action.getString("npcReferenceName");
-			questAction.to = StorageUtil.docToLoc((Document) action.get("tpTo", Document.class));
+			questAction.to = StorageUtil.docToLoc(action.get("tpTo", Document.class));
 			questAction.stage = action.getInteger("stage").intValue();
 		} else if (questAction.action == QuestActionType.TAKE_ITEM) {
 			questAction.itemClass = itemClassLoader.getItemClassByClassName(action.getString("itemClass"));
@@ -399,13 +397,14 @@ public class QuestAction {
 				npcClassDeferredLoad();
 				user.setDialogueBatch(this.quest, this.npcClass.getName(), this.dialogue);
 				(new BukkitRunnable() {
+					@Override
 					public void run() {
 						if (!user.nextDialogue()) {
 							user.updateQuests(null);
 							cancel();
 						}
 					}
-				}).runTaskTimer((Plugin) Dragons.getInstance(), 0L, 40L);
+				}).runTaskTimer(Dragons.getInstance(), 0L, 40L);
 				return new QuestActionResult(false, true);
 			}
 			if (this.action == QuestActionType.GIVE_XP) {
@@ -413,7 +412,7 @@ public class QuestAction {
 				user.addXP(this.xpAmount);
 			} else {
 				if (this.action == QuestActionType.GOTO_STAGE) {
-					user.debug("    - going to stage " + this.stage + " (" + ((QuestStep) this.quest.getSteps().get(this.stage)).getStepName() + ")");
+					user.debug("    - going to stage " + this.stage + " (" + this.quest.getSteps().get(this.stage).getStepName() + ")");
 					user.updateQuestProgress(this.quest, this.quest.getSteps().get(this.stage), this.notify);
 					return new QuestActionResult(true, false);
 				}
@@ -460,13 +459,14 @@ public class QuestAction {
 					} else if (this.action == QuestActionType.COMPLETION_HEADER) {
 						(new BukkitRunnable() {
 							private float pitch = 1.0F;
+							@Override
 							public void run() {
 								user.getPlayer().playSound(user.getPlayer().getLocation(), Sound.BLOCK_NOTE_BASS, 1.0F, this.pitch);
 								this.pitch = (float) (this.pitch + 0.05D);
 								if (this.pitch > 2.0F)
 									cancel();
 							}
-						}).runTaskTimer((Plugin) Dragons.getInstance(), 0L, 1L);
+						}).runTaskTimer(Dragons.getInstance(), 0L, 1L);
 						user.getPlayer().sendMessage(" ");
 						user.getPlayer().sendMessage(ChatColor.GREEN + "" + ChatColor.MAGIC + "ff" + ChatColor.DARK_GREEN + "  Quest Complete: " + this.quest.getQuestName() + ChatColor.GREEN + "  "
 								+ ChatColor.MAGIC + "ff");
@@ -476,23 +476,24 @@ public class QuestAction {
 							user.debug("Waiting " + this.waitTime + "s");
 							user.setQuestPaused(this.quest, true);
 							(new BukkitRunnable() {
+								@Override
 								public void run() {
 									user.debug("Resuming quest actions");
 									user.setQuestPaused(QuestAction.this.quest, false);
 									user.updateQuests(null);
 								}
-							}).runTaskLater((Plugin) Dragons.getInstance(), 20L * this.waitTime);
+							}).runTaskLater(Dragons.getInstance(), 20L * this.waitTime);
 							return new QuestActionResult(false, true);
 						}
 						if (this.action == QuestActionType.CHOICES) {
 							user.getPlayer().sendMessage(" ");
 							for (Entry<String, Integer> choice : this.choices.entrySet()) {
-								TextComponent choiceMessage = new TextComponent(ChatColor.YELLOW + " • " + ChatColor.GRAY + (String) choice.getKey());
+								TextComponent choiceMessage = new TextComponent(ChatColor.YELLOW + " • " + ChatColor.GRAY + choice.getKey());
 								choiceMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 										(new ComponentBuilder(ChatColor.YELLOW + "Click to respond\n")).append(ChatColor.GRAY + "Quest: " + ChatColor.RESET + this.quest.getQuestName() + "\n")
-												.append(ChatColor.GRAY + "Response: " + ChatColor.RESET + (String) choice.getKey()).create()));
-								choiceMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/questchoice " + this.quest.getName() + " " + (String) choice.getKey()));
-								user.getPlayer().spigot().sendMessage((BaseComponent) choiceMessage);
+												.append(ChatColor.GRAY + "Response: " + ChatColor.RESET + choice.getKey()).create()));
+								choiceMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/questchoice " + this.quest.getName() + " " + choice.getKey()));
+								user.getPlayer().spigot().sendMessage(choiceMessage);
 							}
 							user.getPlayer().sendMessage(" ");
 							user.setQuestPaused(this.quest, true);

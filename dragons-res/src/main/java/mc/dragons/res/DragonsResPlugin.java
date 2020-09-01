@@ -41,7 +41,7 @@ import mc.dragons.res.ResPointLoader.ResPoint;
 @SuppressWarnings("deprecation")
 public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
 	
-	public static final int MAX_RES_PER_USER = 2;
+	public static final int MAX_RES_PER_USER = 5;
 	
 	public void onEnable() {
 		resetResWorld();

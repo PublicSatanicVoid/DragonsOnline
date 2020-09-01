@@ -21,6 +21,7 @@ public class MongoStorageAccess implements StorageAccess {
 		this.collection = collection;
 	}
 
+	@Override
 	public void set(String key, Object value) {
 		if (key.equals("type") || key.equals("_id"))
 			throw new IllegalArgumentException("Cannot modify type or UUID of storage access once instantiated");
@@ -28,23 +29,28 @@ public class MongoStorageAccess implements StorageAccess {
 		update(new Document(key, value));
 	}
 
+	@Override
 	public void update(Document document) {
 		this.document.putAll(document);
 		this.collection.updateOne(this.identifier.getDocument(), new Document("$set", document));
 	}
 
+	@Override
 	public Object get(String key) {
 		return this.document.get(key);
 	}
 
+	@Override
 	public Set<Entry<String, Object>> getAll() {
 		return this.document.entrySet();
 	}
 
+	@Override
 	public Document getDocument() {
 		return this.document;
 	}
 
+	@Override
 	public Identifier getIdentifier() {
 		return this.identifier;
 	}

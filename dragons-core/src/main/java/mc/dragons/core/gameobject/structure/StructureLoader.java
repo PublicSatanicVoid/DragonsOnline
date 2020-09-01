@@ -22,6 +22,7 @@ public class StructureLoader extends GameObjectLoader<Structure> {
 		return INSTANCE;
 	}
 
+	@Override
 	public Structure loadObject(StorageAccess storageAccess) {
 		this.LOGGER.fine("Loading structure " + storageAccess.getIdentifier());
 		return new Structure(this.storageManager);

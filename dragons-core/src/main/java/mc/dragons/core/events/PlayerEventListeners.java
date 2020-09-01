@@ -28,11 +28,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
@@ -139,7 +137,8 @@ public class PlayerEventListeners implements Listener {
 		final User user = UserLoader.fromPlayer(player);
 		player.sendMessage(ChatColor.DARK_RED + "You died!");
 		final int countdown = this.plugin.getServerOptions().getDeathCountdown();
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask((Plugin) this.plugin, new Runnable() {
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+			@Override
 			public void run() {
 				user.sendToFloor("BeginnerTown");
 				user.respawn();
@@ -198,7 +197,7 @@ public class PlayerEventListeners implements Listener {
 				if (item.getClassName().equals("Special:ImmortalOverride")) {
 					user.debug("- Destroy the NPC");
 					npc.getEntity().remove();
-					this.plugin.getGameObjectRegistry().removeFromDatabase((GameObject) npc);
+					this.plugin.getGameObjectRegistry().removeFromDatabase(npc);
 					user.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 					return;
 				}
@@ -211,7 +210,7 @@ public class PlayerEventListeners implements Listener {
 			npc.getNPCClass().executeConditionals(NPCConditionalActions.NPCTrigger.CLICK, user, npc);
 			npc.getNPCClass().getAddons().forEach(addon -> addon.onInteract(npc, user));
 		}
-		user.updateQuests((Event) event);
+		user.updateQuests(event);
 	}
 
 	@EventHandler
@@ -283,15 +282,16 @@ public class PlayerEventListeners implements Listener {
 			int amount = pickup.getAmount();
 			user.giveGold(amount * 1.0D);
 			(new BukkitRunnable() {
+				@Override
 				public void run() {
 					Arrays.<ItemStack>asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
 							.filter(i -> (i.getItemMeta().getDisplayName() != null)).filter(i -> i.getItemMeta().getDisplayName().equals(PlayerEventListeners.GOLD_CURRENCY_DISPLAY_NAME))
 							.forEach(i -> {
 								player.getInventory().remove(i);
-								PlayerEventListeners.this.plugin.getGameObjectRegistry().removeFromDatabase((GameObject) item);
+								PlayerEventListeners.this.plugin.getGameObjectRegistry().removeFromDatabase(item);
 							});
 				}
-			}).runTaskLater((Plugin) this.plugin, 1L);
+			}).runTaskLater(this.plugin, 1L);
 			player.playSound(player.getLocation(), Sound.BLOCK_NOTE_HARP, 1.0F, 1.3F);
 			return;
 		}

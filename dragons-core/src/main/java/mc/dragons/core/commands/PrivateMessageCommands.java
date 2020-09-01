@@ -14,6 +14,7 @@ import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class PrivateMessageCommands implements CommandExecutor {
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;
 		User user = null;

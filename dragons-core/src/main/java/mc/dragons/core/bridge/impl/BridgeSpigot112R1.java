@@ -20,10 +20,12 @@ import net.minecraft.server.v1_12_R1.AxisAlignedBB;
 public class BridgeSpigot112R1 implements Bridge {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 
+	@Override
 	public String getAPIVersion() {
 		return "1_12_R1";
 	}
 
+	@Override
 	public void sendActionBar(Player player, String message) {
 		if (player == null) {
 			this.LOGGER.warning("Attempted to send action bar to null player");
@@ -36,25 +38,30 @@ public class BridgeSpigot112R1 implements Bridge {
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
 	}
 
+	@Override
 	public void sendTitle(Player player, ChatColor titleColor, String title, ChatColor subtitleColor, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
 		player.sendTitle(titleColor + title, subtitleColor + subtitle, 20 * fadeInTime, 20 * showTime, 20 * fadeOutTime);
 	}
 
+	@Override
 	public void respawnPlayer(Player player) {
 		player.spigot().respawn();
 		this.LOGGER.finest("Respawning player " + player.getName());
 	}
 
+	@Override
 	public void setEntityAI(Entity entity, boolean ai) {
 		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), new Object[] { "NoAI" });
 		this.LOGGER.finest("Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
 
+	@Override
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {
 		NBTEditor.set(itemStack, unbreakable ? 1 : 0, new Object[] { "Unbreakable" });
 		this.LOGGER.finest("Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
 	}
 
+	@Override
 	public double[] getAABB(Entity entity) {
 
 		net.minecraft.server.v1_12_R1.Entity nmsEntity = ((CraftEntity) entity).getHandle();
@@ -62,11 +69,13 @@ public class BridgeSpigot112R1 implements Bridge {
 		return new double[] { aabb.a, aabb.b, aabb.c, aabb.d, aabb.e, aabb.f };
 	}
 
+	@Override
 	public void setEntityInvulnerable(Entity entity, boolean immortal) {
 		entity.setInvulnerable(immortal);
 		this.LOGGER.finest("Set Invulnerability on entity " + StringUtil.entityToString(entity) + " to " + immortal);
 	}
 
+	@Override
 	public int getPing(Player player) {
 		return (((CraftPlayer) player).getHandle()).ping;
 	}
