@@ -100,9 +100,6 @@ public class ResLoader extends AbstractLightweightLoader<Residence> {
 	
 	private static int resNextIndex = 0;
 	private static Map<Integer, Integer> resIdToLocalIndex = new HashMap<>();
-	//private static int RES_WIDTH = 16;
-	//private static int RES_LENGTH = 16;
-	//private static int RES_HEIGHT = 10;
 	private static int RES_SPACING = 5;
 	private static Vector RES_SPAWN_OFFSET = new Vector(0, 1, -12);
 	

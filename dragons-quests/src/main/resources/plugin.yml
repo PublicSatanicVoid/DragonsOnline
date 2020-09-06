@@ -1,0 +1,8 @@
+name: DragonsQuests
+main: mc.dragons.quests.DragonsQuestsPlugin
+version: 1.0.0
+author: UniverseCraft
+depend: [DragonsCore]
+commands:
+  loadquest:
+    description: (GM+Quest) Load a quest from the specified URL or local file.

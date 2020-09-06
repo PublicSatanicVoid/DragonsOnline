@@ -28,12 +28,10 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 
-	private GameObjectRegistry masterRegistry;
-
 	private boolean allPermanentLoaded = false;
 
+	private GameObjectRegistry masterRegistry;
 	private LocalStorageManager localStorageManager;
-
 	private NPCClassLoader npcClassLoader;
 
 	private NPCLoader(Dragons instance, StorageManager storageManager) {

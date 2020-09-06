@@ -9,6 +9,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
@@ -16,12 +17,15 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.GuildLoader.Guild;
+
 public class GuildAdminCommand implements CommandExecutor {
 
 	private UserLoader userLoader;
+	private GuildLoader guildLoader;
 	
 	public GuildAdminCommand() {
 		userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+		guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
 	}
 	
 	@Override
@@ -61,14 +65,14 @@ public class GuildAdminCommand implements CommandExecutor {
 				return true;
 			}
 			String guildName = StringUtil.concatArgs(args, 2);
-			Guild guild = GuildLoader.addGuild(owner.getUUID(), guildName);
+			Guild guild = guildLoader.addGuild(owner.getUUID(), guildName);
 			sender.sendMessage(ChatColor.GREEN + "Created guild #" + guild.getId() + ": " + guildName);
 			return true;
 		}
 		
 		if(args[0].equalsIgnoreCase("list")) {
 			sender.sendMessage(ChatColor.GREEN + "Listing all guilds:");
-			for(Guild guild : GuildLoader.getAllGuilds()) {
+			for(Guild guild : guildLoader.getAllGuilds()) {
 				sender.sendMessage(ChatColor.GRAY + "- #" + guild.getId() + ": " + guild.getName() + " (owner: " + userLoader.loadObject(guild.getOwner()).getName() + ")");
 			}
 			return true;
@@ -79,7 +83,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin info <GuildID>");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -104,7 +108,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				return true;
 			}
 			sender.sendMessage(ChatColor.GREEN + "Listing all guilds that " + args[1] + " is in:");
-			for(Guild guild : GuildLoader.getAllGuildsWith(test.getUUID())) {
+			for(Guild guild : guildLoader.getAllGuildsWith(test.getUUID())) {
 				sender.sendMessage(ChatColor.GRAY + "- #" + guild.getId() + ": " + guild.getName() + " (owner: " + userLoader.loadObject(guild.getOwner()).getName() + ")");
 			}
 			return true;
@@ -115,7 +119,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin members <GuildID>");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -131,7 +135,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin setxp <GuildID> <XP>");
 				return true;
 			}			
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -146,7 +150,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin addxp <GuildID> <XP>");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -161,7 +165,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin desc <GuildID> <Description>");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -177,7 +181,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin forcejoin <GuildID> [Player=you]");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -203,7 +207,7 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin forceleave <GuildID> [Player=you]");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
@@ -229,12 +233,12 @@ public class GuildAdminCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin delete <GuildID>");
 				return true;
 			}
-			Guild guild = GuildLoader.getGuildById(Integer.valueOf(args[1]));
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
 			if(guild == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
 				return true;
 			}
-			GuildLoader.deleteGuild(guild.getId());
+			guildLoader.deleteGuild(guild.getId());
 			sender.sendMessage(ChatColor.GREEN + "Deleted guild " + guild.getName() + " successfully.");
 			return true;
 		}

@@ -35,6 +35,8 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 	}
 
 	public static class ResPoint {
+		
+		private static ResPointLoader resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
 		private String name;
 		private String displayName;
 		private double price;
@@ -42,21 +44,12 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 		
 		private ArmorStand[] ownedHolograms;
 		private ArmorStand[] notOwnedHolograms;
-		
-		private static ResPointLoader resPointLoader;
 
-		private static void lazyLoadResPointLoader() {
-			if(resPointLoader == null) {
-				resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
-			}
-		}
-		
 		public ResPoint(String name, String displayName, double price, Location doorLocation) {
 			this.name = name;
 			this.displayName = displayName;
 			this.price = price;
 			this.doorLocation = doorLocation;
-			lazyLoadResPointLoader();
 		}
 		
 		public String getName() {
@@ -107,7 +100,6 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 		}
 		
 		public static ResPoint fromDocument(Document document) {
-			lazyLoadResPointLoader();
 			return resPointLoader.resPoints.computeIfAbsent(document.getString("name"), n -> 
 				 new ResPoint(document.getString("name"), document.getString("displayName"), document.getDouble("price"), 
 						StorageUtil.docToLoc(document.get("doorLocation", Document.class)))

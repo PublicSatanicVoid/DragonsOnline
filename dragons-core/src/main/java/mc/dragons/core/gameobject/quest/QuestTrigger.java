@@ -27,9 +27,10 @@ import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
 
 public class QuestTrigger {
-	private static RegionLoader regionLoader;
-	private static NPCClassLoader npcClassLoader;
-	private static ItemClassLoader itemClassLoader;
+	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+	
 	private TriggerType type;
 	private String npcClassShortName;
 	private NPCClass npcClass;
@@ -44,11 +45,6 @@ public class QuestTrigger {
 	}
 
 	public static QuestTrigger fromDocument(Document trigger, Quest quest) {
-		if (regionLoader == null) {
-			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-		}
 		QuestTrigger questTrigger = new QuestTrigger();
 		questTrigger.type = TriggerType.valueOf(trigger.getString("type"));
 		if (questTrigger.type == TriggerType.ENTER_REGION || questTrigger.type == TriggerType.EXIT_REGION) {

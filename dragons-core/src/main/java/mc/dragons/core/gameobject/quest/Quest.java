@@ -17,7 +17,6 @@ import mc.dragons.core.storage.StorageManager;
 
 public class Quest extends GameObject {
 	private List<QuestStep> steps;
-
 	private Table<User, String, NPC> referenceNames;
 
 	public Quest(StorageManager storageManager, StorageAccess storageAccess) {

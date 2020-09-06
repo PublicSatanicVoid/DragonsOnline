@@ -9,7 +9,6 @@ import mc.dragons.core.gameobject.GameObjectType;
 
 public class AutoSaveTask extends BukkitRunnable {
 	private Dragons plugin;
-
 	private GameObjectRegistry registry;
 
 	public AutoSaveTask(Dragons instance) {

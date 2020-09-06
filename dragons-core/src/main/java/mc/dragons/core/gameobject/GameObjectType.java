@@ -21,7 +21,7 @@ public enum GameObjectType {
 	STRUCTURE(StructureLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
 	REGION(RegionLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
 	FLOOR(FloorLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager()));
-
+	
 	private GameObjectLoader<?> loader;
 
 	<T extends GameObject> GameObjectType(GameObjectLoader<T> loader) {

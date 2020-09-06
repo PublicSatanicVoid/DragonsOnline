@@ -18,15 +18,14 @@ import mc.dragons.core.storage.StorageManager;
 
 public class FloorLoader extends GameObjectLoader<Floor> {
 	private static FloorLoader INSTANCE;
-
+	
 	private Logger LOGGER = Dragons.getInstance().getLogger();
-
+	
 	private static Map<String, Floor> worldNameToFloor;
-
 	private static Map<String, Floor> floorNameToFloor;
-
+	
 	private GameObjectRegistry masterRegistry;
-
+	
 	private boolean allLoaded = false;
 
 	private FloorLoader(Dragons instance, StorageManager storageManager) {

@@ -17,9 +17,7 @@ public class NPCConditionalActions {
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
 
 	private NPCTrigger trigger;
-
 	private NPCClass npcClass;
-
 	private Map<List<NPCCondition>, List<NPCAction>> conditionals;
 
 	public enum NPCTrigger {

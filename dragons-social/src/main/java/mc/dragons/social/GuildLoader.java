@@ -13,14 +13,17 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.storage.impl.MongoConfig;
+import mc.dragons.core.storage.impl.loader.AbstractLightweightLoader;
+import mc.dragons.social.GuildLoader.Guild;
 
-public class GuildLoader {
+public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	
 	public static class Guild {
+		private static GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
+		
 		private int id;
 		private String name;
 		private UUID owner;
@@ -47,7 +50,7 @@ public class GuildLoader {
 		public List<UUID> getMembers() { return members; }
 		public Date getCreatedOn() { return createdOn; }
 		
-		public void save() { GuildLoader.updateGuild(this); }
+		public void save() { guildLoader.updateGuild(this); }
 		
 		public void setDescription(String description) {
 			this.description = description;
@@ -72,28 +75,23 @@ public class GuildLoader {
 		public static Guild fromDocument(Document document) {
 			if(document == null) return null;
 			int id = document.getInteger("_id");
-			if(guildPool.containsKey(id)) return guildPool.get(id);
+			if(guildLoader.guildPool.containsKey(id)) return guildLoader.guildPool.get(id);
 			Guild guild = new Guild(document.getInteger("_id"), document.getString("name"), document.get("owner", UUID.class),
 					document.getString("description"), document.getInteger("xp"), document.getList("members", UUID.class),
 					new Date(Instant.ofEpochSecond(document.getLong("createdOn")).toEpochMilli()));
-			guildPool.put(id, guild);
+			guildLoader.guildPool.put(id, guild);
 			return guild;
 		}
 	}
 	
-	private static MongoDatabase database;
-	private static MongoCollection<Document> guildCollection;
-	
-	private static Map<Integer, Guild> guildPool = new HashMap<>();
-	
+	private Map<Integer, Guild> guildPool = new HashMap<>();
 	private static final String GUILD_COLLECTION = "guilds";
 	
-	static {
-		database = Dragons.getInstance().getMongoConfig().getDatabase();
-		guildCollection = database.getCollection(GUILD_COLLECTION);
+	public GuildLoader(MongoConfig config) {
+		super(config, "guilds", GUILD_COLLECTION);
 	}
 
-	public static List<Guild> asGuilds(FindIterable<Document> guilds) {
+	public List<Guild> asGuilds(FindIterable<Document> guilds) {
 		List<Document> result = new ArrayList<>();
 		for(Document guild : guilds) {
 			result.add(guild);
@@ -101,42 +99,42 @@ public class GuildLoader {
 		return asGuilds(result);
 	}
 	
-	public static List<Guild> asGuilds(List<Document> tasks) {
+	public List<Guild> asGuilds(List<Document> tasks) {
 		return tasks.stream().map(doc -> Guild.fromDocument(doc)).sorted((a, b) -> a.getId() - b.getId()).collect(Collectors.toList());
 	}
 	
-	public static List<Guild> getAllGuilds() {
-		return asGuilds(guildCollection.find());
+	public List<Guild> getAllGuilds() {
+		return asGuilds(collection.find());
 	}
 	
-	public static List<Guild> getAllGuildsWith(UUID uuid) {
-		return asGuilds(guildCollection.find(new Document("$or", Arrays.asList(new Document("members", uuid), new Document("owner", uuid)))));
+	public List<Guild> getAllGuildsWith(UUID uuid) {
+		return asGuilds(collection.find(new Document("$or", Arrays.asList(new Document("members", uuid), new Document("owner", uuid)))));
 	}
 	
-	public static Guild getGuildById(int id) {
-		return guildPool.computeIfAbsent(id, guildId -> Guild.fromDocument(guildCollection.find(new Document("_id", guildId)).first()));
+	public Guild getGuildById(int id) {
+		return guildPool.computeIfAbsent(id, guildId -> Guild.fromDocument(collection.find(new Document("_id", guildId)).first()));
 	}
 	
-	public static void updateGuild(Guild update) {
-		guildCollection.updateOne(new Document("_id", update.getId()), new Document("$set", update.toDocument()));
+	public void updateGuild(Guild update) {
+		collection.updateOne(new Document("_id", update.getId()), new Document("$set", update.toDocument()));
 	}
 	
-	public static Guild addGuild(UUID owner, String name) {
+	public Guild addGuild(UUID owner, String name) {
 		Date date = Date.from(Instant.now());
-		int id = Dragons.getInstance().getMongoConfig().getCounter().reserveNextId("guilds");
+		int id = reserveNextId();
 		Guild guild = new Guild(id, name, owner, "No description set", 0, new ArrayList<>(), date);
-		guildCollection.insertOne(guild.toDocument());
+		collection.insertOne(guild.toDocument());
 		guildPool.put(guild.getId(), guild);
 		return guild;
 	}
 	
-	public static void deleteGuild(int id) {
-		guildCollection.deleteOne(new Document("_id", id));
+	public void deleteGuild(int id) {
+		collection.deleteOne(new Document("_id", id));
 		guildPool.remove(id);
 	}
 	
-	public static int getLatestGuildId() {
-		return Dragons.getInstance().getMongoConfig().getCounter().getCurrentId("guilds");
+	public int getLatestGuildId() {
+		return getCurrentMaxId();
 	}
 
 }

@@ -7,7 +7,6 @@ import mc.dragons.core.util.MathUtil;
 
 public class LagMeter extends BukkitRunnable {
 	public static long lastTick;
-
 	public static long lastTick2;
 
 	public static double getEstimatedTPS() {

@@ -4,29 +4,17 @@ import org.bukkit.ChatColor;
 
 public class ProgressBarUtil {
 	public static final int HEALTH_BARS = 30;
-
 	public static final String HEALTH_BAR_PIECE = "|";
-
 	public static final ChatColor FULL_COLOR = ChatColor.DARK_GREEN;
-
 	public static final ChatColor HIGH_COLOR = ChatColor.GREEN;
-
 	public static final ChatColor WARNING_COLOR = ChatColor.RED;
-
 	public static final ChatColor CRITICAL_COLOR = ChatColor.DARK_RED;
-
 	public static final ChatColor EMPTY_COLOR = ChatColor.GRAY;
-
 	public static final ChatColor NEUTRAL_COLOR = ChatColor.GRAY;
-
 	public static final int HIGH_THRESHOLD = 25;
-
 	public static final int WARNING_THRESHOLD = 10;
-
 	public static final int CRITICAL_THRESHOLD = 4;
-
 	public static final int PROGRESS_BARS = 40;
-
 	public static final String PROGRESS_BAR_PIECE = "|";
 
 	public static String getHealthBar(double health, double max) {

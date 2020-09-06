@@ -37,6 +37,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("testpathfinding").setExecutor(experimentalCommands);
 		getCommand("testphasing").setExecutor(experimentalCommands);
 		getCommand("testarmorstandpose").setExecutor(experimentalCommands);
+		getCommand("testleveling").setExecutor(experimentalCommands);
 		getCommand("testlogging").setExecutor(experimentalCommands);
 	}
 }

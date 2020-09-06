@@ -6,7 +6,6 @@ import org.bukkit.ChatColor;
 
 public class HiddenStringUtil {
 	private static final String SEQUENCE_HEADER = ChatColor.RESET + stringToColors("SeqHdr") + ChatColor.RESET;
-
 	private static final String SEQUENCE_FOOTER = ChatColor.RESET + stringToColors("SeqFtr") + ChatColor.RESET;
 
 	public static String encodeString(String hiddenString) {

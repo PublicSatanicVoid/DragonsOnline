@@ -27,16 +27,13 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.BlockUtil;
 
 public class SpawnEntityTask extends BukkitRunnable {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
-
 	private final double SPAWN_RADIUS = 15.0D;
+	
+	private Logger LOGGER;
 
 	private Dragons plugin;
-
 	private NPCLoader npcLoader;
-
 	private RegionLoader regionLoader;
-
 	private NPCClassLoader npcClassLoader;
 
 	private Comparator<String> comparingNPCClassForLevel(int level) {
@@ -48,6 +45,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 	}
 
 	public SpawnEntityTask(Dragons instance) {
+		this.LOGGER = instance.getLogger();
 		this.plugin = instance;
 		this.npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 		this.npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();

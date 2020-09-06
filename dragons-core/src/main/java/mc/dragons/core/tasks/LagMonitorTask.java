@@ -10,7 +10,6 @@ import mc.dragons.core.Dragons;
 
 public class LagMonitorTask extends BukkitRunnable {
 	public static final double TPS_RECORD_LENGTH = 3000.0D;
-
 	public static final double TPS_WARN_THRESHOLD = 16.0D;
 
 	public static Logger LOGGER = Dragons.getInstance().getLogger();

@@ -26,7 +26,6 @@ import mc.dragons.core.util.StringUtil;
 
 public class EntityDeathEventListener implements Listener {
 	private Logger LOGGER;
-
 	private GameObjectRegistry registry;
 
 	public EntityDeathEventListener(Dragons instance) {

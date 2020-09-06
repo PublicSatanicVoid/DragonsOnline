@@ -18,7 +18,7 @@ import mc.dragons.dev.TaskLoader.Task;
 public class TaskLoader extends AbstractLightweightLoader<Task> {
 	
 	public static class Task {
-		private static TaskLoader taskLoader;
+		private static TaskLoader taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
 		
 		private int id;
 		private String name;
@@ -31,10 +31,6 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		private boolean closed;
 		
 		public Task(int id, String name, String date, String by, boolean approved, String reviewedBy, List<String> assignees, boolean done, boolean closed) {
-			if(taskLoader == null) {
-				taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
-			}
-			
 			this.id = id;
 			this.name = name;
 			this.date = date;

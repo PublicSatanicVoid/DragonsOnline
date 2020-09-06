@@ -25,9 +25,7 @@ public class GUIElement {
 	}
 
 	public GUIElement(int slot, ItemStack itemStack) {
-		this(slot, itemStack, u -> {
-
-		});
+		this(slot, itemStack, u -> { });
 	}
 
 	public GUIElement(int slot, Material type, String name, List<String> lore, int quantity, Consumer<User> callback) {
@@ -47,9 +45,7 @@ public class GUIElement {
 	}
 
 	public GUIElement(int slot, Material type, String name, String lore, int quantity) {
-		this(slot, type, name, lore, quantity, u -> {
-
-		});
+		this(slot, type, name, lore, quantity, u -> { });
 	}
 
 	public GUIElement(int slot, Material type, String name, String lore) {

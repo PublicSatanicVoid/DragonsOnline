@@ -22,24 +22,18 @@ import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
 
 public class NPCAction {
-	private static ItemClassLoader itemClassLoader;
-
-	private static NPCClassLoader npcClassLoader;
-
-	private static QuestLoader questLoader;
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 
 	private NPCActionType type;
 
+	// Possible parameters for NPC action.
+	// Not all will be used with all action types.
 	private NPCClass npcClass;
-
 	private Quest quest;
-
 	private List<String> dialogue;
-
 	private Location to;
-
 	private String shopName;
-
 	private List<ShopItem> shopItems;
 
 	public static class ShopItem {
@@ -81,11 +75,6 @@ public class NPCAction {
 	}
 
 	public static NPCAction fromDocument(NPCClass npcClass, Document document) {
-		if (npcClassLoader == null) {
-			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-			questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
-			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-		}
 		NPCActionType type = NPCActionType.valueOf(document.getString("type"));
 		switch (type) {
 		case BEGIN_QUEST:

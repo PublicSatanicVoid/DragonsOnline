@@ -9,27 +9,22 @@ import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.user.User;
 
 public class NPCCondition {
+	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+	
 	private NPCConditionType type;
-
 	private boolean inverse;
 
 	private Quest quest;
 
 	private int stageRequirement;
-
 	private int levelRequirement;
-
 	private double goldRequirement;
-
-	private static QuestLoader questLoader;
 
 	public enum NPCConditionType {
 		HAS_COMPLETED_QUEST, HAS_QUEST_STAGE, HAS_LEVEL, HAS_GOLD;
 	}
 
 	public static NPCCondition fromDocument(Document document) {
-		if (questLoader == null)
-			questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 		NPCConditionType type = NPCConditionType.valueOf(document.getString("type"));
 		switch (type) {
 		case HAS_COMPLETED_QUEST:

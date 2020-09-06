@@ -28,8 +28,6 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.region.Region;
-import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
@@ -39,12 +37,11 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class QuestAction {
-	private static RegionLoader regionLoader;
-	private static NPCClassLoader npcClassLoader;
-	private static ItemClassLoader itemClassLoader;
-	private static NPCLoader npcLoader;
-	private static ItemLoader itemLoader;
-	
+	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+	private static NPCLoader npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
+	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+
 	private Quest quest;
 	private QuestActionType action;
 	private String npcClassShortName;
@@ -88,13 +85,6 @@ public class QuestAction {
 	}
 
 	public static QuestAction fromDocument(Document action, Quest quest) {
-		if (regionLoader == null) {
-			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-			npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
-			itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
-		}
 		QuestAction questAction = new QuestAction();
 		questAction.action = QuestActionType.valueOf(action.getString("type"));
 		if (questAction.action == QuestActionType.TELEPORT_PLAYER) {

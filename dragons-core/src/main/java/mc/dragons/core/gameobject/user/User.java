@@ -63,17 +63,16 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class User extends GameObject {
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
 
-	private static Dragons instance;
+	private static Dragons instance = Dragons.getInstance();
 
-	private static RegionLoader regionLoader;
-	private static FloorLoader floorLoader;
-	private static QuestLoader questLoader;
-	private static ItemLoader itemLoader;
-	private static UserLoader userLoader;
+	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 
-	private static UserHookRegistry userHookRegistry;
-	private static ChangeLogLoader changeLogLoader;
-	private static SystemProfileLoader systemProfileLoader;
+	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
+	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
+	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 
 	private Player player;
 	private Set<Region> cachedRegions;
@@ -191,24 +190,6 @@ public class User extends GameObject {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing user (" + player + ", " + storageManager + ", " + storageAccess + ")");
 		this.currentlyDebugging = new ArrayList<>();
-		if (instance == null)
-			instance = Dragons.getInstance();
-		if (regionLoader == null)
-			regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-		if (floorLoader == null)
-			floorLoader = GameObjectType.FLOOR.<Floor, FloorLoader>getLoader();
-		if (questLoader == null)
-			questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
-		if (itemLoader == null)
-			itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
-		if (userLoader == null)
-			userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-		if (userHookRegistry == null)
-			userHookRegistry = instance.getUserHookRegistry();
-		if (changeLogLoader == null)
-			changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
-		if (systemProfileLoader == null)
-			systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 		this.joined = false;
 		initialize(player);
 	}
@@ -1047,7 +1028,7 @@ public class User extends GameObject {
 
 	public float getLevelProgress() {
 		int prevMax = calculateMaxXP(getLevel());
-		return (float) Math.min(1.0D, ((getXP() - prevMax) / (calculateMaxXP(getLevel() + 1) - prevMax)));
+		return (float) Math.min(1.0D, ((double) (getXP() - prevMax) / (calculateMaxXP(getLevel() + 1) - prevMax)));
 	}
 
 	public ChatColor getLevelColor() {

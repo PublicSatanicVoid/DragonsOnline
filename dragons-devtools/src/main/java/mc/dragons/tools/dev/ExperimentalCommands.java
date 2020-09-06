@@ -1,5 +1,7 @@
 package mc.dragons.tools.dev;
 
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -32,7 +34,6 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
-import mc.dragons.core.logging.TestLogLevels;
 import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.PermissionUtil;
@@ -214,7 +215,7 @@ public class ExperimentalCommands implements CommandExecutor {
 		}
 		
 		if(label.equalsIgnoreCase("stresstest")) {
-			int n = Integer.valueOf(args[1]);
+			int n = Integer.valueOf(args[0]);
 			World world = player.getWorld();
 			Location loc = player.getLocation();
 			for(int i = 0; i < n; i++) {
@@ -242,7 +243,21 @@ public class ExperimentalCommands implements CommandExecutor {
 		}
 		
 		if(label.equalsIgnoreCase("testlogging")) {
-			TestLogLevels.onEnable(Dragons.getInstance());
+			for(Level level : new Level[] { Level.OFF, Level.SEVERE, Level.WARNING, Level.INFO, Level.CONFIG, Level.FINE, Level.FINER, Level.FINEST, Level.ALL }) {
+				Dragons.getInstance().getLogger().log(level, "Testing log message on level " + level);
+			}
+		}
+		
+		if(label.equalsIgnoreCase("testleveling")) {
+			int prevMax = User.calculateMaxXP(user.getLevel());
+			player.sendMessage("prevMax=" + prevMax);
+			int n = user.getXP() - prevMax;
+			int d = User.calculateMaxXP(user.getLevel() + 1) - prevMax;
+			player.sendMessage("numerator=" + n);
+			player.sendMessage("denominator=" + d);
+			player.sendMessage("progress=" + ((float)n / d));
+			player.sendMessage("progress=" + ((double)n / d));
+			player.sendMessage("progress=" + user.getLevelProgress());
 		}
 		
 		return true;

@@ -29,11 +29,7 @@ import mc.dragons.core.util.ProgressBarUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class NPC extends GameObject {
-	protected Entity entity;
 
-	protected Entity healthIndicator;
-
-	protected GameObjectRegistry registry;
 
 	public enum NPCType {
 		HOSTILE(ChatColor.RED, "", false, false, true, false, false), NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),
@@ -91,23 +87,20 @@ public class NPC extends GameObject {
 		public boolean canRespawnOnDeath() {
 			return this.respawnOnDeath;
 		}
-	}
-
+	}	
+	
+	protected Entity entity;
+	protected Entity healthIndicator;
 	protected boolean isDamageExternalized = false;
 
-	protected static NPCClassLoader npcClassLoader;
-
-	protected static EntityHider entityHider;
+	protected static GameObjectRegistry registry = Dragons.getInstance().getGameObjectRegistry();
+	protected static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+	protected static EntityHider entityHider = Dragons.getInstance().getEntityHider();
 
 	public NPC(Entity entity, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing NPC (" + StringUtil.entityToString(entity) + ", " + storageManager + ", " + storageAccess + ")");
-		if (npcClassLoader == null)
-			npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-		if (entityHider == null)
-			entityHider = Dragons.getInstance().getEntityHider();
 		this.entity = entity;
-		this.registry = Dragons.getInstance().getGameObjectRegistry();
 		initializeEntity();
 		getNPCClass().getAddons().forEach(addon -> addon.initialize(this));
 	}
@@ -263,7 +256,7 @@ public class NPC extends GameObject {
 
 	public void remove() {
 		this.entity.remove();
-		this.registry.removeFromDatabase(this);
+		registry.removeFromDatabase(this);
 	}
 
 	public void phase(Player playerFor) {

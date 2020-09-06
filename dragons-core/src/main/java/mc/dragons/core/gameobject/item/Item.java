@@ -16,10 +16,9 @@ import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
 public class Item extends GameObject {
-	private static ItemClassLoader itemClassLoader;
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 
 	private ItemStack itemStack;
-
 	private ItemClass itemClass;
 
 	private List<String> getCompleteLore() {
@@ -29,11 +28,9 @@ public class Item extends GameObject {
 	private List<String> getCompleteLore(String[] customLore) {
 		return this.itemClass.getCompleteLore(customLore, getUUID(), isCustom());
 	}
-
+	
 	public Item(ItemStack itemStack, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		if (itemClassLoader == null)
-			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		LOGGER.fine("Constructing RPG Item (" + itemStack.getType() + " x" + itemStack.getAmount() + ", " + storageManager + ", " + storageAccess + ")");
 		this.itemClass = itemClassLoader.getItemClassByClassName(getClassName());
 		ItemMeta meta = itemStack.getItemMeta();

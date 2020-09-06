@@ -21,7 +21,7 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> {
 	private static ItemClassLoader INSTANCE;
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
-
+	
 	private GameObjectRegistry masterRegistry;
 
 	private boolean allLoaded = false;

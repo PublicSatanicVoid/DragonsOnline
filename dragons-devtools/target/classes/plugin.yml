@@ -28,4 +28,5 @@ commands:
   testpathfinding:
   testphasing:
   testarmorstandpose:
+  testleveling:
   testlogging:
