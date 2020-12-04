@@ -1,4 +1,5 @@
 # DragonsOnline
+By Adam Priebe, AKA DragonRider747
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7514213e041246c08a7e69285f3dabef)](https://app.codacy.com/manual/adam.priebe.812/DragonsOnline?utm_source=github.com&utm_medium=referral&utm_content=UniverseCraft/DragonsOnline&utm_campaign=Badge_Grade_Dashboard)
 
 Dragons Online is a Minecraft-based MMORPG created by DragonRider747 (UniverseCraft) and licensed under the GNU GPL v2.
