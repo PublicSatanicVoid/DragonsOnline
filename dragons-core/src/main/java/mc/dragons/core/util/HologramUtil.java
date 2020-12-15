@@ -24,12 +24,12 @@ public class HologramUtil {
 		return hologram;
 	}
 
-	public static ArmorStand makeArmorStandNameTag(final Entity entity, String nameTag, final double xOffset, final double yOffset, final double zOffset, final boolean bind) {
+	public static ArmorStand makeArmorStandNameTag(final Entity entity, String nameTag, double xOffset, double yOffset, double zOffset, final boolean bind) {
 		final Entity nameTagFix = entity.getWorld().spawnEntity(entity.getWorld().getSpawnLocation().add(0.0D, -5.0D, 0.0D), EntityType.ARMOR_STAND);
 		nameTagFix.setGravity(false);
 		ArmorStand armorStand = (ArmorStand) nameTagFix;
 		armorStand.setVisible(false);
-		armorStand.setAI(false);
+		//armorStand.setAI(false); // This will cause the name tag to stay in one place, even if it is riding an entity. Client can disable AI downstream if desired.
 		armorStand.setCollidable(false);
 		armorStand.setInvulnerable(true);
 		armorStand.setSmall(true);

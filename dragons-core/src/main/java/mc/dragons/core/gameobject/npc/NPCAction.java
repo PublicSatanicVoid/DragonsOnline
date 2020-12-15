@@ -181,13 +181,9 @@ public class NPCAction {
 	}
 
 	public void execute(final User user, NPC npc) {
-		GUI confirmation;
-		int rows;
-		GUI shop;
-		int slot;
 		switch (this.type) {
 		case BEGIN_QUEST:
-			confirmation = new GUI(1, "Accept quest?");
+			GUI confirmation = new GUI(1, "Accept quest?");
 			confirmation.add(new GUIElement(1, Material.EMERALD_BLOCK, ChatColor.GREEN + "✓ " + ChatColor.DARK_GREEN + ChatColor.BOLD + "Accept",
 					ChatColor.GRAY + "You will be unable to interact with\n" + ChatColor.GRAY + "other players, mobs, or NPCs during\n" + ChatColor.GRAY + "quest dialogue.", u -> {
 						u.updateQuestProgress(this.quest, this.quest.getSteps().get(0));
@@ -195,7 +191,7 @@ public class NPCAction {
 					}));
 			confirmation.add(new GUIElement(4, Material.PAPER, ChatColor.YELLOW + "Quest Information",
 					ChatColor.GRAY + "Quest: " + ChatColor.RESET + this.quest.getQuestName() + "\n" + ChatColor.GRAY + "Lv Min: " + ChatColor.RESET + this.quest.getLevelMin()));
-			confirmation.add(new GUIElement(7, Material.REDSTONE_BLOCK, ChatColor.RED + "✘ " + ChatColor.DARK_RED + ChatColor.BOLD + "Reject",
+			confirmation.add(new GUIElement(7, Material.REDSTONE_BLOCK, ChatColor.RED + "✘ " + ChatColor.DARK_RED + ChatColor.BOLD + "Not Now",
 					ChatColor.GRAY + "You can always come back later to\n" + ChatColor.GRAY + "start the quest.", u -> u.closeGUI(true)));
 			confirmation.open(user);
 			break;
@@ -213,13 +209,19 @@ public class NPCAction {
 			npc.getEntity().teleport(this.to);
 			break;
 		case PATHFIND_NPC:
-			PathfindingUtil.walkToLocation(npc.getEntity(), this.to, 0.15D, null);
+			boolean hasAI = Dragons.getInstance().getBridge().hasAI(npc.getEntity());
+			if(hasAI) {
+				Dragons.getInstance().getBridge().setEntityAI(npc.getEntity(), false);
+			}
+			PathfindingUtil.walkToLocation(npc.getEntity(), this.to, 0.15D, (e) -> {
+				Dragons.getInstance().getBridge().setEntityAI(e, true);
+			});
 			break;
 		case OPEN_SHOP:
-			rows = 2 + (int) Math.ceil(this.shopItems.size() / 7.0D);
+			int rows = 2 + (int) Math.ceil(this.shopItems.size() / 7.0D);
+			GUI shop = new GUI(rows, this.shopName);
 			user.debug("opening shop with " + rows + " rows and name " + this.shopName + " with " + this.shopItems.size() + " items");
-			shop = new GUI(rows, this.shopName);
-			slot = 10;
+			int slot = 10;
 			for (ShopItem item : this.shopItems) {
 				ItemClass itemClass = itemClassLoader.getItemClassByClassName(item.getItemClassName());
 				shop.add(itemClass.getAsGuiElement(slot, item.getQuantity(), item.getCostPer(), false, u -> u.buyItem(itemClass, item.getQuantity(), item.getCostPer())));

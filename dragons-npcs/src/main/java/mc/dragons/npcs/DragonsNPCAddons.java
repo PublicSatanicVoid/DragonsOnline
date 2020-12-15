@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.npcs.commands.CompanionCommand;
+import mc.dragons.npcs.commands.IWannaCompanionCommand;
 import mc.dragons.npcs.commands.SlayCommand;
 import mc.dragons.npcs.commands.TestCompanionCommand;
 import mc.dragons.npcs.model.BoneCrusherAddon;
@@ -35,6 +36,7 @@ public class DragonsNPCAddons extends JavaPlugin {
 	public void onEnable() {
 		getCommand("companion").setExecutor(new CompanionCommand());
 		getCommand("testcompanion").setExecutor(new TestCompanionCommand());
+		getCommand("iwannacompanion").setExecutor(new IWannaCompanionCommand());
 		getCommand("/slay").setExecutor(new SlayCommand());
 	}
 }

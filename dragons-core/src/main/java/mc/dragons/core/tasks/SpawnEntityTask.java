@@ -56,6 +56,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 	public void run() {
 		if (!this.plugin.getServerOptions().isCustomSpawningEnabled())
 			return;
+		int margin = plugin.getServerOptions().getCustomSpawnMargin();
 		long start = System.currentTimeMillis();
 		for (User user : UserLoader.allUsers()) {
 			if (user.getPlayer() == null || user.getPlayer().getGameMode() == GameMode.CREATIVE || user.getPlayer().getGameMode() == GameMode.SPECTATOR)
@@ -103,8 +104,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 				continue;
 			long entityRadiusCount = 0L;
 			if (radiusCap != -1) {
-				double searchRadius = 20.0D;
-				entityRadiusCount = user.getPlayer().getNearbyEntities(searchRadius, searchRadius, searchRadius).stream().map(e -> NPCLoader.fromBukkit(e)).filter(n -> (n != null))
+				entityRadiusCount = user.getPlayer().getNearbyEntities(margin, margin, margin).stream().map(e -> NPCLoader.fromBukkit(e)).filter(n -> (n != null))
 						.filter(n -> (n.getNPCType() == NPC.NPCType.HOSTILE)).count();
 			}
 			if (entityRadiusCount > radiusCap && radiusCap != -1)

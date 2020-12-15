@@ -5,9 +5,11 @@ import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
+import mc.dragons.core.gameobject.user.UserLoader;
 import net.md_5.bungee.api.ChatColor;
 
 public class CustomLayout extends AbstractStringLayout {
@@ -80,8 +82,16 @@ public class CustomLayout extends AbstractStringLayout {
 					message += "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "Caused by:");
 			}
 		}
+		final String finalMessage;
 		if (includeLogger)
-			return format(this.formatWithLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
-		return format(this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+			finalMessage = format(this.formatWithLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+		else 
+			finalMessage = format(this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+	
+		if(logEvent.getLevel() == Level.ERROR || logEvent.getLevel() == Level.FATAL) {
+			UserLoader.allUsers().stream().filter(u -> u.isDebuggingErrors()).forEach(u -> u.getPlayer().sendMessage(ChatColor.RED + finalMessage));
+		}
+		
+		return finalMessage;
 	}
 }

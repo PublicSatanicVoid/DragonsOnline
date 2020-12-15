@@ -20,14 +20,42 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("placeholder").setExecutor(new PlaceholderCommand());
 		getCommand("addon").setExecutor(new AddonCommand(dragons));
 		getCommand("ping").setExecutor(new PingCommand());
-		getCommand("worldperformance").setExecutor(new WorldPerformanceCommand());
-	
+		
+		CommandExecutor pluginManagementCommands = new PluginManagementCommands();
+		getCommand("enableplugin").setExecutor(pluginManagementCommands);
+		getCommand("disableplugin").setExecutor(pluginManagementCommands);
+		getCommand("ilikevanilla").setExecutor(pluginManagementCommands);
+		
+		CommandExecutor objectCommands = new ObjectCommands();
+		getCommand("invalidate").setExecutor(objectCommands);
+		getCommand("invalidateall").setExecutor(objectCommands);
+		getCommand("invalidatetype").setExecutor(objectCommands);
+		getCommand("invalidateuser").setExecutor(objectCommands);
+		getCommand("localize").setExecutor(objectCommands);
+		getCommand("localizeall").setExecutor(objectCommands);
+		getCommand("localizetype").setExecutor(objectCommands);
+		getCommand("localizeuser").setExecutor(objectCommands);
+		
+		CommandExecutor terminateCommands = new TerminateCommands();
+		getCommand("killtask").setExecutor(terminateCommands);
+		getCommand("killtasks").setExecutor(terminateCommands);
+		getCommand("killtasksfor").setExecutor(terminateCommands);
+		getCommand("crashserver").setExecutor(terminateCommands);
+		
+		CommandExecutor performanceCommands = new PerformanceCommands();
+		getCommand("worldperformance").setExecutor(performanceCommands);
+		getCommand("serverperformance").setExecutor(performanceCommands);
+		getCommand("getprocessid").setExecutor(performanceCommands);
+		getCommand("requestgc").setExecutor(performanceCommands);
+		getCommand("generatedump").setExecutor(performanceCommands);
+		
 		CommandExecutor experimentalCommands = new ExperimentalCommands();
 		getCommand("helditemdata").setExecutor(experimentalCommands);
 		getCommand("rawtext").setExecutor(experimentalCommands);
 		getCommand("whoami").setExecutor(experimentalCommands);
 		getCommand("stresstest").setExecutor(experimentalCommands);
 		getCommand("killmobs").setExecutor(experimentalCommands);
+		getCommand("testexceptions").setExecutor(experimentalCommands);
 		getCommand("testmineregen").setExecutor(experimentalCommands);
 		getCommand("testpermission").setExecutor(experimentalCommands);
 		getCommand("testlocaluserstorage").setExecutor(experimentalCommands);
@@ -39,5 +67,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("testarmorstandpose").setExecutor(experimentalCommands);
 		getCommand("testleveling").setExecutor(experimentalCommands);
 		getCommand("testlogging").setExecutor(experimentalCommands);
+		getCommand("testuuidlookup").setExecutor(experimentalCommands);
 	}
 }

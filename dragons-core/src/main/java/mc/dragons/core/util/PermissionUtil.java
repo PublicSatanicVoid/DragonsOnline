@@ -3,8 +3,8 @@ package mc.dragons.core.util;
 import org.bukkit.ChatColor;
 
 import mc.dragons.core.gameobject.user.PermissionLevel;
+import mc.dragons.core.gameobject.user.SystemProfile;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.storage.impl.SystemProfile;
 
 public class PermissionUtil {
 	public static boolean verifyActivePermissionLevel(User user, PermissionLevel required, boolean notify) {

@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -19,17 +20,14 @@ import com.comphenix.protocol.ProtocolLibrary;
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.impl.BridgeSpigot112R1;
-import mc.dragons.core.commands.BypassDeathCountdownCommand;
 import mc.dragons.core.commands.ChangeLogCommands;
-import mc.dragons.core.commands.ChannelCommand;
 import mc.dragons.core.commands.FeedbackCommand;
+import mc.dragons.core.commands.HealCommand;
 import mc.dragons.core.commands.HelpCommand;
-import mc.dragons.core.commands.ILostTheLousyStickCommand;
 import mc.dragons.core.commands.MyQuestsCommand;
-import mc.dragons.core.commands.PrivateMessageCommands;
 import mc.dragons.core.commands.QuestDialogueCommands;
 import mc.dragons.core.commands.RankCommand;
-import mc.dragons.core.commands.ShoutCommand;
+import mc.dragons.core.commands.RespawnCommand;
 import mc.dragons.core.commands.SystemLogonCommand;
 import mc.dragons.core.events.EntityCombustListener;
 import mc.dragons.core.events.EntityDamageByEntityEventListener;
@@ -53,6 +51,7 @@ import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.SidebarManager;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
@@ -60,14 +59,14 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.storage.StorageManager;
-import mc.dragons.core.storage.impl.LocalStorageManager;
-import mc.dragons.core.storage.impl.MongoConfig;
-import mc.dragons.core.storage.impl.MongoStorageManager;
-import mc.dragons.core.storage.impl.loader.ChangeLogLoader;
-import mc.dragons.core.storage.impl.loader.FeedbackLoader;
-import mc.dragons.core.storage.impl.loader.LightweightLoaderRegistry;
-import mc.dragons.core.storage.impl.loader.SystemProfileLoader;
-import mc.dragons.core.storage.impl.loader.WarpLoader;
+import mc.dragons.core.storage.loader.ChangeLogLoader;
+import mc.dragons.core.storage.loader.FeedbackLoader;
+import mc.dragons.core.storage.loader.LightweightLoaderRegistry;
+import mc.dragons.core.storage.loader.SystemProfileLoader;
+import mc.dragons.core.storage.loader.WarpLoader;
+import mc.dragons.core.storage.local.LocalStorageManager;
+import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.storage.mongo.MongoStorageManager;
 import mc.dragons.core.tasks.AutoSaveTask;
 import mc.dragons.core.tasks.LagMeter;
 import mc.dragons.core.tasks.LagMonitorTask;
@@ -75,6 +74,7 @@ import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
+import mc.dragons.core.util.PermissionUtil;
 
 public class Dragons extends JavaPlugin {
 	private static Dragons INSTANCE;
@@ -164,6 +164,13 @@ public class Dragons extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		getLogger().info("Removing unwanted entities...");
+		for (Entity e : getEntities()) {
+			if (e instanceof ItemFrame)
+				continue;
+			e.remove();
+		}
+		
 		getLogger().info("Loading game objects...");
 		GameObjectType.FLOOR.<Floor, FloorLoader>getLoader().lazyLoadAll();
 		GameObjectType.REGION.<Region, RegionLoader>getLoader().lazyLoadAll();
@@ -185,6 +192,7 @@ public class Dragons extends JavaPlugin {
 						if (this.i >= 5) {
 							cancel();
 							getLogger().info("... flush complete. Entity count: " + getEntities().size());
+							System.gc();
 						}
 					}
 				}).runTaskTimer(Dragons.this, 20L, 20L);
@@ -214,19 +222,13 @@ public class Dragons extends JavaPlugin {
 		getLogger().info("Registering commands...");
 		getCommand("rank").setExecutor(new RankCommand());
 		getCommand("syslogon").setExecutor(new SystemLogonCommand(this));
-		getCommand("bypassdeathcountdown").setExecutor(new BypassDeathCountdownCommand());
-		getCommand("ilostthelousystick").setExecutor(new ILostTheLousyStickCommand());
+		getCommand("respawn").setExecutor(new RespawnCommand());
+		getCommand("heal").setExecutor(new HealCommand());
 		getCommand("feedback").setExecutor(new FeedbackCommand(this));
 		QuestDialogueCommands questDialogueCommands = new QuestDialogueCommands();
 		getCommand("fastforwarddialogue").setExecutor(questDialogueCommands);
 		getCommand("questchoice").setExecutor(questDialogueCommands);
 		getCommand("myquests").setExecutor(new MyQuestsCommand());
-		PrivateMessageCommands privateMessageCommands = new PrivateMessageCommands();
-		getCommand("msg").setExecutor(privateMessageCommands);
-		getCommand("reply").setExecutor(privateMessageCommands);
-		getCommand("chatspy").setExecutor(privateMessageCommands);
-		getCommand("shout").setExecutor(new ShoutCommand());
-		getCommand("channel").setExecutor(new ChannelCommand());
 		getCommand("help").setExecutor(new HelpCommand());
 		ChangeLogCommands changeLogCommandsExecutor = new ChangeLogCommands(this);
 		getCommand("news").setExecutor(changeLogCommandsExecutor);
@@ -250,13 +252,10 @@ public class Dragons extends JavaPlugin {
 		for (User user : UserLoader.allUsers()) {
 			if (user.getPlayer() == null || !user.getPlayer().isOnline())
 				continue;
+			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, false))
+				continue;
 			user.handleQuit();
 			user.getPlayer().kickPlayer(ChatColor.YELLOW + "This server instance has been closed. We'll be back online soon.");
-		}
-		for (Entity e : getEntities()) {
-			if (e instanceof org.bukkit.entity.ItemFrame)
-				continue;
-			e.remove();
 		}
 	}
 

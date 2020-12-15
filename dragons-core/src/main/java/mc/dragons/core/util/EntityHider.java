@@ -24,6 +24,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
+/**
+ * 
+ * @author comphenix
+ *
+ */
+
 public class EntityHider implements Listener {
 	protected Table<Integer, Integer, Boolean> observerEntityMap = HashBasedTable.create();
 
@@ -41,6 +47,11 @@ public class EntityHider implements Listener {
 	private PacketAdapter protocolListener;
 	protected final Policy policy;
 
+	/**
+	 * The current entity visibility policy.
+	 * @author Kristian
+	 *
+	 */
 	public enum Policy {
 		WHITELIST, BLACKLIST;
 	}

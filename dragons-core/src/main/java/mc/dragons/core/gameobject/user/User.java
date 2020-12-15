@@ -43,14 +43,13 @@ import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
-import mc.dragons.core.storage.impl.SystemProfile;
-import mc.dragons.core.storage.impl.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.storage.impl.loader.ChangeLogLoader;
-import mc.dragons.core.storage.impl.loader.SystemProfileLoader;
+import mc.dragons.core.storage.loader.ChangeLogLoader;
+import mc.dragons.core.storage.loader.SystemProfileLoader;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
@@ -83,6 +82,7 @@ public class User extends GameObject {
 	private Map<Quest, Integer> questActionIndices;
 	private Map<Quest, QuestPauseState> questPauseStates;
 	private List<CommandSender> currentlyDebugging;
+	private boolean debuggingErrors;
 	private List<String> currentDialogueBatch;
 	private String currentDialogueSpeaker;
 	private int currentDialogueIndex;
@@ -271,9 +271,17 @@ public class User extends GameObject {
 
 	public void debug(String message) {
 		for (CommandSender debugger : this.currentlyDebugging)
-			debugger.sendMessage("[DEBUG:" + getName() + "] " + message);
+			debugger.sendMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "DBG:" + this.getName() + " " + ChatColor.RESET + message);
 	}
 
+	public void setDebuggingErrors(boolean on) {
+		this.debuggingErrors = on;
+	}
+	
+	public boolean isDebuggingErrors() {
+		return this.debuggingErrors;
+	}
+	
 	public void updateState() {
 		updateState(true, true);
 	}
@@ -596,13 +604,20 @@ public class User extends GameObject {
 		}
 		LOGGER.finer("-Creating message text component");
 		String messageSenderInfo = "";
-		if (getRank().hasChatPrefix())
-			messageSenderInfo = String.valueOf(messageSenderInfo) + getRank().getChatPrefix() + " ";
-		messageSenderInfo = String.valueOf(messageSenderInfo) + getRank().getNameColor() + getName();
+		boolean offDuty = false;
+		if(getRank().isStaff() && this.getSystemProfile() == null) {
+			messageSenderInfo = Rank.OFF_DUTY_STAFF_PREFIX + " ";
+			offDuty = true;
+		}
+		if (getRank().hasChatPrefix()) {
+			messageSenderInfo += getRank().getChatPrefix() + " ";
+		}
+		messageSenderInfo += getRank().getNameColor() + getName();
 		TextComponent messageComponent = new TextComponent(messageSenderInfo);
 		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 				(new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + getName() + "\n"))
 						.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + getRank().getNameColor() + getRank().getRankName() + "\n")
+						.append(!offDuty ? "" : ChatColor.DARK_RED + "" + ChatColor.UNDERLINE + "/!\\" + ChatColor.RED + " " + ChatColor.ITALIC + "This user is currently off-duty and cannot access staff privileges.\n")
 						.append(ChatColor.GRAY + "Level: " + getLevelColor() + getLevel() + "\n").append(ChatColor.GRAY + "XP: " + ChatColor.RESET + getXP() + "\n")
 						.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + getGold() + "\n")
 						.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(this.player.getLocation()) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")

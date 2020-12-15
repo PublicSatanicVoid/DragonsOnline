@@ -34,6 +34,7 @@ public class ServerOptionsCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions autosaveperiod [Seconds]");
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions customspawning [On|Off]");
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions customspawnrate [Seconds]");
+			sender.sendMessage(ChatColor.YELLOW + "/serveroptions customspawnmargin [Margin]");
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions gameverification [On|Off]");
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions gameverificationsweeprate [Seconds]");
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions defaultwalkspeed [Value]");
@@ -92,6 +93,17 @@ public class ServerOptionsCommand implements CommandExecutor {
 			else {
 				options.setCustomSpawnRate((int) (double) Double.valueOf(args[1]) * 20);
 				sender.sendMessage(ChatColor.GREEN + "GameObject custom spawn rate is now " + args[1] + "s");
+			}
+			return true;
+		}
+		
+		if(args[0].equalsIgnoreCase("customspawnmargin")) {
+			if(args.length == 1) {
+				sender.sendMessage(ChatColor.GREEN + "GameObject custom spawn margin is currently " + options.getCustomSpawnMargin() + "m");
+			}
+			else {
+				options.setCustomSpawnMargin(Integer.valueOf(args[1]));
+				sender.sendMessage(ChatColor.GREEN + "GameObject custom spawn margin is now " + args[1] + "m");
 			}
 			return true;
 		}

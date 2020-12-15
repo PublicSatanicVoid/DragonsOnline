@@ -50,20 +50,24 @@ public class BridgeSpigot112R1 implements Bridge {
 	}
 
 	@Override
+	public boolean hasAI(Entity entity) {
+		return !NBTEditor.getBoolean(entity, "NoAI");
+	}
+	
+	@Override
 	public void setEntityAI(Entity entity, boolean ai) {
-		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), new Object[] { "NoAI" });
+		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), "NoAI");
 		this.LOGGER.finest("Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
 
 	@Override
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {
-		NBTEditor.set(itemStack, unbreakable ? 1 : 0, new Object[] { "Unbreakable" });
+		NBTEditor.set(itemStack, unbreakable ? 1 : 0, "Unbreakable");
 		this.LOGGER.finest("Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
 	}
 
 	@Override
 	public double[] getAABB(Entity entity) {
-
 		net.minecraft.server.v1_12_R1.Entity nmsEntity = ((CraftEntity) entity).getHandle();
 		AxisAlignedBB aabb = nmsEntity.getBoundingBox();
 		return new double[] { aabb.a, aabb.b, aabb.c, aabb.d, aabb.e, aabb.f };

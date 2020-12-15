@@ -1,0 +1,8 @@
+name: DragonsAntiCheat
+main: mc.dragons.anticheat.DragonsAntiCheatPlugin
+version: 1.0.0
+author: DragonRider747
+depend: [DragonsCore]
+commands:
+  ac:
+  acdebug:

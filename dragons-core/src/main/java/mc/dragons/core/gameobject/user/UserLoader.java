@@ -1,11 +1,19 @@
 package mc.dragons.core.gameobject.user;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.bson.Document;
@@ -14,6 +22,14 @@ import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import com.google.common.base.Charsets;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectLoader;
@@ -151,6 +167,48 @@ public class UserLoader extends GameObjectLoader<User> {
 		return null;
 	}
 
+	public static UUID uuidFromUsername(String username) {
+		// https://github.com/ZerothAngel/ToHPluginUtils/blob/master/src/main/java/org/tyrannyofheaven/bukkit/util/uuid/MojangUuidResolver.java
+		List<String> request = new ArrayList<>();
+		request.add(username);
+		String body = JSONValue.toJSONString(request);
+		try {
+			URL url = new URL("https://api.mojang.com/profiles/minecraft");
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("POST");
+			connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+			connection.setUseCaches(false);
+			connection.setDoOutput(true);
+			connection.setConnectTimeout(15000);
+			connection.setReadTimeout(15000);
+			DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
+			writer.write(body.getBytes(Charsets.UTF_8));
+			writer.flush();
+			writer.close();
+			Reader reader = new InputStreamReader(connection.getInputStream());
+			JSONArray profiles = (JSONArray) new JSONParser().parse(reader);
+			reader.close();
+			JSONObject profile = (JSONObject) profiles.get(0);
+			String rawUUID = (String) profile.get("id");
+			// https://stackoverflow.com/a/19399768
+			String hyphenatedUUID = rawUUID.replaceFirst("([0-9a-fA-F]{8})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]+)", "$1-$2-$3-$4-$5");
+			UUID uuid = UUID.fromString(hyphenatedUUID);
+			return uuid;
+		} catch (IOException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static void uuidFromUsername(String username, Consumer<UUID> whenComplete) {
+		new BukkitRunnable() {
+			@Override public void run() {
+				whenComplete.accept(uuidFromUsername(username));
+			}
+		}.runTaskAsynchronously(Dragons.getInstance());
+	}
+	
 	public void removeStalePlayer(Player player) {
 		LOGGER.fine("Removing stale player " + player.getName());
 		User user = fromPlayer(player);

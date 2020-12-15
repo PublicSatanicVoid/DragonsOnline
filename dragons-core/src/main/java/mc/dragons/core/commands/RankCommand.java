@@ -35,14 +35,8 @@ public class RankCommand implements CommandExecutor {
 		String username = args[0];
 		Player targetPlayer = Bukkit.getPlayerExact(username);
 		User targetUser = this.userLoader.loadObject(username);
-		Rank rank = null;
-		try {
-			rank = Rank.valueOf(args[1]);
-		} catch (Exception e) {
-			sender.sendMessage(ChatColor.RED + "Invalid rank! Valid ranks are " + StringUtil.parseList((Object[]) Rank.values()));
-		}
-		if (rank == null)
-			return true;
+		Rank rank = StringUtil.parseEnum(sender, Rank.class, args[1]);
+		if (rank == null) return true;
 		targetUser.setRank(rank);
 		if (targetPlayer == null) {
 			sender.sendMessage(ChatColor.YELLOW + "Player is not online on this server! They will have to rejoin for the rank update to be fully applied.");

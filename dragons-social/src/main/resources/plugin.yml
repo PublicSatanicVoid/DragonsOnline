@@ -9,3 +9,25 @@ commands:
     aliases: g
   guildadmin:
     description: (ADMIN) Manage guilds.
+  chatspy:
+    description: (MOD) View other players' private messages.
+  shout:
+    description: (MOD) Broadcast to the entire server.
+    aliases: [broadcast, bc]    
+  reply:
+    description: Reply to your last incoming message.
+    aliases: [r, re]
+  party:
+    description: Create, join, and manage parties.
+    aliases: p
+    description: Log on to system console.
+  msg:
+    description: Send a private message.
+    aliases: [tell, t, m, pm, whisper, w]
+    description: Send feedback about the game.
+  friend:
+    description: Make friends!
+    aliases: f
+  channel:
+    description: Set speaking and listening chat channels.
+    aliases: [c, ch, chat]

@@ -69,7 +69,7 @@ public class CompanionAddon extends NPCAddon {
 						Vector move = owner.getPlayer().getLocation().subtract(companion.getEntity().getLocation()).toVector();
 						move.multiply(Math.random() * 0.9);
 						companion.getEntity().teleport(BlockUtil.getClosestGroundXZ(companion.getEntity().getLocation().add(move)).add(0, 1, 0));
-						owner.debug("Moved companion " + companion.getIdentifier() + " closer");
+						//owner.debug("Moved companion " + companion.getIdentifier() + " closer");
 					}
 					
 				}

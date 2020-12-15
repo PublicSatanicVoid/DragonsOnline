@@ -14,21 +14,18 @@ import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 
 public class ServerOptions {
 	private Logger LOGGER;
-
 	private org.apache.logging.log4j.core.Logger pluginLogger;
 
 	private int autoSavePeriodTicks;
-
 	private boolean autoSaveEnabled;
 
+	private int customSpawnMargin;
 	private int customSpawnRate;
-
 	private boolean customSpawningEnabled;
 
 	private int deathCountdown;
 
 	private int verifyIntegritySweepRate;
-
 	private boolean verifyIntegrityEnabled;
 
 	private double defaultWalkSpeed;
@@ -40,6 +37,7 @@ public class ServerOptions {
 		this.LOGGER = Dragons.getInstance().getLogger();
 		this.autoSavePeriodTicks = 6000;
 		this.autoSaveEnabled = true;
+		this.customSpawnMargin = 25;
 		this.customSpawnRate = 100;
 		this.customSpawningEnabled = true;
 		this.deathCountdown = 10;
@@ -82,6 +80,15 @@ public class ServerOptions {
 
 	public int getCustomSpawnRate() {
 		return this.customSpawnRate;
+	}
+	
+	public void setCustomSpawnMargin(int margin) {
+		this.customSpawnMargin = margin;
+		this.LOGGER.config("Custom spawn margin set to " + margin + "m.");
+	}
+	
+	public int getCustomSpawnMargin() {
+		return this.customSpawnMargin;
 	}
 
 	public void setCustomSpawningEnabled(boolean enabled) {

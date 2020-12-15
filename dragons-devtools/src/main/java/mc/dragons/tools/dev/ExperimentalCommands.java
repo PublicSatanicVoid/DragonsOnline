@@ -129,7 +129,7 @@ public class ExperimentalCommands implements CommandExecutor {
 		}
 		
 		
-		if(label.equalsIgnoreCase("helditemdata")) {
+		if(label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
 			ItemStack itemStack = player.getInventory().getItemInMainHand();
 			sender.sendMessage("meta=" + itemStack.getItemMeta());
 			sender.sendMessage("lore=" + itemStack.getItemMeta().getLore());
@@ -204,7 +204,6 @@ public class ExperimentalCommands implements CommandExecutor {
 			PathfindingUtil.walkToLocation(e, player.getLocation(), 0.2, unused -> {});
 		}
 		
-		
 		if(label.equalsIgnoreCase("testphasing")) {
 			Entity entity = player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(args[0]));
 			if(entity instanceof ArmorStand) {
@@ -258,6 +257,17 @@ public class ExperimentalCommands implements CommandExecutor {
 			player.sendMessage("progress=" + ((float)n / d));
 			player.sendMessage("progress=" + ((double)n / d));
 			player.sendMessage("progress=" + user.getLevelProgress());
+		}
+		
+		if(label.equalsIgnoreCase("testexceptions")) {
+			sender.sendMessage("Throwing an NPE");
+			((User)null).autoSave(); // Throws an NPE
+		}
+		
+		if(label.equalsIgnoreCase("testuuidlookup")) {
+			UserLoader.uuidFromUsername(args[0], uuid -> {
+				sender.sendMessage("UUID of " + args[0] + " is " + uuid);
+			});
 		}
 		
 		return true;

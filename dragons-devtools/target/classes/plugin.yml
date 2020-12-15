@@ -12,13 +12,34 @@ commands:
   placeholder:
   reloadquests:
   serveroptions:
+  serverperformance:
+  getprocessid:
+  killtask:
+  killtasks:
+  killtasksfor:
+  crashserver:
+  generatedump:
+  requestgc:
+  enableplugin:
+  disableplugin:
+  ilikevanilla:
+  invalidate:
+  invalidateall:
+  invalidatetype:
+  invalidateuser:
+  localize:
+  localizeall:
+  localizetype:
+  localizeuser:
   verifygameintegrity:
   worldperformance:
   helditemdata:
+    aliases: whatamiholding
   rawtext:
   whoami:
   stresstest:
   killmobs:
+  testexceptions:
   testmineregen:
   testpermission:
   testlocaluserstorage:
@@ -30,3 +51,4 @@ commands:
   testarmorstandpose:
   testleveling:
   testlogging:
+  testuuidlookup:

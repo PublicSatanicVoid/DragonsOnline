@@ -3,6 +3,7 @@ package mc.dragons.core.util;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -118,11 +119,11 @@ public class StringUtil {
 		return list.stream().map(elem -> elem.toString()).collect(Collectors.joining(separator));
 	}
 
-	public static <T> String parseList(Object[] array) {
+	public static <T> String parseList(T[] array) {
 		return parseList(array, ", ");
 	}
 
-	public static <T> String parseList(Object[] array, String separator) {
+	public static <T> String parseList(T[] array, String separator) {
 		return parseList(Arrays.asList(array), separator);
 	}
 
@@ -144,6 +145,27 @@ public class StringUtil {
 			sender.sendMessage(ChatColor.RED + "Invalid entity type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.12/org/bukkit/entity/EntityType.html");
 		}
 		return type;
+	}
+	
+	public static <T extends Enum<T>> T parseEnum(CommandSender sender, Class<T> enumClass, String str) {
+		try {
+			return Enum.valueOf(enumClass, str);
+		}
+		catch(Exception e) {
+			sender.sendMessage(ChatColor.RED + "Invalid enumerated type! Valid types are " + parseList(enumClass.getEnumConstants()));
+		}
+		
+		return null;
+	}
+	
+	public static UUID parseUUID(CommandSender sender, String str) {
+		try {
+			return UUID.fromString(str);
+		}
+		catch(Exception e) {
+			sender.sendMessage(ChatColor.RED + "Invalid UUID! An example UUID is " + UUID.randomUUID());
+		}
+		return null;
 	}
 
 	public static String toHdFont(String input) {

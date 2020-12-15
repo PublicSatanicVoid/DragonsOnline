@@ -15,8 +15,8 @@ import org.bson.Document;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.storage.impl.MongoConfig;
-import mc.dragons.core.storage.impl.loader.AbstractLightweightLoader;
+import mc.dragons.core.storage.loader.AbstractLightweightLoader;
+import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.social.GuildLoader.Guild;
 
 public class GuildLoader extends AbstractLightweightLoader<Guild> {
@@ -76,7 +76,7 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 			if(document == null) return null;
 			int id = document.getInteger("_id");
 			if(guildLoader.guildPool.containsKey(id)) return guildLoader.guildPool.get(id);
-			Guild guild = new Guild(document.getInteger("_id"), document.getString("name"), document.get("owner", UUID.class),
+			Guild guild = new Guild(id, document.getString("name"), document.get("owner", UUID.class),
 					document.getString("description"), document.getInteger("xp"), document.getList("members", UUID.class),
 					new Date(Instant.ofEpochSecond(document.getLong("createdOn")).toEpochMilli()));
 			guildLoader.guildPool.put(id, guild);
@@ -99,8 +99,8 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		return asGuilds(result);
 	}
 	
-	public List<Guild> asGuilds(List<Document> tasks) {
-		return tasks.stream().map(doc -> Guild.fromDocument(doc)).sorted((a, b) -> a.getId() - b.getId()).collect(Collectors.toList());
+	public List<Guild> asGuilds(List<Document> guilds) {
+		return guilds.stream().map(doc -> Guild.fromDocument(doc)).sorted((a, b) -> a.getId() - b.getId()).collect(Collectors.toList());
 	}
 	
 	public List<Guild> getAllGuilds() {

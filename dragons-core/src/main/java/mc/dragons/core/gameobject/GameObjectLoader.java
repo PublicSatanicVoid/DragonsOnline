@@ -13,5 +13,5 @@ public abstract class GameObjectLoader<T extends GameObject> {
 		this.storageManager = storageManager;
 	}
 
-	public abstract T loadObject(StorageAccess paramStorageAccess);
+	public abstract T loadObject(StorageAccess storageAccess);
 }

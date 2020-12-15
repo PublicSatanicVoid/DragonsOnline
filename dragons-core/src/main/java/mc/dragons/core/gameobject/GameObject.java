@@ -60,6 +60,10 @@ public abstract class GameObject {
 	public StorageAccess getStorageAccess() {
 		return this.storageAccess;
 	}
+	
+	public void replaceStorageAccess(StorageAccess replacement) {
+		this.storageAccess = replacement;
+	}
 
 	public Document getData() {
 		return this.storageAccess.getDocument();

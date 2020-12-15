@@ -20,7 +20,7 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
-import mc.dragons.core.storage.impl.LocalStorageManager;
+import mc.dragons.core.storage.local.LocalStorageManager;
 import mc.dragons.core.util.StringUtil;
 
 public class NPCLoader extends GameObjectLoader<NPC> {
@@ -118,7 +118,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		StorageAccess storageAccess = npcType.isPersistent() ? this.storageManager.getNewStorageAccess(GameObjectType.NPC, data)
 				: this.localStorageManager.getNewStorageAccess(GameObjectType.NPC, data);
 		NPC npc = new NPC(entity, npcType.isPersistent() ? this.storageManager : (StorageManager) this.localStorageManager, storageAccess);
-		if (storageAccess instanceof mc.dragons.core.storage.impl.LocalStorageAccess)
+		if (storageAccess instanceof mc.dragons.core.storage.local.LocalStorageAccess)
 			this.LOGGER.fine("- Using local storage access for NPC of type " + npcType + " (" + storageAccess + ")");
 		if (storageAccess == null)
 			this.LOGGER.warning("- Whoops! The storage access was null!");

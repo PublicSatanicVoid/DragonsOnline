@@ -1,5 +1,8 @@
 package mc.dragons.tools.dev;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +55,10 @@ public class LagCommand implements CommandExecutor {
 				return true;
 			}
 		}
-		
-		sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName());
+
+		sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
+		sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName()
+				+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
 		List<Double> tpsRecord = Dragons.getInstance().getTPSRecord();
 		final int[] tps_thresholds = new int[] { 5, 10, 15, 18, 19 };
 		String[] graph = new String[tps_thresholds.length];
@@ -138,15 +143,25 @@ public class LagCommand implements CommandExecutor {
 		double avgTPS = MathUtil.round(totalTPS / count, 2);
 		sender.sendMessage(ChatColor.GREEN + "Min, Avg, Max, Current TPS: " + ChatColor.GRAY + "" + minTPS + ", " + avgTPS + ", " + maxTPS + ", " + LagMeter.getRoundedTPS());
 		//sender.sendMessage(ChatColor.DARK_GRAY + "" + ChatColor.ITALIC + " TPS values are estimates only and may be inaccurate."); // We capped TPS so it doesn't go crazy on us
+		double memoryUsedMB = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Math.pow(10, 6);
+		double memoryAvailableMB = Runtime.getRuntime().totalMemory() / Math.pow(10, 6);
+		double memoryUsedPerc = memoryUsedMB / memoryAvailableMB * 100;
 		sender.sendMessage(ChatColor.GREEN + "Used Memory / Total Memory: " + ChatColor.GRAY
-				+ MathUtil.round((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Math.pow(10, 6)) + "MB / "
-				+ MathUtil.round(Runtime.getRuntime().totalMemory() / Math.pow(10, 6)) + "MB ("
-				+ MathUtil.round(100 * (double) (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Runtime.getRuntime().totalMemory()) + "%)");
+				+ MathUtil.round(memoryUsedMB) + "MB / " + MathUtil.round(memoryAvailableMB) + "MB (" + MathUtil.round(memoryUsedPerc) + "%)");
 		sender.sendMessage(ChatColor.GREEN + "CPU Cores: " + ChatColor.GRAY + ""
 				+ Runtime.getRuntime().availableProcessors() + ChatColor.GREEN + " - Active Threads: " + ChatColor.GRAY + Thread.activeCount()
 				+ ChatColor.GREEN + " - Chunks: " + ChatColor.GRAY + "" + Dragons.getInstance().getLoadedChunks().size() + ChatColor.GREEN
 				+ " - Entities: " + ChatColor.GRAY + Dragons.getInstance().getEntities().size());
-	
+		
+		boolean warn = memoryUsedPerc > 70 || minTPS < 10 || avgTPS < 17;
+		
+		if(warn) {
+			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "/!\\ " + ChatColor.RED + "Server may be experiencing performance issues. "
+					+ "Please notify an administrator and include a screenshot of this data.");
+		}
+
+		sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
+		
 		return true;
 	}
 

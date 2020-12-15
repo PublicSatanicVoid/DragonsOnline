@@ -1,5 +1,6 @@
 package mc.dragons.tools.dev;
 
+import java.lang.management.ManagementFactory;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +13,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scheduler.BukkitWorker;
+
+import com.sun.management.ThreadMXBean;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
@@ -39,6 +45,9 @@ public class DebugCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump gameobjects");
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump entities");
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump threads");
+			sender.sendMessage(ChatColor.YELLOW + "/debug dump workers [Plugin]");
+			sender.sendMessage(ChatColor.YELLOW + "/debug dump pendingtasks [Plugin]");
+			sender.sendMessage(ChatColor.YELLOW + "/debug errors [-stop]");
 			sender.sendMessage(ChatColor.YELLOW + "/debug attach <Player> [-stop]");
 			return true;
 		}
@@ -79,8 +88,8 @@ public class DebugCommand implements CommandExecutor {
 			else if(args[1].equalsIgnoreCase("entities")) {
 				Logger logger = Dragons.getInstance().getLogger();
 				logger.info("=== BEGIN COMPLETE ENTITY DUMP ===");
-				logger.info("EntityMemoryAddress\tEntityType\tEntityID\tValid\tGameObjectType\tGameObjectUUID");
-				logger.info("-------------------\t----------\t--------\t-----\t--------------\t--------------");
+				logger.info("EntityType\tEntityID\tValid\tGameObjectType\tGameObjectUUID");
+				logger.info("----------\t--------\t-----\t--------------\t--------------");
 				for(World world : Bukkit.getWorlds()) {
 					logger.info("World: " + world.getName());
 					for(Entity entity : world.getEntities()) {
@@ -94,17 +103,19 @@ public class DebugCommand implements CommandExecutor {
 						else {
 							gameObject = NPCLoader.fromBukkit(entity);
 						}
-						logger.info(entity + "\t" + entity.getType() + "\t" + entity.getEntityId() + "\t" + entity.isValid() + "\t" + (gameObject == null ? "null\tnull" : gameObject.getType() + "\t" + gameObject.getUUID()));
+						logger.info(entity.getType() + "\t" + entity.getEntityId() + "\t" + entity.isValid() + "\t" + (gameObject == null ? "null\tnull" : gameObject.getType() + "\t" + gameObject.getUUID()));
 					}
 				}
 				logger.info("=== END COMPLETE ENTITY DUMP ===");
 				sender.sendMessage(ChatColor.GREEN + "Dumped all entities to console.");
 			}
 			else if(args[1].equalsIgnoreCase("threads")) {
+				ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(ThreadMXBean.class);
 				Logger logger = Dragons.getInstance().getLogger();
 				logger.info("=== BEGIN COMPLETE THREAD DUMP ===");
 				for(Entry<Thread, StackTraceElement[]> entry: Thread.getAllStackTraces().entrySet()) {
-					logger.info("THREAD " + entry.getKey().getId() + ": " + entry.getKey().getName() + " (state: " + entry.getKey().getState() + ")");
+					logger.info("THREAD " + entry.getKey().getId() + ": " + entry.getKey().getName() + " (Priority: " + entry.getKey().getPriority() + ", "
+							+ "State: " + entry.getKey().getState() + ", CPU Time: " + threadBean.getThreadCpuTime(entry.getKey().getId()) + ")");
 					for(StackTraceElement elem : entry.getValue()) {
 						logger.info("    " + elem.toString());
 					}
@@ -112,9 +123,70 @@ public class DebugCommand implements CommandExecutor {
 				logger.info("=== END COMPLETE THREAD DUMP ===");
 				sender.sendMessage(ChatColor.GREEN + "Dumped all threads to console.");
 			}
-			else {
-				sender.sendMessage(ChatColor.RED + "Invalid dump option! /debug dump <gameobjects|entities|threads>");
+			else if(args[1].equalsIgnoreCase("workers")) {
+				Logger logger = Dragons.getInstance().getLogger();
+				String filter = "";
+				Plugin pluginFor = null;
+				if(args.length > 2) {
+					filter = " for plugin " + args[2];
+					pluginFor = Bukkit.getPluginManager().getPlugin(args[2]);
+					if(pluginFor == null) {
+						sender.sendMessage(ChatColor.RED + "Invalid plugin! /debug dump workers [Plugin]");
+						return true;
+					}
+				}
+				logger.info("=== BEGIN COMPLETE WORKER DUMP" + filter.toUpperCase() + " ===");
+				for(BukkitWorker worker : Bukkit.getScheduler().getActiveWorkers()) {
+					if(pluginFor != null) {
+						if(worker.getOwner() != pluginFor) {
+							continue;
+						}
+					}
+					logger.info("WORKER " + worker.getTaskId() + ": Class " + worker.getClass().getName() + ", Owner " + worker.getOwner().getName()
+							+ ", Thread " + worker.getThread().getId() + " (" + worker.getThread().getName() + ") ");
+				}
+				logger.info("=== END COMPLETE WORKER DUMP" + filter.toUpperCase() + " ===");
+				sender.sendMessage(ChatColor.GREEN + "Dumped all workers " + filter + " to console.");
 			}
+			else if(args[1].equalsIgnoreCase("pendingtasks")) {
+				Logger logger = Dragons.getInstance().getLogger();
+				String filter = "";
+				Plugin pluginFor = null;
+				if(args.length > 2) {
+					filter = " for plugin " + args[2];
+					pluginFor = Bukkit.getPluginManager().getPlugin(args[2]);
+					if(pluginFor == null) {
+						sender.sendMessage(ChatColor.RED + "Invalid plugin! /debug dump pendingtasks [Plugin]");
+						return true;
+					}
+				}
+				logger.info("=== BEGIN COMPLETE PENDING TASK DUMP" + filter.toUpperCase() + " ===");
+				for(BukkitTask task : Bukkit.getScheduler().getPendingTasks()) {
+					if(pluginFor != null) {
+						if(task.getOwner() != pluginFor) {
+							continue;
+						}
+					}
+					logger.info("TASK " + task.getTaskId() + ": Class " + task.getClass().getName() + ", Owner " + task.getOwner().getName()
+							+ ", Sync=" + task.isSync() + ", Cancelled=" + task.isCancelled());
+				}
+				logger.info("=== END COMPLETE PENDING TASK DUMP" + filter.toUpperCase() + " ===");
+				sender.sendMessage(ChatColor.GREEN + "Dumped all pending tasks" + filter + " to console.");
+			}
+			else {
+				sender.sendMessage(ChatColor.RED + "Invalid dump option! /debug dump <gameobjects|entities|threads|workers [Plugin]|pendingtasks [Plugin]>");
+			}
+		}
+		
+		else if(args[0].equalsIgnoreCase("errors") || args[0].equalsIgnoreCase("exceptions")) {
+			boolean on = args.length == 1;
+			if(args.length > 1) {
+				if(args[1].equalsIgnoreCase("-stop")) {
+					on = false;
+				}
+			}
+			user.setDebuggingErrors(on);
+			sender.sendMessage(ChatColor.GREEN + "You will " + (on ? "now" : "no longer") + " receive errors from console in chat.");
 		}
 		
 		else if(args[0].equalsIgnoreCase("attach")) {

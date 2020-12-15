@@ -12,7 +12,7 @@ import org.bson.Document;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.storage.impl.loader.AbstractLightweightLoader;
+import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.dev.TaskLoader.Task;
 
 public class TaskLoader extends AbstractLightweightLoader<Task> {

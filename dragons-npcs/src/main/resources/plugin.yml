@@ -7,5 +7,6 @@ commands:
   companion:
     description: Manage your companion.
   testcompanion:
+  iwannacompanion:
   /slay:
     description: '[GM] Kill nearby mobs.'
