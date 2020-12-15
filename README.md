@@ -23,7 +23,6 @@ A full listing of current plugins:
 - `dragons-moderationtools` provides commands for moderating user activity. This includes warning, kicking, muting, and banning players, optionally for a specified time frame. Commands are also provided for viewing and modifying a user's punishment history and carrying out other moderation-related tasks such as becoming invisible or invincible.
 
 - `dragons-res` implements a residence system. This allows users to purchase physical space in the game and customize it in various ways. Residences are virtual and instanced separately from the actual game worlds, allowing for multiple users to independently purchase and customize the same area. That is, there is a many-to-many relationship between areas in the game ('res points') which are typically enclosed spaces such as houses, stores, or apartments, and the actual residence of each player for a given res point.
-
 - `dragons-anticheat` is an experimental module that seeks to model (and someday enforce) vanilla behavior, accounting for modifications by the game.
  
  ## Game Objects and Storage
