@@ -133,6 +133,8 @@ public class QuestAction {
 		questAction.quest = quest;
 		return questAction;
 	}
+	
+	/* No need to create subclasses for each action type; this works fine */
 
 	public static QuestAction teleportPlayerAction(Quest quest, Location to) {
 		QuestAction action = new QuestAction();
@@ -382,116 +384,103 @@ public class QuestAction {
 			if (this.phased)
 				npc.phase(user.getPlayer());
 			this.quest.registerNPCReference(user, npc, this.npcReferenceName);
-		} else {
-			if (this.action == QuestActionType.BEGIN_DIALOGUE) {
-				npcClassDeferredLoad();
-				user.setDialogueBatch(this.quest, this.npcClass.getName(), this.dialogue);
-				(new BukkitRunnable() {
-					@Override
-					public void run() {
-						if (!user.nextDialogue()) {
-							user.updateQuests(null);
-							cancel();
-						}
+		} else if (this.action == QuestActionType.BEGIN_DIALOGUE) {
+			npcClassDeferredLoad();
+			user.setDialogueBatch(this.quest, this.npcClass.getName(), this.dialogue);
+			(new BukkitRunnable() {
+				@Override
+				public void run() {
+					if (!user.nextDialogue()) {
+						user.updateQuests(null);
+						cancel();
 					}
-				}).runTaskTimer(Dragons.getInstance(), 0L, 40L);
-				return new QuestActionResult(false, true);
-			}
-			if (this.action == QuestActionType.GIVE_XP) {
-				user.getPlayer().sendMessage(ChatColor.GRAY + "+ " + ChatColor.LIGHT_PURPLE + this.xpAmount + " XP" + ChatColor.GRAY + " from quest " + this.quest.getQuestName());
-				user.addXP(this.xpAmount);
-			} else {
-				if (this.action == QuestActionType.GOTO_STAGE) {
-					user.debug("    - going to stage " + this.stage + " (" + this.quest.getSteps().get(this.stage).getStepName() + ")");
-					user.updateQuestProgress(this.quest, this.quest.getSteps().get(this.stage), this.notify);
-					return new QuestActionResult(true, false);
 				}
-				if (this.action == QuestActionType.TELEPORT_NPC) {
-					npcClassDeferredLoad();
-					NPC npc = this.quest.getNPCByReference(user, this.npcReferenceName);
-					npc.getEntity().teleport(this.to);
-				} else {
-					if (this.action == QuestActionType.PATHFIND_NPC) {
-						npcClassDeferredLoad();
-						NPC npc = this.quest.getNPCByReference(user, this.npcReferenceName);
-						double speed = 0.15D;
-						if (npc.getEntity() instanceof Attributable)
-							speed = ((Attributable) npc.getEntity()).getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
-						PathfindingUtil.walkToLocation(npc.getEntity(), this.to, speed, e -> {
-							if (this.stage != -1)
-								user.updateQuestProgress(this.quest, this.quest.getSteps().get(this.stage), false);
-						});
-						return new QuestActionResult((this.stage != -1), false);
-					}
-					if (this.action == QuestActionType.TAKE_ITEM) {
-						int remaining = this.quantity;
-						for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
-							Item item = ItemLoader.fromBukkit(itemStack);
-							if (item != null) {
-								if(item.getClassName().equals(this.itemClass.getClassName())) {							
-									int removeAmount = Math.min(remaining, item.getQuantity());
-									user.takeItem(item, removeAmount, true, true, false);
-									remaining -= item.getQuantity();
-									if (remaining <= 0)
-										return new QuestActionResult(false, false);
-								}
-							}
-
-						}
-					} else if (this.action == QuestActionType.GIVE_ITEM) {
-						Item item = itemLoader.registerNew(this.itemClass);
-						item.setQuantity(this.quantity);
-						user.giveItem(item);
-					} else if (this.action == QuestActionType.ADD_POTION_EFFECT) {
-						user.getPlayer().addPotionEffect(new PotionEffect(this.effectType, this.duration, this.amplifier), true);
-					} else if (this.action == QuestActionType.REMOVE_POTION_EFFECT) {
-						user.getPlayer().removePotionEffect(this.effectType);
-					} else if (this.action == QuestActionType.COMPLETION_HEADER) {
-						(new BukkitRunnable() {
-							private float pitch = 1.0F;
-							@Override
-							public void run() {
-								user.getPlayer().playSound(user.getPlayer().getLocation(), Sound.BLOCK_NOTE_BASS, 1.0F, this.pitch);
-								this.pitch = (float) (this.pitch + 0.05D);
-								if (this.pitch > 2.0F)
-									cancel();
-							}
-						}).runTaskTimer(Dragons.getInstance(), 0L, 1L);
-						user.getPlayer().sendMessage(" ");
-						user.getPlayer().sendMessage(ChatColor.GREEN + "" + ChatColor.MAGIC + "ff" + ChatColor.DARK_GREEN + "  Quest Complete: " + this.quest.getQuestName() + ChatColor.GREEN + "  "
-								+ ChatColor.MAGIC + "ff");
-						user.getPlayer().sendMessage(ChatColor.GRAY + "Rewards:");
-					} else {
-						if (this.action == QuestActionType.WAIT) {
-							user.debug("Waiting " + this.waitTime + "s");
-							user.setQuestPaused(this.quest, true);
-							(new BukkitRunnable() {
-								@Override
-								public void run() {
-									user.debug("Resuming quest actions");
-									user.setQuestPaused(QuestAction.this.quest, false);
-									user.updateQuests(null);
-								}
-							}).runTaskLater(Dragons.getInstance(), 20L * this.waitTime);
-							return new QuestActionResult(false, true);
-						}
-						if (this.action == QuestActionType.CHOICES) {
-							user.getPlayer().sendMessage(" ");
-							for (Entry<String, Integer> choice : this.choices.entrySet()) {
-								TextComponent choiceMessage = new TextComponent(ChatColor.YELLOW + " • " + ChatColor.GRAY + choice.getKey());
-								choiceMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-										(new ComponentBuilder(ChatColor.YELLOW + "Click to respond\n")).append(ChatColor.GRAY + "Quest: " + ChatColor.RESET + this.quest.getQuestName() + "\n")
-												.append(ChatColor.GRAY + "Response: " + ChatColor.RESET + choice.getKey()).create()));
-								choiceMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/questchoice " + this.quest.getName() + " " + choice.getKey()));
-								user.getPlayer().spigot().sendMessage(choiceMessage);
-							}
-							user.getPlayer().sendMessage(" ");
-							user.setQuestPaused(this.quest, true);
-							return new QuestActionResult(false, true);
-						}
+			}).runTaskTimer(Dragons.getInstance(), 0L, 40L);
+			return new QuestActionResult(false, true);
+		} else if (this.action == QuestActionType.GIVE_XP) {
+			user.getPlayer().sendMessage(ChatColor.GRAY + "+ " + ChatColor.LIGHT_PURPLE + this.xpAmount + " XP" + ChatColor.GRAY + " from quest " + this.quest.getQuestName());
+			user.addXP(this.xpAmount);
+		} else if (this.action == QuestActionType.GOTO_STAGE) {
+			user.debug("    - going to stage " + this.stage + " (" + this.quest.getSteps().get(this.stage).getStepName() + ")");
+			user.updateQuestProgress(this.quest, this.quest.getSteps().get(this.stage), this.notify);
+			return new QuestActionResult(true, false);
+		} else if (this.action == QuestActionType.TELEPORT_NPC) {
+			npcClassDeferredLoad();
+			NPC npc = this.quest.getNPCByReference(user, this.npcReferenceName);
+			npc.getEntity().teleport(this.to);
+		} else if (this.action == QuestActionType.PATHFIND_NPC) {
+			npcClassDeferredLoad();
+			NPC npc = this.quest.getNPCByReference(user, this.npcReferenceName);
+			double speed = 0.15D;
+			if (npc.getEntity() instanceof Attributable)
+				speed = ((Attributable) npc.getEntity()).getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+			PathfindingUtil.walkToLocation(npc.getEntity(), this.to, speed, e -> {
+				if (this.stage != -1)
+					user.updateQuestProgress(this.quest, this.quest.getSteps().get(this.stage), false);
+			});
+			return new QuestActionResult((this.stage != -1), false);
+		} else if (this.action == QuestActionType.TAKE_ITEM) {
+			int remaining = this.quantity;
+			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
+				Item item = ItemLoader.fromBukkit(itemStack);
+				if (item != null) {
+					if(item.getClassName().equals(this.itemClass.getClassName())) {							
+						int removeAmount = Math.min(remaining, item.getQuantity());
+						user.takeItem(item, removeAmount, true, true, false);
+						remaining -= item.getQuantity();
+						if (remaining <= 0)
+							return new QuestActionResult(false, false);
 					}
 				}
 			}
+		} else if (this.action == QuestActionType.GIVE_ITEM) {
+			Item item = itemLoader.registerNew(this.itemClass);
+			item.setQuantity(this.quantity);
+			user.giveItem(item);
+		} else if (this.action == QuestActionType.ADD_POTION_EFFECT) {
+			user.getPlayer().addPotionEffect(new PotionEffect(this.effectType, this.duration, this.amplifier), true);
+		} else if (this.action == QuestActionType.REMOVE_POTION_EFFECT) {
+			user.getPlayer().removePotionEffect(this.effectType);
+		} else if (this.action == QuestActionType.COMPLETION_HEADER) {
+			(new BukkitRunnable() {
+				private float pitch = 1.0F;
+				@Override
+				public void run() {
+					user.getPlayer().playSound(user.getPlayer().getLocation(), Sound.BLOCK_NOTE_BASS, 1.0F, this.pitch);
+					this.pitch = (float) (this.pitch + 0.05D);
+					if (this.pitch > 2.0F)
+						cancel();
+				}
+			}).runTaskTimer(Dragons.getInstance(), 0L, 1L);
+			user.getPlayer().sendMessage(" ");
+			user.getPlayer().sendMessage(ChatColor.GREEN + "" + ChatColor.MAGIC + "ff" + ChatColor.DARK_GREEN + "  Quest Complete: " + this.quest.getQuestName() + ChatColor.GREEN + "  "
+					+ ChatColor.MAGIC + "ff");
+			user.getPlayer().sendMessage(ChatColor.GRAY + "Rewards:");
+		} else if (this.action == QuestActionType.WAIT) {
+			user.debug("Waiting " + this.waitTime + "s");
+			user.setQuestPaused(this.quest, true);
+			(new BukkitRunnable() {
+				@Override
+				public void run() {
+					user.debug("Resuming quest actions");
+					user.setQuestPaused(QuestAction.this.quest, false);
+					user.updateQuests(null);
+				}
+			}).runTaskLater(Dragons.getInstance(), 20L * this.waitTime);
+			return new QuestActionResult(false, true);
+		} else if (this.action == QuestActionType.CHOICES) {
+			user.getPlayer().sendMessage(" ");
+			for (Entry<String, Integer> choice : this.choices.entrySet()) {
+				TextComponent choiceMessage = new TextComponent(ChatColor.YELLOW + " • " + ChatColor.GRAY + choice.getKey());
+				choiceMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+						(new ComponentBuilder(ChatColor.YELLOW + "Click to respond\n")).append(ChatColor.GRAY + "Quest: " + ChatColor.RESET + this.quest.getQuestName() + "\n")
+								.append(ChatColor.GRAY + "Response: " + ChatColor.RESET + choice.getKey()).create()));
+				choiceMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/questchoice " + this.quest.getName() + " " + choice.getKey()));
+				user.getPlayer().spigot().sendMessage(choiceMessage);
+			}
+			user.getPlayer().sendMessage(" ");
+			user.setQuestPaused(this.quest, true);
+			return new QuestActionResult(false, true);
 		}
 		return new QuestActionResult(false, false);
 	}

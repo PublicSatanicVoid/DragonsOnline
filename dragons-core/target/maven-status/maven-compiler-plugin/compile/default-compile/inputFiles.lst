@@ -17,6 +17,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\FeedbackLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\local\LocalStorageManager.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\quest\QuestTrigger.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SystemProfileLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\LightweightLoaderRegistry.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\QuestDialogueCommands.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\WorldEventListeners.java
@@ -63,7 +64,6 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\ServerOptio
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityTargetEventListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\PermissionLevel.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SkillType.java
-C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\SystemProfileLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\HiddenStringUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityMoveListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\Dragons.java

@@ -68,6 +68,8 @@ public class QuestTrigger {
 	private QuestTrigger() {
 		this.killQuantity = new HashMap<>();
 	}
+	
+	/* No need to create subclasses for each trigger type; this works fine */
 
 	public static QuestTrigger onEnterRegion(Region region) {
 		QuestTrigger trigger = new QuestTrigger();

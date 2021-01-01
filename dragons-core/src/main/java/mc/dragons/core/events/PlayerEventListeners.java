@@ -48,23 +48,27 @@ import mc.dragons.core.util.StringUtil;
 
 public class PlayerEventListeners implements Listener {
 	public static final String GOLD_CURRENCY_DISPLAY_NAME = ChatColor.RESET + "" + ChatColor.GOLD + "Currency:Gold";
+	
+	private static ItemClassLoader itemClassLoader;
+	public static ItemClass[] DEFAULT_INVENTORY;
 
+	static {
+		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+		DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
+	}
+	
 	private Dragons plugin;
 	private Logger LOGGER;
 
 	private UserLoader userLoader;
-	private ItemClassLoader itemClassLoader;
 	private ItemLoader itemLoader;
 
-	private ItemClass[] defaultInventory;
 
 	public PlayerEventListeners(Dragons instance) {
 		this.plugin = instance;
 		this.LOGGER = instance.getLogger();
 		this.userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-		this.itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		this.itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
-		this.defaultInventory = new ItemClass[] { this.itemClassLoader.getItemClassByClassName("LousyStick") };
 	}
 
 	@EventHandler
@@ -226,7 +230,7 @@ public class PlayerEventListeners implements Listener {
 			this.plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
 			user = this.userLoader.registerNew(player);
 			user.sendToFloor("BeginnerTown");
-			for(ItemClass itemClass : defaultInventory) {
+			for(ItemClass itemClass : DEFAULT_INVENTORY) {
 				user.giveItem(this.itemLoader.registerNew(itemClass), true, false, true);
 			}
 		}

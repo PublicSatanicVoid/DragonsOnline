@@ -27,3 +27,4 @@ commands:
   warps:
   setwarp:
   delwarp:
+  resetprofile:

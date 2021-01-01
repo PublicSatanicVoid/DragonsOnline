@@ -65,6 +65,10 @@ public class ItemLoader extends GameObjectLoader<Item> {
 		return registerNew(itemClass.getClassName(), itemClass.getName(), false, itemClass.getNameColor(), itemClass.getMaterial(), itemClass.getLevelMin(), itemClass.getCooldown(),
 				itemClass.getSpeedBoost(), itemClass.isUnbreakable(), itemClass.isUndroppable(), itemClass.getDamage(), itemClass.getArmor(), itemClass.getLore(), itemClass.getMaxStackSize());
 	}
+	
+	public Item registerNew(String itemClassName) {
+		return registerNew(itemClassLoader.getItemClassByClassName(itemClassName));
+	}
 
 	public Item registerNew(Item item) {
 		return registerNew(item.getClassName(), item.getName(), item.isCustom(), item.getNameColor(), item.getMaterial(), item.getLevelMin(), item.getCooldown(), item.getSpeedBoost(),
