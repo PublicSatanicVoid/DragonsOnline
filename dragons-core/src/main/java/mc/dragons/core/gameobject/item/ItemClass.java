@@ -26,7 +26,8 @@ public class ItemClass extends GameObject {
 	public ItemClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constrcting item class (" + storageManager + ", " + storageAccess + ")");
-		this.addons = ((List<String>) getData("addons")).stream().map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
+		this.addons = ((List<String>) getData("addons")).stream()
+				.map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
 	}
 
 	private void saveAddons() {

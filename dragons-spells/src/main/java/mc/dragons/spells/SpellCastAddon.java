@@ -50,9 +50,9 @@ public class SpellCastAddon extends ItemAddon {
 			meta.setDisplayName(item.getName());
 		}
 		lore.addAll(spells
-				.stream()
-				.map(spell -> ChatColor.DARK_PURPLE + "[" + spell.getSpellCombo() + "] " + ChatColor.LIGHT_PURPLE + spell.getSpellDisplayName())
-				.collect(Collectors.toList()));
+			.stream()
+			.map(spell -> ChatColor.DARK_PURPLE + "[" + spell.getSpellCombo() + "] " + ChatColor.LIGHT_PURPLE + spell.getSpellDisplayName())
+			.collect(Collectors.toList()));
 		meta.setLore(lore);
 		item.getItemStack().setItemMeta(meta);
 	}
@@ -92,7 +92,9 @@ public class SpellCastAddon extends ItemAddon {
 
 	@Override
 	public void onCreateStorageAccess(Document data) {
-		data.append("spells", new ArrayList<>());
+		if(!data.containsKey("spells")) {
+			data.append("spells", new ArrayList<>());
+		}
 	}
 	
 	@Override

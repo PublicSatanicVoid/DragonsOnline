@@ -15,6 +15,24 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Represents a quest in the game. There should only be
+ * one instance of a quest per quest.
+ * 
+ * <p>A quest is defined in terms of a series of steps,
+ * each of which is associated with a specific trigger,
+ * such as clicking on an NPC or entering a region.
+ * 
+ * <p>Players can obtain skill points, items, and XP from
+ * completing quests.
+ * 
+ * <p>The last step in a quest should be named "Complete"
+ * and should represent that the player has completed the
+ * quest.
+ * 
+ * @author Adam
+ *
+ */
 public class Quest extends GameObject {
 	private List<QuestStep> steps;
 	private Table<User, String, NPC> referenceNames;

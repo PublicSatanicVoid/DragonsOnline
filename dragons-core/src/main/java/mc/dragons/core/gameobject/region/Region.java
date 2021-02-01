@@ -18,6 +18,16 @@ import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 
+/**
+ * Represents a named, cubic region in a world. 
+ * 
+ * Regions are used to tie specific functionality
+ * to certain areas, as well as notify players 
+ * where they are.
+ * 
+ * @author Adam
+ *
+ */
 public class Region extends GameObject {
 	private CachedRegionData regionData;
 	private Floor floor;

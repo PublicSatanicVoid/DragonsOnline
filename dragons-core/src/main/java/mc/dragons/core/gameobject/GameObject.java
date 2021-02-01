@@ -10,6 +10,22 @@ import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Represents an object in the game. This could be an NPC,
+ * an item, a structure, etc.
+ * 
+ * <p>An {@link org.bson.Document} representation can be fetched
+ * via the getData() method, and represents enough of the object's
+ * data to fully construct it at any given time. This data may be
+ * stored in some form or another of persistent storage, and should
+ * only use basic data types like String, double, etc. or sub-Documents.
+ * 
+ * <p>Subclasses should ensure that all changes to fields are reflected
+ * in the data using the protected setData() and getData() methods.
+ * 
+ * @author Adam 
+ *
+ */
 public abstract class GameObject {
 	protected static Logger LOGGER = Dragons.getInstance().getLogger();
 

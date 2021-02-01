@@ -21,14 +21,11 @@ import mc.dragons.core.util.HiddenStringUtil;
 
 public class ItemLoader extends GameObjectLoader<Item> {
 	private static ItemLoader INSTANCE;
+	private static Map<String, Item> uuidToItem;
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
-
 	private GameObjectRegistry masterRegistry;
-
 	private ItemClassLoader itemClassLoader;
-
-	private static Map<String, Item> uuidToItem;
 
 	private ItemLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
@@ -71,17 +68,34 @@ public class ItemLoader extends GameObjectLoader<Item> {
 	}
 
 	public Item registerNew(Item item) {
-		return registerNew(item.getClassName(), item.getName(), item.isCustom(), item.getNameColor(), item.getMaterial(), item.getLevelMin(), item.getCooldown(), item.getSpeedBoost(),
-				item.isUnbreakable(), item.isUndroppable(), item.getDamage(), item.getArmor(), item.getLore(), item.getMaxStackSize());
+		return registerNew(item.getData());
 	}
 
 	public Item registerNew(String className, String name, boolean custom, ChatColor nameColor, Material material, int levelMin, double cooldown, double speedBoost, boolean unbreakable,
 			boolean undroppable, double damage, double armor, List<String> lore, int maxStackSize) {
+		return registerNew((new Document("_id", UUID.randomUUID()))
+				.append("className", className)
+				.append("name", name)
+				.append("isCustom", Boolean.valueOf(custom))
+				.append("nameColor", nameColor.name())
+				.append("materialType", material.toString())
+				.append("lvMin", Integer.valueOf(levelMin))
+				.append("cooldown", Double.valueOf(cooldown))
+				.append("speedBoost", Double.valueOf(speedBoost))
+				.append("unbreakable", Boolean.valueOf(unbreakable))
+				.append("undroppable", Boolean.valueOf(undroppable))
+				.append("damage", Double.valueOf(damage))
+				.append("armor", Double.valueOf(armor))
+				.append("lore", lore)
+				.append("quantity", Integer.valueOf(1))
+				.append("maxStackSize", Integer.valueOf(maxStackSize)));
+	}
+	
+	public Item registerNew(Document data) {
+		data.append("_id", UUID.randomUUID());
+		String className = data.getString("className");
+		Material material = Material.valueOf(data.getString("materialType"));
 		this.LOGGER.fine("Registering new item of class " + className);
-		Document data = (new Document("_id", UUID.randomUUID())).append("className", className).append("name", name).append("isCustom", Boolean.valueOf(custom)).append("nameColor", nameColor.name())
-				.append("materialType", material.toString()).append("lvMin", Integer.valueOf(levelMin)).append("cooldown", Double.valueOf(cooldown)).append("speedBoost", Double.valueOf(speedBoost))
-				.append("unbreakable", Boolean.valueOf(unbreakable)).append("undroppable", Boolean.valueOf(undroppable)).append("damage", Double.valueOf(damage)).append("armor", Double.valueOf(armor))
-				.append("lore", lore).append("quantity", Integer.valueOf(1)).append("maxStackSize", Integer.valueOf(maxStackSize));
 		this.itemClassLoader.getItemClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(data));
 		StorageAccess storageAccess = this.storageManager.getNewStorageAccess(GameObjectType.ITEM, data);
 		ItemStack itemStack = new ItemStack(material);

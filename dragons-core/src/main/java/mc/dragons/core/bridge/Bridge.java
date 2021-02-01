@@ -5,15 +5,21 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * Abstraction layer for version-dependent OBC/NMS API calls.
+ * 
+ * @author Adam
+ *
+ */
 public interface Bridge {
 	public String getAPIVersion();
-	public void sendActionBar(Player paramPlayer, String paramString);
-	public void sendTitle(Player paramPlayer, ChatColor paramChatColor1, String paramString1, ChatColor paramChatColor2, String paramString2, int paramInt1, int paramInt2, int paramInt3);
-	public void respawnPlayer(Player paramPlayer);
+	public void sendActionBar(Player player, String message);
+	public void sendTitle(Player player, ChatColor titleColor, String titleMessage, ChatColor subtitleColor, String subtitleMessage, int fadeIn, int stay, int fadeOut);
+	public void respawnPlayer(Player player);
 	public boolean hasAI(Entity entity);
-	public void setEntityAI(Entity paramEntity, boolean paramBoolean);
-	public void setItemStackUnbreakable(ItemStack paramItemStack, boolean paramBoolean);
-	public double[] getAABB(Entity paramEntity);
-	public void setEntityInvulnerable(Entity paramEntity, boolean paramBoolean);
-	public int getPing(Player paramPlayer);
+	public void setEntityAI(Entity entity, boolean ai);
+	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable);
+	public double[] getAABB(Entity entity);
+	public void setEntityInvulnerable(Entity entity, boolean invulnerable);
+	public int getPing(Player player);
 }

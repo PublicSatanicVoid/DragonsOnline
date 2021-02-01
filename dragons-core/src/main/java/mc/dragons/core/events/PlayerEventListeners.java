@@ -157,6 +157,8 @@ public class PlayerEventListeners implements Listener {
 		ItemStack drop = event.getItemDrop().getItemStack();
 		int amt = drop.getAmount();
 		Item item = ItemLoader.fromBukkit(drop);
+		
+		
 		this.LOGGER.finer("Drop item event on " + event.getPlayer().getName() + " of " + ((item == null) ? "null" : item.getIdentifier()) + " (x" + amt + ")");
 		if (item == null)
 			return;

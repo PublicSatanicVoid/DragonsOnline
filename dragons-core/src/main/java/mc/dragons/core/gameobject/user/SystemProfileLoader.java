@@ -20,24 +20,30 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 
 public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile> {
+	private static String saltString;
+
 	private Set<SystemProfile> profiles;
 	private Logger LOGGER;
+	
+	static {
+		saltString = Dragons.getInstance().getConfig().getString("db.mongo.password-salt-string");
+	}
 
 	public SystemProfileLoader(Dragons instance) {
 		super(instance.getMongoConfig(), "#unused#", "sysprofiles");
 		this.LOGGER = instance.getLogger();
 		this.profiles = new HashSet<>();
 	}
-
+	
 	public static String passwordHash(String password) {
 		try {
-			return (new BigInteger(1, MessageDigest.getInstance("SHA-256").digest(("DragonsOnline System Logon b091283a#1*&AJK@83" + password).getBytes(StandardCharsets.UTF_8)))).toString(16);
+			return (new BigInteger(1, MessageDigest.getInstance("SHA-256").digest((saltString + password).getBytes(StandardCharsets.UTF_8)))).toString(16);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			return "SHA256HashFailedNoSuchAlgorithmException";
 		}
 	}
-
+	
 	public SystemProfile authenticateProfile(User user, String profileName, String profilePassword) {
 		if (!isAvailable(profileName, user.getName()))
 			return null;
@@ -59,7 +65,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 			if (systemProfile.getProfileName().equalsIgnoreCase(profileName))
 				return systemProfile;
 		}
-		LOGGER.fine("-Profile was not found in cache");
+		LOGGER.fine("-Profile was not found in cache, fetching from mongo");
 		Document profile = this.collection.find(new Document("profileName", profileName)).first();
 		if (profile == null)
 			return null;
@@ -68,10 +74,6 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 		Map<String, String> hashesRaw = (Map<String, String>) profile.get("profilePasswordHashes");
 		Map<UUID, String> hashes = new HashMap<>();
 		hashesRaw.forEach((k, v) -> hashes.put(UUID.fromString(k), v));
-		LOGGER.fine("-Password Hashes:" + hashes);
-		for(Entry<UUID, String> entry : hashes.entrySet()) {
-			LOGGER.fine(" " + entry.getKey() + "  ->  " + entry.getValue());
-		}
 		SystemProfile systemProfile = new SystemProfile(null, profileName, hashes, PermissionLevel.valueOf(profile.getString("maxPermissionLevel")),
 				new SystemProfile.SystemProfileFlags(flags), profile.getBoolean("active").booleanValue());
 		this.profiles.add(systemProfile);
@@ -141,9 +143,9 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 
 	public void createProfileUUID(String profileName, UUID owner, String profilePassword, PermissionLevel permissionLevel) {
 		LOGGER.fine("-createProfileUUID("+profileName+","+owner+",***,"+permissionLevel);
-		Map<UUID, String> hashes = new HashMap<>();
+		Map<String, String> hashes = new HashMap<>();
 		LOGGER.fine("--hashes="+hashes);
-		hashes.put(owner, passwordHash(profilePassword));
+		hashes.put(owner.toString(), passwordHash(profilePassword));
 		LOGGER.fine("--hashes.size="+hashes.size());
 		this.collection.insertOne((new Document("profileName", profileName)).append("profilePasswordHashes", hashes).append("maxPermissionLevel", permissionLevel.toString())
 				.append("flags", SystemProfile.SystemProfileFlags.emptyFlagsDocument()).append("currentUser", "").append("active", true));

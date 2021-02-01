@@ -15,6 +15,19 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Represents a general item in the RPG.
+ * 
+ * <p>In addition to regular properties of Minecraft items,
+ * RPG items have additional properties, like XP/skill
+ * requirements, use effects, etc.
+ * 
+ * <p>More than one RPG item may be mapped to the same
+ * Minecraft item, and vice versa.
+ * 
+ * @author Adam
+ *
+ */
 public class Item extends GameObject {
 	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 

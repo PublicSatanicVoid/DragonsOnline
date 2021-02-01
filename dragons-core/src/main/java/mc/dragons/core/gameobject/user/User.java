@@ -58,6 +58,19 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
+/**
+ * Represents a player in the RPG.
+ * 
+ * <p>Like all {@link mc.dragons.core.gameobject.GameObject}s,
+ * users are backed by the database.
+ * 
+ * <p>In addition to the standard properties of players, users
+ * have specific skills which can be leveled up, as well as friends,
+ * guilds, parties, quest logs, and expanded inventories.
+ * 
+ * @author Adam
+ *
+ */
 public class User extends GameObject {
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
 

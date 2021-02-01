@@ -9,6 +9,20 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Represents a world with a unique name and level requirement.
+ * 
+ * There is typically a specific build style, set of regions and
+ * NPCs, and dungeon/boss associated with each floor as well.
+ * 
+ * In production, all player-accessible floors should be in one-to-one
+ * relation with a level requirement, so that they can be identified
+ * by this number as well as their name. However, this will not be
+ * programmatically enforced.
+ * 
+ * @author Adam
+ *
+ */
 public class Floor extends GameObject {
 	public Floor(StorageManager storageManager, StorageAccess storageAccess, boolean superflat) {
 		super(storageManager, storageAccess);

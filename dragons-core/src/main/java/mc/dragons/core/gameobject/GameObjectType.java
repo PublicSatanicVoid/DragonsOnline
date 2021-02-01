@@ -11,6 +11,15 @@ import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.structure.StructureLoader;
 import mc.dragons.core.gameobject.user.UserLoader;
 
+/**
+ * Possible types of a {@link mc.dragons.core.gameobject.GameObject}.
+ * 
+ * A registry is associated with each object type, which is responsible for loading
+ * and creating instances of that type.
+ * 
+ * @author Adam
+ *
+ */
 public enum GameObjectType {
 	USER(UserLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
 	ITEM_CLASS(ItemClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),

@@ -28,13 +28,30 @@ import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.ProgressBarUtil;
 import mc.dragons.core.util.StringUtil;
 
+/**
+ * Represents an NPC in the RPG.
+ * 
+ * <p>In addition to the properties of Minecraft NPCs,
+ * RPG NPCs have properties like dialogue and enhanced
+ * combat capabilities, as well as levels and more specific
+ * interaction options.
+ * 
+ * <p>There is a many-to-many has-a relationship between
+ * RPG NPC types and Minecraft NPC types.
+ * 
+ * @author Adam
+ *
+ */
 public class NPC extends GameObject {
 
 
 	public enum NPCType {
-		HOSTILE(ChatColor.RED, "", false, false, true, false, false), NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),
-		QUEST(ChatColor.DARK_GREEN, ChatColor.DARK_GREEN + "[NPC] ", true, true, false, true, true), SHOP(ChatColor.DARK_AQUA, ChatColor.DARK_AQUA + "[NPC] ", true, true, false, true, true),
-		PERSISTENT(ChatColor.YELLOW, "", true, true, true, true, true), COMPANION(ChatColor.GOLD, ChatColor.GOLD + "[COMPANION] ", true, false, true, false, true);
+		HOSTILE(ChatColor.RED, "", false, false, true, false, false),
+		NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),
+		QUEST(ChatColor.DARK_GREEN, ChatColor.DARK_GREEN + "[NPC] ", true, true, false, true, true), 
+		SHOP(ChatColor.DARK_AQUA, ChatColor.DARK_AQUA + "[NPC] ", true, true, false, true, true),
+		PERSISTENT(ChatColor.YELLOW, "", true, true, true, true, true), 
+		COMPANION(ChatColor.GOLD, ChatColor.GOLD + "[COMPANION] ", true, false, true, false, true);
 
 		private ChatColor nameColor;
 

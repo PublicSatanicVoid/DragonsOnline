@@ -11,14 +11,15 @@ db:
     password: password
     auth_db: admin
     database: dragons
+    password-salt-string: 'replace this with your unique salt string'
 
 # The name of this server instance.
 serverName: dragons-1
 
 # When in debug mode, game integrity is not verified and the log level
 # is set to CONFIG if the default setting is higher than this.
-debug: true
+debug: false
 
 # The default level at which the logger outputs.
 # Valid levels are OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL
-loglevel: CONFIG
+loglevel: INFO

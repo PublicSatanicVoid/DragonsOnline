@@ -41,7 +41,14 @@ public class QuestTrigger {
 	private Map<User, Integer> killQuantity;
 
 	public enum TriggerType {
-		ENTER_REGION, EXIT_REGION, CLICK_NPC, KILL_NPC, INSTANT, HAS_ITEM, NEVER, BRANCH_CONDITIONAL;
+		ENTER_REGION,
+		EXIT_REGION, 
+		CLICK_NPC, 
+		KILL_NPC, 
+		INSTANT, 
+		HAS_ITEM, 
+		NEVER, 
+		BRANCH_CONDITIONAL;
 	}
 
 	public static QuestTrigger fromDocument(Document trigger, Quest quest) {
