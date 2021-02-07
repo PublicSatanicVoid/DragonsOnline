@@ -23,13 +23,17 @@ public class MongoConfig {
 	private MongoDatabase database;
 	private Counter counter;
 
+	private String user;
+	private String host;
+	private int port;
+	
 	public MongoConfig(Dragons instance) {
 		ConfigurationSection dbConfig = instance.getConfig().getConfigurationSection("db.mongo");
 		
-		String user = dbConfig.getString("user");
+		user = dbConfig.getString("user");
 		String password = dbConfig.getString("password");
-		String host = dbConfig.getString("host");
-		int port = dbConfig.getInt("port");
+		host = dbConfig.getString("host");
+		port = dbConfig.getInt("port");
 		String authDB = dbConfig.getString("auth_db");
 		String database = dbConfig.getString("database");
 		
@@ -48,5 +52,17 @@ public class MongoConfig {
 
 	public Counter getCounter() {
 		return counter;
+	}
+	
+	public String getUser() {
+		return user;
+	}
+	
+	public String getHost() {
+		return host;
+	}
+	
+	public int getPort() {
+		return port;
 	}
 }

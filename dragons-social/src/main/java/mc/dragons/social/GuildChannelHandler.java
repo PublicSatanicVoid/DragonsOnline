@@ -11,7 +11,7 @@ public class GuildChannelHandler implements ChannelHandler {
 	
 	@Override
 	public boolean canHear(User to, User from) {
-		return to.getActiveChatChannels().contains(ChatChannel.STAFF) 
+		return to.getActiveChatChannels().contains(ChatChannel.GUILD) 
 				&& guildLoader.getAllGuildsWith(to.getUUID()).stream().filter(guildLoader.getAllGuildsWith(from.getUUID())::contains).count() > 0;
 	}
 

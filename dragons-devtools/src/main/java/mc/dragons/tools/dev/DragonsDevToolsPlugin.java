@@ -20,6 +20,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("placeholder").setExecutor(new PlaceholderCommand());
 		getCommand("addon").setExecutor(new AddonCommand(dragons));
 		getCommand("ping").setExecutor(new PingCommand());
+		getCommand("mongo").setExecutor(new MongoCommand());
 		
 		CommandExecutor pluginManagementCommands = new PluginManagementCommands();
 		getCommand("enableplugin").setExecutor(pluginManagementCommands);

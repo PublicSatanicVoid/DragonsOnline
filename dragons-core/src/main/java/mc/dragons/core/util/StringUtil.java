@@ -152,7 +152,7 @@ public class StringUtil {
 			return Enum.valueOf(enumClass, str);
 		}
 		catch(Exception e) {
-			sender.sendMessage(ChatColor.RED + "Invalid enumerated type! Valid types are " + parseList(enumClass.getEnumConstants()));
+			sender.sendMessage(ChatColor.RED + "Invalid entry! Valid types are " + parseList(enumClass.getEnumConstants()));
 		}
 		
 		return null;
