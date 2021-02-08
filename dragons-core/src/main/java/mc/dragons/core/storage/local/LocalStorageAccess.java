@@ -10,6 +10,14 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 
+/**
+ * Non-persistent unit of data storage.
+ * Useful for temporary entities which do not need to be
+ * backed up to the database.
+ * 
+ * @author Adam
+ *
+ */
 public class LocalStorageAccess implements StorageAccess {
 	private Document data;
 	private Identifier id;

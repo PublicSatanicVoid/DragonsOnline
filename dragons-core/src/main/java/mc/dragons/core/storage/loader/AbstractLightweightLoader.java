@@ -8,6 +8,21 @@ import com.mongodb.client.MongoDatabase;
 import mc.dragons.core.storage.Counter;
 import mc.dragons.core.storage.mongo.MongoConfig;
 
+/**
+ * Loads objects from MongoDB which are not classified
+ * as game objects. Changelogs, warps, etc. are all
+ * lightweight objects, and theoretically have dedicated
+ * collections within the database.
+ * 
+ * Lightweight objects may have a unique integral ID
+ * associated with them, provided through a Counter.
+ * However, individual loaders may or may not choose to
+ * use these.
+ * 
+ * @author Adam
+ *
+ * @param <E> The object type to be loaded.
+ */
 public abstract class AbstractLightweightLoader<E> {
 	protected String counterName;
 	protected String collectionName;

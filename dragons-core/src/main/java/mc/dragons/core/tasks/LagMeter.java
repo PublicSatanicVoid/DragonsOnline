@@ -5,6 +5,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.util.MathUtil;
 
+/**
+ * Gives the instantaneous ticks-per-second of the server instance.
+ * A lag-free instance will ideally run at 20.0TPS; anything above
+ * 19.0TPS is considered normal.
+ * 
+ * @author Adam
+ *
+ */
 public class LagMeter extends BukkitRunnable {
 	public static long lastTick;
 	public static long lastTick2;

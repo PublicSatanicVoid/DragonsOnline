@@ -9,6 +9,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * Generates holograms, implemented using invisible armor stands.
+ * 
+ * @author Adam
+ *
+ */
 public class HologramUtil {
 	public static ArmorStand makeHologram(String text, Location loc) {
 		ArmorStand hologram = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
@@ -55,6 +61,14 @@ public class HologramUtil {
 		return makeArmorStandNameTag(entity, nameTag, 0.0D, 0.0D, 0.0D);
 	}
 
+	/**
+	 * A short-lived hologram.
+	 * @param entity
+	 * @param label
+	 * @param durationTicks
+	 * @param bind Whether the hologram should follow the provided entity, or stay stationary.
+	 * @return
+	 */
 	public static ArmorStand temporaryArmorStand(final Entity entity, String label, int durationTicks, final boolean bind) {
 		double xOffset = bind ? 0.0D : (Math.random() * 0.5D);
 		double yOffset = bind ? 0.5D : (Math.random() * 1.2D);

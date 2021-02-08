@@ -26,6 +26,16 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.BlockUtil;
 
+/**
+ * Periodically spawns entities around players, based on regional
+ * spawn rates.
+ * 
+ * One of the most performance-intensive parts of DragonsOnline,
+ * according to recent profiling results.
+ * 
+ * @author Adam
+ *
+ */
 public class SpawnEntityTask extends BukkitRunnable {
 	private final double SPAWN_RADIUS = 15.0D;
 	
@@ -69,6 +79,13 @@ public class SpawnEntityTask extends BukkitRunnable {
 			Map<String, Double> spawnRates = new HashMap<>();
 			Vector min = center.toVector();
 			Vector max = center.toVector();
+			
+			// Ensure we aren't crowding the region or exceeding its given capacities.
+			// Rough estimates will do, as it would be impractical performance-wise
+			// to check within the exact bounds of each region: this would require
+			// M*N region comparisons, for M regions in the floor and N spawned entities 
+			// in the floor.
+			
 			boolean nospawn = false;
 			for (Region region : regions) {
 				if (Boolean.valueOf(region.getFlags().getString("nospawn")).booleanValue()) {
@@ -109,6 +126,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 			}
 			if (entityRadiusCount > radiusCap && radiusCap != -1)
 				continue;
+			
 			int priority = 1;
 			for (Entry<String, Double> spawnRate : optimizedSpawnRates.entrySet()) {
 				boolean spawn = (Math.random() <= spawnRate.getValue() / Math.sqrt(priority) * 100.0D);

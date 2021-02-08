@@ -5,6 +5,13 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
 public class BlockUtil {
+	
+	/**
+	 * Calculates the closest block representing the ground in the XZ-plane.
+	 * 
+	 * @param start
+	 * @return
+	 */
 	public static Location getClosestGroundXZ(Location start) {
 		Block nBelow = start.getBlock();
 		Block nAbove = start.getBlock();

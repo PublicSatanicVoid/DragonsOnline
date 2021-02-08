@@ -20,6 +20,12 @@ import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Manages storage accesses persisted by a MongoDB instance.
+ * 
+ * @author Adam
+ *
+ */
 public class MongoStorageManager implements StorageManager {
 	private Logger LOGGER;
 	

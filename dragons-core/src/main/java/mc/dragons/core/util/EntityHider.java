@@ -25,6 +25,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 /**
+ * Open-source library to implement entity phasing.
  * 
  * @author comphenix
  *

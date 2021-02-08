@@ -12,6 +12,12 @@ import com.mongodb.client.MongoDatabase;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.storage.Counter;
 
+/**
+ * Configuration data for MongoDB.
+ * 
+ * @author Adam
+ *
+ */
 public class MongoConfig {
 	public static final String GAMEOBJECTS_COLLECTION = "gameobjects";
 	public static final String SYSPROFILES_COLLECTION = "sysprofiles";

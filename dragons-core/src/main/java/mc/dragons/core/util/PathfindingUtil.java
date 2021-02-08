@@ -11,13 +11,15 @@ import mc.dragons.core.Dragons;
 
 public class PathfindingUtil {
 	public static void walkToLocation(final Entity entity, final Location location, final double speed, final Consumer<Entity> callback) {
+		final double adjustedSpeed = speed / 2; // Account for discrepancies between configured speeds and block-per-second speed.
+		
 		entity.teleport(BlockUtil.getClosestGroundXZ(entity.getLocation()).add(0.0D, 1.0D, 0.0D));
 		(new BukkitRunnable() {
 			@Override
 			public void run() {
 				Location curr = entity.getLocation();
 				if (entity.isValid() && entity.getLocation().distanceSquared(location) > 1.0D) {
-					Vector direction = location.clone().subtract(curr).toVector().normalize().multiply(speed).setY(0);
+					Vector direction = location.clone().subtract(curr).toVector().normalize().multiply(adjustedSpeed).setY(0);
 					Location to = curr.clone().add(direction);
 					double groundY = BlockUtil.getClosestGroundXZ(to).getY();
 					to.setY(groundY + 1.0D);

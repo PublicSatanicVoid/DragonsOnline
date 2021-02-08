@@ -15,6 +15,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
+/**
+ * Utilities related to string manipulation and object representation.
+ * 
+ * @author Adam
+ *
+ */
 public class StringUtil {
 	public static String locToString(Location loc) {
 		return String.valueOf(MathUtil.round(loc.getX())) + ", " + MathUtil.round(loc.getY()) + ", " + MathUtil.round(loc.getZ());
@@ -168,6 +174,7 @@ public class StringUtil {
 		return null;
 	}
 
+	// Decompiled from HDFont plugin.
 	public static String toHdFont(String input) {
 		String returnString = "";
 		boolean skip = false;

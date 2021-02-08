@@ -8,6 +8,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * Periodically polls LagMeter to construct a history of TPS
+ * which can be queried for performance monitoring.
+ * 
+ * @author Adam
+ *
+ */
 public class LagMonitorTask extends BukkitRunnable {
 	public static final double TPS_RECORD_LENGTH = 3000.0D;
 	public static final double TPS_WARN_THRESHOLD = 16.0D;

@@ -6,6 +6,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * Periodically updates users' sidebars with current contextual data.
+ * 
+ * @author Adam
+ *
+ */
 public class UpdateScoreboardTask extends BukkitRunnable {
 	private Dragons plugin;
 

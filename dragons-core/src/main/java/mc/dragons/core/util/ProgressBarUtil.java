@@ -2,6 +2,12 @@ package mc.dragons.core.util;
 
 import org.bukkit.ChatColor;
 
+/**
+ * Generate text-based progress bars expressing a given percentage.
+ * 
+ * @author Adam
+ *
+ */
 public class ProgressBarUtil {
 	public static final int HEALTH_BARS = 30;
 	public static final String HEALTH_BAR_PIECE = "|";

@@ -10,6 +10,12 @@ import com.mongodb.client.MongoCollection;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 
+/**
+ * Persistent unit of data storage backed by a MongoDB instance.
+ * 
+ * @author Adam
+ *
+ */
 public class MongoStorageAccess implements StorageAccess {
 	private Identifier identifier;
 	private Document document;

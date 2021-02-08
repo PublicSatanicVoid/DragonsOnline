@@ -7,6 +7,13 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 
+/**
+ * Periodically saves all relevant game objects,
+ * specifically users and NPCs.
+ * 
+ * @author Adam
+ *
+ */
 public class AutoSaveTask extends BukkitRunnable {
 	private Dragons plugin;
 	private GameObjectRegistry registry;

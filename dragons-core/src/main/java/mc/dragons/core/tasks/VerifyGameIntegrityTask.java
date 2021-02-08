@@ -5,6 +5,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * Periodically verifies game integrity, checking cache consistency
+ * and metadata validity.
+ * 
+ * @author Adam
+ *
+ */
 public class VerifyGameIntegrityTask extends BukkitRunnable {
 	private Dragons plugin;
 

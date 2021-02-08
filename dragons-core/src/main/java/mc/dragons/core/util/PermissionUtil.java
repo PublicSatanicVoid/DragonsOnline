@@ -6,6 +6,12 @@ import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.SystemProfile;
 import mc.dragons.core.gameobject.user.User;
 
+/**
+ * Used primarily in commands to verify a user's access to sensitive functionality or data.
+ * 
+ * @author Adam
+ *
+ */
 public class PermissionUtil {
 	public static boolean verifyActivePermissionLevel(User user, PermissionLevel required, boolean notify) {
 		if(user == null) return false;

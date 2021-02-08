@@ -15,6 +15,12 @@ import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Manages non-persistent, in-memory data storage for game objects.
+ * 
+ * @author Adam
+ *
+ */
 public class LocalStorageManager implements StorageManager {
 	private Map<Identifier, LocalStorageAccess> localStorageAccesses = new HashMap<>();
 

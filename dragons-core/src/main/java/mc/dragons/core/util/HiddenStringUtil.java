@@ -4,6 +4,14 @@ import java.nio.charset.Charset;
 
 import org.bukkit.ChatColor;
 
+/**
+ * 
+ * Encodes metadata in color tags.
+ * 
+ * @author filoghost
+ * Source: https://gist.github.com/filoghost/f53ecb7b014c40b66bdc
+ *
+ */
 public class HiddenStringUtil {
 	private static final String SEQUENCE_HEADER = ChatColor.RESET + stringToColors("SeqHdr") + ChatColor.RESET;
 	private static final String SEQUENCE_FOOTER = ChatColor.RESET + stringToColors("SeqFtr") + ChatColor.RESET;
