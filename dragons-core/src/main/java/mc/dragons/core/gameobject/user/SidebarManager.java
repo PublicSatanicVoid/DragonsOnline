@@ -19,9 +19,18 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 
+/**
+ * The sidebar displays contextual information to the user.
+ * This is non-trivial to implement as it is essentially a
+ * (mis)use of Minecraft's scoreboard functionality.
+ * 
+ * @author Adam
+ *
+ */
 public class SidebarManager {
 	private Dragons instance;
 	
+	// Implement scrolling text when we overflow the character limit per row.
 	private Map<Player, Map<String, Integer>> scoreboardScrollIndices = new HashMap<>();
 
 	public SidebarManager(Dragons instance) {
@@ -43,7 +52,17 @@ public class SidebarManager {
 	public Scoreboard createScoreboard(Player player) {
 		if (player == null)
 			return null;
-		String[] scoreboardLayout = { "FLOOR", "REGION", "LOCATION", "LEVEL", "XP", "RANK", "GOLD", "ONLINE", "SERVER" };
+		String[] scoreboardLayout = {
+			"FLOOR", 
+			"REGION", 
+			"LOCATION", 
+			"LEVEL", 
+			"XP", 
+			"RANK", 
+			"GOLD", 
+			"ONLINE", 
+			"SERVER" 
+		};
 		Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		player.setScoreboard(scoreboard);
 		Objective objective = scoreboard.registerNewObjective("CustomObjective", "dummy");

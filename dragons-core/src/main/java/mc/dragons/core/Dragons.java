@@ -76,6 +76,12 @@ import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.PermissionUtil;
 
+/**
+ * The main plugin class for DragonsOnline.
+ * 
+ * @author Adam
+ *
+ */
 public class Dragons extends JavaPlugin {
 	private static Dragons INSTANCE;
 	private Bridge bridge;
@@ -171,12 +177,23 @@ public class Dragons extends JavaPlugin {
 			e.remove();
 		}
 		
+		// Game objects must be loaded from database in a particular sequence, to ensure
+		// all dependencies are ready.
+		// For example, items cannot be loaded before their item classes have been loaded,
+		// and regions cannot be loaded before their associated floors have been loaded.
+		
 		getLogger().info("Loading game objects...");
 		GameObjectType.FLOOR.<Floor, FloorLoader>getLoader().lazyLoadAll();
 		GameObjectType.REGION.<Region, RegionLoader>getLoader().lazyLoadAll();
 		GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader().lazyLoadAll();
 		GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader().lazyLoadAll();
 		GameObjectType.QUEST.<Quest, QuestLoader>getLoader().lazyLoadAll();
+		
+		// If the server did not shut down gracefully (and sometimes if it did) there may be
+		// entities remaining from the previous instance which are no longer linked to a
+		// live game object. These entities need to be purged as they will not be responsive
+		// to new game events.
+		
 		(new BukkitRunnable() {
 			@Override
 			public void run() {

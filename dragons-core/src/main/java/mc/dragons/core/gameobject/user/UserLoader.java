@@ -41,9 +41,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class UserLoader extends GameObjectLoader<User> {
 	private static UserLoader INSTANCE;
-
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
-
 	private static Set<User> users;
 
 	private GameObjectRegistry masterRegistry;

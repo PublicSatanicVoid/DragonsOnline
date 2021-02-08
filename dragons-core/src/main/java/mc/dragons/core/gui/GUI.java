@@ -12,6 +12,12 @@ import org.bukkit.inventory.Inventory;
 
 import mc.dragons.core.gameobject.user.User;
 
+/**
+ * An inventory menu with clickable elements.
+ * 
+ * @author Adam
+ *
+ */
 public class GUI {
 	private Map<Integer, GUIElement> elements;
 	private int rows;

@@ -11,6 +11,24 @@ import org.apache.logging.log4j.message.Message;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * The custom log4j filter to enable debug-level logging
+ * and hide potentially sensitive information from the logs.
+ * 
+ * This operates at the log4j level rather than the JUL level.
+ * To be clear, log messages in Bukkit are routed as follows:
+ * 	1) PluginLogger	- Bukkit
+ * 	2) java.util.Logger - JUL
+ * 	3) org.apache.logging.log4j.core.Logger - log4j
+ * 		*We operate here, at a lower level of abstraction
+ * 	4) Appenders to log file and console
+ * 		*We replace the default appender with Minecrell's
+ * 		 TerminalConsoleAppender
+ * 	5) Platform-dependent code
+ * 
+ * @author Adam
+ *
+ */
 public class LogFilter implements Filter {
 	private LifeCycle.State state;
 	private boolean hideDebugFromOtherLoggers = true;

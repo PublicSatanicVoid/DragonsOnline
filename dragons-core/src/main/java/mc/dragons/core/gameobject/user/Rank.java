@@ -2,6 +2,15 @@ package mc.dragons.core.gameobject.user;
 
 import org.bukkit.ChatColor;
 
+/**
+ * Cosmetic tags indicating a user's role or contribution to the game.
+ * Only non-staff ranks are tied to actual permissions; staff ranks
+ * follow a secondary layer of authentication with which access is
+ * associated.
+ * 
+ * @author Adam
+ *
+ */
 public enum Rank {
 	DEFAULT("Default", "None", "", ChatColor.GRAY, ChatColor.GRAY, false), 
 	BETA_TESTER("Beta Tester", "Beta Tester", ChatColor.WHITE + "[Beta]", ChatColor.GRAY, ChatColor.WHITE, false),

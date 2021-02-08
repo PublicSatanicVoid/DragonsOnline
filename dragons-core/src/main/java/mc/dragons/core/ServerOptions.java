@@ -12,6 +12,13 @@ import mc.dragons.core.tasks.AutoSaveTask;
 import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 
+/**
+ * Settings for this server instance. May be changed locally
+ * through the /serveroptions command.
+ * 
+ * @author Adam
+ *
+ */
 public class ServerOptions {
 	private Logger LOGGER;
 	private org.apache.logging.log4j.core.Logger pluginLogger;

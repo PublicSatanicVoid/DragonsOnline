@@ -1,5 +1,11 @@
 package mc.dragons.core.gameobject.user;
 
+/**
+ * Various skills that the player can advance to unlock additional features.
+ * 
+ * @author Adam
+ *
+ */
 public enum SkillType {
 	MELEE("Melee"), 
 	ARCHERY("Archery"), 

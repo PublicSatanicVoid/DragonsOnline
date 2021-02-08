@@ -12,9 +12,18 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
+/**
+ * Named channels of text-based communication in the game.
+ * 
+ * @author Adam
+ *
+ */
 public enum ChatChannel {
-	ALVADOR("A", "Global chat for all of Alvador", new AlvadorChannelHandler()), LOCAL("L", "Local chat for your current floor", new LocalChannelHandler()),
-	GUILD("G", "Channel for your guild only", null), PARTY("P", "Channel for your party only", null), TRADE("T", "Global chat for trade discussion", new TradeChannelHandler()),
+	ALVADOR("A", "Global chat for all of Alvador", new AlvadorChannelHandler()), 
+	LOCAL("L", "Local chat for your current floor", new LocalChannelHandler()),
+	GUILD("G", "Channel for your guild only", null), 
+	PARTY("P", "Channel for your party only", null), 
+	TRADE("T", "Global chat for trade discussion", new TradeChannelHandler()),
 	HELP("H", "Global chat to ask for help", new HelpChannelHandler()), STAFF("S", "Staff-only channel", new StaffChannelHandler());
 
 	private String abbreviation;

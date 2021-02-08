@@ -9,6 +9,12 @@ import org.apache.logging.log4j.core.Logger;
 import mc.dragons.core.Dragons;
 import net.minecrell.terminalconsole.TerminalConsoleAppender;
 
+/**
+ * Swap in a better logging system that allows us to display debug-level messages.
+ * 
+ * @author Adam
+ *
+ */
 public class CustomLoggingProvider {
 	public static void enableCustomLogging() {
 		Dragons.getInstance().getLogger().info("Switching to custom logging system...");

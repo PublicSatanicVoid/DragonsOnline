@@ -6,6 +6,13 @@ import org.bson.Document;
 
 import mc.dragons.core.gameobject.GameObjectType;
 
+/**
+ * Uniquely identifies a StorageAccess, or the object
+ * whose data is controlled by it.
+ * 
+ * @author Adam
+ *
+ */
 public class Identifier {
 	private Document identifierData;
 

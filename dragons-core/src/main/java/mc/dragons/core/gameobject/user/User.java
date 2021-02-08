@@ -72,6 +72,8 @@ import net.md_5.bungee.api.chat.TextComponent;
  *
  */
 public class User extends GameObject {
+	
+	// Increasing this will theoretically decrease server load
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
 
 	private static Dragons instance = Dragons.getInstance();
@@ -85,27 +87,27 @@ public class User extends GameObject {
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 
-	private Player player;
-	private Set<Region> cachedRegions;
-	private Location cachedLocation;
+	private Player player; // The underlying Bukkit player associated with this User, or null if the user is offline.
+	private Set<Region> cachedRegions; // Last-known occupied regions.
+	private Location cachedLocation; // Last-known location.
 	private PermissionLevel activePermissionLevel;
-	private SystemProfile profile;
+	private SystemProfile profile; // System profile the user is logged into, or null if none.
 	private Map<Quest, QuestStep> questProgress;
 	private Map<Quest, Integer> questActionIndices;
 	private Map<Quest, QuestPauseState> questPauseStates;
-	private List<CommandSender> currentlyDebugging;
-	private boolean debuggingErrors;
-	private List<String> currentDialogueBatch;
+	private List<CommandSender> currentlyDebugging; // List of users for which this user is currently receiving debug information.
+	private boolean debuggingErrors; // Whether the user will receive errors from the console in the game chat.
+	private List<String> currentDialogueBatch; // Current NPC dialogue the player is reading.
 	private String currentDialogueSpeaker;
 	private int currentDialogueIndex;
 	private long whenBeganDialogue;
 	private List<Consumer<User>> currentDialogueCompletionHandlers;
 	private boolean isOverridingWalkSpeed;
 	private CommandSender lastReceivedMessageFrom;
-	private boolean chatSpy;
+	private boolean chatSpy; // Whether the user can see others' private messages.
 	private GUI currentGUI;
-	private List<String> guiHotfixOpenedBefore;
-	private boolean joined;
+	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level bug.
+	private boolean joined; // If the user has joined and authenticated yet.
 
 	public enum PunishmentType {
 		BAN("ban", true, SystemProfileFlag.MODERATION),
@@ -147,11 +149,8 @@ public class User extends GameObject {
 
 	public class PunishmentData {
 		private User.PunishmentType type;
-
 		private String reason;
-
 		private Date expiry;
-
 		public boolean permanent;
 
 		public PunishmentData(User.PunishmentType type, String reason, Date expiry, boolean permanent) {
@@ -182,10 +181,23 @@ public class User extends GameObject {
 		NORMAL, PAUSED, RESUMED;
 	}
 
+	/**
+	 * Calculates the user's global level based on their current XP.
+	 * 
+	 * @param xp
+	 * @return
+	 */
 	public static int calculateLevel(int xp) {
 		return (int) Math.floor(0.8D * ((xp / 1000000) + Math.sqrt((xp / 100)))) + 1;
 	}
 
+	/**
+	 * Calculates the maximum XP required for the given global level.
+	 * Inverse function of calculateLevel.
+	 * 
+	 * @param level
+	 * @return
+	 */
 	public static int calculateMaxXP(int level) {
 		return (int) Math.floor(1250000.0D * Math.pow(Math.sqrt((level + 1999)) - 44.721359549996D, 2.0D));
 	}
@@ -298,6 +310,12 @@ public class User extends GameObject {
 		updateState(true, true);
 	}
 
+	/**
+	 * Called periodically to update the user's cached data and dispatch context-based game events.
+	 * 
+	 * @param applyQuestTriggers
+	 * @param notify
+	 */
 	public void updateState(boolean applyQuestTriggers, boolean notify) {
 		LOGGER.finest("Update user state: " + getName() + " (applyQuestTriggers=" + applyQuestTriggers + ", notify=" + notify + ")");
 		String worldName = this.player.getWorld().getName();
@@ -579,20 +597,48 @@ public class User extends GameObject {
 		setData("speakingChannel", channel.toString());
 	}
 
+	/**
+	 * Send the user a message if they are listening on the specified channel.
+	 * 
+	 * @param channel
+	 * @param message
+	 */
 	public void sendMessage(ChatChannel channel, String message) {
 		sendMessage(channel, TextComponent.fromLegacyText(message));
 	}
 
+	/**
+	 * Send the user a message if they are listening on the specified channel.
+	 * 
+	 * @param channel
+	 * @param source
+	 * @param message
+	 */
 	public void sendMessage(ChatChannel channel, Location source, String message) {
 		sendMessage(channel, source, TextComponent.fromLegacyText(message));
 	}
 
+	/**
+	 * Send the user a message if they are listening on the specified channel.
+	 * 
+	 * TODO Refactor this to account for other channel constraints.
+	 * 
+	 * @param channel
+	 * @param source
+	 * @param message
+	 */
 	public void sendMessage(ChatChannel channel, Location source, BaseComponent... message) {
 		if (channel == ChatChannel.LOCAL && !hasChatSpy() && !FloorLoader.fromWorld(source.getWorld()).equals(FloorLoader.fromWorld(this.player.getWorld())))
 			return;
 		sendMessage(channel, message);
 	}
 
+	/**
+	 * Send the user a message if they are listening on the specified channel.
+	 * 
+	 * @param channel
+	 * @param message
+	 */
 	public void sendMessage(ChatChannel channel, BaseComponent... message) {
 		if (getActiveChatChannels().contains(channel))
 			this.player.spigot().sendMessage((new ComponentBuilder(channel.getPrefix())).append(" ").append(message).create());
@@ -674,6 +720,21 @@ public class User extends GameObject {
 		return this.chatSpy;
 	}
 
+	/**
+	 * Give the player an RPG item.
+	 * 
+	 * This process is non-trivial, as we have to allow stacking
+	 * in certain cases despite conflicting metadata.
+	 * 
+	 * Thus, we need to rewrite practically the whole item stacking
+	 * algorithm, as well as correctly synchronize with the player's
+	 * stored inventory data.
+	 * 
+	 * @param item
+	 * @param updateDB
+	 * @param dbOnly
+	 * @param silent
+	 */
 	public void giveItem(Item item, boolean updateDB, boolean dbOnly, boolean silent) {
 		int giveQuantity = item.getQuantity();
 		int maxStackSize = item.getMaxStackSize();
@@ -878,6 +939,12 @@ public class User extends GameObject {
 		return StorageUtil.docToLoc((Document) getData("lastLocation"));
 	}
 
+	/**
+	 * Location as staff is saved separately so that compromised staff
+	 * accounts will not be logged in at potentially sensitive areas.
+	 * 
+	 * @return
+	 */
 	public Location getSavedStaffLocation() {
 		if (getData("lastStaffLocation") == null)
 			setData("lastStaffLocation", getData("lastLocation"));
@@ -978,6 +1045,12 @@ public class User extends GameObject {
 		sendActionBar(ChatColor.DARK_RED + "- All items have been lost! -");
 	}
 
+	/**
+	 * When the player dies, they are frozen for a given period of time
+	 * until they can respawn.
+	 * 
+	 * @param seconds
+	 */
 	public void setDeathCountdown(int seconds) {
 		setData("deathCountdown", Integer.valueOf(seconds));
 		setData("deathTime", Long.valueOf(System.currentTimeMillis()));
@@ -1123,6 +1196,12 @@ public class User extends GameObject {
 		return ((Boolean) getData("vanished")).booleanValue();
 	}
 
+	/**
+	 * God mode makes the player invincible to world or entity events
+	 * and allows them to instantly kill non-immortal entities.
+	 * 
+	 * @param enabled
+	 */
 	public void setGodMode(boolean enabled) {
 		setData("godMode", Boolean.valueOf(enabled));
 	}
@@ -1150,6 +1229,8 @@ public class User extends GameObject {
 		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
 		this.activePermissionLevel = permissionLevel;
 		SystemProfile.SystemProfileFlags flags = getSystemProfile().getFlags();
+		
+		// Permissions for non-RPG plugins need to be added separately.
 		this.player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		this.player.addAttachment(instance, "minecraft.command.teleport",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
@@ -1270,10 +1351,12 @@ public class User extends GameObject {
 		long now = Instant.now().getEpochSecond();
 		Document punishment = (new Document("type", punishmentType.toString())).append("reason", reason).append("duration", Long.valueOf(durationSeconds)).append("banDate", Long.valueOf(now));
 		setData(punishmentType.getDataHeader(), punishment);
+		
 		@SuppressWarnings("unchecked")
 		List<Document> punishmentHistory = (List<Document>) getData("punishmentHistory");
 		punishmentHistory.add(punishment);
 		setData("punishmentHistory", punishmentHistory);
+		
 		String expiry = (durationSeconds == -1L) ? "Never" : (new Date(1000L * (now + durationSeconds))).toString();
 		if (this.player != null)
 			if (punishmentType == PunishmentType.BAN) {

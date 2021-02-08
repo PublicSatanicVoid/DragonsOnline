@@ -13,6 +13,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import mc.dragons.core.gameobject.user.User;
 
+/**
+ * A clickable item within an inventory menu.
+ * An item can be associated with a callback,
+ * which is called when the item is clicked.
+ * 
+ * @author Adam
+ *
+ */
 public class GUIElement {
 	private int slot;
 	private ItemStack itemStack;

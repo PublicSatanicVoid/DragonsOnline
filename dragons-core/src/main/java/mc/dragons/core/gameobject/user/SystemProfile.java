@@ -8,8 +8,22 @@ import java.util.UUID;
 
 import org.bson.Document;
 
+/**
+ * A named account tied to a staff member's identity. Permissions
+ * are associated with a system profile and require a password to
+ * authenticate in-game.
+ * 
+ * Multiple users can log into a single system profile, to account
+ * for alternate accounts of staff members. However, only one user
+ * can be signed in to each profile at a given time.
+ * 
+ * @author Adam
+ *
+ */
 public class SystemProfile {
 	private String profileName;
+	
+	// Each user can have a different password.
 	private Map<UUID, String> passwordHashes;
 	private PermissionLevel maxPermissionLevel;
 	private SystemProfileFlags flags;

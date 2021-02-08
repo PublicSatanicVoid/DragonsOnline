@@ -12,6 +12,12 @@ import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import mc.dragons.core.gameobject.user.UserLoader;
 import net.md_5.bungee.api.ChatColor;
 
+/**
+ * The custom log4j layout used for logging "under the hood."
+ * 
+ * @author Adam
+ *
+ */
 public class CustomLayout extends AbstractStringLayout {
 	private final String DAY_PATTERN = Pattern.quote("%d");
 	private final String TIME_PATTERN = Pattern.quote("%t");

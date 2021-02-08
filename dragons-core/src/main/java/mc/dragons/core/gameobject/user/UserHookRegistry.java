@@ -3,6 +3,12 @@ package mc.dragons.core.gameobject.user;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Central registry of user hooks.
+ * 
+ * @author Adam
+ *
+ */
 public class UserHookRegistry {
 	private List<UserHook> hooks = new ArrayList<>();
 
