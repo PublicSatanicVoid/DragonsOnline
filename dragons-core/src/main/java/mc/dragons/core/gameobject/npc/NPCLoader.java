@@ -2,6 +2,7 @@ package mc.dragons.core.gameobject.npc;
 
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -27,7 +29,8 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 	private static NPCLoader INSTANCE;
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
-
+	private CorrelationLogLoader CORRELATION;
+	
 	private boolean allPermanentLoaded = false;
 
 	private GameObjectRegistry masterRegistry;
@@ -62,14 +65,25 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 	}
 
 	public NPC loadObject(UUID uuid) {
+		return loadObject(uuid, null);
+	}
+	
+	public NPC loadObject(UUID uuid, UUID cid) {
+		lazyLoadCorrelation();
+		CORRELATION.log(cid, Level.INFO, "loading NPC with uuid " + uuid);
 		for (GameObject gameObject : this.masterRegistry.getRegisteredObjects(new GameObjectType[] { GameObjectType.NPC })) {
 			NPC npc = (NPC) gameObject;
-			if (npc.getUUID().equals(uuid))
+			if (npc.getUUID().equals(uuid)) {
+				CORRELATION.log(cid, Level.INFO, "found in local cache (" + npc + "), returning");
 				return npc;
+			}
 		}
 		StorageAccess storageAccess = this.storageManager.getStorageAccess(GameObjectType.NPC, uuid);
-		if (storageAccess == null)
+		if (storageAccess == null) {
+			CORRELATION.log(cid, Level.WARNING, "could not load NPC from database: returned null storage access");
 			return null;
+		}
+		CORRELATION.log(cid, Level.INFO, "loaded storage access (" + storageAccess + "), constructing downstream");
 		return loadObject(storageAccess);
 	}
 
@@ -148,5 +162,11 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 
 	public void lazyLoadAllPermanent() {
 		loadAllPermanent(false);
+	}
+	
+	private void lazyLoadCorrelation() {
+		if(CORRELATION == null) {
+			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+		}
 	}
 }

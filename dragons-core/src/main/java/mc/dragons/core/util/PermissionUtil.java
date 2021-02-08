@@ -17,7 +17,7 @@ public class PermissionUtil {
 		if(user == null) return false;
 		if (user.getActivePermissionLevel().ordinal() < required.ordinal()) {
 			if (notify)
-				user.getPlayer().sendMessage(ChatColor.RED + "This requires permission level " + required.toString().toLowerCase() + " or higher.");
+				user.getPlayer().sendMessage(ChatColor.RED + "This requires permission level " + ChatColor.ITALIC + required.toString().toLowerCase() + ChatColor.RED + " or higher.");
 			return false;
 		}
 		return true;
@@ -29,7 +29,7 @@ public class PermissionUtil {
 		if (user.getSystemProfile() != null)
 			hasFlag = user.getSystemProfile().getFlags().hasFlag(flag);
 		if (!hasFlag && notify)
-			user.getPlayer().sendMessage(ChatColor.RED + "This requires profile flag " + flag.toString().toLowerCase() + ".");
+			user.getPlayer().sendMessage(ChatColor.RED + "This requires profile flag " + ChatColor.ITALIC + flag.toString().toLowerCase() + ChatColor.RED + ".");
 		return hasFlag;
 	}
 }

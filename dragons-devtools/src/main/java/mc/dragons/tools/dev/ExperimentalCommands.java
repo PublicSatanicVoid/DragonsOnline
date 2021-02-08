@@ -1,5 +1,6 @@
 package mc.dragons.tools.dev;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -34,6 +35,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.PermissionUtil;
@@ -268,6 +270,14 @@ public class ExperimentalCommands implements CommandExecutor {
 			UserLoader.uuidFromUsername(args[0], uuid -> {
 				sender.sendMessage("UUID of " + args[0] + " is " + uuid);
 			});
+		}
+		
+		if(label.equalsIgnoreCase("testcorrelationlogging")) {
+			CorrelationLogLoader loader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+			UUID id = loader.registerNewCorrelationID();
+			loader.log(id, Level.INFO, "hewwo uwu");
+			loader.log(id, Level.SEVERE, "what");
+			sender.sendMessage("correlation id=" + id);
 		}
 		
 		return true;

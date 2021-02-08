@@ -54,3 +54,4 @@ commands:
   testuuidlookup:
   mongo:
   panic:
+  testcorrelationlogging:

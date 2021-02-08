@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gui.GUI;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -82,6 +84,7 @@ public class User extends GameObject {
 	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private static CorrelationLogLoader CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
@@ -95,6 +98,7 @@ public class User extends GameObject {
 	private Map<Quest, QuestStep> questProgress;
 	private Map<Quest, Integer> questActionIndices;
 	private Map<Quest, QuestPauseState> questPauseStates;
+	private Map<Quest, UUID> questCorrelationIDs; // correlation IDs for logging related to quests
 	private List<CommandSender> currentlyDebugging; // List of users for which this user is currently receiving debug information.
 	private boolean debuggingErrors; // Whether the user will receive errors from the console in the game chat.
 	private List<String> currentDialogueBatch; // Current NPC dialogue the player is reading.
@@ -219,9 +223,12 @@ public class User extends GameObject {
 	}
 
 	public User initialize(Player player) {
+		UUID initCorrelationID = CORRELATION.registerNewCorrelationID();
+		CORRELATION.log(initCorrelationID, Level.INFO, "initializing player " + player);
 		LOGGER.fine("Initializing user " + this + " on player " + player);
 		this.player = player;
 		if (player != null) {
+			CORRELATION.log(initCorrelationID, Level.INFO, "bukkit player exists");
 			setData("lastLocation", StorageUtil.locToDoc(player.getLocation()));
 			setData("health", Double.valueOf(player.getHealth()));
 			player.getInventory().clear();
@@ -229,6 +236,7 @@ public class User extends GameObject {
 			if (getData("health") != null)
 				player.setHealth((double) getData("health"));
 			Document inventory = (Document) getData("inventory");
+			CORRELATION.log(initCorrelationID, Level.FINE, "stored inventory data: " + inventory);
 			List<String> brokenItems = new ArrayList<>();
 			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
 				String[] labels = entry.getKey().split(Pattern.quote("-"));
@@ -260,14 +268,17 @@ public class User extends GameObject {
 					player.getInventory().setBoots(itemStack);
 			}
 			if (brokenItems.size() > 0) {
-				player.sendMessage(ChatColor.RED + "" + brokenItems.size() + " items in your saved inventory could not be loaded:");
-				brokenItems.forEach(uuid -> player.sendMessage(ChatColor.RED + " - " + uuid));
+				brokenItems.forEach(uuid -> CORRELATION.log(initCorrelationID, Level.WARNING, "Item with UUID " + uuid + " could not be loaded"));
+				player.sendMessage(ChatColor.RED + "" + brokenItems.size() + " items in your saved inventory could not be loaded.");
+				player.sendMessage(ChatColor.RED + "Please report the following error: " + StringUtil.toHdFont("Correlation ID: " + initCorrelationID));
 			}
 		}
 		this.questProgress = new HashMap<>();
 		this.questActionIndices = new HashMap<>();
 		this.questPauseStates = new HashMap<>();
+		this.questCorrelationIDs = new HashMap<>();
 		Document questProgressDoc = (Document) getData("quests");
+		CORRELATION.log(initCorrelationID, Level.FINE, "stored quest data: " + questProgress);
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) questProgressDoc.entrySet()) {
 			Quest quest = questLoader.getQuestByName(entry.getKey());
 			if (quest == null)
@@ -275,16 +286,37 @@ public class User extends GameObject {
 			this.questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
 			this.questActionIndices.put(quest, Integer.valueOf(0));
 			this.questPauseStates.put(quest, QuestPauseState.NORMAL);
+			this.questCorrelationIDs.put(quest, CORRELATION.registerNewCorrelationID());
 		}
 		this.cachedRegions = new HashSet<>();
 		this.activePermissionLevel = PermissionLevel.USER;
 		this.guiHotfixOpenedBefore = new ArrayList<>();
 		userHookRegistry.getHooks().forEach(h -> h.onInitialize(this));
 		instance.getSidebarManager().createScoreboard(player);
+		CORRELATION.log(initCorrelationID, Level.INFO, "initialization complete");
 		LOGGER.fine("Finished initializing user " + this);
 		return this;
 	}
 
+	public void logQuestEvent(Quest quest, Level level, String message) {
+		CORRELATION.log(questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID()), level, quest.getName() + " | " + message);
+	}
+	
+	public void logAllQuestData(Quest quest) {
+		logQuestEvent(quest, Level.INFO, "Dumping all quest data");
+		logQuestEvent(quest, Level.INFO, "Current Step: " + this.getQuestProgress().get(quest).getStepName());
+		logQuestEvent(quest, Level.INFO, "Current Action Index: " + this.getQuestActionIndex(quest));
+		logQuestEvent(quest, Level.INFO, "Current Pause State: " + this.getQuestPauseState(quest));
+		logQuestEvent(quest, Level.INFO, "Has Active Dialogue: " + this.hasActiveDialogue());
+		if(this.hasActiveDialogue()) {
+			logQuestEvent(quest, Level.INFO, "Number of dialogue callbacks: " + this.currentDialogueCompletionHandlers.size());
+		}
+	}
+	
+	public UUID getQuestCorrelationID(Quest quest) {
+		return questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID());
+	}
+	
 	public void addDebugTarget(CommandSender debugger) {
 		this.currentlyDebugging.add(debugger);
 	}
@@ -374,7 +406,7 @@ public class User extends GameObject {
 			}
 		}
 		if (applyQuestTriggers)
-			updateQuests((Event) null);
+			updateQuests(null);
 		userHookRegistry.getHooks().forEach(h -> h.onUpdateState(this, this.cachedLocation));
 		this.cachedLocation = this.player.getLocation();
 		this.cachedRegions = regions;
@@ -442,6 +474,7 @@ public class User extends GameObject {
 	public void setQuestPaused(Quest quest, boolean paused) {
 		this.questPauseStates.put(quest, paused ? QuestPauseState.PAUSED : QuestPauseState.RESUMED);
 		debug(String.valueOf(paused ? "Paused" : "Unpaused") + " quest " + quest.getName());
+		logQuestEvent(quest, Level.INFO, "Set quest pause state to " + paused);
 	}
 
 	public void resetQuestPauseState(Quest quest) {
@@ -473,6 +506,7 @@ public class User extends GameObject {
 					int nextIndex = quest.getSteps().indexOf(questStep.getValue()) + 1;
 					if (nextIndex != quest.getSteps().size()) {
 						QuestStep nextStep = quest.getSteps().get(nextIndex);
+						logQuestEvent(quest, Level.INFO, "update quest progress step " + questStep.getValue().getStepName() + " -> " + nextStep.getStepName());
 						updateQuestProgress(quest, nextStep, true);
 					}
 				}
@@ -500,6 +534,7 @@ public class User extends GameObject {
 		this.storageAccess.update(new Document("quests", updatedQuestProgress));
 		if (notify)
 			if (questStep.getStepName().equals("Complete")) {
+				logQuestEvent(quest, Level.INFO, "completed quest");
 				this.player.sendMessage(ChatColor.GRAY + "Completed quest " + quest.getQuestName());
 			} else {
 				this.player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
@@ -513,11 +548,12 @@ public class User extends GameObject {
 	}
 
 	public void updateQuestAction(Quest quest, int actionIndex) {
-		this.questActionIndices.put(quest, Integer.valueOf(actionIndex));
+		logQuestEvent(quest, Level.INFO, "set action index to " + actionIndex);
+		this.questActionIndices.put(quest, actionIndex);
 	}
 
 	public int getQuestActionIndex(Quest quest) {
-		return this.questActionIndices.getOrDefault(quest, Integer.valueOf(0));
+		return this.questActionIndices.getOrDefault(quest, 0);
 	}
 
 	public void updateQuestProgress(Quest quest, QuestStep questStep) {

@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bson.Document;
@@ -16,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 
 public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile> {
@@ -23,6 +25,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 
 	private Set<SystemProfile> profiles;
 	private Logger LOGGER;
+	private CorrelationLogLoader CORRELATION;
 	
 	static {
 		saltString = Dragons.getInstance().getConfig().getString("db.mongo.password-salt-string");
@@ -32,6 +35,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 		super(instance.getMongoConfig(), "#unused#", "sysprofiles");
 		this.LOGGER = instance.getLogger();
 		this.profiles = new HashSet<>();
+		this.CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
 	}
 	
 	public static String passwordHash(String password) {
@@ -43,16 +47,30 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 		}
 	}
 	
-	public SystemProfile authenticateProfile(User user, String profileName, String profilePassword) {
-		if (!isAvailable(profileName, user.getName()))
+	public SystemProfile authenticateProfile(User user, String profileName, String profilePassword, UUID cid) {
+		CORRELATION.log(cid, Level.INFO, "authenticating profile " + profileName + " for user " + user.getName() + " (" + user.getUUID() + ")");
+		if (!isAvailable(profileName, user.getName())) {
+			CORRELATION.log(cid, Level.INFO, "profile is already logged in, returning null");
 			return null;
+		}
 		SystemProfile systemProfile = loadProfile(profileName);
-		if (systemProfile == null)
+		if (systemProfile == null) {
+			CORRELATION.log(cid, Level.INFO, "profile does not exist, returning null");
 			return null;
-		if (!systemProfile.isActive())
+		}
+		if (!systemProfile.isActive()) {
+			CORRELATION.log(cid, Level.INFO, "profile is inactive, returning null");
 			return null;
-		if (!systemProfile.getPasswordHash(user.getUUID()).equals(passwordHash(profilePassword)))
+		}
+		if(systemProfile.getPasswordHash(user.getUUID()) == null) {
+			CORRELATION.log(cid, Level.INFO, "user is not authorized for this profile, returning null");
 			return null;
+		}
+		if (!systemProfile.getPasswordHash(user.getUUID()).equals(passwordHash(profilePassword))) {
+			CORRELATION.log(cid, Level.INFO, "invalid password, returning null");
+			return null;
+		}
+		CORRELATION.log(cid, Level.INFO, "authentication passed, logging in.");
 		systemProfile.setLocalCurrentUser(user);
 		this.LOGGER.info(String.valueOf(user.getName()) + " logged into system profile " + profileName);
 		return systemProfile;

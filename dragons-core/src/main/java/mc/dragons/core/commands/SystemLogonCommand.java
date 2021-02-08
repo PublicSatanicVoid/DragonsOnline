@@ -3,6 +3,7 @@ package mc.dragons.core.commands;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -17,18 +18,20 @@ import mc.dragons.core.gameobject.user.SystemProfile;
 import mc.dragons.core.gameobject.user.SystemProfileLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class SystemLogonCommand implements CommandExecutor {
 	private SystemProfileLoader systemProfileLoader;
-
+	private CorrelationLogLoader CORRELATION;
+	
 	private Map<User, Long> rateLimiting;
-
 	private Map<User, Integer> rateLimitingCounter;
 
 	public SystemLogonCommand(Dragons instance) {
 		this.systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
+		this.CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
 		this.rateLimiting = new HashMap<>();
 		this.rateLimitingCounter = new HashMap<>();
 	}
@@ -215,26 +218,36 @@ public class SystemLogonCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Successfully logged out of your system profile.");
 			return true;
 		}
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "/syslogon <profile> <password>");
+			return true;
+		}
 		long wait = this.rateLimiting.getOrDefault(user, Long.valueOf(0L)).longValue() + (1000 * this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)));
 		if (wait > System.currentTimeMillis()) {
 			sender.sendMessage(ChatColor.RED + "Please wait " + this.rateLimitingCounter.get(user) + "s.");
 			return true;
 		}
+		UUID cid = CORRELATION.registerNewCorrelationID();
 		if (user.getSystemProfile() != null) {
+			CORRELATION.log(cid, Level.INFO, "user is currently signed in. signing out first");
 			this.systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			sender.sendMessage(ChatColor.GREEN + "Signed out of current system profile");
 		}
-		SystemProfile profile = this.systemProfileLoader.authenticateProfile(user, args[0], args[1]);
+		SystemProfile profile = this.systemProfileLoader.authenticateProfile(user, args[0], args[1], cid);
 		if (profile == null) {
-			sender.sendMessage(ChatColor.RED + "Invalid credentials provided!");
+			CORRELATION.log(cid, Level.INFO, "user notified of error");
+			sender.sendMessage(ChatColor.RED + "Could not log in! Make sure you are authorized on this account and entered the correct password.");
+			sender.sendMessage(ChatColor.RED + "If the issue persists, report the following error message: " + StringUtil.toHdFont("Correlation ID: " + cid));
 			this.rateLimiting.put(user, Long.valueOf(System.currentTimeMillis()));
 			this.rateLimitingCounter.put(user, Integer.valueOf(Math.max(this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
 			return true;
 		}
+		CORRELATION.log(cid, Level.INFO, "completing sign-on");
 		user.setSystemProfile(profile);
 		user.setActivePermissionLevel(profile.getMaxPermissionLevel());
 		sender.sendMessage(ChatColor.GREEN + "Logged on to system console as " + profile.getProfileName() + ". Permission level: " + profile.getMaxPermissionLevel().toString());
+		CORRELATION.log(cid, Level.INFO, "sign-on complete");
 		return true;
 	}
 }

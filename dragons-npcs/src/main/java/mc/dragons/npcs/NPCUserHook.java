@@ -1,20 +1,31 @@
 package mc.dragons.npcs;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.util.StringUtil;
 
 public class NPCUserHook implements UserHook {
 
+	private CorrelationLogLoader CORRELATION;
+	
+	private void lazyLoadCorrelation() {
+		if(CORRELATION == null) {
+			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+		}
+	}
+	
 	@Override
 	public void onInitialize(User user) {}
 
@@ -22,12 +33,17 @@ public class NPCUserHook implements UserHook {
 	public void onVerifiedJoin(User user) {
 		UUID companionUUID = user.getStorageAccess().getDocument().get("companion", UUID.class);
 		if(companionUUID == null) return;
-		NPC companion = GameObjectType.NPC.<NPC, NPCLoader>getLoader().loadObject(companionUUID);
+		lazyLoadCorrelation();
+		UUID cid = CORRELATION.registerNewCorrelationID();
+		CORRELATION.log(cid, Level.INFO, "loading companion for user " + user.getName() + " (" + user.getUUID() + ") with companion uuid " + companionUUID);
+		NPC companion = GameObjectType.NPC.<NPC, NPCLoader>getLoader().loadObject(companionUUID, cid);
 		if(companion == null) {
-			user.getPlayer().sendMessage(ChatColor.RED + "Your companion could not be found! Try re-joining and if the issue persists screenshot this error and report it: " + companionUUID);
+			user.getPlayer().sendMessage(ChatColor.RED + "Your companion could not be found! Try re-joining and if the issue persists report the following error message.");
+			user.getPlayer().sendMessage(ChatColor.RED + StringUtil.toHdFont("Correlation ID: " + cid));
 			return;
 		}
 		if(companion.getEntity() == null) {
+			CORRELATION.log(cid, Level.INFO, "regenerating companion because Bukkit entity could not be found");
 			companion.regenerate(user.getPlayer().getLocation());
 			user.debug("Regenerated your companion " + companionUUID);
 		}

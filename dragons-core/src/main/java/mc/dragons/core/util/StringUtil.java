@@ -1,6 +1,9 @@
 package mc.dragons.core.util;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -22,6 +25,8 @@ import org.bukkit.util.Vector;
  *
  */
 public class StringUtil {
+	private static SimpleDateFormat standardDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
 	public static String locToString(Location loc) {
 		return String.valueOf(MathUtil.round(loc.getX())) + ", " + MathUtil.round(loc.getY()) + ", " + MathUtil.round(loc.getZ());
 	}
@@ -172,6 +177,10 @@ public class StringUtil {
 			sender.sendMessage(ChatColor.RED + "Invalid UUID! An example UUID is " + UUID.randomUUID());
 		}
 		return null;
+	}
+	
+	public static String dateFormatNow() {
+		return standardDateFormat.format(Date.from(Instant.now()));
 	}
 
 	// Decompiled from HDFont plugin.

@@ -13,6 +13,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\Sto
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\item\ItemClassLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\quest\QuestStep.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\BlockUtil.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\logging\correlation\CorrelationLogLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\channel_handlers\AlvadorChannelHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\FeedbackLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\local\LocalStorageManager.java
@@ -23,6 +24,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\Qu
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\WorldEventListeners.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityDeathEventListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\channel_handlers\TradeChannelHandler.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\StuckQuestCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\quest\QuestLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\StringUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\npc\NPCLoader.java
@@ -83,6 +85,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\tasks\Updat
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\floor\Floor.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\logging\LogFilter.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\addon\ItemAddon.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\CorrelationCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\PlayerEventListeners.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\ChatChannel.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\StorageManager.java
