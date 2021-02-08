@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -19,6 +20,12 @@ import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.social.GuildLoader.Guild;
 
+/**
+ * Loads guilds from MongoDB. Guilds are pooled locally to reduce network usage.
+ * 
+ * @author Adam
+ *
+ */
 public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	
 	public static enum GuildAccessLevel {
@@ -36,6 +43,15 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		public String friendlyName() { return friendlyName; }
 	}
 	
+	/**
+	 * A guild is a named group of users. Users can belong to multiple guilds.
+	 * Guilds are uniquely and stably identified by an integral ID, and are
+	 * uniquely but possibly unstably identified by their name, which must not
+	 * contain spaces.
+	 * 
+	 * @author Adam
+	 *
+	 */
 	public static class Guild {
 		private static GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
 		
@@ -154,6 +170,11 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	}
 	
 	public Guild getGuildByName(String name) {
+		for(Guild guild : guildPool.values()) {
+			if(guild.getName().equalsIgnoreCase(name)) {
+				return guild;
+			}
+		}
 		FindIterable<Document> result = collection.find(new Document("name", name));
 		if(result.first() == null) return null;
 		return Guild.fromDocument(result.first());
@@ -168,6 +189,7 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	}
 	
 	public Guild addGuild(UUID owner, String name) {
+		name = name.replaceAll(Pattern.quote(" "), "");
 		Date date = Date.from(Instant.now());
 		int id = reserveNextId();
 		Guild guild = new Guild(id, name, owner, "No description set", 0, new ArrayList<>(), 

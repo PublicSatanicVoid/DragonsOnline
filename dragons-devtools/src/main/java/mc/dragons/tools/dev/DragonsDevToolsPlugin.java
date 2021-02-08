@@ -42,6 +42,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("killtasks").setExecutor(terminateCommands);
 		getCommand("killtasksfor").setExecutor(terminateCommands);
 		getCommand("crashserver").setExecutor(terminateCommands);
+		getCommand("panic").setExecutor(terminateCommands);
 		
 		CommandExecutor performanceCommands = new PerformanceCommands();
 		getCommand("worldperformance").setExecutor(performanceCommands);

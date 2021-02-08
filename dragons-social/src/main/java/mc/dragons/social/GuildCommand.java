@@ -398,7 +398,7 @@ public class GuildCommand implements CommandExecutor {
 			Guild guild = guilds.get(0);
 			if(guilds.size() > 1) {
 				if(args.length > 3) {
-					guild = guildLoader.getGuildByName(args[2]);
+					guild = guildLoader.getGuildByName(args[1]);
 					message = StringUtil.concatArgs(args, 2);
 					if(guild == null) {
 						sender.sendMessage(ChatColor.RED + "No guild by that name exists!");
@@ -436,7 +436,7 @@ public class GuildCommand implements CommandExecutor {
 			Guild guild = guilds.get(0);
 			if(guilds.size() > 1) {
 				if(args.length > 1) {
-					guild = guildLoader.getGuildByName(args[1]);
+					guild = guildLoader.getGuildByName(args[2]);
 					if(guild == null) {
 						sender.sendMessage(ChatColor.RED + "No guild by that name exists!");
 						return true;
@@ -507,6 +507,7 @@ public class GuildCommand implements CommandExecutor {
 				return true;
 			}
 			guild.getMembers().remove(user.getUUID());
+			guild.save();
 			sender.sendMessage(ChatColor.GREEN + "Left guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully.");
 			return true;
 		}
