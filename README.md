@@ -4,6 +4,20 @@
 
 Dragons Online is a Minecraft-based MMORPG created by Adam Priebe (UniverseCraft) and licensed under the GNU GPL v2.
  
+## Where to dive in
+If you're new to the repository, here are the most important files to check out (in this order!)
+- `dragons-core: mc.dragons.core.Dragons` is the main class and the entry point. It contains all the high-level object managers, service providers, loaders, and configuration data necessary to start a server instance.
+
+- `dragons-core: mc.dragons.core.gameobject.GameObject` defines the interface for `GameObject`s, the main unit of content within Dragons Online. Users, NPCs, items, etc. are all `GameObject`s.
+
+- `dragons-core: mc.dragons.core.gameobject.GameObjectType` defines the various types of `GameObject`s.
+
+- `dragons-core: mc.dragons.core.gameobject.user.User` defines the `User` object, which represents a player in the game.
+
+- `dragons-moderationtools: mc.dragons.tools.moderation.InfoCommand` defines a console command to fetch and display a user's data. This class illustrates the basic structure of a command and demonstrates how data is fetched from the database at a high level, as well as how various components tie together.
+
+- `dragons-core: mc.dragons.core.gameobject` - all classes in subpackages of this are at the heart of Dragons Online, and define the key elements of the game. If you want to take a deep dive into the workings of Dragons Online, these are a great place to start.
+ 
 ## Basic Code Structure
 The codebase is divided into several plugins, each with a specific purpose. The core plugin is `dragons-core` and contains all necessary functionality to create a minimally working game. All other plugins depend either directly or indirectly on `dragons-core`.
 
@@ -24,6 +38,8 @@ A full listing of current plugins:
 
 - `dragons-anticheat` is an experimental module that seeks to model (and someday enforce) vanilla behavior, accounting for modifications by the game.
 - `dragons-res` implements a residence system. This allows users to purchase physical space in the game and customize it in various ways. Residences are virtual and instanced separately from the actual game worlds, allowing for multiple users to independently purchase and customize the same area. That is, there is a many-to-many relationship between areas in the game ('res points') which are typically enclosed spaces such as houses, stores, or apartments, and the actual residence of each player for a given res point.
+
+- `dragons-social` defines functionality such as guilds, messaging, and broadcasting, which allow users to communicate and form social groups. Functionality such as friend requests and trades will also go in this module, once it is implemented.
  
  ## Game Objects and Storage
  Major aspects of the game are defined as game objects. Every game object extends the abstract `GameObject` class to provide specific functionality. The `GameObject` class itself provides the necessary methods for storing and retrieving data. Certain game objects are backed by a persistent data storage system such as a MongoDB database, while other (more transient) game objects are only stored in-memory. These various ways of storage are standardized and abstracted via the `StorageManager` and `StorageAccess` interfaces. All `GameObject`s have a `StorageAccess`, which is unique to that `GameObject` and handles the storage of that object's data, and a `StorageManager`, which provides methods for creating, loading, storing, removing, and batch-modifying `StorageAccess`es.
