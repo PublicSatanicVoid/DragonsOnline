@@ -18,7 +18,7 @@ public class FeedbackCommand implements CommandExecutor {
 	private FeedbackLoader feedbackLoader;
 
 	public FeedbackCommand(Dragons instance) {
-		this.feedbackLoader = instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
+		feedbackLoader = instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
 	}
 
 	@Override
@@ -41,25 +41,27 @@ public class FeedbackCommand implements CommandExecutor {
 			return true;
 		}
 		if (args[0].equalsIgnoreCase("-list")) {
-			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true))
+			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) {
 				return true;
+			}
 			sender.sendMessage(ChatColor.GREEN + "Listing all unread feedback:");
-			for (FeedbackLoader.FeedbackEntry entry : this.feedbackLoader.getUnreadFeedback()) {
+			for (FeedbackLoader.FeedbackEntry entry : feedbackLoader.getUnreadFeedback()) {
 				sender.sendMessage(ChatColor.YELLOW + "[#" + entry.getId() + "] " + ChatColor.GREEN + "[" + entry.getFrom() + "] " + ChatColor.RESET + entry.getFeedback());
-				this.feedbackLoader.markRead(entry.getId(), true);
+				feedbackLoader.markRead(entry.getId(), true);
 			}
 			return true;
 		}
 		if (args[0].equalsIgnoreCase("-unread")) {
-			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true))
+			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) {
 				return true;
+			}
 			if (args.length < 2) {
 				sender.sendMessage(ChatColor.RED + "Insufficient arguments! /feedback -unread <FeedbackUUID>");
 				return true;
 			}
 			try {
 				int uuid = Integer.valueOf(args[1]).intValue();
-				this.feedbackLoader.markRead(uuid, false);
+				feedbackLoader.markRead(uuid, false);
 				sender.sendMessage(ChatColor.GREEN + "Marked feedback entry " + args[1] + " as unread.");
 			} catch (IllegalArgumentException e) {
 				sender.sendMessage(ChatColor.RED + "Invalid ID!");
@@ -67,7 +69,7 @@ public class FeedbackCommand implements CommandExecutor {
 			return true;
 		}
 		String feedback = StringUtil.concatArgs(args, 0);
-		this.feedbackLoader.addFeedback(user.getName(), feedback);
+		feedbackLoader.addFeedback(user.getName(), feedback);
 		sender.sendMessage(ChatColor.GREEN + "Your feedback has been recorded. Thank you for submitting it!");
 		return true;
 	}

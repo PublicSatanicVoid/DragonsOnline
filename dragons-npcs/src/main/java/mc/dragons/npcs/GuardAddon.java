@@ -20,12 +20,18 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.npc.NPC.NPCType;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 
+/**
+ * NPCs with this add-on will yeet hostile entities.
+ * 
+ * @author Adam
+ *
+ */
 public class GuardAddon extends NPCAddon {
 	
 	private Set<NPC> guards;
@@ -75,7 +81,7 @@ public class GuardAddon extends NPCAddon {
 		final CraftEntity obcGuard = (CraftEntity) guard;
 		obcGuard.setInvulnerable(true);
 		e.addPassenger(guard);
-		e.addPassenger(HologramUtil.makeArmorStandNameTag(e, npc.getDecoratedName())); // Fix name tag disappearing :/
+		HologramUtil.makeArmorStandNameTag(e, npc.getDecoratedName(), 0.0, 0.0, 0.0, true);
 		Attributable att = (Attributable) e;
 		new BukkitRunnable() {
 			@Override public void run() {

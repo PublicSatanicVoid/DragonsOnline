@@ -44,8 +44,8 @@ public class SpellCastAddon extends ItemAddon {
 			lore.add(ChatColor.RED + "No spells are bound to");
 			lore.add(ChatColor.RED + "this item yet!");
 		}
-		else if(!item.getName().contains("(Magic)")) {
-			item.setName(ChatColor.LIGHT_PURPLE + "(Magic) " + ChatColor.stripColor(item.getName()));
+		else if(!item.getName().contains(SpellConfig.MAGIC_ITEM_TITLE_PREFIX)) {
+			item.setName(SpellConfig.MAGIC_ITEM_TITLE_PREFIX + ChatColor.stripColor(item.getName()));
 			item.setCustom(true);
 			meta.setDisplayName(item.getName());
 		}

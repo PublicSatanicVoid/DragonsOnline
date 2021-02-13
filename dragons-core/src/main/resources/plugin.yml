@@ -22,7 +22,7 @@ commands:
     description: Log on to the system console.
   stuckquest:
     description: Report a problem with a quest.
-    aliases: brokenquest, reportquest
+    aliases: [brokenquest, reportquest]
   respawn:
     description: (TESTER) Skip the death countdown and respawn instantly.
   heal:

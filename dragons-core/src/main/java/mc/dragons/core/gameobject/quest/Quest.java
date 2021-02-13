@@ -40,12 +40,13 @@ public class Quest extends GameObject {
 	public Quest(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing quest (" + storageManager + ", " + storageAccess + ")");
-		this.steps = new ArrayList<>();
-		this.referenceNames = HashBasedTable.create();
+		steps = new ArrayList<>();
+		referenceNames = HashBasedTable.create();
 		@SuppressWarnings("unchecked")
 		List<Document> rawSteps = (List<Document>) getData("steps");
-		for (Document step : rawSteps)
-			this.steps.add(QuestStep.fromDocument(step, this));
+		for (Document step : rawSteps) {
+			steps.add(QuestStep.fromDocument(step, this));
+		}
 	}
 
 	public List<Document> getStepsAsDoc() {
@@ -53,7 +54,7 @@ public class Quest extends GameObject {
 	}
 
 	public List<Document> getRecalculatedStepsAsDoc() {
-		return this.steps.stream().map(step -> step.toDocument()).collect(Collectors.toList());
+		return steps.stream().map(step -> step.toDocument()).collect(Collectors.toList());
 	}
 
 	public int getStepIndex(QuestStep questStep) {
@@ -61,7 +62,7 @@ public class Quest extends GameObject {
 	}
 
 	public void addStep(QuestStep step) {
-		this.steps.add(step);
+		steps.add(step);
 		List<Document> stepsDoc = getStepsAsDoc();
 		stepsDoc.add(step.toDocument());
 		update(new Document("steps", stepsDoc));
@@ -70,20 +71,20 @@ public class Quest extends GameObject {
 	public void delStep(int step) {
 		List<Document> stepsDoc = getStepsAsDoc();
 		stepsDoc.remove(step);
-		this.steps.remove(step);
+		steps.remove(step);
 		update(new Document("steps", stepsDoc));
 	}
 
 	public List<QuestStep> getSteps() {
-		return this.steps;
+		return steps;
 	}
 
 	public void registerNPCReference(User user, NPC npc, String referenceName) {
-		this.referenceNames.put(user, referenceName, npc);
+		referenceNames.put(user, referenceName, npc);
 	}
 
 	public NPC getNPCByReference(User user, String referenceName) {
-		return this.referenceNames.get(user, referenceName);
+		return referenceNames.get(user, referenceName);
 	}
 
 	public String getQuestName() {
@@ -107,15 +108,19 @@ public class Quest extends GameObject {
 	}
 
 	public boolean isValid() {
-		if (this.steps.size() == 0)
+		if (steps.size() == 0) {
 			return false;
-		QuestStep finalStep = this.steps.get(this.steps.size() - 1);
-		if (!finalStep.getStepName().equalsIgnoreCase("Complete"))
+		}
+		QuestStep finalStep = steps.get(steps.size() - 1);
+		if (!finalStep.getStepName().equalsIgnoreCase("Complete")) {
 			return false;
-		if (finalStep.getTrigger().getTriggerType() != QuestTrigger.TriggerType.INSTANT)
+		}
+		if (finalStep.getTrigger().getTriggerType() != QuestTrigger.TriggerType.INSTANT) {
 			return false;
-		if (finalStep.getActions().size() != 0)
+		}
+		if (finalStep.getActions().size() != 0) {
 			return false;
+		}
 		return true;
 	}
 }

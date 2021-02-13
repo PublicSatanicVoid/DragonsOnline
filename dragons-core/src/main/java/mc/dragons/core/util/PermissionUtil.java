@@ -14,22 +14,29 @@ import mc.dragons.core.gameobject.user.User;
  */
 public class PermissionUtil {
 	public static boolean verifyActivePermissionLevel(User user, PermissionLevel required, boolean notify) {
-		if(user == null) return false;
+		if(user == null) {
+			return false;
+		}
 		if (user.getActivePermissionLevel().ordinal() < required.ordinal()) {
-			if (notify)
+			if (notify) {
 				user.getPlayer().sendMessage(ChatColor.RED + "This requires permission level " + ChatColor.ITALIC + required.toString().toLowerCase() + ChatColor.RED + " or higher.");
+			}
 			return false;
 		}
 		return true;
 	}
 
 	public static boolean verifyActiveProfileFlag(User user, SystemProfile.SystemProfileFlags.SystemProfileFlag flag, boolean notify) {
-		if(user == null) return false;
+		if(user == null) {
+			return false;
+		}
 		boolean hasFlag = false;
-		if (user.getSystemProfile() != null)
+		if (user.getSystemProfile() != null) {
 			hasFlag = user.getSystemProfile().getFlags().hasFlag(flag);
-		if (!hasFlag && notify)
+		}
+		if (!hasFlag && notify) {
 			user.getPlayer().sendMessage(ChatColor.RED + "This requires profile flag " + ChatColor.ITALIC + flag.toString().toLowerCase() + ChatColor.RED + ".");
+		}
 		return hasFlag;
 	}
 }

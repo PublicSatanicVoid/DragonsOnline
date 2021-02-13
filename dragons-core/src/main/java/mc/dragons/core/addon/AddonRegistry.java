@@ -12,28 +12,29 @@ public class AddonRegistry {
 	private List<Addon> addons;
 
 	public AddonRegistry(Dragons plugin) {
-		this.addons = new ArrayList<>();
-		this.LOGGER = plugin.getLogger();
+		addons = new ArrayList<>();
+		LOGGER = plugin.getLogger();
 	}
 
 	public void register(Addon addon) {
-		this.LOGGER.info("Registering addon " + addon.getName() + " of type " + addon.getType());
-		this.addons.add(addon);
+		LOGGER.info("Registering addon " + addon.getName() + " of type " + addon.getType());
+		addons.add(addon);
 	}
 
 	public void enableAll() {
-		this.addons.forEach(addon -> addon.onEnable());
+		addons.forEach(addon -> addon.onEnable());
 	}
 
 	public Addon getAddonByName(String name) {
-		for (Addon addon : this.addons) {
-			if (addon.getName().equalsIgnoreCase(name))
+		for (Addon addon : addons) {
+			if (addon.getName().equalsIgnoreCase(name)) {
 				return addon;
+			}
 		}
 		return null;
 	}
 
 	public List<Addon> getAllAddons() {
-		return this.addons;
+		return addons;
 	}
 }

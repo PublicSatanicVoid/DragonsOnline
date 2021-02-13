@@ -37,11 +37,11 @@ public enum ChatChannel {
 	}
 
 	public String getAbbreviation() {
-		return this.abbreviation;
+		return abbreviation;
 	}
 
 	public String getDescription() {
-		return this.description;
+		return description;
 	}
 
 	public TextComponent getPrefix() {
@@ -49,7 +49,7 @@ public enum ChatChannel {
 	}
 
 	public ChannelHandler getHandler() {
-		return this.handler;
+		return handler;
 	}
 
 	public void setHandler(ChannelHandler handler) {
@@ -60,7 +60,7 @@ public enum ChatChannel {
 		long listening = UserLoader.allUsers().stream().filter(u -> u.getActiveChatChannels().contains(this)).count();
 		TextComponent component = new TextComponent(str);
 		component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				(new ComponentBuilder(ChatColor.YELLOW + "Channel: " + ChatColor.RESET + toString() + "\n")).append(ChatColor.YELLOW + "Listening: " + ChatColor.RESET + listening + "\n")
+				new ComponentBuilder(ChatColor.YELLOW + "Channel: " + ChatColor.RESET + toString() + "\n").append(ChatColor.YELLOW + "Listening: " + ChatColor.RESET + listening + "\n")
 						.append(ChatColor.ITALIC + getDescription() + "\n").append(ChatColor.GRAY + "Do " + ChatColor.RESET + "/channel " + ChatColor.GRAY + "to manage channels").create()));
 		return component;
 	}
@@ -70,14 +70,15 @@ public enum ChatChannel {
 	}
 
 	public boolean canHear(User to, User from) {
-		if (to.hasActiveDialogue() || !to.hasJoined())
+		if (to.hasActiveDialogue() || !to.hasJoined()) {
 			return false;
-		if (this.handler == null) {
+		}
+		if (handler == null) {
 			Dragons.getInstance().getLogger().warning("Channel " + toString() + " does not have an associated handler! This channel will be unusable until a handler is registrered to it.");
 			from.getPlayer().sendMessage(ChatColor.RED + "This channel (" + toString() + ") is not set up correctly. Please report this if the error persists.");
 			return false;
 		}
-		return this.handler.canHear(to, from);
+		return handler.canHear(to, from);
 	}
 
 	public static ChatChannel parse(String str) {

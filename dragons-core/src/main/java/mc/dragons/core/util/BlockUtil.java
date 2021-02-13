@@ -20,13 +20,16 @@ public class BlockUtil {
 			n++;
 			nBelow = nBelow.getRelative(BlockFace.DOWN);
 			nAbove = nAbove.getRelative(BlockFace.UP);
-			if (n > 10)
+			if (n > 10) {
 				break;
+			}
 		}
-		if (nBelow.getType().isSolid())
+		if (nBelow.getType().isSolid()) {
 			return nBelow.getLocation();
-		if (nAbove.getType().isSolid())
+		}
+		if (nAbove.getType().isSolid()) {
 			return nAbove.getLocation();
+		}
 		return start.getBlock().getLocation();
 	}
 }

@@ -27,7 +27,7 @@ public class ProgressBarUtil {
 		String healthBar = "";
 		double ratio = health / max;
 		int full = (int) Math.ceil(ratio * 30.0D);
-		ChatColor activeColor = (full > 25) ? FULL_COLOR : ((full > 10) ? HIGH_COLOR : ((full > 4) ? WARNING_COLOR : CRITICAL_COLOR));
+		ChatColor activeColor = full > 25 ? FULL_COLOR : full > 10 ? HIGH_COLOR : full > 4 ? WARNING_COLOR : CRITICAL_COLOR;
 		for (int i = 0; i < 30; i++) {
 			if (i < full) {
 				healthBar = String.valueOf(healthBar) + activeColor + "|";

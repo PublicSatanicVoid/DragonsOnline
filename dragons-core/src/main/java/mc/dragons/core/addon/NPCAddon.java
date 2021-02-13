@@ -12,9 +12,9 @@ public abstract class NPCAddon implements Addon {
 		return AddonType.NPC;
 	}
 
-	public abstract void onMove(NPC paramNPC, Location paramLocation);
-	public abstract void onTakeDamage(NPC paramNPC, GameObject paramGameObject, double paramDouble);
-	public abstract void onDealDamage(NPC paramNPC, GameObject paramGameObject, double paramDouble);
-	public abstract void onInteract(NPC paramNPC, User paramUser);
-	public abstract void onDeath(NPC paramNPC);
+	public abstract void onMove(NPC npc, Location location);
+	public abstract void onTakeDamage(NPC npc, GameObject source, double damage);
+	public abstract void onDealDamage(NPC npc, GameObject source, double damage);
+	public abstract void onInteract(NPC npc, User user);
+	public abstract void onDeath(NPC npc);
 }

@@ -22,7 +22,9 @@ public class HealCommand implements CommandExecutor {
 		if(sender instanceof Player) {
 			player = (Player) sender;
 			user = UserLoader.fromPlayer(player);
-			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.MODERATOR, true)) return true;
+			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.MODERATOR, true)) {
+				return true;
+			}
 		}
 		
 		if(args.length == 0) {

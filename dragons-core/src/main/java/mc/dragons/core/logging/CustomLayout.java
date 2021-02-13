@@ -37,8 +37,8 @@ public class CustomLayout extends AbstractStringLayout {
 	}
 
 	private String format(String pattern, String date, String time, String level, String source, String message) {
-		return pattern.replaceAll(this.DAY_PATTERN, date).replaceAll(this.TIME_PATTERN, time).replaceAll(this.LEVEL_PATTERN, level).replaceAll(this.SOURCE_PATTERN, source)
-				.replaceAll(this.MESSAGE_PATTERN, Matcher.quoteReplacement((message == null) ? "" : message));
+		return pattern.replaceAll(DAY_PATTERN, date).replaceAll(TIME_PATTERN, time).replaceAll(LEVEL_PATTERN, level).replaceAll(SOURCE_PATTERN, source)
+				.replaceAll(MESSAGE_PATTERN, Matcher.quoteReplacement(message == null ? "" : message));
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class CustomLayout extends AbstractStringLayout {
 			int lastIndex = loggerName.lastIndexOf(".");
 			String mostSpecific = loggerName.substring(lastIndex + 1);
 			boolean special = false;
-			if (this.specialPackageNames)
+			if (specialPackageNames) {
 				if (loggerName.contains("net.minecraft.server")) {
 					loggerName = "NMS." + mostSpecific;
 					special = true;
@@ -56,7 +56,8 @@ public class CustomLayout extends AbstractStringLayout {
 					loggerName = "OBC." + mostSpecific;
 					special = true;
 				}
-			if (!special && this.truncatePackageNames) {
+			}
+			if (!special && truncatePackageNames) {
 				String truncatedLoggerName = String.valueOf(loggerName.charAt(0)) + ".";
 				int dotIndex = loggerName.indexOf(".", 0);
 				while (dotIndex != lastIndex) {
@@ -68,31 +69,35 @@ public class CustomLayout extends AbstractStringLayout {
 			}
 		}
 		boolean includeLogger = true;
-		if (this.hideMinecraft && (loggerName.equals("Minecraft") || loggerName.contains("MinecraftServer") || loggerName.contains("DedicatedServer")))
+		if (hideMinecraft && (loggerName.equals("Minecraft") || loggerName.contains("MinecraftServer") || loggerName.contains("DedicatedServer"))) {
 			includeLogger = false;
-		if (this.hideEmpty && loggerName.length() == 0)
+		}
+		if (hideEmpty && loggerName.length() == 0) {
 			includeLogger = false;
-		String timestamp = (new SimpleDateFormat("HH:mm:ss")).format(Long.valueOf(logEvent.getTimeMillis()));
-		String datestamp = (new SimpleDateFormat("yyyy-MM-dd")).format(Long.valueOf(logEvent.getTimeMillis()));
+		}
+		String timestamp = new SimpleDateFormat("HH:mm:ss").format(Long.valueOf(logEvent.getTimeMillis()));
+		String datestamp = new SimpleDateFormat("yyyy-MM-dd").format(Long.valueOf(logEvent.getTimeMillis()));
 		String message = ChatColor.stripColor(logEvent.getMessage().getFormattedMessage());
 		if (logEvent.getThrown() != null) {
 			Throwable buf = logEvent.getThrown();
 			while (buf != null) {
-				message += "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName,
+				message += "\n" + format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName,
 						String.valueOf(buf.getClass().getName()) + ": " + buf.getMessage());
 				for(StackTraceElement elem : buf.getStackTrace()) {
-					message += "\n"	+ format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "    " + elem.toString());
+					message += "\n"	+ format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "    " + elem.toString());
 				}
 				buf = buf.getCause();
-				if (buf != null)
-					message += "\n" + format(includeLogger ? this.formatWithLogger : this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "Caused by:");
+				if (buf != null) {
+					message += "\n" + format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "Caused by:");
+				}
 			}
 		}
 		final String finalMessage;
-		if (includeLogger)
-			finalMessage = format(this.formatWithLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
-		else 
-			finalMessage = format(this.formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+		if (includeLogger) {
+			finalMessage = format(formatWithLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+		} else {
+			finalMessage = format(formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+		}
 	
 		if(logEvent.getLevel() == Level.ERROR || logEvent.getLevel() == Level.FATAL) {
 			UserLoader.allUsers().stream().filter(u -> u.isDebuggingErrors()).forEach(u -> u.getPlayer().sendMessage(ChatColor.RED + finalMessage));

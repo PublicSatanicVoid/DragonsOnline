@@ -18,8 +18,9 @@ public class LagMeter extends BukkitRunnable {
 	public static long lastTick2;
 
 	public static double getEstimatedTPS() {
-		if (lastTick == 0L || lastTick2 == 0L)
+		if (lastTick == 0L || lastTick2 == 0L) {
 			return 20.0D;
+		}
 		return 1000.0D / (lastTick - lastTick2);
 	}
 
@@ -34,10 +35,12 @@ public class LagMeter extends BukkitRunnable {
 	}
 
 	public static String getTPSColor(double tps) {
-		if (tps >= 18.0D)
+		if (tps >= 18.0D) {
 			return ChatColor.DARK_GREEN.toString();
-		if (tps >= 15.0D)
+		}
+		if (tps >= 15.0D) {
 			return ChatColor.YELLOW.toString();
+		}
 		return ChatColor.DARK_RED.toString();
 	}
 }

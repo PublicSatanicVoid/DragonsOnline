@@ -22,78 +22,82 @@ import mc.dragons.core.storage.StorageManager;
 
 public class NPCClass extends GameObject {
 	private LootTable lootTable;
-	private NPCConditionalActions[] conditionals = new NPCConditionalActions[(NPCConditionalActions.NPCTrigger.values()).length];
+	private NPCConditionalActions[] conditionals = new NPCConditionalActions[NPCConditionalActions.NPCTrigger.values().length];
 	private List<NPCAddon> addons;
 
 	@SuppressWarnings("unchecked")
 	public NPCClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing NPC Class (" + storageManager + ", " + storageAccess + ")");
-		this.lootTable = new LootTable(this);
+		lootTable = new LootTable(this);
 		int i = 0;
 		for(NPCTrigger trigger : NPCTrigger.values()) {
 			conditionals[i] = new NPCConditionalActions(trigger, this);
 			i++;
 		}
-		this.addons = ((List<String>) getData("addons")).stream()
+		addons = ((List<String>) getData("addons")).stream()
 				.map(addonName -> (NPCAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName))
 				.collect(Collectors.toList());
 	}
 
 	private void saveAddons() {
-		setData("addons", this.addons.stream().map(a -> a.getName()).collect(Collectors.toList()));
+		setData("addons", addons.stream().map(a -> a.getName()).collect(Collectors.toList()));
 	}
 
 	public void addAddon(NPCAddon addon) {
-		this.addons.add(addon);
+		addons.add(addon);
 		saveAddons();
 	}
 
 	public void removeAddon(NPCAddon addon) {
-		this.addons.remove(addon);
+		addons.remove(addon);
 		saveAddons();
 	}
 
 	public List<NPCAddon> getAddons() {
-		return this.addons;
+		return addons;
 	}
 
 	public void handleMove(NPC npc, Location loc) {
-		this.addons.forEach(addon -> addon.onMove(npc, loc));
+		addons.forEach(addon -> addon.onMove(npc, loc));
 	}
 
 	public void handleTakeDamage(NPC on, GameObject from, double amt) {
-		this.addons.forEach(addon -> addon.onTakeDamage(on, from, amt));
+		addons.forEach(addon -> addon.onTakeDamage(on, from, amt));
 	}
 
 	public void handleDealDamage(NPC from, GameObject to, double amt) {
-		this.addons.forEach(addon -> addon.onDealDamage(from, to, amt));
+		addons.forEach(addon -> addon.onDealDamage(from, to, amt));
 	}
 
 	public void handleDeath(NPC npc) {
-		this.addons.forEach(addon -> addon.onDeath(npc));
+		addons.forEach(addon -> addon.onDeath(npc));
 	}
 
 	public void executeConditionals(NPCConditionalActions.NPCTrigger trigger, User user, NPC npc) {
 		user.debug("Executing conditionals");
 		for(NPCConditionalActions conditionalAction : conditionals) {
-			if (conditionalAction.getTrigger() == trigger) conditionalAction.executeConditionals(user, npc);
+			if (conditionalAction.getTrigger() == trigger) {
+				conditionalAction.executeConditionals(user, npc);
+			}
 		}
 	}
 
 	public NPCConditionalActions getConditionalActions(NPCConditionalActions.NPCTrigger trigger) {
 		for(NPCConditionalActions conditionalAction : conditionals) {
-			if (conditionalAction.getTrigger() == trigger) return conditionalAction;
+			if (conditionalAction.getTrigger() == trigger) {
+				return conditionalAction;
+			}
 		}
 		return null;
 	}
 
 	public LootTable getLootTable() {
-		return this.lootTable;
+		return lootTable;
 	}
 
 	public void updateLootTable(String regionName, String itemName, double lootChancePercent) {
-		Document lootTableData = (Document) this.storageAccess.get("lootTable");
+		Document lootTableData = (Document) storageAccess.get("lootTable");
 		Document regionLoot = (Document) lootTableData.get(regionName);
 		if (regionLoot == null) {
 			lootTableData.append(regionName, new Document(itemName, Double.valueOf(lootChancePercent)));
@@ -104,10 +108,11 @@ public class NPCClass extends GameObject {
 	}
 
 	public void deleteFromLootTable(String regionName, String itemName) {
-		Document lootTableData = (Document) this.storageAccess.get("lootTable");
+		Document lootTableData = (Document) storageAccess.get("lootTable");
 		Document regionLoot = (Document) lootTableData.get(regionName);
-		if (regionLoot == null)
+		if (regionLoot == null) {
 			return;
+		}
 		regionLoot.remove(itemName);
 		update(new Document("lootTable", lootTableData));
 	}
@@ -134,8 +139,9 @@ public class NPCClass extends GameObject {
 
 	public Material getHeldItemType() {
 		Object holding = getData("holding");
-		if (holding == null)
+		if (holding == null) {
 			return null;
+		}
 		return Material.valueOf((String) holding);
 	}
 
@@ -185,20 +191,21 @@ public class NPCClass extends GameObject {
 
 	public Map<Attribute, Double> getCustomAttributes() {
 		Map<Attribute, Double> result = new HashMap<>();
-		for (Entry<String, Object> attribute : (Iterable<Entry<String, Object>>) ((Document) getData("attributes")).entrySet())
+		for (Entry<String, Object> attribute : (Iterable<Entry<String, Object>>) ((Document) getData("attributes")).entrySet()) {
 			result.put(Attribute.valueOf(attribute.getKey()), (double) attribute.getValue());
+		}
 		return result;
 	}
 
 	public void setCustomAttribute(Attribute attribute, double base) {
 		Document attributes = (Document) getData("attributes");
 		attributes.append(attribute.toString(), Double.valueOf(base));
-		this.storageAccess.update(new Document("attributes", attributes));
+		storageAccess.update(new Document("attributes", attributes));
 	}
 
 	public void removeCustomAttribute(Attribute attribute) {
 		Document attributes = (Document) getData("attributes");
 		attributes.remove(attribute.toString());
-		this.storageAccess.update(new Document("attributes", attributes));
+		storageAccess.update(new Document("attributes", attributes));
 	}
 }

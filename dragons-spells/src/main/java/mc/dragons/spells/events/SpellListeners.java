@@ -19,6 +19,7 @@ import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.spells.SpellCastAddon;
+import mc.dragons.spells.SpellConfig;
 import mc.dragons.spells.spells.Spell;
 import mc.dragons.spells.spells.Spell.BindStatus;
 
@@ -41,7 +42,7 @@ public class SpellListeners implements Listener {
 			}
 			
 		}
-		if(e.getInventory().getName().equals(ChatColor.LIGHT_PURPLE + "Enchanter")) {
+		if(e.getInventory().getName().equals(SpellConfig.ENCHANTER_MENU_TITLE)) {
 			user.debug("Interacted with the Enchanter menu. SlotType="+e.getSlotType());
 			CraftInventoryCustom cc = (CraftInventoryCustom) e.getInventory();
 			if(e.getSlotType() == SlotType.RESULT) {

@@ -8,11 +8,11 @@ public class LightweightLoaderRegistry {
 	private Map<Class<? extends AbstractLightweightLoader>, AbstractLightweightLoader<?>> loaders = new HashMap<>();
 
 	public void register(AbstractLightweightLoader<?> loader) {
-		this.loaders.put(loader.getClass(), loader);
+		loaders.put(loader.getClass(), loader);
 	}
 
 	@SuppressWarnings("unchecked")
 	public <C extends AbstractLightweightLoader<?>> C getLoader(Class<C> clazz) {
-		return (C) this.loaders.get(clazz);
+		return (C) loaders.get(clazz);
 	}
 }

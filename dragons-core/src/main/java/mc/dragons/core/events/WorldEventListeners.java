@@ -23,30 +23,30 @@ public class WorldEventListeners implements Listener {
 
 	@EventHandler
 	public void onLeavesDecay(LeavesDecayEvent event) {
-		this.LOGGER
-				.finest("Leaves decay event on " + event.getBlock().getType() + " at " + StringUtil.locToString(event.getBlock().getLocation()) + " [" + event.getBlock().getWorld().getName() + "]");
+		LOGGER.finest("Leaves decay event on " + event.getBlock().getType() + " at " + StringUtil.locToString(event.getBlock().getLocation()) + " [" + event.getBlock().getWorld().getName() + "]");
 		event.setCancelled(true);
 	}
 
 	@EventHandler
 	public void onWeather(WeatherChangeEvent e) {
-		this.LOGGER.finest("Weather change event in world " + e.getWorld().getName());
+		LOGGER.finest("Weather change event in world " + e.getWorld().getName());
 		e.setCancelled(e.toWeatherState());
 	}
 
 	@EventHandler
 	public void onCropTrample(PlayerInteractEvent e) {
-		this.LOGGER.finest("Player interact event in world " + e.getPlayer().getWorld().getName());
+		LOGGER.finest("Player interact event in world " + e.getPlayer().getWorld().getName());
 		if (e.getAction() == Action.PHYSICAL && e.getClickedBlock().getType() == Material.SOIL) {
-			this.LOGGER.finest(" - It's a crop trample event! Cancelling.");
+			LOGGER.finest(" - It's a crop trample event! Cancelling.");
 			e.setCancelled(true);
 		}
 	}
 
 	@EventHandler
 	public void onEntityCropTrample(EntityInteractEvent event) {
-		this.LOGGER.finest("Entity interact event in world " + event.getEntity().getWorld());
-		if (event.getBlock().getType() == Material.CROPS || event.getBlock().getType() == Material.SOIL)
+		LOGGER.finest("Entity interact event in world " + event.getEntity().getWorld());
+		if (event.getBlock().getType() == Material.CROPS || event.getBlock().getType() == Material.SOIL) {
 			event.setCancelled(true);
+		}
 	}
 }

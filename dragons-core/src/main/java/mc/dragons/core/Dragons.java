@@ -122,11 +122,11 @@ public class Dragons extends JavaPlugin {
 	public synchronized void onLoad() {
 		if (INSTANCE == null) {
 			INSTANCE = this;
-			this.started = System.currentTimeMillis();
+			started = System.currentTimeMillis();
 			getLogger().info("Searching for compatible version...");
 			switch (BUKKIT_API_VERSION) {
 			case "1_12_R1":
-				this.bridge = new BridgeSpigot112R1();
+				bridge = new BridgeSpigot112R1();
 				break;
 			default:
 				getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");
@@ -136,37 +136,38 @@ public class Dragons extends JavaPlugin {
 			}
 			getLogger().info("Initializing storage and registries...");
 			saveDefaultConfig();
-			this.mongoConfig = new MongoConfig(this);
-			this.persistentStorageManager = new MongoStorageManager(this);
-			this.localStorageManager = new LocalStorageManager();
-			this.gameObjectRegistry = new GameObjectRegistry(this, this.persistentStorageManager);
-			this.addonRegistry = new AddonRegistry(this);
-			this.userHookRegistry = new UserHookRegistry();
-			this.lightweightLoaderRegistry = new LightweightLoaderRegistry();
-			this.sidebarManager = new SidebarManager(this);
+			mongoConfig = new MongoConfig(this);
+			persistentStorageManager = new MongoStorageManager(this);
+			localStorageManager = new LocalStorageManager();
+			gameObjectRegistry = new GameObjectRegistry(this, persistentStorageManager);
+			addonRegistry = new AddonRegistry(this);
+			userHookRegistry = new UserHookRegistry();
+			lightweightLoaderRegistry = new LightweightLoaderRegistry();
+			sidebarManager = new SidebarManager(this);
 			
-			this.autoSaveRunnable = new AutoSaveTask(this);
-			this.spawnEntityRunnable = new SpawnEntityTask(this);
-			this.verifyGameIntegrityRunnable = new VerifyGameIntegrityTask(this);
-			this.lagMeter = new LagMeter();
-			this.lagMonitorTask = new LagMonitorTask();
-			this.updateScoreboardTask = new UpdateScoreboardTask(this);
+			autoSaveRunnable = new AutoSaveTask(this);
+			spawnEntityRunnable = new SpawnEntityTask(this);
+			verifyGameIntegrityRunnable = new VerifyGameIntegrityTask(this);
+			lagMeter = new LagMeter();
+			lagMonitorTask = new LagMonitorTask();
+			updateScoreboardTask = new UpdateScoreboardTask(this);
 			org.apache.logging.log4j.core.Logger pluginLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(getLogger().getName());
-			this.serverOptions = new ServerOptions(pluginLogger);
-			getLogger().setLevel(this.serverOptions.getLogLevel());
+			serverOptions = new ServerOptions(pluginLogger);
+			getLogger().setLevel(serverOptions.getLogLevel());
 			((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
-			this.serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
-			this.debug = getConfig().getBoolean("debug");
-			if (this.debug) {
-				if (this.serverOptions.getLogLevel().intValue() > Level.CONFIG.intValue())
-					this.serverOptions.setLogLevel(Level.CONFIG);
-				this.serverOptions.setVerifyIntegrityEnabled(false);
+			serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
+			debug = getConfig().getBoolean("debug");
+			if (debug) {
+				if (serverOptions.getLogLevel().intValue() > Level.CONFIG.intValue()) {
+					serverOptions.setLogLevel(Level.CONFIG);
+				}
+				serverOptions.setVerifyIntegrityEnabled(false);
 				getLogger().config("===========================================================================================");
 				getLogger().config("THIS SERVER IS IN DEVELOPMENT MODE. GAME INTEGRITY WILL NOT BE VERIFIED AFTER INITIAL LOAD.");
 				getLogger().config("===========================================================================================");
 			}
-			this.serverName = getConfig().getString("serverName");
-			getLogger().info("Server instance name is " + this.serverName);
+			serverName = getConfig().getString("serverName");
+			getLogger().info("Server instance name is " + serverName);
 			CustomLoggingProvider.enableCustomLogging();
 		}
 	}
@@ -175,8 +176,9 @@ public class Dragons extends JavaPlugin {
 	public void onEnable() {
 		getLogger().info("Removing unwanted entities...");
 		for (Entity e : getEntities()) {
-			if (e instanceof ItemFrame)
+			if (e instanceof ItemFrame) {
 				continue;
+			}
 			e.remove();
 		}
 		
@@ -197,34 +199,34 @@ public class Dragons extends JavaPlugin {
 		// live game object. These entities need to be purged as they will not be responsive
 		// to new game events.
 		
-		(new BukkitRunnable() {
+		new BukkitRunnable() {
 			@Override
 			public void run() {
 				GameObjectType.NPC.<NPC, NPCLoader>getLoader().lazyLoadAllPermanent();
 				getLogger().info("Flushing invalid game objects from initial load...");
-				(new BukkitRunnable() {
+				new BukkitRunnable() {
 					int i = 1;
 
 					@Override
 					public void run() {
 						verifyGameIntegrityRunnable.run(true);
-						this.i++;
-						if (this.i >= 5) {
+						i++;
+						if (i >= 5) {
 							cancel();
 							getLogger().info("... flush complete. Entity count: " + getEntities().size());
 							System.gc();
 						}
 					}
-				}).runTaskTimer(Dragons.this, 20L, 20L);
+				}.runTaskTimer(Dragons.this, 20L, 20L);
 			}
-		}).runTaskLater(this, 20L);
+		}.runTaskLater(this, 20L);
 
 		getLogger().info("Registering lightweight object loaders...");
-		this.lightweightLoaderRegistry.register(new ChangeLogLoader(mongoConfig));
-		this.lightweightLoaderRegistry.register(new FeedbackLoader(mongoConfig));
-		this.lightweightLoaderRegistry.register(new WarpLoader(mongoConfig));
-		this.lightweightLoaderRegistry.register(new CorrelationLogLoader(mongoConfig));
-		this.lightweightLoaderRegistry.register(new SystemProfileLoader(this));
+		lightweightLoaderRegistry.register(new ChangeLogLoader(mongoConfig));
+		lightweightLoaderRegistry.register(new FeedbackLoader(mongoConfig));
+		lightweightLoaderRegistry.register(new WarpLoader(mongoConfig));
+		lightweightLoaderRegistry.register(new CorrelationLogLoader(mongoConfig));
+		lightweightLoaderRegistry.register(new SystemProfileLoader(this));
 
 		getLogger().info("Registering events...");
 		PluginManager pluginManager = getServer().getPluginManager();
@@ -238,7 +240,7 @@ public class Dragons extends JavaPlugin {
 
 		getLogger().info("Registering packet listeners...");
 		ProtocolLibrary.getProtocolManager().addPacketListener(new EntityMoveListener(this));
-		this.entityHider = new EntityHider(Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
+		entityHider = new EntityHider(Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
 		
 		getLogger().info("Registering commands...");
 		getCommand("rank").setExecutor(new RankCommand());
@@ -258,25 +260,27 @@ public class Dragons extends JavaPlugin {
 		getCommand("newsmanager").setExecutor(changeLogCommandsExecutor);
 
 		getLogger().info("Scheduling tasks...");
-		this.autoSaveRunnable.runTaskTimer(this, 0L, this.serverOptions.getAutoSavePeriodTicks());
-		this.spawnEntityRunnable.runTaskTimer(this, 0L, this.serverOptions.getCustomSpawnRate());
-		this.verifyGameIntegrityRunnable.runTaskTimer(this, 0L, this.serverOptions.getVerifyIntegritySweepRate());
-		this.lagMeter.runTaskTimer(this, 100L, 1L);
-		this.lagMonitorTask.runTaskAsynchronously(this);
-		this.updateScoreboardTask.runTaskTimer(this, 100L, 20L);
+		autoSaveRunnable.runTaskTimer(this, 0L, serverOptions.getAutoSavePeriodTicks());
+		spawnEntityRunnable.runTaskTimer(this, 0L, serverOptions.getCustomSpawnRate());
+		verifyGameIntegrityRunnable.runTaskTimer(this, 0L, serverOptions.getVerifyIntegritySweepRate());
+		lagMeter.runTaskTimer(this, 100L, 1L);
+		lagMonitorTask.runTaskAsynchronously(this);
+		updateScoreboardTask.runTaskTimer(this, 100L, 20L);
 
 		getLogger().info("Enabling addons...");
-		this.addonRegistry.enableAll();
+		addonRegistry.enableAll();
 	}
 
 	@Override
 	public void onDisable() {
-		((AutoSaveTask) this.autoSaveRunnable).run(true);
+		((AutoSaveTask) autoSaveRunnable).run(true);
 		for (User user : UserLoader.allUsers()) {
-			if (user.getPlayer() == null || !user.getPlayer().isOnline())
+			if (user.getPlayer() == null || !user.getPlayer().isOnline()) {
 				continue;
-			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, false))
+			}
+			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, false)) {
 				continue;
+			}
 			user.handleQuit();
 			user.getPlayer().kickPlayer(ChatColor.YELLOW + "This server instance has been closed. We'll be back online soon.");
 		}
@@ -294,8 +298,9 @@ public class Dragons extends JavaPlugin {
 
 	public List<Entity> getEntities() {
 		List<Entity> entities = new ArrayList<>();
-		for (World w : Bukkit.getWorlds())
+		for (World w : Bukkit.getWorlds()) {
 			entities.addAll(w.getEntities());
+		}
 		return entities;
 	}
 
@@ -304,86 +309,86 @@ public class Dragons extends JavaPlugin {
 	}
 	
 	public MongoConfig getMongoConfig() {
-		return this.mongoConfig;
+		return mongoConfig;
 	}
 	
 	public StorageManager getPersistentStorageManager() {
-		return this.persistentStorageManager;
+		return persistentStorageManager;
 	}
 
 	public LocalStorageManager getLocalStorageManager() {
-		return this.localStorageManager;
+		return localStorageManager;
 	}
 
 	public GameObjectRegistry getGameObjectRegistry() {
-		return this.gameObjectRegistry;
+		return gameObjectRegistry;
 	}
 
 	public AddonRegistry getAddonRegistry() {
-		return this.addonRegistry;
+		return addonRegistry;
 	}
 
 	public UserHookRegistry getUserHookRegistry() {
-		return this.userHookRegistry;
+		return userHookRegistry;
 	}
 
 	public LightweightLoaderRegistry getLightweightLoaderRegistry() {
-		return this.lightweightLoaderRegistry;
+		return lightweightLoaderRegistry;
 	}
 
 	public SidebarManager getSidebarManager() {
-		return this.sidebarManager;
+		return sidebarManager;
 	}
 
 	public EntityHider getEntityHider() {
-		return this.entityHider;
+		return entityHider;
 	}
 	
 	public ServerOptions getServerOptions() {
-		return this.serverOptions;
+		return serverOptions;
 	}
 
 	public Bridge getBridge() {
-		return this.bridge;
+		return bridge;
 	}
 
 	public List<Double> getTPSRecord() {
-		return this.lagMonitorTask.getTPSRecord();
+		return lagMonitorTask.getTPSRecord();
 	}
 
 	public BukkitRunnable getAutoSaveRunnable() {
-		return this.autoSaveRunnable;
+		return autoSaveRunnable;
 	}
 
 	public void setAutoSaveRunnable(BukkitRunnable runnable) {
-		this.autoSaveRunnable = runnable;
+		autoSaveRunnable = runnable;
 	}
 
 	public BukkitRunnable getSpawnEntityRunnable() {
-		return this.spawnEntityRunnable;
+		return spawnEntityRunnable;
 	}
 
 	public void setSpawnEntityRunnable(BukkitRunnable runnable) {
-		this.spawnEntityRunnable = runnable;
+		spawnEntityRunnable = runnable;
 	}
 
 	public BukkitRunnable getVerifyGameIntegrityRunnable() {
-		return this.verifyGameIntegrityRunnable;
+		return verifyGameIntegrityRunnable;
 	}
 
 	public void setVerifyGameIntegrityRunnable(VerifyGameIntegrityTask runnable) {
-		this.verifyGameIntegrityRunnable = runnable;
+		verifyGameIntegrityRunnable = runnable;
 	}
 
 	public String getServerName() {
-		return this.serverName;
+		return serverName;
 	}
 
 	public long getUptime() {
-		return System.currentTimeMillis() - this.started;
+		return System.currentTimeMillis() - started;
 	}
 
 	public boolean isDebug() {
-		return this.debug;
+		return debug;
 	}
 }

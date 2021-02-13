@@ -48,7 +48,7 @@ public class MongoConfig {
 		MongoClient client = MongoClients.create(settings);
 		
 		this.database = client.getDatabase(database);
-		this.counter = new MongoCounter(this);
+		counter = new MongoCounter(this);
 	}
 		
 

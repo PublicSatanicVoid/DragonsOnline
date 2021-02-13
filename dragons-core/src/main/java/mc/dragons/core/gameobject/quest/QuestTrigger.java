@@ -63,8 +63,9 @@ public class QuestTrigger {
 			questTrigger.quantity = trigger.getInteger("quantity").intValue();
 		} else if (questTrigger.type == TriggerType.BRANCH_CONDITIONAL) {
 			questTrigger.branchPoints = new LinkedHashMap<>();
-			for (Document conditional : trigger.getList("branchPoints", Document.class))
+			for (Document conditional : trigger.getList("branchPoints", Document.class)) {
 				questTrigger.branchPoints.put(fromDocument((Document) conditional.get("trigger"), quest), QuestAction.fromDocument((Document) conditional.get("action"), quest));
+			}
 		} else if (questTrigger.type == TriggerType.HAS_ITEM) {
 			questTrigger.itemClass = itemClassLoader.getItemClassByClassName(trigger.getString("itemClass"));
 			questTrigger.quantity = trigger.getInteger("quantity").intValue();
@@ -73,7 +74,7 @@ public class QuestTrigger {
 	}
 
 	private QuestTrigger() {
-		this.killQuantity = new HashMap<>();
+		killQuantity = new HashMap<>();
 	}
 	
 	/* No need to create subclasses for each trigger type; this works fine */
@@ -135,59 +136,61 @@ public class QuestTrigger {
 	}
 
 	public TriggerType getTriggerType() {
-		return this.type;
+		return type;
 	}
 
 	public NPCClass getNPCClass() {
 		npcClassDeferredLoad();
-		return this.npcClass;
+		return npcClass;
 	}
 
 	public Region getRegion() {
-		return this.region;
+		return region;
 	}
 
 	public ItemClass getItemClass() {
-		return this.itemClass;
+		return itemClass;
 	}
 
 	public int getQuantity() {
-		return this.quantity;
+		return quantity;
 	}
 
 	public Map<QuestTrigger, QuestAction> getBranchPoints() {
-		return this.branchPoints;
+		return branchPoints;
 	}
 
 	private void npcClassDeferredLoad() {
-		if (this.npcClass == null)
-			this.npcClass = npcClassLoader.getNPCClassByClassName(this.npcClassShortName);
+		if (npcClass == null) {
+			npcClass = npcClassLoader.getNPCClassByClassName(npcClassShortName);
+		}
 	}
 
 	public Document toDocument() {
 		List<Document> conditions;
-		Document document = new Document("type", this.type.toString());
-		switch (this.type) {
+		Document document = new Document("type", type.toString());
+		switch (type) {
 		case ENTER_REGION:
 		case EXIT_REGION:
-			document.append("region", this.region.getName());
+			document.append("region", region.getName());
 			break;
 		case CLICK_NPC:
 			npcClassDeferredLoad();
-			document.append("npcClass", this.npcClass.getClassName());
+			document.append("npcClass", npcClass.getClassName());
 			break;
 		case KILL_NPC:
 			npcClassDeferredLoad();
-			document.append("npcClass", this.npcClass.getClassName());
-			document.append("quantity", this.quantity);
+			document.append("npcClass", npcClass.getClassName());
+			document.append("quantity", quantity);
 			break;
 		case HAS_ITEM:
-			document.append("itemClass", this.itemClass.getClassName()).append("quantity", Integer.valueOf(this.quantity));
+			document.append("itemClass", itemClass.getClassName()).append("quantity", Integer.valueOf(quantity));
 			break;
 		case BRANCH_CONDITIONAL:
 			conditions = new ArrayList<>();
-			for (Entry<QuestTrigger, QuestAction> entry : this.branchPoints.entrySet())
-				conditions.add((new Document("trigger", entry.getKey().toDocument()).append("action", entry.getValue().toDocument())));
+			for (Entry<QuestTrigger, QuestAction> entry : branchPoints.entrySet()) {
+				conditions.add(new Document("trigger", entry.getKey().toDocument()).append("action", entry.getValue().toDocument()));
+			}
 			document.append("branchPoints", conditions);
 			break;
 
@@ -202,69 +205,81 @@ public class QuestTrigger {
 	}
 
 	public boolean test(User user, Event event) {
-		if (this.type == TriggerType.INSTANT)
+		if (type == TriggerType.INSTANT) {
 			return true;
-		if (this.type == TriggerType.NEVER)
+		}
+		if (type == TriggerType.NEVER) {
 			return false;
-		if (this.type == TriggerType.HAS_ITEM) {
-			user.debug(" [ - Testing if has item " + this.itemClass.getClassName());
+		}
+		if (type == TriggerType.HAS_ITEM) {
+			user.debug(" [ - Testing if has item " + itemClass.getClassName());
 			int has = 0;
 			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
 				Item item = ItemLoader.fromBukkit(itemStack);
-				if (item != null && item.getClassName().equals(this.itemClass.getClassName()))
-					has += itemStack.getAmount();	
+				if (item != null && item.getClassName().equals(itemClass.getClassName())) {
+					has += itemStack.getAmount();
+				}	
 			}
-			user.debug("    [ - has " + has + " vs. needs " + this.quantity);
-			return (has >= this.quantity);
+			user.debug("    [ - has " + has + " vs. needs " + quantity);
+			return has >= quantity;
 		}
-		if (this.type == TriggerType.ENTER_REGION) {
+		if (type == TriggerType.ENTER_REGION) {
 			user.updateState(false, false);
-			if (user.getRegions().contains(this.region))
+			if (user.getRegions().contains(region)) {
 				return true;
+			}
 		}
-		if (this.type == TriggerType.EXIT_REGION) {
+		if (type == TriggerType.EXIT_REGION) {
 			user.updateState(false, false);
-			if (!user.getRegions().contains(this.region))
+			if (!user.getRegions().contains(region)) {
 				return true;
+			}
 		}
-		if (this.type == TriggerType.CLICK_NPC) {
+		if (type == TriggerType.CLICK_NPC) {
 			npcClassDeferredLoad();
-			if (event == null)
+			if (event == null) {
 				return false;
+			}
 			if (event instanceof PlayerInteractEntityEvent) {
 				user.debug("    [ - it's an interact entity event");
 				PlayerInteractEntityEvent interactEvent = (PlayerInteractEntityEvent) event;
 				NPC npc = NPCLoader.fromBukkit(interactEvent.getRightClicked());
-				if (npc == null)
+				if (npc == null) {
 					return false;
-				user.debug("    [ - clicked class: " + npc.getNPCClass().getClassName() + "; want: " + this.npcClass.getClassName());
-				if (npc.getNPCClass().equals(this.npcClass))
+				}
+				user.debug("    [ - clicked class: " + npc.getNPCClass().getClassName() + "; want: " + npcClass.getClassName());
+				if (npc.getNPCClass().equals(npcClass)) {
 					return true;
-			}
-		}
-		if (this.type == TriggerType.KILL_NPC) {
-			npcClassDeferredLoad();
-			if (event == null)
-				return false;
-			if (event instanceof EntityDeathEvent) {
-				EntityDeathEvent deathEvent = (EntityDeathEvent) event;
-				NPC npc = NPCLoader.fromBukkit(deathEvent.getEntity());
-				if (npc == null)
-					return false;
-				if (npc.getNPCClass().equals(this.npcClass)) {
-					this.killQuantity.put(user, Integer.valueOf(this.killQuantity.getOrDefault(user, Integer.valueOf(0)) + 1));
-					if (this.killQuantity.getOrDefault(user, 0) >= this.quantity)
-						return true;
 				}
 			}
 		}
-		if (this.type == TriggerType.BRANCH_CONDITIONAL)
-			for (Entry<QuestTrigger, QuestAction> conditional : this.branchPoints.entrySet()) {
+		if (type == TriggerType.KILL_NPC) {
+			npcClassDeferredLoad();
+			if (event == null) {
+				return false;
+			}
+			if (event instanceof EntityDeathEvent) {
+				EntityDeathEvent deathEvent = (EntityDeathEvent) event;
+				NPC npc = NPCLoader.fromBukkit(deathEvent.getEntity());
+				if (npc == null) {
+					return false;
+				}
+				if (npc.getNPCClass().equals(npcClass)) {
+					killQuantity.put(user, Integer.valueOf(killQuantity.getOrDefault(user, Integer.valueOf(0)) + 1));
+					if (killQuantity.getOrDefault(user, 0) >= quantity) {
+						return true;
+					}
+				}
+			}
+		}
+		if (type == TriggerType.BRANCH_CONDITIONAL) {
+			for (Entry<QuestTrigger, QuestAction> conditional : branchPoints.entrySet()) {
 				if (conditional.getKey().test(user, event)) {
 					conditional.getValue().execute(user);
 					return true;
 				}
 			}
+		}
 		return false;
 	}
 }

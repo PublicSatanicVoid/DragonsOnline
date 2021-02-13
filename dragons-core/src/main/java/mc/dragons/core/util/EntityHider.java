@@ -60,44 +60,46 @@ public class EntityHider implements Listener {
 	public EntityHider(Plugin plugin, Policy policy) {
 		Preconditions.checkNotNull(plugin, "plugin cannot be NULL.");
 		this.policy = policy;
-		this.manager = ProtocolLibrary.getProtocolManager();
-		plugin.getServer().getPluginManager().registerEvents(this.bukkitListener = constructBukkit(), plugin);
-		this.manager.addPacketListener(this.protocolListener = constructProtocol(plugin));
+		manager = ProtocolLibrary.getProtocolManager();
+		plugin.getServer().getPluginManager().registerEvents(bukkitListener = constructBukkit(), plugin);
+		manager.addPacketListener(protocolListener = constructProtocol(plugin));
 	}
 
 	protected boolean setVisibility(Player observer, int entityID, boolean visible) {
-		switch (this.policy) {
+		switch (policy) {
 		case BLACKLIST:
 			return !setMembership(observer, entityID, !visible);
 		case WHITELIST:
 			return setMembership(observer, entityID, visible);
 		}
-		throw new IllegalArgumentException("Unknown policy: " + this.policy);
+		throw new IllegalArgumentException("Unknown policy: " + policy);
 	}
 
 	protected boolean setMembership(Player observer, int entityID, boolean member) {
-		if (member)
-			return (this.observerEntityMap.put(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID), Boolean.valueOf(true)) != null);
-		return (this.observerEntityMap.remove(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID)) != null);
+		if (member) {
+			return observerEntityMap.put(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID), Boolean.valueOf(true)) != null;
+		}
+		return observerEntityMap.remove(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID)) != null;
 	}
 
 	protected boolean getMembership(Player observer, int entityID) {
-		return this.observerEntityMap.contains(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID));
+		return observerEntityMap.contains(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID));
 	}
 
 	protected boolean isVisible(Player observer, int entityID) {
 		boolean presence = getMembership(observer, entityID);
-		return (this.policy == Policy.WHITELIST) ? presence : (!presence);
+		return policy == Policy.WHITELIST ? presence : !presence;
 	}
 
 	protected void removeEntity(Entity entity, boolean destroyed) {
 		int entityID = entity.getEntityId();
-		for (Map<Integer, Boolean> maps : (Iterable<Map<Integer, Boolean>>) this.observerEntityMap.rowMap().values())
+		for (Map<Integer, Boolean> maps : (Iterable<Map<Integer, Boolean>>) observerEntityMap.rowMap().values()) {
 			maps.remove(Integer.valueOf(entityID));
+		}
 	}
 
 	protected void removePlayer(Player player) {
-		this.observerEntityMap.rowMap().remove(Integer.valueOf(player.getEntityId()));
+		observerEntityMap.rowMap().remove(Integer.valueOf(player.getEntityId()));
 	}
 
 	private Listener constructBukkit() {
@@ -126,25 +128,28 @@ public class EntityHider implements Listener {
 		return new PacketAdapter(plugin, ENTITY_PACKETS) {
 			@Override
 			public void onPacketSending(PacketEvent event) {
-				int index = (event.getPacketType() == PacketType.Play.Server.COMBAT_EVENT) ? 1 : 0;
+				int index = event.getPacketType() == PacketType.Play.Server.COMBAT_EVENT ? 1 : 0;
 				Integer entityID = event.getPacket().getIntegers().readSafely(index);
-				if (entityID != null && !EntityHider.this.isVisible(event.getPlayer(), entityID.intValue()))
+				if (entityID != null && !EntityHider.this.isVisible(event.getPlayer(), entityID.intValue())) {
 					event.setCancelled(true);
+				}
 			}
 		};
 	}
 
 	public final boolean toggleEntity(Player observer, Entity entity) {
-		if (isVisible(observer, entity.getEntityId()))
+		if (isVisible(observer, entity.getEntityId())) {
 			return hideEntity(observer, entity);
+		}
 		return !showEntity(observer, entity);
 	}
 
 	public final boolean showEntity(Player observer, Entity entity) {
 		validate(observer, entity);
 		boolean hiddenBefore = !setVisibility(observer, entity.getEntityId(), true);
-		if (this.manager != null && hiddenBefore)
-			this.manager.updateEntity(entity, Arrays.asList(new Player[] { observer }));
+		if (manager != null && hiddenBefore) {
+			manager.updateEntity(entity, Arrays.asList(new Player[] { observer }));
+		}
 		return hiddenBefore;
 	}
 
@@ -155,7 +160,7 @@ public class EntityHider implements Listener {
 			PacketContainer destroyEntity = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
 			destroyEntity.getIntegerArrays().write(0, new int[] { entity.getEntityId() });
 			try {
-				this.manager.sendServerPacket(observer, destroyEntity);
+				manager.sendServerPacket(observer, destroyEntity);
 			} catch (InvocationTargetException e) {
 				throw new RuntimeException("Cannot send server packet.", e);
 			}
@@ -174,14 +179,14 @@ public class EntityHider implements Listener {
 	}
 
 	public Policy getPolicy() {
-		return this.policy;
+		return policy;
 	}
 
 	public void close() {
-		if (this.manager != null) {
-			HandlerList.unregisterAll(this.bukkitListener);
-			this.manager.removePacketListener(this.protocolListener);
-			this.manager = null;
+		if (manager != null) {
+			HandlerList.unregisterAll(bukkitListener);
+			manager.removePacketListener(protocolListener);
+			manager = null;
 		}
 	}
 }

@@ -23,28 +23,31 @@ public class EntityMoveListener extends PacketAdapter {
 
 	public EntityMoveListener(Dragons instance) {
 		super(instance, new PacketType[] { PacketType.Play.Server.REL_ENTITY_MOVE, PacketType.Play.Server.REL_ENTITY_MOVE_LOOK });
-		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 	}
 
 	@Override
 	public void onPacketSending(PacketEvent event) {
 		Entity entity = event.getPacket().getEntityModifier(event.getPlayer().getWorld()).read(0);
 		NPC npc = NPCLoader.fromBukkit(entity);
-		if (npc == null)
+		if (npc == null) {
 			return;
+		}
 		npc.getNPCClass().handleMove(npc, entity.getLocation());
 		if (npc.getNPCType() == NPC.NPCType.HOSTILE) {
-			Set<Region> regions = this.regionLoader.getRegionsByLocation(entity.getLocation());
+			Set<Region> regions = regionLoader.getRegionsByLocation(entity.getLocation());
 			for (Region region : regions) {
-				if (!Boolean.valueOf(region.getFlags().getString("allowhostile")).booleanValue())
+				if (!Boolean.valueOf(region.getFlags().getString("allowhostile")).booleanValue()) {
 					npc.remove();
+				}
 			}
 		}
 		for (Entity e : entity.getNearbyEntities(2.0D, 2.0D, 2.0D)) {
 			if (e instanceof Player) {
 				User user = UserLoader.fromPlayer((Player) e);
-				if (user.hasDeathCountdown())
+				if (user.hasDeathCountdown()) {
 					entity.setVelocity(entity.getLocation().toVector().subtract(e.getLocation().toVector()).normalize().multiply(5.0D));
+				}
 			}
 		}
 	}

@@ -78,31 +78,31 @@ public class NPC extends GameObject {
 		}
 
 		public ChatColor getNameColor() {
-			return this.nameColor;
+			return nameColor;
 		}
 
 		public String getPrefix() {
-			return this.prefix;
+			return prefix;
 		}
 
 		public boolean isPersistent() {
-			return this.persistent;
+			return persistent;
 		}
 
 		public boolean isImmortalByDefault() {
-			return this.immortalByDefault;
+			return immortalByDefault;
 		}
 
 		public boolean hasAIByDefault() {
-			return this.aiByDefault;
+			return aiByDefault;
 		}
 
 		public boolean isLoadedImmediately() {
-			return this.loadImmediately;
+			return loadImmediately;
 		}
 
 		public boolean canRespawnOnDeath() {
-			return this.respawnOnDeath;
+			return respawnOnDeath;
 		}
 	}	
 	
@@ -123,95 +123,102 @@ public class NPC extends GameObject {
 	}
 
 	public void initializeEntity() {
-		this.entity.setCustomName(getDecoratedName());
-		this.entity.setCustomNameVisible(true);
-		this.healthIndicator = this.entity;
-		Dragons.getInstance().getBridge().setEntityAI(this.entity, getNPCClass().hasAI());
-		Dragons.getInstance().getBridge().setEntityInvulnerable(this.entity, isImmortal());
-		if (this.entity instanceof Zombie)
-			((Zombie) this.entity).setBaby(false);
-		if (this.entity.isInsideVehicle())
-			this.entity.getVehicle().eject();
-		if (this.entity instanceof Attributable) {
-			Attributable att = (Attributable) this.entity;
-			for (Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet())
+		entity.setCustomName(getDecoratedName());
+		entity.setCustomNameVisible(true);
+		healthIndicator = entity;
+		Dragons.getInstance().getBridge().setEntityAI(entity, getNPCClass().hasAI());
+		Dragons.getInstance().getBridge().setEntityInvulnerable(entity, isImmortal());
+		if (entity instanceof Zombie) {
+			((Zombie) entity).setBaby(false);
+		}
+		if (entity.isInsideVehicle()) {
+			entity.getVehicle().eject();
+		}
+		if (entity instanceof Attributable) {
+			Attributable att = (Attributable) entity;
+			for (Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet()) {
 				att.getAttribute(a.getKey()).setBaseValue(a.getValue());
+			}
 		}
 		Material heldItemType = getNPCClass().getHeldItemType();
-		if (heldItemType != null)
+		if (heldItemType != null) {
 			setHeldItem(new ItemStack(heldItemType));
-		this.entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
+		}
+		entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
 	}
 
 	public boolean isDamageExternalized() {
-		return this.isDamageExternalized;
+		return isDamageExternalized;
 	}
 
 	public void setDamageExternalized(boolean externalized) {
-		this.isDamageExternalized = externalized;
+		isDamageExternalized = externalized;
 	}
 
 	public NPCClass getNPCClass() {
 		String className = (String) getData("className");
-		if (className == null)
+		if (className == null) {
 			return null;
+		}
 		return npcClassLoader.getNPCClassByClassName(className);
 	}
 
 	public void setMaxHealth(double maxHealth) {
-		if (this.entity instanceof Attributable) {
-			Attributable attributable = (Attributable) this.entity;
+		if (entity instanceof Attributable) {
+			Attributable attributable = (Attributable) entity;
 			attributable.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
 			setData("maxHealth", Double.valueOf(maxHealth));
 		}
 	}
 
 	public double getMaxHealth() {
-		if (this.entity instanceof Attributable) {
-			Attributable attributable = (Attributable) this.entity;
+		if (entity instanceof Attributable) {
+			Attributable attributable = (Attributable) entity;
 			return attributable.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
 		}
 		return 0.0D;
 	}
 
 	public void setHealth(double health) {
-		if (this.entity instanceof Damageable) {
-			Damageable damageable = (Damageable) this.entity;
+		if (entity instanceof Damageable) {
+			Damageable damageable = (Damageable) entity;
 			damageable.setHealth(health);
 		}
 	}
 
 	public void damage(double damage, Entity source) {
-		if (this.entity instanceof Damageable) {
-			Damageable damageable = (Damageable) this.entity;
+		if (entity instanceof Damageable) {
+			Damageable damageable = (Damageable) entity;
 			damageable.damage(damage, source);
 		}
 	}
 
 	public void damage(double damage) {
-		if (this.entity instanceof Damageable) {
-			Damageable damageable = (Damageable) this.entity;
+		if (entity instanceof Damageable) {
+			Damageable damageable = (Damageable) entity;
 			damageable.damage(damage);
 		}
 	}
 
 	public double getHealth() {
-		if (this.entity instanceof Damageable) {
-			Damageable damageable = (Damageable) this.entity;
+		if (entity instanceof Damageable) {
+			Damageable damageable = (Damageable) entity;
 			return damageable.getHealth();
 		}
 		return 0.0D;
 	}
 
 	public ItemStack getHeldItem() {
-		if (this.entity instanceof LivingEntity)
-			return ((LivingEntity) this.entity).getEquipment().getItemInMainHand();
+		if (entity instanceof LivingEntity) {
+			return ((LivingEntity) entity).getEquipment().getItemInMainHand();
+		}
 		return null;
 	}
 
 	public void setHeldItem(ItemStack itemStack) {
-		if (this.entity instanceof LivingEntity)
-			((LivingEntity) this.entity).getEquipment().setItemInMainHand(itemStack);
+		if (entity instanceof LivingEntity) {
+			((LivingEntity) entity).getEquipment().setItemInMainHand(itemStack);
+		}
 		setData("holding", itemStack.getType().toString());
 	}
 
@@ -220,8 +227,8 @@ public class NPC extends GameObject {
 	}
 
 	public void setExternalHealthIndicator(ArmorStand indicator) {
-		this.healthIndicator.setCustomNameVisible(false);
-		this.healthIndicator = indicator;
+		healthIndicator.setCustomNameVisible(false);
+		healthIndicator = indicator;
 		indicator.setCustomNameVisible(true);
 		updateHealthBar(0.0D);
 	}
@@ -231,8 +238,8 @@ public class NPC extends GameObject {
 	}
 
 	public void updateHealthBar(double additionalDamage) {
-		this.healthIndicator.setCustomName(String.valueOf(getDecoratedName()) + (isImmortal() ? (ChatColor.LIGHT_PURPLE + " [Immortal]")
-				: (ChatColor.DARK_GRAY + " [" + ProgressBarUtil.getHealthBar(getHealth() - additionalDamage, getMaxHealth()) + ChatColor.DARK_GRAY + "]")));
+		healthIndicator.setCustomName(String.valueOf(getDecoratedName()) + (isImmortal() ? ChatColor.LIGHT_PURPLE + " [Immortal]"
+				: ChatColor.DARK_GRAY + " [" + ProgressBarUtil.getHealthBar(getHealth() - additionalDamage, getMaxHealth()) + ChatColor.DARK_GRAY + "]"));
 	}
 
 	public String getName() {
@@ -256,59 +263,62 @@ public class NPC extends GameObject {
 	}
 
 	public void setTarget(LivingEntity target) {
-		if (this.entity instanceof Creature) {
+		if (entity instanceof Creature) {
 			if (target != null) {
-				Creature c = (Creature) this.entity;
+				Creature c = (Creature) entity;
 				c.setTarget(target);
 			}
-			this.entity.setMetadata("target", new FixedMetadataValue(Dragons.getInstance(), target));
+			entity.setMetadata("target", new FixedMetadataValue(Dragons.getInstance(), target));
 		}
 	}
 
 	public LivingEntity getDeclaredTarget() {
-		if (this.entity instanceof Creature && this.entity.getMetadata("target").size() > 0)
-			return (LivingEntity) this.entity.getMetadata("target").get(0).value();
+		if (entity instanceof Creature && entity.getMetadata("target").size() > 0) {
+			return (LivingEntity) entity.getMetadata("target").get(0).value();
+		}
 		return null;
 	}
 
 	public void remove() {
-		this.entity.remove();
+		entity.remove();
 		registry.removeFromDatabase(this);
 	}
 
 	public void phase(Player playerFor) {
 		LOGGER.finer("Phasing NPC " + getIdentifier() + " for " + playerFor.getName());
 		for (Player p : Bukkit.getOnlinePlayers()) {
-			if (!p.equals(playerFor))
-				entityHider.hideEntity(p, this.entity);
+			if (!p.equals(playerFor)) {
+				entityHider.hideEntity(p, entity);
+			}
 		}
-		entityHider.showEntity(playerFor, this.entity);
+		entityHider.showEntity(playerFor, entity);
 	}
 
 	public void unphase(Player playerFor) {
-		entityHider.hideEntity(playerFor, this.entity);
+		entityHider.hideEntity(playerFor, entity);
 	}
 
 	public void setEntity(Entity entity) {
-		if (this.entity != null)
+		if (this.entity != null) {
 			this.entity.removeMetadata("handle", Dragons.getInstance());
+		}
 		LOGGER.finer("Replacing entity backing NPC " + getIdentifier() + ": " + StringUtil.entityToString(this.entity) + " -> " + StringUtil.entityToString(entity));
 		this.entity = entity;
 		this.entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
 	}
 
 	public Entity getEntity() {
-		return this.entity;
+		return entity;
 	}
 
 	public void regenerate(Location spawn) {
 		LOGGER.fine("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
-		if (this.entity != null) {
-			this.entity.remove();
+		if (entity != null) {
+			entity.remove();
 			LOGGER.fine("-Removed old entity");
 		}
 		setEntity(spawn.getWorld().spawnEntity(spawn, getNPCClass().getEntityType()));
-		this.healthIndicator = this.entity;
+		healthIndicator = entity;
 		initializeEntity();
 	}
 }

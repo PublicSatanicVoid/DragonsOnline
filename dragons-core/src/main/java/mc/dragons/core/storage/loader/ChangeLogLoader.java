@@ -27,23 +27,23 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 		}
 
 		public int getId() {
-			return this.id;
+			return id;
 		}
 
 		public String getDate() {
-			return this.date;
+			return date;
 		}
 
 		public String getBy() {
-			return this.by;
+			return by;
 		}
 
 		public String getTitle() {
-			return this.title;
+			return title;
 		}
 
 		public List<String> getChangeLog() {
-			return this.changelog;
+			return changelog;
 		}
 	}
 
@@ -53,18 +53,19 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 
 	public List<ChangeLogEntry> getUnreadChangelogs(int lastReadChangelog) {
 		List<ChangeLogEntry> result = new ArrayList<>();
-		FindIterable<Document> dbResults = this.collection.find(new Document("_id", new Document("$gt", Integer.valueOf(lastReadChangelog))));
-		for (Document d : dbResults)
+		FindIterable<Document> dbResults = collection.find(new Document("_id", new Document("$gt", Integer.valueOf(lastReadChangelog))));
+		for (Document d : dbResults) {
 			result.add(new ChangeLogEntry(d.getInteger("_id").intValue(), d.getString("date"), d.getString("by"), d.getString("title"), d.getList("changelog", String.class)));
+		}
 		return result;
 	}
 
 	public void deleteChangeLog(int id) {
-		this.collection.deleteOne(new Document("_id", Integer.valueOf(id)));
+		collection.deleteOne(new Document("_id", Integer.valueOf(id)));
 	}
 
 	public void addChangeLog(String by, String title, List<String> changelog) {
 		String date = Date.from(Instant.now()).toString();
-		this.collection.insertOne((new Document("_id", Integer.valueOf(reserveNextId()))).append("date", date).append("by", by).append("title", title).append("changelog", changelog));
+		collection.insertOne(new Document("_id", Integer.valueOf(reserveNextId())).append("date", date).append("by", by).append("title", title).append("changelog", changelog));
 	}
 }

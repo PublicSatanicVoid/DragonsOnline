@@ -12,6 +12,8 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		
 		getCommand("info").setExecutor(new InfoCommand(dragons));
 		getCommand("godmode").setExecutor(new GodModeCommand());
+		getCommand("escalate").setExecutor(new EscalateCommand());
+		getCommand("fly").setExecutor(new FlyCommand());
 		
 		CommandExecutor punishCommandsExecutor = new PunishCommands();
 		getCommand("ban").setExecutor(punishCommandsExecutor);
@@ -30,6 +32,5 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		getCommand("vanish").setExecutor(vanishCommandsExecutor);
 		getCommand("unvanish").setExecutor(vanishCommandsExecutor);
 		
-		getCommand("escalate").setExecutor(new EscalateCommand());
 	}
 }

@@ -26,85 +26,87 @@ public class QuestStep {
 	}
 
 	public Document toDocument() {
-		return (new Document("stepName", this.stepName)).append("trigger", this.trigger.toDocument()).append("actions", this.actions.stream().map(a -> a.toDocument()).collect(Collectors.toList()));
+		return new Document("stepName", stepName).append("trigger", trigger.toDocument()).append("actions", actions.stream().map(a -> a.toDocument()).collect(Collectors.toList()));
 	}
 
 	public QuestTrigger getTrigger() {
-		return this.trigger;
+		return trigger;
 	}
 
 	public void setTrigger(QuestTrigger trigger) {
 		this.trigger = trigger;
-		int stepIndex = this.quest.getStepIndex(this);
-		List<Document> steps = this.quest.getStepsAsDoc();
+		int stepIndex = quest.getStepIndex(this);
+		List<Document> steps = quest.getStepsAsDoc();
 		steps.get(stepIndex).append("trigger", trigger.toDocument());
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void addAction(QuestAction action) {
-		this.actions.add(action);
-		int stepIndex = this.quest.getStepIndex(this);
-		List<Document> steps = this.quest.getStepsAsDoc();
+		actions.add(action);
+		int stepIndex = quest.getStepIndex(this);
+		List<Document> steps = quest.getStepsAsDoc();
 		List<Document> actions = steps.get(stepIndex).getList("actions", Document.class);
 		actions.add(action.toDocument());
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void addDialogue(int actionIndex, String dialogue) {
-		this.actions.get(actionIndex).getDialogue().add(dialogue);
-		List<Document> steps = this.quest.getStepsAsDoc();
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		actions.get(actionIndex).getDialogue().add(dialogue);
+		List<Document> steps = quest.getStepsAsDoc();
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public boolean removeDialogue(int actionIndex, int dialogueIndex) {
-		List<String> dialogue = this.actions.get(actionIndex).getDialogue();
-		if (dialogue == null)
+		List<String> dialogue = actions.get(actionIndex).getDialogue();
+		if (dialogue == null) {
 			return false;
-		if (dialogue.size() >= dialogueIndex)
+		}
+		if (dialogue.size() >= dialogueIndex) {
 			return false;
+		}
 		dialogue.remove(dialogueIndex);
-		List<Document> steps = this.quest.getStepsAsDoc();
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		List<Document> steps = quest.getStepsAsDoc();
+		quest.getStorageAccess().update(new Document("steps", steps));
 		return true;
 	}
 
 	public void addBranchPoint(QuestTrigger trigger, QuestAction action) {
 		this.trigger.getBranchPoints().put(trigger, action);
-		int stepIndex = this.quest.getStepIndex(this);
-		List<Document> steps = this.quest.getStepsAsDoc();
+		int stepIndex = quest.getStepIndex(this);
+		List<Document> steps = quest.getStepsAsDoc();
 		steps.get(stepIndex).get("trigger", Document.class).getList("branchPoints", Document.class)
-				.add((new Document("trigger", trigger.toDocument())).append("action", action.toDocument()));
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+				.add(new Document("trigger", trigger.toDocument()).append("action", action.toDocument()));
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void addChoice(int actionIndex, String choiceText, int goToStage) {
-		this.actions.get(actionIndex).getChoices().put(choiceText, Integer.valueOf(goToStage));
-		List<Document> steps = this.quest.getRecalculatedStepsAsDoc();
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		actions.get(actionIndex).getChoices().put(choiceText, Integer.valueOf(goToStage));
+		List<Document> steps = quest.getRecalculatedStepsAsDoc();
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void deleteAction(int actionIndex) {
-		this.actions.remove(actionIndex);
-		int stepIndex = this.quest.getStepIndex(this);
-		List<Document> steps = this.quest.getStepsAsDoc();
+		actions.remove(actionIndex);
+		int stepIndex = quest.getStepIndex(this);
+		List<Document> steps = quest.getStepsAsDoc();
 		steps.get(stepIndex).getList("actions", Document.class).remove(actionIndex);
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public List<QuestAction> getActions() {
-		return this.actions;
+		return actions;
 	}
 
 	public String getStepName() {
-		return this.stepName;
+		return stepName;
 	}
 
 	public void setStepName(String stepName) {
 		this.stepName = stepName;
-		int stepIndex = this.quest.getStepIndex(this);
-		List<Document> steps = this.quest.getStepsAsDoc();
+		int stepIndex = quest.getStepIndex(this);
+		List<Document> steps = quest.getStepsAsDoc();
 		steps.get(stepIndex).append("stepName", stepName);
-		this.quest.getStorageAccess().update(new Document("steps", steps));
+		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public boolean executeActions(User user) {
@@ -114,14 +116,14 @@ public class QuestStep {
 	public boolean executeActions(User user, int beginIndex) {
 		user.debug(" - Executing actions beginning at " + beginIndex);
 		boolean shouldUpdateStage = true;
-		for (int i = beginIndex; i < this.actions.size(); i++) {
-			QuestAction action = this.actions.get(i);
+		for (int i = beginIndex; i < actions.size(); i++) {
+			QuestAction action = actions.get(i);
 			user.debug("   - Action type " + action.getActionType());
 			QuestAction.QuestActionResult result = action.execute(user);
 			if (result.wasStageModified()) {
 				shouldUpdateStage = false;
 			} else {
-				user.updateQuestAction(this.quest, i + 1);
+				user.updateQuestAction(quest, i + 1);
 			}
 			if (result.shouldPause()) {
 				user.debug("   - Paused action execution after index " + i);

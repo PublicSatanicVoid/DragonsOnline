@@ -32,27 +32,33 @@ public class QuestDialogueCommands implements CommandExecutor {
 					return true;
 				}
 			} else if (label.equals("questchoice")) {
-				if (args.length < 2)
+				if (args.length < 2) {
 					return true;
+				}
 				String questName = args[0];
 				String response = StringUtil.concatArgs(args, 1);
 				user.debug("Selected quest choice " + response + " for quest " + questName);
-				Quest quest = this.questLoader.getQuestByName(questName);
-				if (quest == null)
+				Quest quest = questLoader.getQuestByName(questName);
+				if (quest == null) {
 					return true;
+				}
 				QuestStep progress = user.getQuestProgress().get(quest);
-				if (progress == null)
+				if (progress == null) {
 					return true;
+				}
 				int actionIndex = user.getQuestActionIndex(quest) - 1;
-				if (actionIndex >= progress.getActions().size())
+				if (actionIndex >= progress.getActions().size()) {
 					return true;
+				}
 				QuestAction action = progress.getActions().get(actionIndex);
-				if (action == null)
+				if (action == null) {
 					return true;
+				}
 				if (action.getActionType() == QuestAction.QuestActionType.CHOICES) {
 					Integer stage = action.getChoices().get(response);
-					if (stage == null)
+					if (stage == null) {
 						return true;
+					}
 					sender.sendMessage(ChatColor.GRAY + "[1/1] " + ChatColor.DARK_GREEN + user.getName() + ": " + ChatColor.GREEN + response);
 					user.setQuestPaused(quest, false);
 					user.updateQuestProgress(quest, quest.getSteps().get(stage.intValue()), false);

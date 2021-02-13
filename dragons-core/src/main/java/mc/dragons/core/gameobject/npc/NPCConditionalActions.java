@@ -28,7 +28,7 @@ public class NPCConditionalActions {
 		LOGGER.fine("Constructing conditional actions for " + npcClass.getClassName() + " with trigger " + trigger);
 		this.trigger = trigger;
 		this.npcClass = npcClass;
-		this.conditionals = new LinkedHashMap<>();
+		conditionals = new LinkedHashMap<>();
 		Iterator<Document> iterator = npcClass.getStorageAccess().getDocument().get("conditionals", Document.class).getList(trigger.toString(), Document.class).iterator();
 		while (iterator.hasNext()) {
 			Document conditional = iterator.next();
@@ -45,25 +45,25 @@ public class NPCConditionalActions {
 				LOGGER.fine("  - Found an action: " + action.toJson());
 				parsedActions.add(NPCAction.fromDocument(npcClass, action));
 			}
-			this.conditionals.put(parsedConditions, parsedActions);
+			conditionals.put(parsedConditions, parsedActions);
 		}
 	}
 
 	public NPCTrigger getTrigger() {
-		return this.trigger;
+		return trigger;
 	}
 
 	public NPCClass getNPCClass() {
-		return this.npcClass;
+		return npcClass;
 	}
 
 	public Map<List<NPCCondition>, List<NPCAction>> getConditionals() {
-		return this.conditionals;
+		return conditionals;
 	}
 
 	public void executeConditionals(User user, NPC npc) {
 		user.debug("Executing conditional actions");
-		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : conditionals.entrySet()) {
 			boolean meetsConditions = true;
 			for (NPCCondition condition : entry.getKey()) {
 				if (!condition.test(user)) {
@@ -74,48 +74,54 @@ public class NPCConditionalActions {
 			}
 			if (meetsConditions) {
 				user.debug("- MEETS ALL CONDITIONS, executing actions");
-				for (NPCAction action : entry.getValue())
+				for (NPCAction action : entry.getValue()) {
 					action.execute(user, npc);
+				}
 			}
 		}
 	}
 
 	public Entry<List<NPCCondition>, List<NPCAction>> getConditional(int index) {
 		int i = 0;
-		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
-			if (i == index)
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : conditionals.entrySet()) {
+			if (i == index) {
 				return entry;
+			}
 			i++;
 		}
 		return null;
 	}
 
 	public void addLocalEntry() {
-		this.conditionals.put(new ArrayList<>(), new ArrayList<>());
+		conditionals.put(new ArrayList<>(), new ArrayList<>());
 	}
 
 	public void removeLocalEntry(int index) {
 		List<NPCCondition> key = null;
 		int i = 0;
-		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
-			if (i == index)
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : conditionals.entrySet()) {
+			if (i == index) {
 				key = entry.getKey();
+			}
 			i++;
 		}
-		if (key != null)
-			this.conditionals.remove(key);
+		if (key != null) {
+			conditionals.remove(key);
+		}
 	}
 
 	public List<Document> toDocument() {
 		List<Document> result = new ArrayList<>();
-		for (Entry<List<NPCCondition>, List<NPCAction>> entry : this.conditionals.entrySet()) {
+		for (Entry<List<NPCCondition>, List<NPCAction>> entry : conditionals.entrySet()) {
 			Document pair = new Document();
 			List<Document> conditions = new ArrayList<>();
 			List<Document> actions = new ArrayList<>();
-			for (NPCCondition condition : entry.getKey())
+			for (NPCCondition condition : entry.getKey()) {
 				conditions.add(condition.toDocument());
-			for (NPCAction action : entry.getValue())
+			}
+			for (NPCAction action : entry.getValue()) {
 				actions.add(action.toDocument());
+			}
 			pair.append("conditions", conditions).append("actions", actions);
 			result.add(pair);
 		}

@@ -39,12 +39,14 @@ public enum GameObjectType {
 
 	@SuppressWarnings("unchecked")
 	public <T extends GameObject, LT extends GameObjectLoader<T>> LT getLoader() {
-		return (LT) this.loader;
+		return (LT) loader;
 	}
 
 	public static GameObjectType get(String type) {
 		for(GameObjectType objType : values()) {
-			if(objType.toString().equalsIgnoreCase(type)) return objType;
+			if(objType.toString().equalsIgnoreCase(type)) {
+				return objType;
+			}
 		}
 		return null;
 	}

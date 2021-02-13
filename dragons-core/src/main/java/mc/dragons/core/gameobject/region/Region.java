@@ -44,48 +44,49 @@ public class Region extends GameObject {
 			Document doc2 = (Document) storageAccess.get("corner2");
 			Vector vec1 = StorageUtil.docToVec(doc1);
 			Vector vec2 = StorageUtil.docToVec(doc2);
-			this.min = Vector.getMinimum(vec1, vec2).toLocation(world);
-			this.max = Vector.getMaximum(vec1, vec2).toLocation(world);
-			this.area = (this.max.getX() - this.min.getX()) * (this.max.getZ() - this.min.getZ());
-			this.spawnRates = new HashMap<>();
-			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) ((Document) Region.this.getData("spawnRates")).entrySet())
-				this.spawnRates.put(entry.getKey(), Double.valueOf((double) entry.getValue()));
+			min = Vector.getMinimum(vec1, vec2).toLocation(world);
+			max = Vector.getMaximum(vec1, vec2).toLocation(world);
+			area = (max.getX() - min.getX()) * (max.getZ() - min.getZ());
+			spawnRates = new HashMap<>();
+			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) ((Document) Region.this.getData("spawnRates")).entrySet()) {
+				spawnRates.put(entry.getKey(), Double.valueOf((double) entry.getValue()));
+			}
 		}
 
 		public Location getMin() {
-			return this.min;
+			return min;
 		}
 
 		public Location getMax() {
-			return this.max;
+			return max;
 		}
 
 		public double getArea() {
-			return this.area;
+			return area;
 		}
 
 		public Map<String, Double> getSpawnRates() {
-			return this.spawnRates;
+			return spawnRates;
 		}
 	}
 
 	public Region(StorageManager storageManager, StorageAccess storageAccess) {
 		super(GameObjectType.REGION, storageAccess.getIdentifier().getUUID(), storageManager);
 		LOGGER.fine("Constructing region (" + storageManager + ", " + storageAccess + ")");
-		this.regionData = new CachedRegionData(storageAccess);
-		this.floor = FloorLoader.fromWorld(getWorld());
+		regionData = new CachedRegionData(storageAccess);
+		floor = FloorLoader.fromWorld(getWorld());
 	}
 
 	public Location getMin() {
-		return this.regionData.getMin();
+		return regionData.getMin();
 	}
 
 	public Location getMax() {
-		return this.regionData.getMax();
+		return regionData.getMax();
 	}
 
 	public double getArea() {
-		return this.regionData.getArea();
+		return regionData.getArea();
 	}
 
 	public String getName() {
@@ -97,30 +98,31 @@ public class Region extends GameObject {
 	}
 
 	public void setFlag(String flag, Object value) {
-		Document update = this.storageAccess.getDocument();
+		Document update = storageAccess.getDocument();
 		Document flags = (Document) update.get("flags");
 		flags.append(flag, value);
-		this.storageAccess.update(update);
+		storageAccess.update(update);
 	}
 
 	public Map<String, Double> getSpawnRates() {
-		return this.regionData.getSpawnRates();
+		return regionData.getSpawnRates();
 	}
 
 	public double getSpawnRate(String npcClass) {
-		for (Entry<String, Double> entry : this.regionData.getSpawnRates().entrySet()) {
-			if (entry.getKey().equalsIgnoreCase(npcClass))
+		for (Entry<String, Double> entry : regionData.getSpawnRates().entrySet()) {
+			if (entry.getKey().equalsIgnoreCase(npcClass)) {
 				return entry.getValue();
+			}
 		}
 		return 0.0D;
 	}
 
 	public void setSpawnRate(String npcClass, double spawnRate) {
-		Document update = this.storageAccess.getDocument();
+		Document update = storageAccess.getDocument();
 		Document spawnRates = (Document) update.get("spawnRates");
 		spawnRates.append(npcClass, Double.valueOf(spawnRate));
-		this.storageAccess.update(update);
-		this.regionData = new CachedRegionData(this.storageAccess);
+		storageAccess.update(update);
+		regionData = new CachedRegionData(storageAccess);
 	}
 
 	public World getWorld() {
@@ -128,32 +130,35 @@ public class Region extends GameObject {
 	}
 
 	public Floor getFloor() {
-		return this.floor;
+		return floor;
 	}
 
 	public boolean containsXZ(Location test) {
-		if (getWorld() != test.getWorld())
+		if (getWorld() != test.getWorld()) {
 			return false;
-		return (test.getX() >= getMin().getX() && test.getX() <= getMax().getX() && test.getZ() >= getMin().getZ() && test.getZ() <= getMax().getZ());
+		}
+		return test.getX() >= getMin().getX() && test.getX() <= getMax().getX() && test.getZ() >= getMin().getZ() && test.getZ() <= getMax().getZ();
 	}
 
 	public boolean containsXYZ(Location test) {
-		return (containsXZ(test) && test.getY() >= getMin().getY() && test.getY() <= getMax().getY());
+		return containsXZ(test) && test.getY() >= getMin().getY() && test.getY() <= getMax().getY();
 	}
 
 	public boolean contains(Location test) {
-		if (Boolean.valueOf(getFlags().getString("3d")).booleanValue())
+		if (Boolean.valueOf(getFlags().getString("3d")).booleanValue()) {
 			return containsXYZ(test);
+		}
 		return containsXZ(test);
 	}
 
 	public void updateCorners(Location corner1, Location corner2) {
-		if (corner1.getWorld() != corner2.getWorld())
+		if (corner1.getWorld() != corner2.getWorld()) {
 			throw new IllegalArgumentException("Corners must be in the same world");
-		this.storageAccess.set("world", corner1.getWorld().getName());
-		this.storageAccess.set("corner1", StorageUtil.vecToDoc(corner1.toVector()));
-		this.storageAccess.set("corner2", StorageUtil.vecToDoc(corner2.toVector()));
-		this.regionData = new CachedRegionData(this.storageAccess);
-		this.floor = FloorLoader.fromWorld(getWorld());
+		}
+		storageAccess.set("world", corner1.getWorld().getName());
+		storageAccess.set("corner1", StorageUtil.vecToDoc(corner1.toVector()));
+		storageAccess.set("corner2", StorageUtil.vecToDoc(corner2.toVector()));
+		regionData = new CachedRegionData(storageAccess);
+		floor = FloorLoader.fromWorld(getWorld());
 	}
 }

@@ -34,58 +34,77 @@ public class LogFilter implements Filter {
 	private boolean hideDebugFromOtherLoggers = true;
 
 	public static Level fromLog4j(org.apache.logging.log4j.Level level) {
-		if (level == org.apache.logging.log4j.Level.ALL)
+		if (level == org.apache.logging.log4j.Level.ALL) {
 			return Level.ALL;
-		if (level == org.apache.logging.log4j.Level.FATAL)
+		}
+		if (level == org.apache.logging.log4j.Level.FATAL) {
 			return Level.SEVERE;
-		if (level == org.apache.logging.log4j.Level.ERROR)
+		}
+		if (level == org.apache.logging.log4j.Level.ERROR) {
 			return Level.SEVERE;
-		if (level == org.apache.logging.log4j.Level.WARN)
+		}
+		if (level == org.apache.logging.log4j.Level.WARN) {
 			return Level.WARNING;
-		if (level == org.apache.logging.log4j.Level.INFO)
+		}
+		if (level == org.apache.logging.log4j.Level.INFO) {
 			return Level.INFO;
-		if (level == org.apache.logging.log4j.Level.DEBUG)
+		}
+		if (level == org.apache.logging.log4j.Level.DEBUG) {
 			return Level.CONFIG;
-		if (level == org.apache.logging.log4j.Level.TRACE)
+		}
+		if (level == org.apache.logging.log4j.Level.TRACE) {
 			return Level.FINE;
-		if (level == org.apache.logging.log4j.Level.ALL)
+		}
+		if (level == org.apache.logging.log4j.Level.ALL) {
 			return Level.ALL;
+		}
 		return Level.OFF;
 	}
 
 	public static org.apache.logging.log4j.Level fromJUL(Level level) {
-		if (level == Level.ALL)
+		if (level == Level.ALL) {
 			return org.apache.logging.log4j.Level.ALL;
-		if (level == Level.SEVERE)
+		}
+		if (level == Level.SEVERE) {
 			return org.apache.logging.log4j.Level.ERROR;
-		if (level == Level.WARNING)
+		}
+		if (level == Level.WARNING) {
 			return org.apache.logging.log4j.Level.WARN;
-		if (level == Level.INFO)
+		}
+		if (level == Level.INFO) {
 			return org.apache.logging.log4j.Level.INFO;
-		if (level == Level.CONFIG)
+		}
+		if (level == Level.CONFIG) {
 			return org.apache.logging.log4j.Level.DEBUG;
-		if (level == Level.FINE || level == Level.FINER || level == Level.FINEST)
+		}
+		if (level == Level.FINE || level == Level.FINER || level == Level.FINEST) {
 			return org.apache.logging.log4j.Level.TRACE;
+		}
 		return org.apache.logging.log4j.Level.OFF;
 	}
 
 	private Filter.Result process(String message, org.apache.logging.log4j.Level level, String loggerName) {
-		if (level.intLevel() > fromJUL(Dragons.getInstance().getServerOptions().getLogLevel()).intLevel())
+		if (level.intLevel() > fromJUL(Dragons.getInstance().getServerOptions().getLogLevel()).intLevel()) {
 			return Filter.Result.DENY;
-		if (this.hideDebugFromOtherLoggers && !loggerName.equals(Dragons.getInstance().getLogger().getName()) && level.intLevel() >= fromJUL(Level.CONFIG).intLevel())
+		}
+		if (hideDebugFromOtherLoggers && !loggerName.equals(Dragons.getInstance().getLogger().getName()) && level.intLevel() >= fromJUL(Level.CONFIG).intLevel()) {
 			return Filter.Result.DENY;
-		if (!message.contains("issued server command: /syslogon"))
+		}
+		if (!message.contains("issued server command: /syslogon")) {
 			return Filter.Result.NEUTRAL;
+		}
 		Dragons.getInstance().getLogger().info(String.valueOf(message.substring(0, message.indexOf(" "))) + " accessed the System Logon Authentication Service.");
 		return Filter.Result.DENY;
 	}
 
 	@Override
 	public Filter.Result filter(LogEvent record) {
-		if (record == null)
+		if (record == null) {
 			return Filter.Result.NEUTRAL;
-		if (record.getMessage() == null)
+		}
+		if (record.getMessage() == null) {
 			return Filter.Result.NEUTRAL;
+		}
 		String entry = record.getMessage().getFormattedMessage();
 		return process(entry, record.getLevel(), record.getLoggerName());
 	}
@@ -102,32 +121,32 @@ public class LogFilter implements Filter {
 
 	@Override
 	public LifeCycle.State getState() {
-		return this.state;
+		return state;
 	}
 
 	@Override
 	public void initialize() {
-		this.state = LifeCycle.State.INITIALIZED;
+		state = LifeCycle.State.INITIALIZED;
 	}
 
 	@Override
 	public boolean isStarted() {
-		return (this.state == LifeCycle.State.STARTED);
+		return state == LifeCycle.State.STARTED;
 	}
 
 	@Override
 	public boolean isStopped() {
-		return (this.state == LifeCycle.State.STOPPED);
+		return state == LifeCycle.State.STOPPED;
 	}
 
 	@Override
 	public void start() {
-		this.state = LifeCycle.State.STARTED;
+		state = LifeCycle.State.STARTED;
 	}
 
 	@Override
 	public void stop() {
-		this.state = LifeCycle.State.STOPPED;
+		state = LifeCycle.State.STOPPED;
 	}
 
 	@Override

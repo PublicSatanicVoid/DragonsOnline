@@ -29,8 +29,8 @@ public class EntityDeathEventListener implements Listener {
 	private GameObjectRegistry registry;
 
 	public EntityDeathEventListener(Dragons instance) {
-		this.LOGGER = instance.getLogger();
-		this.registry = instance.getGameObjectRegistry();
+		LOGGER = instance.getLogger();
+		registry = instance.getGameObjectRegistry();
 	}
 
 	public static int getXPReward(int levelOfKiller, int levelOfVictim) {
@@ -39,7 +39,7 @@ public class EntityDeathEventListener implements Listener {
 
 	@EventHandler
 	public void onEntityDeath(EntityDeathEvent event) {
-		this.LOGGER.finer("Death event on " + StringUtil.entityToString(event.getEntity()));
+		LOGGER.finer("Death event on " + StringUtil.entityToString(event.getEntity()));
 		Player player = event.getEntity().getKiller();
 		User user = UserLoader.fromPlayer(player);
 		LivingEntity livingEntity = event.getEntity();
@@ -48,28 +48,32 @@ public class EntityDeathEventListener implements Listener {
 			passenger.remove();
 		}
 		NPC npc = NPCLoader.fromBukkit(livingEntity);
-		if (npc == null)
+		if (npc == null) {
 			return;
+		}
 		if (npc.isImmortal() || npc.getNPCType().canRespawnOnDeath()) {
 			npc.setEntity(livingEntity.getLocation().getWorld().spawnEntity(livingEntity.getLocation(), npc.getEntity().getType()));
 			npc.initializeEntity();
 		} else {
-			this.registry.removeFromDatabase(npc);
+			registry.removeFromDatabase(npc);
 			npc.getNPCClass().handleDeath(npc);
 		}
 		npc.updateHealthBar();
-		if (player == null)
+		if (player == null) {
 			return;
+		}
 		Location loc = user.getPlayer().getLocation();
 		World world = loc.getWorld();
-		for (Item item : npc.getNPCClass().getLootTable().getDrops(loc))
+		for (Item item : npc.getNPCClass().getLootTable().getDrops(loc)) {
 			world.dropItem(loc, item.getItemStack());
+		}
 		if (npc.getNPCType() == NPC.NPCType.HOSTILE) {
 			int xpReward = getXPReward(user.getLevel(), npc.getLevel());
 			user.sendActionBar("+ " + ChatColor.GREEN + xpReward + " XP");
 			String tag = "+ " + ChatColor.GREEN + ChatColor.BOLD + xpReward + " XP";
-			if (livingEntity.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L)
+			if (livingEntity.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L) {
 				tag = String.valueOf(tag) + ChatColor.GRAY + " to " + user.getName();
+			}
 			HologramUtil.temporaryArmorStand(livingEntity, tag, 20, false);
 			user.addXP(xpReward);
 		}

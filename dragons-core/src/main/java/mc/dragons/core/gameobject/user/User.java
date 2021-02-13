@@ -126,19 +126,19 @@ public class User extends GameObject {
 		PunishmentType(String dataHeader, boolean hasDuration, SystemProfileFlag requiredFlagToApply) {
 			this.dataHeader = dataHeader;
 			this.hasDuration = hasDuration;
-			this.requiredFlag = requiredFlagToApply;
+			requiredFlag = requiredFlagToApply;
 		}
 
 		public String getDataHeader() {
-			return this.dataHeader;
+			return dataHeader;
 		}
 
 		public boolean hasDuration() {
-			return this.hasDuration;
+			return hasDuration;
 		}
 
 		public SystemProfileFlag getRequiredFlagToApply() {
-			return this.requiredFlag;
+			return requiredFlag;
 		}
 
 		public static PunishmentType fromDataHeader(String header) {
@@ -165,19 +165,19 @@ public class User extends GameObject {
 		}
 
 		public User.PunishmentType getType() {
-			return this.type;
+			return type;
 		}
 
 		public String getReason() {
-			return this.reason;
+			return reason;
 		}
 
 		public Date getExpiry() {
-			return this.expiry;
+			return expiry;
 		}
 
 		public boolean isPermanent() {
-			return this.permanent;
+			return permanent;
 		}
 	}
 
@@ -192,7 +192,7 @@ public class User extends GameObject {
 	 * @return
 	 */
 	public static int calculateLevel(int xp) {
-		return (int) Math.floor(0.8D * ((xp / 1000000) + Math.sqrt((xp / 100)))) + 1;
+		return (int) Math.floor(0.8D * (xp / 1000000 + Math.sqrt(xp / 100))) + 1;
 	}
 
 	/**
@@ -203,7 +203,7 @@ public class User extends GameObject {
 	 * @return
 	 */
 	public static int calculateMaxXP(int level) {
-		return (int) Math.floor(1250000.0D * Math.pow(Math.sqrt((level + 1999)) - 44.721359549996D, 2.0D));
+		return (int) Math.floor(1250000.0D * Math.pow(Math.sqrt(level + 1999) - 44.721359549996D, 2.0D));
 	}
 
 	public static int calculateSkillLevel(double progress) {
@@ -217,26 +217,27 @@ public class User extends GameObject {
 	public User(Player player, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing user (" + player + ", " + storageManager + ", " + storageAccess + ")");
-		this.currentlyDebugging = new ArrayList<>();
-		this.joined = false;
+		currentlyDebugging = new ArrayList<>();
+		joined = false;
 		initialize(player);
 	}
 
 	public User initialize(Player player) {
 		UUID initCorrelationID = CORRELATION.registerNewCorrelationID();
-		CORRELATION.log(initCorrelationID, Level.INFO, "initializing player " + player);
+		CORRELATION.log(initCorrelationID, Level.FINE, "initializing player " + player);
 		LOGGER.fine("Initializing user " + this + " on player " + player);
 		this.player = player;
 		if (player != null) {
-			CORRELATION.log(initCorrelationID, Level.INFO, "bukkit player exists");
+			CORRELATION.log(initCorrelationID, Level.FINE, "bukkit player exists");
 			setData("lastLocation", StorageUtil.locToDoc(player.getLocation()));
 			setData("health", Double.valueOf(player.getHealth()));
 			player.getInventory().clear();
 			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
-			if (getData("health") != null)
+			if (getData("health") != null) {
 				player.setHealth((double) getData("health"));
+			}
 			Document inventory = (Document) getData("inventory");
-			CORRELATION.log(initCorrelationID, Level.FINE, "stored inventory data: " + inventory);
+			CORRELATION.log(initCorrelationID, Level.FINEST, "stored inventory data: " + inventory);
 			List<String> brokenItems = new ArrayList<>();
 			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
 				String[] labels = entry.getKey().split(Pattern.quote("-"));
@@ -264,8 +265,9 @@ public class User extends GameObject {
 					player.getInventory().setLeggings(itemStack);
 					continue;
 				}
-				if (part.equals("Boots"))
+				if (part.equals("Boots")) {
 					player.getInventory().setBoots(itemStack);
+				}
 			}
 			if (brokenItems.size() > 0) {
 				brokenItems.forEach(uuid -> CORRELATION.log(initCorrelationID, Level.WARNING, "Item with UUID " + uuid + " could not be loaded"));
@@ -273,27 +275,28 @@ public class User extends GameObject {
 				player.sendMessage(ChatColor.RED + "Please report the following error: " + StringUtil.toHdFont("Correlation ID: " + initCorrelationID));
 			}
 		}
-		this.questProgress = new HashMap<>();
-		this.questActionIndices = new HashMap<>();
-		this.questPauseStates = new HashMap<>();
-		this.questCorrelationIDs = new HashMap<>();
+		questProgress = new HashMap<>();
+		questActionIndices = new HashMap<>();
+		questPauseStates = new HashMap<>();
+		questCorrelationIDs = new HashMap<>();
 		Document questProgressDoc = (Document) getData("quests");
-		CORRELATION.log(initCorrelationID, Level.FINE, "stored quest data: " + questProgress);
+		CORRELATION.log(initCorrelationID, Level.FINEST, "stored quest data: " + questProgress);
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) questProgressDoc.entrySet()) {
 			Quest quest = questLoader.getQuestByName(entry.getKey());
-			if (quest == null)
+			if (quest == null) {
 				continue;
-			this.questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
-			this.questActionIndices.put(quest, Integer.valueOf(0));
-			this.questPauseStates.put(quest, QuestPauseState.NORMAL);
-			this.questCorrelationIDs.put(quest, CORRELATION.registerNewCorrelationID());
+			}
+			questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
+			questActionIndices.put(quest, Integer.valueOf(0));
+			questPauseStates.put(quest, QuestPauseState.NORMAL);
+			questCorrelationIDs.put(quest, CORRELATION.registerNewCorrelationID());
 		}
-		this.cachedRegions = new HashSet<>();
-		this.activePermissionLevel = PermissionLevel.USER;
-		this.guiHotfixOpenedBefore = new ArrayList<>();
+		cachedRegions = new HashSet<>();
+		activePermissionLevel = PermissionLevel.USER;
+		guiHotfixOpenedBefore = new ArrayList<>();
 		userHookRegistry.getHooks().forEach(h -> h.onInitialize(this));
 		instance.getSidebarManager().createScoreboard(player);
-		CORRELATION.log(initCorrelationID, Level.INFO, "initialization complete");
+		CORRELATION.log(initCorrelationID, Level.FINE, "initialization complete");
 		LOGGER.fine("Finished initializing user " + this);
 		return this;
 	}
@@ -303,13 +306,13 @@ public class User extends GameObject {
 	}
 	
 	public void logAllQuestData(Quest quest) {
-		logQuestEvent(quest, Level.INFO, "Dumping all quest data");
-		logQuestEvent(quest, Level.INFO, "Current Step: " + this.getQuestProgress().get(quest).getStepName());
-		logQuestEvent(quest, Level.INFO, "Current Action Index: " + this.getQuestActionIndex(quest));
-		logQuestEvent(quest, Level.INFO, "Current Pause State: " + this.getQuestPauseState(quest));
-		logQuestEvent(quest, Level.INFO, "Has Active Dialogue: " + this.hasActiveDialogue());
-		if(this.hasActiveDialogue()) {
-			logQuestEvent(quest, Level.INFO, "Number of dialogue callbacks: " + this.currentDialogueCompletionHandlers.size());
+		logQuestEvent(quest, Level.CONFIG, "Dumping all quest data");
+		logQuestEvent(quest, Level.CONFIG, "Current Step: " + getQuestProgress().get(quest).getStepName());
+		logQuestEvent(quest, Level.CONFIG, "Current Action Index: " + getQuestActionIndex(quest));
+		logQuestEvent(quest, Level.CONFIG, "Current Pause State: " + getQuestPauseState(quest));
+		logQuestEvent(quest, Level.CONFIG, "Has Active Dialogue: " + hasActiveDialogue());
+		if(hasActiveDialogue()) {
+			logQuestEvent(quest, Level.CONFIG, "Number of dialogue callbacks: " + currentDialogueCompletionHandlers.size());
 		}
 	}
 	
@@ -318,24 +321,25 @@ public class User extends GameObject {
 	}
 	
 	public void addDebugTarget(CommandSender debugger) {
-		this.currentlyDebugging.add(debugger);
+		currentlyDebugging.add(debugger);
 	}
 
 	public void removeDebugTarget(CommandSender debugger) {
-		this.currentlyDebugging.remove(this.currentlyDebugging.indexOf(debugger));
+		currentlyDebugging.remove(currentlyDebugging.indexOf(debugger));
 	}
 
 	public void debug(String message) {
-		for (CommandSender debugger : this.currentlyDebugging)
-			debugger.sendMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "DBG:" + this.getName() + " " + ChatColor.RESET + message);
+		for (CommandSender debugger : currentlyDebugging) {
+			debugger.sendMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "DBG:" + getName() + " " + ChatColor.RESET + message);
+		}
 	}
 
 	public void setDebuggingErrors(boolean on) {
-		this.debuggingErrors = on;
+		debuggingErrors = on;
 	}
 	
 	public boolean isDebuggingErrors() {
-		return this.debuggingErrors;
+		return debuggingErrors;
 	}
 	
 	public void updateState() {
@@ -350,121 +354,135 @@ public class User extends GameObject {
 	 */
 	public void updateState(boolean applyQuestTriggers, boolean notify) {
 		LOGGER.finest("Update user state: " + getName() + " (applyQuestTriggers=" + applyQuestTriggers + ", notify=" + notify + ")");
-		String worldName = this.player.getWorld().getName();
-		boolean privilegedWorld = (!worldName.equals("staff_verification") && !worldName.equals("trials") && !worldName.equalsIgnoreCase("trial-" + this.player.getName()));
+		String worldName = player.getWorld().getName();
+		boolean privilegedWorld = !worldName.equals("staff_verification") && !worldName.equals("trials") && !worldName.equalsIgnoreCase("trial-" + player.getName());
 		if (PermissionUtil.verifyActiveProfileFlag(this, SystemProfileFlag.TRIAL_BUILD_ONLY, false) && privilegedWorld) {
-			this.player.sendMessage(ChatColor.RED + "Trial builders can only access the trial world!");
-			if (this.cachedLocation.getWorld().getName().equals("trials") || this.cachedLocation.getWorld().getName().equalsIgnoreCase("trial-" + this.player.getName())) {
-				this.player.teleport(this.cachedLocation);
-			} else if (Bukkit.getWorld("trial-" + this.player.getName()) != null) {
-				this.player.teleport(Bukkit.getWorld("trial-" + this.player.getName()).getSpawnLocation());
+			player.sendMessage(ChatColor.RED + "Trial builders can only access the trial world!");
+			if (cachedLocation.getWorld().getName().equals("trials") || cachedLocation.getWorld().getName().equalsIgnoreCase("trial-" + player.getName())) {
+				player.teleport(cachedLocation);
+			} else if (Bukkit.getWorld("trial-" + player.getName()) != null) {
+				player.teleport(Bukkit.getWorld("trial-" + player.getName()).getSpawnLocation());
 			} else {
-				this.player.teleport(Bukkit.getWorld("trials").getSpawnLocation());
+				player.teleport(Bukkit.getWorld("trials").getSpawnLocation());
 			}
 		}
-		Set<Region> regions = regionLoader.getRegionsByLocation(this.player.getLocation());
-		if (this.cachedLocation != null && this.cachedLocation.getWorld() != this.player.getLocation().getWorld()) {
-			Floor floor = FloorLoader.fromWorldName(this.player.getLocation().getWorld().getName());
-			this.cachedLocation = this.player.getLocation();
-			this.cachedRegions = regions;
-			if (notify)
+		Set<Region> regions = regionLoader.getRegionsByLocation(player.getLocation());
+		if (cachedLocation != null && cachedLocation.getWorld() != player.getLocation().getWorld()) {
+			Floor floor = FloorLoader.fromWorldName(player.getLocation().getWorld().getName());
+			cachedLocation = player.getLocation();
+			cachedRegions = regions;
+			if (notify) {
 				if (floor == null) {
 					sendActionBar(ChatColor.DARK_RED + "- Unofficial World -");
-					this.player.sendMessage(ChatColor.RED + "WARNING: This is an unofficial world and is not associated with a floor.");
+					player.sendMessage(ChatColor.RED + "WARNING: This is an unofficial world and is not associated with a floor.");
 				} else {
-					this.player.sendMessage(ChatColor.GRAY + "Floor " + floor.getLevelMin() + ": " + floor.getDisplayName());
-					this.player.sendTitle(ChatColor.DARK_GRAY + "Floor " + floor.getLevelMin(), ChatColor.GRAY + floor.getDisplayName(), 20, 40, 20);
+					player.sendMessage(ChatColor.GRAY + "Floor " + floor.getLevelMin() + ": " + floor.getDisplayName());
+					player.sendTitle(ChatColor.DARK_GRAY + "Floor " + floor.getLevelMin(), ChatColor.GRAY + floor.getDisplayName(), 20, 40, 20);
 				}
+			}
 			return;
 		}
-		for (Region region : this.cachedRegions) {
-			if (regions.contains(region) || Boolean.valueOf(region.getFlags().getString("hidden")).booleanValue())
+		for (Region region : cachedRegions) {
+			if (regions.contains(region) || Boolean.valueOf(region.getFlags().getString("hidden")).booleanValue()) {
 				continue;
-			if (notify)
-				this.player.sendMessage(ChatColor.GRAY + "Leaving " + region.getFlags().getString("fullname"));
-		}
-		for (Region region : regions) {
-			if (!this.cachedRegions.contains(region)) {
-				int lvMin = Integer.parseInt(region.getFlags().getString("lvmin"));
-				if (getLevel() < lvMin) {
-					this.player.setVelocity(this.cachedLocation.toVector().subtract(this.player.getLocation().toVector()).multiply(2.0D));
-					if (notify)
-						this.player.sendMessage(ChatColor.RED + "This region requires level " + lvMin + " to enter");
-				}
-				if (Boolean.valueOf(region.getFlags().getString("hidden")).booleanValue())
-					continue;
-				if (notify) {
-					if (Boolean.parseBoolean(region.getFlags().getString("showtitle")))
-						this.player.sendTitle("", ChatColor.GRAY + "Entering " + region.getFlags().getString("fullname"), 20, 40, 20);
-					this.player.sendMessage(ChatColor.GRAY + "Entering " + region.getFlags().getString("fullname"));
-					if (!region.getFlags().getString("desc").equals(""))
-						this.player.sendMessage(ChatColor.DARK_GRAY + "   " + ChatColor.ITALIC + region.getFlags().getString("desc"));
-				}
-				int lvRec = Integer.parseInt(region.getFlags().getString("lvrec"));
-				if (getLevel() < lvRec && notify)
-					this.player.sendMessage(ChatColor.YELLOW + "Caution: The recommended level for this region is " + lvRec);
+			}
+			if (notify) {
+				player.sendMessage(ChatColor.GRAY + "Leaving " + region.getFlags().getString("fullname"));
 			}
 		}
-		if (applyQuestTriggers)
+		for (Region region : regions) {
+			if (!cachedRegions.contains(region)) {
+				int lvMin = Integer.parseInt(region.getFlags().getString("lvmin"));
+				if (getLevel() < lvMin) {
+					player.setVelocity(cachedLocation.toVector().subtract(player.getLocation().toVector()).multiply(2.0D));
+					if (notify) {
+						player.sendMessage(ChatColor.RED + "This region requires level " + lvMin + " to enter");
+					}
+				}
+				if (Boolean.valueOf(region.getFlags().getString("hidden")).booleanValue()) {
+					continue;
+				}
+				if (notify) {
+					if (Boolean.parseBoolean(region.getFlags().getString("showtitle"))) {
+						player.sendTitle("", ChatColor.GRAY + "Entering " + region.getFlags().getString("fullname"), 20, 40, 20);
+					}
+					player.sendMessage(ChatColor.GRAY + "Entering " + region.getFlags().getString("fullname"));
+					if (!region.getFlags().getString("desc").equals("")) {
+						player.sendMessage(ChatColor.DARK_GRAY + "   " + ChatColor.ITALIC + region.getFlags().getString("desc"));
+					}
+				}
+				int lvRec = Integer.parseInt(region.getFlags().getString("lvrec"));
+				if (getLevel() < lvRec && notify) {
+					player.sendMessage(ChatColor.YELLOW + "Caution: The recommended level for this region is " + lvRec);
+				}
+			}
+		}
+		if (applyQuestTriggers) {
 			updateQuests(null);
-		userHookRegistry.getHooks().forEach(h -> h.onUpdateState(this, this.cachedLocation));
-		this.cachedLocation = this.player.getLocation();
-		this.cachedRegions = regions;
+		}
+		userHookRegistry.getHooks().forEach(h -> h.onUpdateState(this, cachedLocation));
+		cachedLocation = player.getLocation();
+		cachedRegions = regions;
 		updateEffectiveWalkSpeed();
 	}
 
 	public void setDialogueBatch(Quest quest, String speaker, List<String> dialogue) {
-		this.currentDialogueSpeaker = speaker;
-		this.currentDialogueBatch = dialogue;
-		this.currentDialogueIndex = 0;
-		this.whenBeganDialogue = System.currentTimeMillis();
-		this.currentDialogueCompletionHandlers = new CopyOnWriteArrayList<>();
+		currentDialogueSpeaker = speaker;
+		currentDialogueBatch = dialogue;
+		currentDialogueIndex = 0;
+		whenBeganDialogue = System.currentTimeMillis();
+		currentDialogueCompletionHandlers = new CopyOnWriteArrayList<>();
 	}
 
 	public boolean hasActiveDialogue() {
-		return (this.currentDialogueBatch != null);
+		return currentDialogueBatch != null;
 	}
 
 	public long getWhenBeganDialogue() {
-		return this.whenBeganDialogue;
+		return whenBeganDialogue;
 	}
 
 	public void onDialogueComplete(Consumer<User> handler) {
-		if (!hasActiveDialogue())
+		if (!hasActiveDialogue()) {
 			return;
-		this.currentDialogueCompletionHandlers.add(handler);
+		}
+		currentDialogueCompletionHandlers.add(handler);
 	}
 
 	public void resetDialogueAndHandleCompletion() {
-		if (this.currentDialogueBatch == null)
+		if (currentDialogueBatch == null) {
 			return;
-		if (this.currentDialogueIndex >= this.currentDialogueBatch.size()) {
+		}
+		if (currentDialogueIndex >= currentDialogueBatch.size()) {
 			debug("Handling dialogue completion...");
-			this.currentDialogueSpeaker = null;
-			this.currentDialogueBatch = null;
-			this.currentDialogueIndex = 0;
-			for (Consumer<User> handler : this.currentDialogueCompletionHandlers)
+			currentDialogueSpeaker = null;
+			currentDialogueBatch = null;
+			currentDialogueIndex = 0;
+			for (Consumer<User> handler : currentDialogueCompletionHandlers) {
 				handler.accept(this);
+			}
 		}
 	}
 
 	public void fastForwardDialogue() {
-		while (hasActiveDialogue())
+		while (hasActiveDialogue()) {
 			nextDialogue();
+		}
 	}
 
 	public boolean nextDialogue() {
-		if (!hasActiveDialogue())
+		if (!hasActiveDialogue()) {
 			return false;
+		}
 		debug("nextDialogue");
-		debug(" - idx=" + this.currentDialogueIndex);
+		debug(" - idx=" + currentDialogueIndex);
 		TextComponent message = new TextComponent(
-				TextComponent.fromLegacyText(ChatColor.GRAY + "[" + (this.currentDialogueIndex + 1) + "/" + this.currentDialogueBatch.size() + "] " + ChatColor.DARK_GREEN + this.currentDialogueSpeaker
-						+ ": " + ChatColor.GREEN + this.currentDialogueBatch.get(this.currentDialogueIndex++).replaceAll(Pattern.quote("%PLAYER%"), getName())));
+				TextComponent.fromLegacyText(ChatColor.GRAY + "[" + (currentDialogueIndex + 1) + "/" + currentDialogueBatch.size() + "] " + ChatColor.DARK_GREEN + currentDialogueSpeaker
+						+ ": " + ChatColor.GREEN + currentDialogueBatch.get(currentDialogueIndex++).replaceAll(Pattern.quote("%PLAYER%"), getName())));
 		message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/fastforwarddialogue"));
-		message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, (new ComponentBuilder(ChatColor.YELLOW + "Click to fast-forward through the dialogue")).create()));
-		this.player.spigot().sendMessage(message);
-		if (this.currentDialogueIndex >= this.currentDialogueBatch.size()) {
+		message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.YELLOW + "Click to fast-forward through the dialogue").create()));
+		player.spigot().sendMessage(message);
+		if (currentDialogueIndex >= currentDialogueBatch.size()) {
 			resetDialogueAndHandleCompletion();
 			return false;
 		}
@@ -472,31 +490,34 @@ public class User extends GameObject {
 	}
 
 	public void setQuestPaused(Quest quest, boolean paused) {
-		this.questPauseStates.put(quest, paused ? QuestPauseState.PAUSED : QuestPauseState.RESUMED);
+		questPauseStates.put(quest, paused ? QuestPauseState.PAUSED : QuestPauseState.RESUMED);
 		debug(String.valueOf(paused ? "Paused" : "Unpaused") + " quest " + quest.getName());
 		logQuestEvent(quest, Level.INFO, "Set quest pause state to " + paused);
 	}
 
 	public void resetQuestPauseState(Quest quest) {
-		this.questPauseStates.put(quest, QuestPauseState.NORMAL);
+		questPauseStates.put(quest, QuestPauseState.NORMAL);
 		debug("Reset pause state for quest " + quest.getName());
 	}
 
 	public QuestPauseState getQuestPauseState(Quest quest) {
-		return this.questPauseStates.getOrDefault(quest, QuestPauseState.NORMAL);
+		return questPauseStates.getOrDefault(quest, QuestPauseState.NORMAL);
 	}
 
 	public void updateQuests(Event event) {
-		if (this.currentDialogueBatch != null && this.currentDialogueIndex < this.currentDialogueBatch.size()) {
+		if (currentDialogueBatch != null && currentDialogueIndex < currentDialogueBatch.size()) {
 			debug("updateQuests() : Cancelled quest update because of active dialogue");
 			return;
 		}
-		for (Entry<Quest, QuestStep> questStep : this.questProgress.entrySet()) {			
-			if (questStep.getValue().getStepName().equalsIgnoreCase("Complete")) continue;
+		for (Entry<Quest, QuestStep> questStep : questProgress.entrySet()) {			
+			if (questStep.getValue().getStepName().equalsIgnoreCase("Complete")) {
+				continue;
+			}
 			debug("updateQuests() : Step " + questStep.getValue().getStepName() + " of " + questStep.getKey().getName());
 			QuestPauseState pauseState = getQuestPauseState(questStep.getKey());
-			if (pauseState == QuestPauseState.PAUSED)
+			if (pauseState == QuestPauseState.PAUSED) {
 				continue;
+			}
 			debug("updateQuests() :   - Trigger = " + questStep.getValue().getTrigger().getTriggerType());
 			if (questStep.getValue().getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED) {
 				Quest quest = questStep.getKey();
@@ -515,45 +536,46 @@ public class User extends GameObject {
 	}
 
 	public Map<Quest, QuestStep> getQuestProgress() {
-		return this.questProgress;
+		return questProgress;
 	}
 
 	public void updateQuestProgress(Quest quest, QuestStep questStep, boolean notify) {
 		Document updatedQuestProgress = (Document) getData("quests");
 		if (questStep == null) {
-			this.questProgress.remove(quest);
+			questProgress.remove(quest);
 			updatedQuestProgress.remove(quest.getName());
-			this.storageAccess.update(new Document("quests", updatedQuestProgress));
+			storageAccess.update(new Document("quests", updatedQuestProgress));
 			return;
 		}
 		debug("updateQuestProgress(" + quest.getName() + ", " + questStep.getStepName() + ", notify=" + notify + ")");
-		this.questProgress.put(quest, questStep);
+		questProgress.put(quest, questStep);
 		resetQuestPauseState(quest);
-		this.questActionIndices.put(quest, Integer.valueOf(0));
+		questActionIndices.put(quest, Integer.valueOf(0));
 		updatedQuestProgress.append(quest.getName(), Integer.valueOf(quest.getSteps().indexOf(questStep)));
-		this.storageAccess.update(new Document("quests", updatedQuestProgress));
-		if (notify)
+		storageAccess.update(new Document("quests", updatedQuestProgress));
+		if (notify) {
 			if (questStep.getStepName().equals("Complete")) {
 				logQuestEvent(quest, Level.INFO, "completed quest");
-				this.player.sendMessage(ChatColor.GRAY + "Completed quest " + quest.getQuestName());
+				player.sendMessage(ChatColor.GRAY + "Completed quest " + quest.getQuestName());
 			} else {
-				this.player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
+				player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
 			}
-		(new BukkitRunnable() {
+		}
+		new BukkitRunnable() {
 			@Override
 			public void run() {
 				User.this.updateQuests((Event) null);
 			}
-		}).runTaskLater(instance, 1L);
+		}.runTaskLater(instance, 1L);
 	}
 
 	public void updateQuestAction(Quest quest, int actionIndex) {
 		logQuestEvent(quest, Level.INFO, "set action index to " + actionIndex);
-		this.questActionIndices.put(quest, actionIndex);
+		questActionIndices.put(quest, actionIndex);
 	}
 
 	public int getQuestActionIndex(Quest quest) {
-		return this.questActionIndices.getOrDefault(quest, 0);
+		return questActionIndices.getOrDefault(quest, 0);
 	}
 
 	public void updateQuestProgress(Quest quest, QuestStep questStep) {
@@ -561,49 +583,52 @@ public class User extends GameObject {
 	}
 
 	public void openGUI(GUI gui, Inventory inventory) {
-		this.player.closeInventory();
+		player.closeInventory();
 		debug("opening gui " + gui.getMenuName());
-		this.player.openInventory(inventory);
-		this.currentGUI = gui;
+		player.openInventory(inventory);
+		currentGUI = gui;
 	}
 
 	public void closeGUI(boolean forceClose) {
 		debug("closing gui");
-		if (this.currentGUI == null)
+		if (currentGUI == null) {
 			return;
-		this.currentGUI = null;
-		if (forceClose)
-			this.player.closeInventory();
+		}
+		currentGUI = null;
+		if (forceClose) {
+			player.closeInventory();
+		}
 	}
 
 	public boolean hasHotfixedGUI(GUI gui) {
-		return this.guiHotfixOpenedBefore.contains(gui.getMenuName());
+		return guiHotfixOpenedBefore.contains(gui.getMenuName());
 	}
 
 	public void hotfixGUI() {
-		if (this.currentGUI == null)
+		if (currentGUI == null) {
 			return;
-		this.guiHotfixOpenedBefore.add(this.currentGUI.getMenuName());
-		(new BukkitRunnable() {
+		}
+		guiHotfixOpenedBefore.add(currentGUI.getMenuName());
+		new BukkitRunnable() {
 			@Override
 			public void run() {
-				User.this.currentGUI.open(User.this);
+				currentGUI.open(User.this);
 			}
-		}).runTaskLater(instance, 1L);		
-		(new BukkitRunnable() {
+		}.runTaskLater(instance, 1L);		
+		new BukkitRunnable() {
 			@Override
 			public void run() {
 				player.closeInventory();
 			}
-		}).runTaskLater(instance, 2L);
+		}.runTaskLater(instance, 2L);
 	}
 
 	public boolean hasOpenGUI() {
-		return (this.currentGUI != null);
+		return currentGUI != null;
 	}
 
 	public GUI getCurrentGUI() {
-		return this.currentGUI;
+		return currentGUI;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -664,8 +689,9 @@ public class User extends GameObject {
 	 * @param message
 	 */
 	public void sendMessage(ChatChannel channel, Location source, BaseComponent... message) {
-		if (channel == ChatChannel.LOCAL && !hasChatSpy() && !FloorLoader.fromWorld(source.getWorld()).equals(FloorLoader.fromWorld(this.player.getWorld())))
+		if (channel == ChatChannel.LOCAL && !hasChatSpy() && !FloorLoader.fromWorld(source.getWorld()).equals(FloorLoader.fromWorld(player.getWorld()))) {
 			return;
+		}
 		sendMessage(channel, message);
 	}
 
@@ -676,72 +702,76 @@ public class User extends GameObject {
 	 * @param message
 	 */
 	public void sendMessage(ChatChannel channel, BaseComponent... message) {
-		if (getActiveChatChannels().contains(channel))
-			this.player.spigot().sendMessage((new ComponentBuilder(channel.getPrefix())).append(" ").append(message).create());
+		if (getActiveChatChannels().contains(channel)) {
+			player.spigot().sendMessage(new ComponentBuilder(channel.getPrefix()).append(" ").append(message).create());
+		}
 	}
 
 	public void chat(String message) {
 		LOGGER.finer("Chat message from " + getName());
-		if (!this.joined) {
-			this.player.sendMessage(ChatColor.RED + "You are not joined yet!");
+		if (!joined) {
+			player.sendMessage(ChatColor.RED + "You are not joined yet!");
 			return;
 		}
 		if (hasActiveDialogue()) {
-			this.player.sendMessage(ChatColor.RED + "Chat is unavailable while in active dialogue!");
+			player.sendMessage(ChatColor.RED + "Chat is unavailable while in active dialogue!");
 			return;
 		}
 		PunishmentData muteData = getActivePunishmentData(PunishmentType.MUTE);
 		if (muteData != null) {
-			this.player.sendMessage(ChatColor.RED + "You are muted!" + (muteData.getReason().equals("") ? "" : (" (" + muteData.getReason() + ")")));
-			this.player.sendMessage(ChatColor.RED + "Expires " + muteData.getExpiry().toString());
+			player.sendMessage(ChatColor.RED + "You are muted!" + (muteData.getReason().equals("") ? "" : " (" + muteData.getReason() + ")"));
+			player.sendMessage(ChatColor.RED + "Expires " + muteData.getExpiry().toString());
 			return;
 		}
 		LOGGER.finer("-Creating message text component");
 		String messageSenderInfo = "";
 		boolean offDuty = false;
-		if(getRank().isStaff() && this.getSystemProfile() == null) {
-			messageSenderInfo = Rank.OFF_DUTY_STAFF_PREFIX + " ";
+		if(getRank().isStaff() && getSystemProfile() == null) {
+			messageSenderInfo = getRank().getNameColor() + Rank.OFF_DUTY_STAFF_PREFIX + " ";
 			offDuty = true;
 		}
-		if (getRank().hasChatPrefix()) {
+		else if (getRank().hasChatPrefix()) {
 			messageSenderInfo += getRank().getChatPrefix() + " ";
 		}
 		messageSenderInfo += getRank().getNameColor() + getName();
 		TextComponent messageComponent = new TextComponent(messageSenderInfo);
 		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				(new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + getName() + "\n"))
+				new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + getName() + "\n")
 						.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + getRank().getNameColor() + getRank().getRankName() + "\n")
 						.append(!offDuty ? "" : ChatColor.DARK_RED + "" + ChatColor.UNDERLINE + "/!\\" + ChatColor.RED + " " + ChatColor.ITALIC + "This user is currently off-duty and cannot access staff privileges.\n")
 						.append(ChatColor.GRAY + "Level: " + getLevelColor() + getLevel() + "\n").append(ChatColor.GRAY + "XP: " + ChatColor.RESET + getXP() + "\n")
 						.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + getGold() + "\n")
-						.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(this.player.getLocation()) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
-						.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(this.player.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
+						.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(player.getLocation()) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
+						.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(player.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
 								+ " (when message sent)\n")
 						.append(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + getFirstJoined().toString()).create()));
 		messageComponent.addExtra(ChatColor.GRAY + " » " + getRank().getChatColor() + message);
 		ChatChannel channel = getSpeakingChannel();
-		if (!channel.canHear(this, this))
-			this.player.sendMessage(
+		if (!channel.canHear(this, this)) {
+			player.sendMessage(
 					ChatColor.RED + "It looks like you can't hear yourself! Make sure you are listening to the channel you're speaking on. (/c l " + channel.getAbbreviation().toLowerCase() + ")");
-		Location location = this.player.getLocation();
+		}
+		Location location = player.getLocation();
 		int rec = 0;
 		int tot = 0;
 		for (User user : UserLoader.allUsers()) {
 			tot++;
 			LOGGER.finer("-Checking if " + user.getName() + " can receive");
-			if (!channel.canHear(user, this) && !user.hasChatSpy())
+			if (!channel.canHear(user, this) && !user.hasChatSpy()) {
 				continue;
+			}
 			LOGGER.finer("  -Yes!");
 			user.sendMessage(channel, location, new BaseComponent[] { messageComponent });
 			rec++;
 		}
-		if (rec <= 1 && tot > 1)
-			this.player.sendMessage(ChatColor.RED + "There's currently nobody else online in that channel!");
-		LOGGER.info("[" + channel.getAbbreviation() + "/" + this.player.getWorld().getName() + "] [" + getName() + "] " + message);
+		if (rec <= 1 && tot > 1) {
+			player.sendMessage(ChatColor.RED + "There's currently nobody else online in that channel!");
+		}
+		LOGGER.info("[" + channel.getAbbreviation() + "/" + player.getWorld().getName() + "] [" + getName() + "] " + message);
 	}
 
 	public CommandSender getLastReceivedMessageFrom() {
-		return this.lastReceivedMessageFrom;
+		return lastReceivedMessageFrom;
 	}
 
 	public void setLastReceivedMessageFrom(CommandSender lastReceivedMessageFrom) {
@@ -749,11 +779,11 @@ public class User extends GameObject {
 	}
 
 	public void setChatSpy(boolean enabled) {
-		this.chatSpy = enabled;
+		chatSpy = enabled;
 	}
 
 	public boolean hasChatSpy() {
-		return this.chatSpy;
+		return chatSpy;
 	}
 
 	/**
@@ -776,33 +806,37 @@ public class User extends GameObject {
 		int maxStackSize = item.getMaxStackSize();
 		if (!dbOnly) {
 			int remaining = giveQuantity;
-			for (int i = 0; i < (this.player.getInventory().getContents()).length; i++) {
-				ItemStack itemStack = this.player.getInventory().getContents()[i];
+			for (int i = 0; i < player.getInventory().getContents().length; i++) {
+				ItemStack itemStack = player.getInventory().getContents()[i];
 				if (itemStack != null) {
 					Item testItem = ItemLoader.fromBukkit(itemStack);
 					if (testItem != null && item.getClassName().equals(testItem.getClassName()) && !item.isCustom() && !testItem.isCustom()) {
 						int quantity = Math.min(maxStackSize, testItem.getQuantity() + remaining);
 						int added = quantity - testItem.getQuantity();
-						debug("Adding to existing stack: " + testItem.getUUID().toString() + " (curr=" + testItem.getQuantity() + ", add=" + added + ", tot=" + quantity + ")");
+						debug("Adding to existing stack: " + testItem.getUUID().toString() + " (curr=" + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount() + ", add=" + added + ", tot=" + quantity + ")");
 						remaining -= added;
 						testItem.setQuantity(quantity);
-						this.player.getInventory().setItem(i, testItem.getItemStack());
+						player.getInventory().setItem(i, testItem.getItemStack());
 						item.setQuantity(item.getQuantity() - added);
-						if (remaining == 0)
+						debug("-Quantity: " + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount());
+						if (remaining == 0) {
 							break;
+						}
 						debug(" - " + remaining + " remaining to dispense");
 					}
 				}
 			}
 			if (remaining > 0) {
 				debug("Adding remaining items as new item stack");
-				this.player.getInventory().addItem(new ItemStack[] { item.getItemStack() });
+				player.getInventory().addItem(new ItemStack[] { item.getItemStack() });
 			}
 		}
-		if (updateDB)
-			this.storageAccess.update(new Document("inventory", getInventoryAsDocument()));
-		if (!silent)
-			this.player.sendMessage(ChatColor.GRAY + "+ " + item.getDecoratedName() + ((item.getQuantity() > 1) ? (ChatColor.GRAY + " (x" + giveQuantity + ")") : ""));
+		if (updateDB) {
+			storageAccess.update(new Document("inventory", getInventoryAsDocument()));
+		}
+		if (!silent) {
+			player.sendMessage(ChatColor.GRAY + "+ " + item.getDecoratedName() + (item.getQuantity() > 1 ? ChatColor.GRAY + " (x" + giveQuantity + ")" : ""));
+		}
 	}
 
 	public void giveItem(Item item) {
@@ -810,20 +844,25 @@ public class User extends GameObject {
 	}
 
 	public void takeItem(Item item, int amount, boolean updateDB, boolean updateInventory, boolean notify) {
-		debug("Removing " + amount + " of " + item.getName() + " (has " + item.getQuantity() + ")");
+		debug("Removing " + amount + " of " + item.getName() + " (has " + item.getQuantity() + "=" + item.getItemStack().getAmount() + ")");
 		if (amount < item.getQuantity()) {
-			debug("-New quantity: " + item.getQuantity());
+			debug("-Current quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount());
+			debug("-New quantity: " + (item.getQuantity() - amount));
 			item.setQuantity(item.getQuantity() - amount);
+			debug("-Saved quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount());
 		}
 		if (updateInventory) {
 			ItemStack removal = item.getItemStack().clone();
 			removal.setAmount(amount);
-			this.player.getInventory().removeItem(new ItemStack[] { removal });
+			player.getInventory().removeItem(new ItemStack[] { removal });
 		}
-		if (updateDB)
-			this.storageAccess.update(new Document("inventory", getInventoryAsDocument()));
-		if (notify)
-			this.player.sendMessage(ChatColor.RED + "- " + item.getDecoratedName() + ((amount > 1) ? (ChatColor.GRAY + " (x" + amount + ")") : ""));
+		if (updateDB) {
+			storageAccess.update(new Document("inventory", getInventoryAsDocument()));
+		}
+		if (notify) {
+			player.sendMessage(ChatColor.RED + "- " + item.getDecoratedName() + (amount > 1 ? ChatColor.GRAY + " (x" + amount + ")" : ""));
+		}
+		debug("-Final quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount());
 	}
 
 	public void takeItem(Item item) {
@@ -835,64 +874,69 @@ public class User extends GameObject {
 		double price = costPer * quantity;
 		double balance = getGold();
 		if (balance < price) {
-			this.player.sendMessage(ChatColor.RED + "Cannot buy this item! Costs " + price + "g, you have " + balance + " (need " + (price - balance) + "g more)");
+			player.sendMessage(ChatColor.RED + "Cannot buy this item! Costs " + price + "g, you have " + balance + " (need " + (price - balance) + "g more)");
 			return;
 		}
 		takeGold(price, false);
 		Item item = itemLoader.registerNew(itemClass);
 		item.setQuantity(quantity);
 		giveItem(item, true, false, true);
-		this.player.sendMessage(ChatColor.GREEN + "Purchased " + item.getDecoratedName() + ((quantity > 1) ? (ChatColor.GRAY + " (x" + quantity + ")") : "") + ChatColor.GREEN + " for "
+		player.sendMessage(ChatColor.GREEN + "Purchased " + item.getDecoratedName() + (quantity > 1 ? ChatColor.GRAY + " (x" + quantity + ")" : "") + ChatColor.GREEN + " for "
 				+ ChatColor.GOLD + price + "g");
 	}
 
 	public Document getInventoryAsDocument() {
 		Document inventory = new Document();
-		for (int i = 0; i < (this.player.getInventory().getContents()).length; i++) {
-			ItemStack is = this.player.getInventory().getContents()[i];
+		for (int i = 0; i < player.getInventory().getContents().length; i++) {
+			ItemStack is = player.getInventory().getContents()[i];
 			if (is != null) {
 				Item item = ItemLoader.fromBukkit(is);
-				if (item != null)
+				if (item != null) {
 					inventory.append("I-" + i, item.getUUID());
+				}
 			}
 		}
-		ItemStack helmetStack = this.player.getInventory().getHelmet();
+		ItemStack helmetStack = player.getInventory().getHelmet();
 		Item helmet = ItemLoader.fromBukkit(helmetStack);
-		if (helmet != null)
+		if (helmet != null) {
 			inventory.append("Helmet-0", helmet.getUUID());
-		ItemStack chestplateStack = this.player.getInventory().getChestplate();
+		}
+		ItemStack chestplateStack = player.getInventory().getChestplate();
 		Item chestplate = ItemLoader.fromBukkit(chestplateStack);
-		if (chestplate != null)
+		if (chestplate != null) {
 			inventory.append("Chestplate-0", chestplate.getUUID());
-		ItemStack leggingsStack = this.player.getInventory().getLeggings();
+		}
+		ItemStack leggingsStack = player.getInventory().getLeggings();
 		Item leggings = ItemLoader.fromBukkit(leggingsStack);
-		if (leggings != null)
+		if (leggings != null) {
 			inventory.append("Leggings-0", leggings.getUUID());
-		ItemStack bootsStack = this.player.getInventory().getBoots();
+		}
+		ItemStack bootsStack = player.getInventory().getBoots();
 		Item boots = ItemLoader.fromBukkit(bootsStack);
-		if (boots != null)
+		if (boots != null) {
 			inventory.append("Boots-0", boots.getUUID());
+		}
 		return inventory;
 	}
 
 	public void handleJoin(boolean firstJoin) {
-		this.joined = true;
+		joined = true;
 		setData("lastJoined", Long.valueOf(System.currentTimeMillis()));
 		if (PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false)) {
-			this.player.setGameMode(getSavedGameMode());
+			player.setGameMode(getSavedGameMode());
 		} else {
-			this.player.setGameMode(GameMode.ADVENTURE);
+			player.setGameMode(GameMode.ADVENTURE);
 		}
 		if (isVanished()) {
-			this.player.sendMessage(ChatColor.DARK_GREEN + "You are currently vanished.");
+			player.sendMessage(ChatColor.DARK_GREEN + "You are currently vanished.");
 		} else if (getRank().ordinal() >= Rank.PATRON.ordinal()) {
-			Bukkit.broadcastMessage(getRank().getNameColor() + "" + ChatColor.BOLD + getRank().getRankName() + " " + this.player.getName() + " joined!");
+			Bukkit.broadcastMessage(getRank().getNameColor() + "" + ChatColor.BOLD + getRank().getRankName() + " " + player.getName() + " joined!");
 		} else {
-			Bukkit.broadcastMessage(ChatColor.GRAY + this.player.getName() + " joined!");
+			Bukkit.broadcastMessage(ChatColor.GRAY + player.getName() + " joined!");
 		}
-		this.player.sendMessage(ChatColor.GOLD + "Hello " + getName() + " and welcome to DragonsOnline.");
+		player.sendMessage(ChatColor.GOLD + "Hello " + getName() + " and welcome to DragonsOnline.");
 		String spacer = ChatColor.GRAY + "    -    ";
-		this.player.sendMessage(ChatColor.LIGHT_PURPLE + "Level: " + getLevel() + spacer + ChatColor.GREEN + "XP: " + getXP() + " (" + MathUtil.round((getLevelProgress() * 100.0F)) + "%)" + spacer
+		player.sendMessage(ChatColor.LIGHT_PURPLE + "Level: " + getLevel() + spacer + ChatColor.GREEN + "XP: " + getXP() + " (" + MathUtil.round(getLevelProgress() * 100.0F) + "%)" + spacer
 				+ ChatColor.YELLOW + "Gold: " + getGold());
 		TextComponent component = new TextComponent(ChatColor.AQUA + "Speaking in ");
 		TextComponent speaking = getSpeakingChannel().format();
@@ -904,38 +948,42 @@ public class User extends GameObject {
 			TextComponent listening = channels.get(i).format();
 			listening.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
 			component.addExtra(listening);
-			if (i < channels.size() - 1)
+			if (i < channels.size() - 1) {
 				component.addExtra(", ");
+			}
 		}
-		this.player.spigot().sendMessage(component);
-		if (firstJoin)
-			this.player.sendMessage(ChatColor.AQUA + "Use " + ChatColor.DARK_AQUA + "/channel" + ChatColor.AQUA + " to change channels.");
-		if (getUnreadChangeLogs().size() > 0)
-			this.player.sendMessage(ChatColor.DARK_GREEN + "You have unread changelogs! Do " + ChatColor.GREEN + "/whatsnew" + ChatColor.DARK_GREEN + " to read them!");
+		player.spigot().sendMessage(component);
+		if (firstJoin) {
+			player.sendMessage(ChatColor.AQUA + "Use " + ChatColor.DARK_AQUA + "/channel" + ChatColor.AQUA + " to change channels.");
+		}
+		if (getUnreadChangeLogs().size() > 0) {
+			player.sendMessage(ChatColor.DARK_GREEN + "You have unread changelogs! Do " + ChatColor.GREEN + "/whatsnew" + ChatColor.DARK_GREEN + " to read them!");
+		}
 		userHookRegistry.getHooks().forEach(h -> h.onVerifiedJoin(this));
-		this.player.sendMessage("");
+		player.sendMessage("");
 		updateState();
 		updateVanishState();
 		updateVanishStatesOnSelf();
 		updateVanillaLeveling();
-		setData("ip", this.player.getAddress().getAddress().getHostAddress());
+		setData("ip", player.getAddress().getAddress().getHostAddress());
 		LOGGER.exiting("User", "handleJoin");
 	}
 
 	public void handleQuit() {
 		autoSave();
 		setData("totalOnlineTime", Long.valueOf(getTotalOnlineTime() + getLocalOnlineTime()));
-		if (!isVanished() && this.joined)
-			Bukkit.broadcastMessage(ChatColor.GRAY + this.player.getName() + " left!");
-		if (this.profile != null && instance.isEnabled()) {
-			systemProfileLoader.logoutProfile(this.profile.getProfileName());
+		if (!isVanished() && joined) {
+			Bukkit.broadcastMessage(ChatColor.GRAY + player.getName() + " left!");
+		}
+		if (profile != null && instance.isEnabled()) {
+			systemProfileLoader.logoutProfile(profile.getProfileName());
 			setActivePermissionLevel(PermissionLevel.USER);
 			setSystemProfile((SystemProfile) null);
 		}
-		this.player.getInventory().clear();
-		this.player.getInventory().setArmorContents(new ItemStack[4]);
+		player.getInventory().clear();
+		player.getInventory().setArmorContents(new ItemStack[4]);
 		userHookRegistry.getHooks().forEach(h -> h.onQuit(this));
-		userLoader.removeStalePlayer(this.player);
+		userLoader.removeStalePlayer(player);
 	}
 
 	public long getTotalOnlineTime() {
@@ -943,24 +991,25 @@ public class User extends GameObject {
 	}
 
 	public long getLocalOnlineTime() {
-		return (long) Math.floor(((System.currentTimeMillis() - ((Long) getData("lastJoined")).longValue()) / 1000L));
+		return (long) Math.floor((System.currentTimeMillis() - ((Long) getData("lastJoined")).longValue()) / 1000L);
 	}
 
 	public void handleMove() {
 		boolean update = false;
-		if (this.cachedLocation == null) {
-			this.cachedLocation = this.player.getLocation();
-		} else if (this.player.getLocation().getWorld() != this.cachedLocation.getWorld()) {
+		if (cachedLocation == null) {
+			cachedLocation = player.getLocation();
+		} else if (player.getLocation().getWorld() != cachedLocation.getWorld()) {
 			update = true;
-		} else if (this.player.getLocation().distanceSquared(this.cachedLocation) >= 4.0D) {
+		} else if (player.getLocation().distanceSquared(cachedLocation) >= 4.0D) {
 			update = true;
 		}
-		if (update)
+		if (update) {
 			updateState();
+		}
 	}
 
 	public Player getPlayer() {
-		return this.player;
+		return player;
 	}
 
 	public void setPlayer(Player player) {
@@ -982,8 +1031,9 @@ public class User extends GameObject {
 	 * @return
 	 */
 	public Location getSavedStaffLocation() {
-		if (getData("lastStaffLocation") == null)
+		if (getData("lastStaffLocation") == null) {
 			setData("lastStaffLocation", getData("lastLocation"));
+		}
 		return StorageUtil.docToLoc((Document) getData("lastStaffLocation"));
 	}
 
@@ -1001,8 +1051,9 @@ public class User extends GameObject {
 
 	public void setGold(double gold, boolean notify) {
 		setData("gold", Double.valueOf(gold));
-		if (notify)
-			this.player.sendMessage(ChatColor.GRAY + "Your gold balance is now " + ChatColor.GOLD + gold);
+		if (notify) {
+			player.sendMessage(ChatColor.GRAY + "Your gold balance is now " + ChatColor.GOLD + gold);
+		}
 	}
 
 	public void setGold(double gold) {
@@ -1011,8 +1062,9 @@ public class User extends GameObject {
 
 	public void giveGold(double gold, boolean notify) {
 		setData("gold", Double.valueOf(getGold() + gold));
-		if (notify)
-			this.player.sendMessage(ChatColor.GRAY + "+ " + ChatColor.GOLD + gold + " Gold");
+		if (notify) {
+			player.sendMessage(ChatColor.GRAY + "+ " + ChatColor.GOLD + gold + " Gold");
+		}
 	}
 
 	public void giveGold(double gold) {
@@ -1021,8 +1073,9 @@ public class User extends GameObject {
 
 	public void takeGold(double gold, boolean notify) {
 		setData("gold", Double.valueOf(getGold() - gold));
-		if (notify)
-			this.player.sendMessage(ChatColor.RED + "- " + ChatColor.GOLD + gold + " Gold");
+		if (notify) {
+			player.sendMessage(ChatColor.RED + "- " + ChatColor.GOLD + gold + " Gold");
+		}
 	}
 
 	public void takeGold(double gold) {
@@ -1030,7 +1083,7 @@ public class User extends GameObject {
 	}
 
 	public void sendActionBar(String message) {
-		instance.getBridge().sendActionBar(this.player, message);
+		instance.getBridge().sendActionBar(player, message);
 	}
 
 	@Deprecated
@@ -1040,43 +1093,46 @@ public class User extends GameObject {
 
 	@Deprecated
 	public void sendTitle(ChatColor titleColor, String title, ChatColor subtitleColor, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
-		instance.getBridge().sendTitle(this.player, titleColor, title, subtitleColor, subtitle, fadeInTime, showTime, fadeOutTime);
+		instance.getBridge().sendTitle(player, titleColor, title, subtitleColor, subtitle, fadeInTime, showTime, fadeOutTime);
 	}
 
 	public void overrideWalkSpeed(float speed) {
-		this.player.setWalkSpeed(speed);
-		this.isOverridingWalkSpeed = true;
+		player.setWalkSpeed(speed);
+		isOverridingWalkSpeed = true;
 	}
 
 	public void removeWalkSpeedOverride() {
-		this.isOverridingWalkSpeed = false;
-		this.player.setWalkSpeed((float) getEffectiveWalkSpeed());
+		isOverridingWalkSpeed = false;
+		player.setWalkSpeed((float) getEffectiveWalkSpeed());
 	}
 
 	public double getEffectiveWalkSpeed() {
-		if (this.isOverridingWalkSpeed)
-			return this.player.getWalkSpeed();
+		if (isOverridingWalkSpeed) {
+			return player.getWalkSpeed();
+		}
 		double speed = instance.getServerOptions().getDefaultWalkSpeed();
 		for(ItemStack itemStack : player.getInventory().getArmorContents()) {
 			if (itemStack != null) {
 				Item item = ItemLoader.fromBukkit(itemStack);
-				if (item != null)
+				if (item != null) {
 					speed += item.getSpeedBoost();
+				}
 			}
 		}
-		ItemStack held = this.player.getInventory().getItemInMainHand();
+		ItemStack held = player.getInventory().getItemInMainHand();
 		Item item = ItemLoader.fromBukkit(held);
-		if (item != null)
+		if (item != null) {
 			speed += item.getSpeedBoost();
+		}
 		return Math.min(1.0D, Math.max(0.05D, speed));
 	}
 
 	public void updateEffectiveWalkSpeed() {
-		this.player.setWalkSpeed((float) getEffectiveWalkSpeed());
+		player.setWalkSpeed((float) getEffectiveWalkSpeed());
 	}
 
 	public void clearInventory() {
-		this.player.getInventory().clear();
+		player.getInventory().clear();
 		setData("inventory", new ArrayList<>());
 		sendActionBar(ChatColor.DARK_RED + "- All items have been lost! -");
 	}
@@ -1090,44 +1146,46 @@ public class User extends GameObject {
 	public void setDeathCountdown(int seconds) {
 		setData("deathCountdown", Integer.valueOf(seconds));
 		setData("deathTime", Long.valueOf(System.currentTimeMillis()));
-		this.player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * seconds, 10, false, false), true);
-		this.player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * seconds, 10, false, false), true);
-		this.player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20 * seconds, 10, false, false), true);
-		this.player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 20 * seconds, 0, false, false), true);
-		(new BukkitRunnable() {
+		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * seconds, 10, false, false), true);
+		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * seconds, 10, false, false), true);
+		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20 * seconds, 10, false, false), true);
+		player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 20 * seconds, 0, false, false), true);
+		new BukkitRunnable() {
 			int counter = seconds;
 
 			@Override
 			public void run() {
 				if (User.this.hasDeathCountdown()) {
-					User.this.sendActionBar(ChatColor.DARK_RED + "Respawning in " + this.counter + "s");
-					this.counter--;
+					User.this.sendActionBar(ChatColor.DARK_RED + "Respawning in " + counter + "s");
+					counter--;
 				} else {
 					User.this.sendActionBar(ChatColor.YELLOW + "Respawning...");
 					cancel();
 				}
 			}
-		}).runTaskTimer(instance, 0L, 20L);
+		}.runTaskTimer(instance, 0L, 20L);
 	}
 
 	public boolean hasDeathCountdown() {
 		Long deathTime = (Long) getData("deathTime");
-		if (deathTime == null)
+		if (deathTime == null) {
 			return false;
+		}
 		int deathCountdown = (int) getData("deathCountdown");
 		long now = System.currentTimeMillis();
-		return (deathTime.longValue() + (1000 * deathCountdown) > now);
+		return deathTime.longValue() + 1000 * deathCountdown > now;
 	}
 
 	public void respawn() {
-		instance.getBridge().respawnPlayer(this.player);
+		instance.getBridge().respawnPlayer(player);
 	}
 
 	public void sendToFloor(String floorName, boolean overrideLevelRequirement) {
 		Floor floor = FloorLoader.fromFloorName(floorName);
-		if (!overrideLevelRequirement && getLevel() < floor.getLevelMin())
+		if (!overrideLevelRequirement && getLevel() < floor.getLevelMin()) {
 			return;
-		this.player.teleport(floor.getWorld().getSpawnLocation());
+		}
+		player.teleport(floor.getWorld().getSpawnLocation());
 	}
 
 	public void sendToFloor(String floorName) {
@@ -1141,17 +1199,17 @@ public class User extends GameObject {
 	public void setXP(int xp) {
 		int level = calculateLevel(xp);
 		if (level > getLevel()) {
-			this.player.sendTitle(ChatColor.DARK_AQUA + "Level Up!", ChatColor.AQUA + "" + getLevel() + " >>> " + level, 20, 40, 20);
+			player.sendTitle(ChatColor.DARK_AQUA + "Level Up!", ChatColor.AQUA + "" + getLevel() + " >>> " + level, 20, 40, 20);
 			Bukkit.broadcastMessage(ChatColor.AQUA + getName() + " is now level " + level + "!");
 		}
-		update((new Document("xp", Integer.valueOf(xp))).append("level", Integer.valueOf(level)));
+		update(new Document("xp", Integer.valueOf(xp)).append("level", Integer.valueOf(level)));
 		updateVanillaLeveling();
 	}
 
 	public void updateVanillaLeveling() {
-		this.player.setLevel(calculateLevel(getXP()));
-		this.player.setExp(getLevelProgress());
-		this.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
+		player.setLevel(calculateLevel(getXP()));
+		player.setExp(getLevelProgress());
+		player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
 	}
 
 	public int getXP() {
@@ -1164,39 +1222,51 @@ public class User extends GameObject {
 
 	public float getLevelProgress() {
 		int prevMax = calculateMaxXP(getLevel());
-		return (float) Math.min(1.0D, ((double) (getXP() - prevMax) / (calculateMaxXP(getLevel() + 1) - prevMax)));
+		return (float) Math.min(1.0D, (double) (getXP() - prevMax) / (calculateMaxXP(getLevel() + 1) - prevMax));
 	}
 
 	public ChatColor getLevelColor() {
 		int level = getLevel();
-		if (level < 10)
+		if (level < 10) {
 			return ChatColor.GRAY;
-		if (level < 20)
+		}
+		if (level < 20) {
 			return ChatColor.YELLOW;
-		if (level < 30)
+		}
+		if (level < 30) {
 			return ChatColor.GREEN;
-		if (level < 40)
+		}
+		if (level < 40) {
 			return ChatColor.AQUA;
-		if (level < 50)
+		}
+		if (level < 50) {
 			return ChatColor.DARK_AQUA;
-		if (level < 60)
+		}
+		if (level < 60) {
 			return ChatColor.GOLD;
-		if (level < 70)
+		}
+		if (level < 70) {
 			return ChatColor.DARK_GREEN;
-		if (level < 80)
+		}
+		if (level < 80) {
 			return ChatColor.LIGHT_PURPLE;
-		if (level < 90)
+		}
+		if (level < 90) {
 			return ChatColor.DARK_PURPLE;
-		if (level < 100)
+		}
+		if (level < 100) {
 			return ChatColor.RED;
+		}
 		return ChatColor.WHITE;
 	}
 
 	public static void updateVanishStateBetween(User userOf, User userFor) {
-		if (userOf == null || userFor == null)
+		if (userOf == null || userFor == null) {
 			return;
-		if (userOf.player == null || userFor.player == null)
+		}
+		if (userOf.player == null || userFor.player == null) {
 			return;
+		}
 		if (userOf.isVanished() && userFor.getActivePermissionLevel().ordinal() < userOf.getActivePermissionLevel().ordinal()) {
 			userFor.player.hidePlayer(instance, userOf.player);
 		} else if (!userFor.player.canSee(userOf.player)) {
@@ -1212,15 +1282,16 @@ public class User extends GameObject {
 	}
 
 	public void updateVanishState() {
-		this.player.setCollidable(!isVanished());
-		this.player.setAllowFlight(!(!isVanished() && this.player.getGameMode() != GameMode.CREATIVE && this.player.getGameMode() != GameMode.SPECTATOR));
+		player.setCollidable(!isVanished());
+		player.setAllowFlight(!(!isVanished() && player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR));
 		if (isVanished()) {
-			this.player.setPlayerListName(ChatColor.DARK_GRAY + "" + ChatColor.MAGIC + "[Staff Member Joining]");
+			player.setPlayerListName(ChatColor.DARK_GRAY + "" + ChatColor.MAGIC + "[Staff Member Joining]");
 		} else {
-			this.player.setPlayerListName(getRank().getNameColor() + this.player.getName());
+			player.setPlayerListName(getRank().getNameColor() + player.getName());
 		}
-		for (Player test : Bukkit.getOnlinePlayers())
+		for (Player test : Bukkit.getOnlinePlayers()) {
 			updateVanishStateBetween(this, UserLoader.fromPlayer(test));
+		}
 	}
 
 	public void setVanished(boolean vanished) {
@@ -1248,36 +1319,37 @@ public class User extends GameObject {
 
 	public void setSystemProfile(SystemProfile profile) {
 		this.profile = profile;
-		LOGGER.fine("User " + getName() + " system profile set to " + ((profile == null) ? "null" : profile.getProfileName()));
+		LOGGER.fine("User " + getName() + " system profile set to " + (profile == null ? "null" : profile.getProfileName()));
 	}
 
 	public SystemProfile getSystemProfile() {
-		return this.profile;
+		return profile;
 	}
 
 	public PermissionLevel getActivePermissionLevel() {
-		return this.activePermissionLevel;
+		return activePermissionLevel;
 	}
 
 	public boolean setActivePermissionLevel(PermissionLevel permissionLevel) {
-		if (permissionLevel.ordinal() > getSystemProfile().getMaxPermissionLevel().ordinal())
+		if (permissionLevel.ordinal() > getSystemProfile().getMaxPermissionLevel().ordinal()) {
 			return false;
+		}
 		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
-		this.activePermissionLevel = permissionLevel;
+		activePermissionLevel = permissionLevel;
 		SystemProfile.SystemProfileFlags flags = getSystemProfile().getFlags();
 		
 		// Permissions for non-RPG plugins need to be added separately.
-		this.player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
-		this.player.addAttachment(instance, "minecraft.command.teleport",
+		player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "minecraft.command.teleport",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment(instance, "minecraft.command.tp",
+		player.addAttachment(instance, "minecraft.command.tp",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment(instance, "minecraft.command.give",
+		player.addAttachment(instance, "minecraft.command.give",
 				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment(instance, "minecraft.command.summon",
+		player.addAttachment(instance, "minecraft.command.summon",
 				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		this.player.addAttachment(instance, "minecraft.command.setworldspawn", (permissionLevel.ordinal() >= PermissionLevel.GM.ordinal()));
-		this.player.setOp(flags.hasFlag(SystemProfileFlag.CMD));
+		player.addAttachment(instance, "minecraft.command.setworldspawn", permissionLevel.ordinal() >= PermissionLevel.GM.ordinal());
+		player.setOp(flags.hasFlag(SystemProfileFlag.CMD));
 		sendActionBar(ChatColor.GRAY + "Active permission level changed to " + permissionLevel.toString());
 		updateVanishStatesOnSelf();
 		return true;
@@ -1308,7 +1380,7 @@ public class User extends GameObject {
 	}
 
 	public Set<Region> getRegions() {
-		return this.cachedRegions;
+		return cachedRegions;
 	}
 
 	public Date getFirstJoined() {
@@ -1324,7 +1396,7 @@ public class User extends GameObject {
 	}
 
 	public boolean hasJoined() {
-		return this.joined;
+		return joined;
 	}
 
 	public int getSkillLevel(SkillType type) {
@@ -1348,7 +1420,7 @@ public class User extends GameObject {
 		int level = calculateSkillLevel(progress);
 		if (level != currentLevel) {
 			setSkillLevel(type, level);
-			this.player.sendTitle(ChatColor.DARK_GREEN + type.getFriendlyName() + ((level > currentLevel) ? " Increased!" : " Changed"), ChatColor.GREEN + "" + currentLevel + " >>> " + level, 20, 40,
+			player.sendTitle(ChatColor.DARK_GREEN + type.getFriendlyName() + (level > currentLevel ? " Increased!" : " Changed"), ChatColor.GREEN + "" + currentLevel + " >>> " + level, 20, 40,
 					20);
 		}
 		update(new Document("skillProgress", skillProgress));
@@ -1364,8 +1436,9 @@ public class User extends GameObject {
 
 	public void setGameMode(GameMode gameMode, boolean updateBukkit) {
 		setData("gamemode", gameMode.toString());
-		if (updateBukkit)
-			this.player.setGameMode(gameMode);
+		if (updateBukkit) {
+			player.setGameMode(gameMode);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1374,7 +1447,7 @@ public class User extends GameObject {
 		List<Document> results = (List<Document>) getData("punishmentHistory");
 		for (Document entry : results) {
 			Date expiry = new Date(1000L * (entry.getLong("banDate").longValue() + entry.getLong("duration").longValue()));
-			history.add(new PunishmentData(PunishmentType.valueOf(entry.getString("type")), entry.getString("reason"), expiry, (entry.getLong("duration").longValue() == -1L)));
+			history.add(new PunishmentData(PunishmentType.valueOf(entry.getString("type")), entry.getString("reason"), expiry, entry.getLong("duration").longValue() == -1L));
 		}
 		return history;
 	}
@@ -1385,7 +1458,7 @@ public class User extends GameObject {
 
 	public void punish(PunishmentType punishmentType, String reason, long durationSeconds) {
 		long now = Instant.now().getEpochSecond();
-		Document punishment = (new Document("type", punishmentType.toString())).append("reason", reason).append("duration", Long.valueOf(durationSeconds)).append("banDate", Long.valueOf(now));
+		Document punishment = new Document("type", punishmentType.toString()).append("reason", reason).append("duration", Long.valueOf(durationSeconds)).append("banDate", Long.valueOf(now));
 		setData(punishmentType.getDataHeader(), punishment);
 		
 		@SuppressWarnings("unchecked")
@@ -1393,54 +1466,60 @@ public class User extends GameObject {
 		punishmentHistory.add(punishment);
 		setData("punishmentHistory", punishmentHistory);
 		
-		String expiry = (durationSeconds == -1L) ? "Never" : (new Date(1000L * (now + durationSeconds))).toString();
-		if (this.player != null)
+		String expiry = durationSeconds == -1L ? "Never" : new Date(1000L * (now + durationSeconds)).toString();
+		if (player != null) {
 			if (punishmentType == PunishmentType.BAN) {
-				this.player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n"
-						+ (reason.equals("") ? "" : (ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + ChatColor.WHITE + "\n")) + ChatColor.GRAY + "Expires: " + ChatColor.WHITE + expiry);
+				player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n"
+						+ (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + ChatColor.WHITE + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE + expiry);
 			} else if (punishmentType == PunishmentType.KICK) {
-				this.player.kickPlayer(ChatColor.DARK_RED + "You were kicked!\n\n" + (reason.equals("") ? "" : (ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + "\n\n")) + ChatColor.YELLOW
+				player.kickPlayer(ChatColor.DARK_RED + "You were kicked!\n\n" + (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + "\n\n") + ChatColor.YELLOW
 						+ "Repeated kicks may result in a ban.");
 			} else if (punishmentType == PunishmentType.WARNING) {
-				this.player.sendMessage(" ");
-				this.player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have received a warning.");
-				if (!reason.equals(" "))
-					this.player.sendMessage(ChatColor.RED + "Reason: " + reason);
-				this.player.sendMessage(ChatColor.GRAY + "Repeated warnings may result in a ban.");
-				this.player.sendMessage("");
+				player.sendMessage(" ");
+				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have received a warning.");
+				if (!reason.equals(" ")) {
+					player.sendMessage(ChatColor.RED + "Reason: " + reason);
+				}
+				player.sendMessage(ChatColor.GRAY + "Repeated warnings may result in a ban.");
+				player.sendMessage("");
 			} else if (punishmentType == PunishmentType.MUTE) {
-				this.player.sendMessage(" ");
-				this.player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been muted.");
-				if (!reason.equals(""))
-					this.player.sendMessage(ChatColor.RED + "Reason: " + reason);
-				this.player.sendMessage(ChatColor.RED + "Expires: " + expiry);
-				this.player.sendMessage(" ");
+				player.sendMessage(" ");
+				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been muted.");
+				if (!reason.equals("")) {
+					player.sendMessage(ChatColor.RED + "Reason: " + reason);
+				}
+				player.sendMessage(ChatColor.RED + "Expires: " + expiry);
+				player.sendMessage(" ");
 			}
+		}
 	}
 
 	public void unpunish(PunishmentType punishmentType) {
 		setData(punishmentType.getDataHeader(), null);
-		if (this.player != null && punishmentType == PunishmentType.MUTE) {
-			this.player.sendMessage("");
-			this.player.sendMessage(ChatColor.DARK_GREEN + "Your mute has been revoked.");
-			this.player.sendMessage("");
+		if (player != null && punishmentType == PunishmentType.MUTE) {
+			player.sendMessage("");
+			player.sendMessage(ChatColor.DARK_GREEN + "Your mute has been revoked.");
+			player.sendMessage("");
 		}
 	}
 
 	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {
 		Document banData = (Document) getData(punishmentType.getDataHeader());
-		if (banData == null)
+		if (banData == null) {
 			return null;
+		}
 		PunishmentType type = PunishmentType.valueOf(banData.getString("type"));
 		String reason = banData.getString("reason");
 		long duration = banData.getLong("duration").longValue();
 		long banDate = banData.getLong("banDate").longValue();
 		long now = Instant.now().getEpochSecond();
 		Date expiry = new Date(1000L * (banDate + duration));
-		if (duration == -1L)
+		if (duration == -1L) {
 			return new PunishmentData(type, reason, expiry, true);
-		if (now > banDate + duration)
+		}
+		if (now > banDate + duration) {
 			return null;
+		}
 		return new PunishmentData(type, reason, expiry, false);
 	}
 
@@ -1455,21 +1534,23 @@ public class User extends GameObject {
 	@Override
 	public void autoSave() {
 		super.autoSave();
-		if (this.player == null)
+		if (player == null) {
 			return;
-		sendActionBar(ChatColor.GREEN + "Autosaving...");
-		Document autoSaveData = (new Document("lastSeen", Long.valueOf(System.currentTimeMillis())))
-				.append("maxHealth", Double.valueOf(this.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())).append("health", Double.valueOf(this.player.getHealth()))
-				.append("gamemode", this.joined ? this.player.getGameMode().toString() : getSavedGameMode().toString()).append("inventory", getInventoryAsDocument());
-		if (this.joined) {
-			String key = PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false) ? "lastStaffLocation" : "lastLocation";
-			autoSaveData.append(key, StorageUtil.locToDoc(this.player.getLocation()));
 		}
-		for (ItemStack itemStack : this.player.getInventory().getContents()) {
+		sendActionBar(ChatColor.GREEN + "Autosaving...");
+		Document autoSaveData = new Document("lastSeen", Long.valueOf(System.currentTimeMillis()))
+				.append("maxHealth", Double.valueOf(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())).append("health", Double.valueOf(player.getHealth()))
+				.append("gamemode", joined ? player.getGameMode().toString() : getSavedGameMode().toString()).append("inventory", getInventoryAsDocument());
+		if (joined) {
+			String key = PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false) ? "lastStaffLocation" : "lastLocation";
+			autoSaveData.append(key, StorageUtil.locToDoc(player.getLocation()));
+		}
+		for (ItemStack itemStack : player.getInventory().getContents()) {
 			if (itemStack != null) {
 				Item item = ItemLoader.fromBukkit(itemStack);
-				if (item != null)
+				if (item != null) {
 					item.autoSave();
+				}
 			}
 		}
 		userHookRegistry.getHooks().forEach(h -> h.onAutoSave(this, autoSaveData));

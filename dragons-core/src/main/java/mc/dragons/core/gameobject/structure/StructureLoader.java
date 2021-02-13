@@ -17,14 +17,15 @@ public class StructureLoader extends GameObjectLoader<Structure> {
 	}
 
 	public static synchronized StructureLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null)
+		if (INSTANCE == null) {
 			INSTANCE = new StructureLoader(instance, storageManager);
+		}
 		return INSTANCE;
 	}
 
 	@Override
 	public Structure loadObject(StorageAccess storageAccess) {
-		this.LOGGER.fine("Loading structure " + storageAccess.getIdentifier());
-		return new Structure(this.storageManager);
+		LOGGER.fine("Loading structure " + storageAccess.getIdentifier());
+		return new Structure(storageManager);
 	}
 }

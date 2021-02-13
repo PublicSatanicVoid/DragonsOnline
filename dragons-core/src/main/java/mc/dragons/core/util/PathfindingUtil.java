@@ -14,7 +14,7 @@ public class PathfindingUtil {
 		final double adjustedSpeed = speed / 2; // Account for discrepancies between configured speeds and block-per-second speed.
 		
 		entity.teleport(BlockUtil.getClosestGroundXZ(entity.getLocation()).add(0.0D, 1.0D, 0.0D));
-		(new BukkitRunnable() {
+		new BukkitRunnable() {
 			@Override
 			public void run() {
 				Location curr = entity.getLocation();
@@ -29,10 +29,11 @@ public class PathfindingUtil {
 				} else {
 					cancel();
 					entity.setVelocity(new Vector(0, 0, 0));
-					if (callback != null)
+					if (callback != null) {
 						callback.accept(entity);
+					}
 				}
 			}
-		}).runTaskTimer(Dragons.getInstance(), 0L, 1L);
+		}.runTaskTimer(Dragons.getInstance(), 0L, 1L);
 	}
 }

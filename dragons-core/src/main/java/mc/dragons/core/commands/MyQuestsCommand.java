@@ -19,9 +19,10 @@ public class MyQuestsCommand implements CommandExecutor {
 		if (sender instanceof Player) {
 			User user = UserLoader.fromPlayer((Player) sender);
 			sender.sendMessage(ChatColor.GREEN + "Listing active quests:");
-			for (Entry<Quest, QuestStep> entry : (Iterable<Entry<Quest, QuestStep>>) user.getQuestProgress().entrySet())
+			for (Entry<Quest, QuestStep> entry : (Iterable<Entry<Quest, QuestStep>>) user.getQuestProgress().entrySet()) {
 				sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.YELLOW + entry.getKey().getQuestName() + ChatColor.GRAY + " (Step: "
 						+ entry.getValue().getStepName().trim() + ChatColor.GRAY + ")");
+			}
 		}
 		return true;
 	}

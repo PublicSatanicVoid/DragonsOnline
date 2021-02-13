@@ -24,8 +24,9 @@ public class InventoryEventListeners implements Listener {
 
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {
-		if (e.getInventory().getType() == InventoryType.MERCHANT)
+		if (e.getInventory().getType() == InventoryType.MERCHANT) {
 			e.setCancelled(true);
+		}
 	}
 
 	@EventHandler
@@ -55,8 +56,9 @@ public class InventoryEventListeners implements Listener {
 		user.debug("Inventory click event. Action=" + e.getAction() + ", clickType=" + e.getClick() + ", slot=" + e.getSlot());
 		if (user.hasOpenGUI()) {
 			Inventory clickedInventory = e.getClickedInventory();
-			if (clickedInventory == null)
+			if (clickedInventory == null) {
 				return;
+			}
 			GUI gui = user.getCurrentGUI();
 			user.debug("gui name=" + gui.getMenuName() + ", clicked name=" + clickedInventory.getName());
 			if (clickedInventory.getName().equals(gui.getMenuName())) {
@@ -108,9 +110,10 @@ public class InventoryEventListeners implements Listener {
 			int quantity = splitFrom.getAmount();
 			int fromQuantity = quantity / 2;
 			int toQuantity = quantity / 2;
-			if (quantity % 2 == 1)
+			if (quantity % 2 == 1) {
 				fromQuantity++;
-			Item rpgSplitToCopy = this.itemLoader.registerNew(rpgSplitFrom);
+			}
+			Item rpgSplitToCopy = itemLoader.registerNew(rpgSplitFrom);
 			rpgSplitToCopy.setQuantity(toQuantity);
 			rpgSplitToCopy.setItemStack(splitFrom.clone());
 			rpgSplitFrom.setQuantity(fromQuantity);

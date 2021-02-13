@@ -24,49 +24,52 @@ public class GUI {
 	private String name;
 
 	public GUI(int rows, String menuName) {
-		this.elements = new HashMap<>();
+		elements = new HashMap<>();
 		this.rows = rows;
-		this.name = menuName;
+		name = menuName;
 	}
 
 	public GUI add(GUIElement element) {
-		this.elements.put(Integer.valueOf(element.getSlot()), element);
+		elements.put(Integer.valueOf(element.getSlot()), element);
 		return this;
 	}
 
 	public Map<Integer, GUIElement> getElements() {
-		return this.elements;
+		return elements;
 	}
 
 	public int getRows() {
-		return this.rows;
+		return rows;
 	}
 
 	public String getMenuName() {
-		return this.name;
+		return name;
 	}
 
 	public void open(User user) {
-		Inventory inventory = Bukkit.createInventory(user.getPlayer(), this.rows * 9, this.name);
-		for (Entry<Integer, GUIElement> element : this.elements.entrySet())
+		Inventory inventory = Bukkit.createInventory(user.getPlayer(), rows * 9, name);
+		for (Entry<Integer, GUIElement> element : elements.entrySet()) {
 			inventory.setItem(element.getKey(), element.getValue().getItemStack());
+		}
 		user.openGUI(this, inventory);
 	}
 
 	public void click(User user, int slot) {
 		user.debug("clicked slot " + slot);
-		GUIElement clicked = this.elements.getOrDefault(Integer.valueOf(slot), null);
+		GUIElement clicked = elements.getOrDefault(Integer.valueOf(slot), null);
 		user.debug(" - clicked=" + clicked);
-		if (clicked == null)
+		if (clicked == null) {
 			return;
+		}
 		clicked.click(user);
 	}
 
 	public Document toDocument() {
-		Document document = (new Document("name", this.name)).append("rows", Integer.valueOf(this.rows));
+		Document document = new Document("name", name).append("rows", Integer.valueOf(rows));
 		List<Document> items = new ArrayList<>();
-		for (Entry<Integer, GUIElement> element : this.elements.entrySet())
+		for (Entry<Integer, GUIElement> element : elements.entrySet()) {
 			items.add(element.getValue().toDocument());
+		}
 		document.append("items", items);
 		return document;
 	}

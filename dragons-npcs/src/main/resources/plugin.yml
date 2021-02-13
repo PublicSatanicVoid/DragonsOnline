@@ -2,7 +2,7 @@ name: DragonsNPCs
 main: mc.dragons.npcs.DragonsNPCAddons
 version: 1.0.0
 author: UniverseCraft
-depend: [DragonsCore]
+depend: [DragonsCore, DragonsSpells]
 commands:
   companion:
     description: Manage your companion.

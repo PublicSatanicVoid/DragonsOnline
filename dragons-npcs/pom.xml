@@ -42,5 +42,10 @@
       	<artifactId>dragons-core</artifactId>
       	<version>0.0.1-SNAPSHOT</version>
       </dependency>
+      <dependency>
+      	<groupId>mc.dragons</groupId>
+      	<artifactId>dragons-spells</artifactId>
+      	<version>0.0.1-SNAPSHOT</version>
+      </dependency>
   </dependencies>
 </project>

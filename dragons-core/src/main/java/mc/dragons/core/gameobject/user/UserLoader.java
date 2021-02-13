@@ -49,12 +49,13 @@ public class UserLoader extends GameObjectLoader<User> {
 	private UserLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
 		users = new HashSet<>();
-		this.masterRegistry = instance.getGameObjectRegistry();
+		masterRegistry = instance.getGameObjectRegistry();
 	}
 
 	public static synchronized UserLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null)
+		if (INSTANCE == null) {
 			INSTANCE = new UserLoader(instance, storageManager);
+		}
 		return INSTANCE;
 	}
 
@@ -80,13 +81,14 @@ public class UserLoader extends GameObjectLoader<User> {
 				return fixUser(user1);
 			}
 		}
-		Player p = this.plugin.getServer().getPlayer((UUID) storageAccess.get("_id"));
-		if (p == null)
+		Player p = plugin.getServer().getPlayer((UUID) storageAccess.get("_id"));
+		if (p == null) {
 			LOGGER.warning("Attempting to load user with an offline or nonexistent player (" + storageAccess.getIdentifier() + ")");
-		User user = new User(p, this.storageManager, storageAccess);
+		}
+		User user = new User(p, storageManager, storageAccess);
 		assign(p, user);
 		users.add(user);
-		this.masterRegistry.getRegisteredObjects().add(user);
+		masterRegistry.getRegisteredObjects().add(user);
 		return user;
 	}
 
@@ -99,9 +101,10 @@ public class UserLoader extends GameObjectLoader<User> {
 				return fixUser(user);
 			}
 		}
-		StorageAccess storageAccess = this.storageManager.getStorageAccess(GameObjectType.USER, uuid);
-		if (storageAccess == null)
+		StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER, uuid);
+		if (storageAccess == null) {
 			return null;
+		}
 		return loadObject(storageAccess);
 	}
 
@@ -113,9 +116,10 @@ public class UserLoader extends GameObjectLoader<User> {
 				return fixUser(user);
 			}
 		}
-		StorageAccess storageAccess = this.storageManager.getStorageAccess(GameObjectType.USER, new Document("username", username));
-		if (storageAccess == null)
+		StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER, new Document("username", username));
+		if (storageAccess == null) {
 			return null;
+		}
 		return loadObject(storageAccess);
 	}
 
@@ -127,7 +131,7 @@ public class UserLoader extends GameObjectLoader<User> {
 			skills.append(skill.toString(), Integer.valueOf(0));
 			skillProgress.append(skill.toString(), Double.valueOf(0.0D));
 		}
-		Document data = (new Document("_id", player.getUniqueId())).append("username", player.getName())
+		Document data = new Document("_id", player.getUniqueId()).append("username", player.getName())
 				.append("maxHealth", Double.valueOf(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())).append("xp", Integer.valueOf(0)).append("level", Integer.valueOf(1))
 				.append("rank", Rank.DEFAULT.toString()).append("gold", Double.valueOf(0.0D)).append("godMode", Boolean.valueOf(false)).append("firstJoined", Long.valueOf(System.currentTimeMillis()))
 				.append("lastJoined", Long.valueOf(System.currentTimeMillis())).append("lastSeen", Long.valueOf(System.currentTimeMillis())).append("skills", skills)
@@ -135,11 +139,11 @@ public class UserLoader extends GameObjectLoader<User> {
 				.append("punishmentHistory", new ArrayList<>()).append("chatChannels", new ArrayList<>(Arrays.asList(new String[] { ChatChannel.LOCAL.toString() })))
 				.append("speakingChannel", ChatChannel.LOCAL.toString()).append("gamemode", GameMode.ADVENTURE.toString()).append("lastReadChangeLog", Integer.valueOf(0))
 				.append("ip", player.getAddress().getAddress().getHostAddress()).append("totalOnlineTime", Long.valueOf(0L));
-		StorageAccess storageAccess = this.storageManager.getNewStorageAccess(GameObjectType.USER, data);
-		User user = new User(player, this.storageManager, storageAccess);
+		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
+		User user = new User(player, storageManager, storageAccess);
 		assign(player, user);
 		users.add(user);
-		this.masterRegistry.getRegisteredObjects().add(user);
+		masterRegistry.getRegisteredObjects().add(user);
 		return user;
 	}
 
@@ -153,18 +157,29 @@ public class UserLoader extends GameObjectLoader<User> {
 	}
 
 	public static User fromPlayer(Player player) {
-		if (player == null)
+		if (player == null) {
 			return null;
-		if (!player.hasMetadata("handle"))
+		}
+		if (!player.hasMetadata("handle")) {
 			return null;
-		if (player.getMetadata("handle").size() == 0)
+		}
+		if (player.getMetadata("handle").size() == 0) {
 			return null;
+		}
 		Object value = player.getMetadata("handle").get(0).value();
-		if (value instanceof User)
+		if (value instanceof User) {
 			return (User) value;
+		}
 		return null;
 	}
 
+	/**
+	 * Synchronously queries Mojang servers to find the UUID associated with a given username.
+	 * Can be run on a separate thread to avoid blocking other operations.
+	 * 
+	 * @param username
+	 * @return
+	 */
 	public static UUID uuidFromUsername(String username) {
 		// https://github.com/ZerothAngel/ToHPluginUtils/blob/master/src/main/java/org/tyrannyofheaven/bukkit/util/uuid/MojangUuidResolver.java
 		List<String> request = new ArrayList<>();
@@ -199,6 +214,12 @@ public class UserLoader extends GameObjectLoader<User> {
 		return null;
 	}
 	
+	/**
+	 * Query the UUID for a given username from Mojang servers asynchronously.
+	 * 
+	 * @param username
+	 * @param whenComplete
+	 */
 	public static void uuidFromUsername(String username, Consumer<UUID> whenComplete) {
 		new BukkitRunnable() {
 			@Override public void run() {
@@ -210,13 +231,13 @@ public class UserLoader extends GameObjectLoader<User> {
 	public void removeStalePlayer(Player player) {
 		LOGGER.fine("Removing stale player " + player.getName());
 		User user = fromPlayer(player);
-		this.masterRegistry.getRegisteredObjects().remove(user);
+		masterRegistry.getRegisteredObjects().remove(user);
 		users.remove(user);
 	}
 
 	public void unregister(User user) {
 		LOGGER.fine("Locally unregistering player " + user.getName());
-		this.masterRegistry.getRegisteredObjects().remove(user);
+		masterRegistry.getRegisteredObjects().remove(user);
 		users.remove(user);
 	}
 

@@ -9,7 +9,7 @@ import mc.dragons.core.util.PermissionUtil;
 public class StaffChannelHandler implements ChannelHandler {
 	@Override
 	public boolean canHear(User to, User from) {
-		return (to.getActiveChatChannels().contains(ChatChannel.STAFF) && PermissionUtil.verifyActivePermissionLevel(to, PermissionLevel.BUILDER, false));
+		return to.getActiveChatChannels().contains(ChatChannel.STAFF) && PermissionUtil.verifyActivePermissionLevel(to, PermissionLevel.BUILDER, false);
 	}
 
 	@Override

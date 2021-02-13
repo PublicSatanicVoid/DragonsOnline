@@ -28,13 +28,15 @@ public class BridgeSpigot112R1 implements Bridge {
 	@Override
 	public void sendActionBar(Player player, String message) {
 		if (player == null) {
-			this.LOGGER.warning("Attempted to send action bar to null player");
+			LOGGER.warning("Attempted to send action bar to null player");
 			return;
 		}
-		if (message == null)
-			this.LOGGER.warning("Attempted to send null message to player " + player.getName());
-		if (player.spigot() == null)
-			this.LOGGER.warning("Player#spigot() returned null for player " + player.getName() + " in sendActionBar()");
+		if (message == null) {
+			LOGGER.warning("Attempted to send null message to player " + player.getName());
+		}
+		if (player.spigot() == null) {
+			LOGGER.warning("Player#spigot() returned null for player " + player.getName() + " in sendActionBar()");
+		}
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
 	}
 
@@ -46,7 +48,7 @@ public class BridgeSpigot112R1 implements Bridge {
 	@Override
 	public void respawnPlayer(Player player) {
 		player.spigot().respawn();
-		this.LOGGER.finest("Respawning player " + player.getName());
+		LOGGER.finest("Respawning player " + player.getName());
 	}
 
 	@Override
@@ -57,13 +59,13 @@ public class BridgeSpigot112R1 implements Bridge {
 	@Override
 	public void setEntityAI(Entity entity, boolean ai) {
 		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), "NoAI");
-		this.LOGGER.finest("Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
+		LOGGER.finest("Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
 
 	@Override
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {
 		NBTEditor.set(itemStack, unbreakable ? 1 : 0, "Unbreakable");
-		this.LOGGER.finest("Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
+		LOGGER.finest("Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
 	}
 
 	@Override
@@ -76,11 +78,11 @@ public class BridgeSpigot112R1 implements Bridge {
 	@Override
 	public void setEntityInvulnerable(Entity entity, boolean immortal) {
 		entity.setInvulnerable(immortal);
-		this.LOGGER.finest("Set Invulnerability on entity " + StringUtil.entityToString(entity) + " to " + immortal);
+		LOGGER.finest("Set Invulnerability on entity " + StringUtil.entityToString(entity) + " to " + immortal);
 	}
 
 	@Override
 	public int getPing(Player player) {
-		return (((CraftPlayer) player).getHandle()).ping;
+		return ((CraftPlayer) player).getHandle().ping;
 	}
 }

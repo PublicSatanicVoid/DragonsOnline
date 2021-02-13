@@ -38,20 +38,24 @@ public class SidebarManager {
 	}
 
 	private String getScrolledFrameAndIncrement(Player player, String entry, String value) {
-		if (value.length() <= 16)
+		if (value.length() <= 16) {
 			return value;
-		if (!this.scoreboardScrollIndices.containsKey(player))
-			this.scoreboardScrollIndices.put(player, new HashMap<>());
-		int shift = this.scoreboardScrollIndices.get(player).getOrDefault(entry, Integer.valueOf(0)).intValue();
-		if (shift + 16 > value.length())
+		}
+		if (!scoreboardScrollIndices.containsKey(player)) {
+			scoreboardScrollIndices.put(player, new HashMap<>());
+		}
+		int shift = scoreboardScrollIndices.get(player).getOrDefault(entry, Integer.valueOf(0)).intValue();
+		if (shift + 16 > value.length()) {
 			shift = 0;
-		this.scoreboardScrollIndices.get(player).put(entry, Integer.valueOf(shift + 1));
+		}
+		scoreboardScrollIndices.get(player).put(entry, Integer.valueOf(shift + 1));
 		return value.substring(shift, 16 + shift);
 	}
 
 	public Scoreboard createScoreboard(Player player) {
-		if (player == null)
+		if (player == null) {
 			return null;
+		}
 		String[] scoreboardLayout = {
 			"FLOOR", 
 			"REGION", 
@@ -81,11 +85,12 @@ public class SidebarManager {
 	}
 
 	public void updateScoreboard(Player player) {
-		if (player == null)
+		if (player == null) {
 			return;
+		}
 		Scoreboard scoreboard = player.getScoreboard();
 		if (scoreboard == null) {
-			this.instance.getLogger().warning("Attempted to update scoreboard for " + player.getName() + " but they did not have a scoreboard");
+			instance.getLogger().warning("Attempted to update scoreboard for " + player.getName() + " but they did not have a scoreboard");
 			return;
 		}
 		RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
@@ -93,20 +98,20 @@ public class SidebarManager {
 		Team floor = scoreboard.getTeam("FLOOR");
 		floor.setPrefix(ChatColor.GRAY + "Floor: ");
 		Floor currentFloor = FloorLoader.fromWorld(player.getWorld());
-		String floorName = (currentFloor == null) ? (ChatColor.RED + "Unknown") : currentFloor.getDisplayName();
+		String floorName = currentFloor == null ? ChatColor.RED + "Unknown" : currentFloor.getDisplayName();
 		floor.setSuffix(getScrolledFrameAndIncrement(player, "Floor", floorName));
 		Team server = scoreboard.getTeam("SERVER");
 		server.setPrefix(ChatColor.GRAY + "Server: " + ChatColor.WHITE);
-		server.setSuffix(this.instance.getServerName());
+		server.setSuffix(instance.getServerName());
 		Team online = scoreboard.getTeam("ONLINE");
 		online.setPrefix(ChatColor.GRAY + "Online: " + ChatColor.WHITE);
 		online.setSuffix(String.valueOf(Bukkit.getOnlinePlayers().stream().filter(p -> p.canSee(p)).count()) + " / " + Bukkit.getMaxPlayers());
 		Team level = scoreboard.getTeam("LEVEL");
 		level.setPrefix(ChatColor.GRAY + "Level: " + ChatColor.WHITE);
-		level.setSuffix(((user.getLevelColor() == ChatColor.GRAY) ? "" : user.getLevelColor().toString()) + user.getLevel());
+		level.setSuffix((user.getLevelColor() == ChatColor.GRAY ? "" : user.getLevelColor().toString()) + user.getLevel());
 		Team xp = scoreboard.getTeam("XP");
 		xp.setPrefix(ChatColor.GRAY + "XP: " + ChatColor.WHITE);
-		xp.setSuffix(String.valueOf(user.getXP()) + " (" + (int) Math.floor((user.getLevelProgress() * 100.0F)) + "%)");
+		xp.setSuffix(String.valueOf(user.getXP()) + " (" + (int) Math.floor(user.getLevelProgress() * 100.0F) + "%)");
 		Team rank = scoreboard.getTeam("RANK");
 		rank.setPrefix(ChatColor.GRAY + "Rank: " + ChatColor.WHITE);
 		rank.setSuffix((user.getRank().getNameColor() == ChatColor.GRAY ? "" : user.getRank().getNameColor()) + user.getRank().getShortName());
@@ -118,14 +123,14 @@ public class SidebarManager {
 		location.setSuffix(String.valueOf(player.getLocation().getBlockX()) + ", " + player.getLocation().getBlockZ());
 		Team region = scoreboard.getTeam("REGION");
 		Region smallestRegion = regionLoader.getSmallestRegionByLocation(player.getLocation(), false);
-		String regionName = (smallestRegion == null) ? "None" : smallestRegion.getFlags().getString("fullname");
+		String regionName = smallestRegion == null ? "None" : smallestRegion.getFlags().getString("fullname");
 		region.setPrefix(ChatColor.GRAY + "Region: " + ChatColor.WHITE);
 		region.setSuffix(getScrolledFrameAndIncrement(player, "Region", regionName));
 	}
 
 	private String getEntryString(int index) {
 		String result = "";
-		int len = (ChatColor.values()).length;
+		int len = ChatColor.values().length;
 		while (index > 0) {
 			result = String.valueOf(result) + ChatColor.values()[index % len];
 			index -= len;

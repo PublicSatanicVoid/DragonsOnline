@@ -26,59 +26,68 @@ public class ItemClass extends GameObject {
 	public ItemClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constrcting item class (" + storageManager + ", " + storageAccess + ")");
-		this.addons = ((List<String>) getData("addons")).stream()
+		addons = ((List<String>) getData("addons")).stream()
 				.map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
 	}
 
 	private void saveAddons() {
-		setData("addons", this.addons.stream().map(a -> a.getName()).collect(Collectors.toList()));
+		setData("addons", addons.stream().map(a -> a.getName()).collect(Collectors.toList()));
 	}
 
 	public void addAddon(ItemAddon addon) {
-		this.addons.add(addon);
+		addons.add(addon);
 		saveAddons();
 	}
 
 	public void removeAddon(ItemAddon addon) {
-		this.addons.remove(addon);
+		addons.remove(addon);
 		saveAddons();
 	}
 
 	public List<ItemAddon> getAddons() {
-		return this.addons;
+		return addons;
 	}
 
 	public void handleLeftClick(User user) {
-		this.addons.forEach(a -> a.onLeftClick(user));
+		addons.forEach(a -> a.onLeftClick(user));
 	}
 
 	public void handleRightClick(User user) {
-		this.addons.forEach(a -> a.onRightClick(user));
+		addons.forEach(a -> a.onRightClick(user));
 	}
 
 	public List<String> getCompleteLore(String[] customLore, UUID uuid, boolean custom) {
-		String dataTag = (uuid == null) ? "" : HiddenStringUtil.encodeString(uuid.toString());
+		String dataTag = uuid == null ? "" : HiddenStringUtil.encodeString(uuid.toString());
 		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + getLevelMin() + dataTag }));
-		if (customLore.length > 0)
+		if (customLore.length > 0) {
 			lore.add("");
+		}
 		lore.addAll(Arrays.<String>asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
 		List<String> statsMeta = new ArrayList<>();
-		if (getDamage() > 0.0D)
+		if (getDamage() > 0.0D) {
 			statsMeta.add(ChatColor.GREEN + " " + getDamage() + " Damage");
-		if (getArmor() > 0.0D)
+		}
+		if (getArmor() > 0.0D) {
 			statsMeta.add(ChatColor.GREEN + " " + getArmor() + " Armor");
-		if (isWeapon())
+		}
+		if (isWeapon()) {
 			statsMeta.add(ChatColor.GREEN + " " + getCooldown() + "s Attack Speed");
-		if (getSpeedBoost() != 0.0D)
-			statsMeta.add(" " + ((getSpeedBoost() < 0.0D) ? ChatColor.RED : (ChatColor.GREEN + "+")) + getSpeedBoost() + " Walk Speed");
-		if (isUnbreakable() || isUndroppable())
+		}
+		if (getSpeedBoost() != 0.0D) {
+			statsMeta.add(" " + (getSpeedBoost() < 0.0D ? ChatColor.RED : ChatColor.GREEN + "+") + getSpeedBoost() + " Walk Speed");
+		}
+		if (isUnbreakable() || isUndroppable()) {
 			statsMeta.add("");
-		if (isUnbreakable())
+		}
+		if (isUnbreakable()) {
 			statsMeta.add(ChatColor.BLUE + "Unbreakable");
-		if (isUndroppable())
+		}
+		if (isUndroppable()) {
 			statsMeta.add(ChatColor.BLUE + "Undroppable");
-		if (custom)
+		}
+		if (custom) {
 			statsMeta.addAll(Arrays.asList(new String[] { "", ChatColor.AQUA + "Custom Item" }));
+		}
 		if (statsMeta.size() > 0) {
 			lore.addAll(Arrays.asList(new String[] { "", ChatColor.GRAY + "When equipped:" }));
 			lore.addAll(statsMeta);
@@ -199,7 +208,7 @@ public class ItemClass extends GameObject {
 
 	public GUIElement getAsGuiElement(int slot, int quantity, double costPer, boolean custom, Consumer<User> callback) {
 		List<String> lore = new ArrayList<>();
-		lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + costPer + " Gold " + ((quantity == 1) ? "" : ("x" + quantity + " = " + (quantity * costPer) + " Gold")));
+		lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + costPer + " Gold " + (quantity == 1 ? "" : "x" + quantity + " = " + quantity * costPer + " Gold"));
 		lore.addAll(getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), (UUID) null, custom));
 		return new GUIElement(slot, getMaterial(), getDecoratedName(), lore, quantity, callback);
 	}

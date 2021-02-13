@@ -19,3 +19,4 @@ commands:
     aliases: v
   unvanish:
     aliases: uv
+  fly:

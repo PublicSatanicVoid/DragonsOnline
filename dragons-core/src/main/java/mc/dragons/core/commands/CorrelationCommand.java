@@ -35,7 +35,9 @@ public class CorrelationCommand implements CommandExecutor {
 		if(sender instanceof Player) {
 			player = (Player) sender;
 			user = UserLoader.fromPlayer(player);
-			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, true)) return true;
+			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, true)) {
+				return true;
+			}
 		}
 		
 		if(args.length == 0) {
@@ -56,7 +58,10 @@ public class CorrelationCommand implements CommandExecutor {
 		List<CorrelationLogEntry> result = loader.getAllByCorrelationID(beginning);
 		Set<UUID> ids = new HashSet<>();
 		for(CorrelationLogEntry log : result) {
-			if(!log.getCorrelationID().toString().startsWith(beginning)) continue; // Hotfix for when an unwanted correlation ID is returned
+			if(!log.getCorrelationID().toString().startsWith(beginning))
+			 {
+				continue; // Hotfix for when an unwanted correlation ID is returned
+			}
 			ids.add(log.getCorrelationID());
 		}
 		if(ids.size() == 0) {
@@ -73,7 +78,9 @@ public class CorrelationCommand implements CommandExecutor {
 		}
 		sender.sendMessage(ChatColor.YELLOW + "Log entries for correlation ID " + ids.iterator().next() + ":");
 		for(CorrelationLogEntry log : result) {
-			if(log.getLevel().intValue() < minLevel.intValue()) continue;
+			if(log.getLevel().intValue() < minLevel.intValue()) {
+				continue;
+			}
 			sender.sendMessage(ChatColor.GRAY + "[" + log.getTimestamp() + "/" + log.getInstance() + "/" + log.getLevel().getName() + "] " + ChatColor.WHITE + log.getMessage());
 		}
 		

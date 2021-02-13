@@ -29,33 +29,35 @@ public class ItemLoader extends GameObjectLoader<Item> {
 
 	private ItemLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
-		this.masterRegistry = instance.getGameObjectRegistry();
-		this.itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+		masterRegistry = instance.getGameObjectRegistry();
+		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		uuidToItem = new HashMap<>();
 	}
 
 	public static synchronized ItemLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null)
+		if (INSTANCE == null) {
 			INSTANCE = new ItemLoader(instance, storageManager);
+		}
 		return INSTANCE;
 	}
 
 	@Override
 	public Item loadObject(StorageAccess storageAccess) {
-		if (storageAccess == null)
+		if (storageAccess == null) {
 			return null;
-		this.LOGGER.fine("Loading item by storage access " + storageAccess.getIdentifier());
+		}
+		LOGGER.fine("Loading item by storage access " + storageAccess.getIdentifier());
 		Material type = Material.valueOf((String) storageAccess.get("materialType"));
 		ItemStack itemStack = new ItemStack(type);
-		Item item = new Item(itemStack, this.storageManager, storageAccess);
-		this.masterRegistry.getRegisteredObjects().add(item);
+		Item item = new Item(itemStack, storageManager, storageAccess);
+		masterRegistry.getRegisteredObjects().add(item);
 		uuidToItem.put(item.getUUID().toString(), item);
-		return new Item(itemStack, this.storageManager, storageAccess);
+		return new Item(itemStack, storageManager, storageAccess);
 	}
 
 	public Item loadObject(UUID uuid) {
-		this.LOGGER.fine("Loading item by UUID " + uuid);
-		return loadObject(this.storageManager.getStorageAccess(GameObjectType.ITEM, uuid));
+		LOGGER.fine("Loading item by UUID " + uuid);
+		return loadObject(storageManager.getStorageAccess(GameObjectType.ITEM, uuid));
 	}
 
 	public Item registerNew(ItemClass itemClass) {
@@ -73,47 +75,52 @@ public class ItemLoader extends GameObjectLoader<Item> {
 
 	public Item registerNew(String className, String name, boolean custom, ChatColor nameColor, Material material, int levelMin, double cooldown, double speedBoost, boolean unbreakable,
 			boolean undroppable, double damage, double armor, List<String> lore, int maxStackSize) {
-		return registerNew((new Document("_id", UUID.randomUUID()))
+		return registerNew(new Document("_id", UUID.randomUUID())
 				.append("className", className)
 				.append("name", name)
-				.append("isCustom", Boolean.valueOf(custom))
+				.append("isCustom", custom)
 				.append("nameColor", nameColor.name())
 				.append("materialType", material.toString())
-				.append("lvMin", Integer.valueOf(levelMin))
-				.append("cooldown", Double.valueOf(cooldown))
-				.append("speedBoost", Double.valueOf(speedBoost))
-				.append("unbreakable", Boolean.valueOf(unbreakable))
-				.append("undroppable", Boolean.valueOf(undroppable))
-				.append("damage", Double.valueOf(damage))
-				.append("armor", Double.valueOf(armor))
+				.append("lvMin", levelMin)
+				.append("cooldown", cooldown)
+				.append("speedBoost", speedBoost)
+				.append("unbreakable", unbreakable)
+				.append("undroppable", undroppable)
+				.append("damage", damage)
+				.append("armor", armor)
 				.append("lore", lore)
-				.append("quantity", Integer.valueOf(1))
-				.append("maxStackSize", Integer.valueOf(maxStackSize)));
+				.append("quantity", 1)
+				.append("maxStackSize", maxStackSize));
 	}
 	
 	public Item registerNew(Document data) {
 		data.append("_id", UUID.randomUUID());
 		String className = data.getString("className");
 		Material material = Material.valueOf(data.getString("materialType"));
-		this.LOGGER.fine("Registering new item of class " + className);
-		this.itemClassLoader.getItemClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(data));
-		StorageAccess storageAccess = this.storageManager.getNewStorageAccess(GameObjectType.ITEM, data);
+		LOGGER.fine("Registering new item of class " + className);
+		Document clone = new Document(data);
+		itemClassLoader.getItemClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(clone));
+		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.ITEM, clone);
 		ItemStack itemStack = new ItemStack(material);
-		Item item = new Item(itemStack, this.storageManager, storageAccess);
+		Item item = new Item(itemStack, storageManager, storageAccess);
 		uuidToItem.put(item.getUUID().toString(), item);
-		this.masterRegistry.getRegisteredObjects().add(item);
+		masterRegistry.getRegisteredObjects().add(item);
 		return item;
 	}
 
 	public static Item fromBukkit(ItemStack itemStack) {
-		if (itemStack == null)
+		if (itemStack == null) {
 			return null;
-		if (itemStack.getItemMeta() == null)
+		}
+		if (itemStack.getItemMeta() == null) {
 			return null;
-		if (itemStack.getItemMeta().getLore() == null)
+		}
+		if (itemStack.getItemMeta().getLore() == null) {
 			return null;
-		if (itemStack.getItemMeta().getLore().size() < 1)
+		}
+		if (itemStack.getItemMeta().getLore().size() < 1) {
 			return null;
+		}
 		return uuidToItem.get(HiddenStringUtil.extractHiddenString(itemStack.getItemMeta().getLore().get(0)));
 	}
 }

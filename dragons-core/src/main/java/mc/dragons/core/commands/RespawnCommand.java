@@ -19,8 +19,9 @@ public class RespawnCommand implements CommandExecutor {
 		if (sender instanceof Player) {
 			player = (Player) sender;
 			user = UserLoader.fromPlayer(player);
-			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, true))
+			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, true)) {
 				return true;
+			}
 		} else {
 			sender.sendMessage(ChatColor.RED + "This is an ingame-only command.");
 			return true;

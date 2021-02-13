@@ -65,15 +65,15 @@ public class PlayerEventListeners implements Listener {
 
 
 	public PlayerEventListeners(Dragons instance) {
-		this.plugin = instance;
-		this.LOGGER = instance.getLogger();
-		this.userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-		this.itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+		plugin = instance;
+		LOGGER = instance.getLogger();
+		userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+		itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 	}
 
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent event) {
-		this.LOGGER.finer("Chat event from player " + event.getPlayer().getName());
+		LOGGER.finer("Chat event from player " + event.getPlayer().getName());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		event.setCancelled(true);
 		user.chat(event.getMessage());
@@ -94,10 +94,11 @@ public class PlayerEventListeners implements Listener {
 			Block clicked = event.getClickedBlock();
 			if (clicked.getType() == Material.WALL_SIGN || clicked.getType() == Material.SIGN) {
 				Sign sign = (Sign) clicked.getState();
-				if (sign.getLine(0).equals("[RIGHT CLICK]"))
+				if (sign.getLine(0).equals("[RIGHT CLICK]")) {
 					if (sign.getLine(2).equals("Join as player")) {
-						if (user.getSystemProfile() != null)
+						if (user.getSystemProfile() != null) {
 							user.setSystemProfile(null);
+						}
 						player.sendMessage(ChatColor.GREEN + "Joining as a player. You can always sign in to your system profile later.");
 						player.teleport(user.getSavedLocation());
 						user.handleJoin(false);
@@ -107,8 +108,9 @@ public class PlayerEventListeners implements Listener {
 							return;
 						}
 						if (sign.getLine(3).equals("Vanished (Mod+)")) {
-							if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.MODERATOR, true))
+							if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.MODERATOR, true)) {
 								return;
+							}
 							user.setVanished(true);
 						}
 						player.teleport(user.getSavedStaffLocation());
@@ -116,15 +118,18 @@ public class PlayerEventListeners implements Listener {
 					} else {
 						player.sendMessage(ChatColor.RED + "I don't know what to do with this!");
 					}
+				}
 			}
 			return;
 		}
 		ItemStack heldItem = player.getInventory().getItemInMainHand();
-		if (heldItem == null)
+		if (heldItem == null) {
 			return;
+		}
 		Item item = ItemLoader.fromBukkit(heldItem);
-		if (item == null)
+		if (item == null) {
 			return;
+		}
 		if (action == Action.LEFT_CLICK_AIR) {
 			user.debug("Left click with " + item.getName());
 			item.getItemClass().handleLeftClick(user);
@@ -136,22 +141,24 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
-		this.LOGGER.finer("Death event from " + event.getEntity().getName());
+		LOGGER.finer("Death event from " + event.getEntity().getName());
 		Player player = event.getEntity();
 		final User user = UserLoader.fromPlayer(player);
 		player.sendMessage(ChatColor.DARK_RED + "You died!");
-		final int countdown = this.plugin.getServerOptions().getDeathCountdown();
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
-			@Override
-			public void run() {
-				user.sendToFloor("BeginnerTown");
-				user.respawn();
-				user.getPlayer().sendTitle(ChatColor.RED + "< " + ChatColor.DARK_RED + "You are dead" + ChatColor.RED + " >", ChatColor.GRAY + "Respawning on floor 1", 0, 20 * (countdown - 2), 40);
-				user.setDeathCountdown(countdown);
-			}
+		final int countdown = plugin.getServerOptions().getDeathCountdown();
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+			user.sendToFloor("BeginnerTown");
+			user.respawn();
+			user.getPlayer().sendTitle(ChatColor.RED + "< " + ChatColor.DARK_RED + "You are dead" + ChatColor.RED + " >", ChatColor.GRAY + "Respawning on floor 1", 0, 20 * (countdown - 2), 40);
+			user.setDeathCountdown(countdown);
 		}, 1L);
 	}
 
+	/**
+	 * FIXME Drop quantity sometimes calculated incorrectly when iterated
+	 * 
+	 * @param event
+	 */
 	@EventHandler
 	public void onDropItem(PlayerDropItemEvent event) {
 		ItemStack drop = event.getItemDrop().getItemStack();
@@ -159,31 +166,34 @@ public class PlayerEventListeners implements Listener {
 		Item item = ItemLoader.fromBukkit(drop);
 		
 		
-		this.LOGGER.finer("Drop item event on " + event.getPlayer().getName() + " of " + ((item == null) ? "null" : item.getIdentifier()) + " (x" + amt + ")");
-		if (item == null)
+		LOGGER.finer("Drop item event on " + event.getPlayer().getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + amt + ")");
+		if (item == null) {
 			return;
+		}
 		User user = UserLoader.fromPlayer(event.getPlayer());
-		if (item.isUndroppable()) {
+		user.debug("held="+item.getQuantity()+"="+item.getItemStack().getAmount());
+		if (item.isUndroppable() && event.getPlayer().getGameMode() != GameMode.CREATIVE) {
 			user.sendActionBar(ChatColor.DARK_RED + "You can't drop this item!");
 			event.setCancelled(true);
 			return;
 		}
-		Item dropItem = this.itemLoader.registerNew(item);
+		Item dropItem = itemLoader.registerNew(item);
 		dropItem.setQuantity(amt);
+		user.debug("drop="+dropItem.getQuantity()+"="+dropItem.getItemStack().getAmount());
 		event.getItemDrop().setItemStack(dropItem.getItemStack());
 		user.takeItem(item, amt, true, false, true);
 	}
 
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
-		this.LOGGER.finer("Gamemode change event on " + event.getPlayer().getName() + " to " + event.getNewGameMode());
+		LOGGER.finer("Gamemode change event on " + event.getPlayer().getName() + " to " + event.getNewGameMode());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.setGameMode(event.getNewGameMode(), false);
 	}
 
 	@EventHandler
 	public void onHungerChangeEvent(FoodLevelChangeEvent event) {
-		this.LOGGER.finer("Hunger change event on " + event.getEntity().getName());
+		LOGGER.finer("Hunger change event on " + event.getEntity().getName());
 		event.setCancelled(true);
 		Player player = (Player) event.getEntity();
 		player.setFoodLevel(20);
@@ -191,7 +201,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onInteractEntity(PlayerInteractEntityEvent event) {
-		this.LOGGER.finer("Interact entity event on " + event.getPlayer().getName() + " to " + StringUtil.entityToString(event.getRightClicked()));
+		LOGGER.finer("Interact entity event on " + event.getPlayer().getName() + " to " + StringUtil.entityToString(event.getRightClicked()));
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.debug("Right-click");
 		NPC npc = NPCLoader.fromBukkit(event.getRightClicked());
@@ -203,7 +213,7 @@ public class PlayerEventListeners implements Listener {
 				if (item.getClassName().equals("Special:ImmortalOverride")) {
 					user.debug("- Destroy the NPC");
 					npc.getEntity().remove();
-					this.plugin.getGameObjectRegistry().removeFromDatabase(npc);
+					plugin.getGameObjectRegistry().removeFromDatabase(npc);
 					user.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 					return;
 				}
@@ -221,25 +231,25 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		this.LOGGER.info("Join event on " + event.getPlayer().getName());
+		LOGGER.info("Join event on " + event.getPlayer().getName());
 		Player player = event.getPlayer();
 		UUID uuid = player.getUniqueId();
-		User user = this.userLoader.loadObject(uuid);
+		User user = userLoader.loadObject(uuid);
 		event.setJoinMessage(null);
 		boolean firstJoin = false;
 		if (user == null) {
 			firstJoin = true;
-			this.plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
-			user = this.userLoader.registerNew(player);
+			plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
+			user = userLoader.registerNew(player);
 			user.sendToFloor("BeginnerTown");
 			for(ItemClass itemClass : DEFAULT_INVENTORY) {
-				user.giveItem(this.itemLoader.registerNew(itemClass), true, false, true);
+				user.giveItem(itemLoader.registerNew(itemClass), true, false, true);
 			}
 		}
 		User.PunishmentData banData = user.getActivePunishmentData(User.PunishmentType.BAN);
 		if (banData != null) {
 			player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You are banned.\n\n"
-					+ (banData.getReason().equals("") ? "" : (ChatColor.GRAY + "Reason: " + ChatColor.WHITE + banData.getReason() + "\n")) + ChatColor.GRAY + "Expires: " + ChatColor.WHITE
+					+ (banData.getReason().equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + banData.getReason() + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE
 					+ (banData.isPermanent() ? "Never" : banData.getExpiry().toString()));
 			return;
 		}
@@ -257,7 +267,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onMove(PlayerMoveEvent event) {
-		this.LOGGER.finest("Move event on " + event.getPlayer().getName() + " (" + StringUtil.locToString(event.getFrom()) + " [" + event.getFrom().getWorld().getName() + "] -> "
+		LOGGER.finest("Move event on " + event.getPlayer().getName() + " (" + StringUtil.locToString(event.getFrom()) + " [" + event.getFrom().getWorld().getName() + "] -> "
 				+ StringUtil.locToString(event.getTo()) + " [" + event.getTo().getWorld().getName() + "])");
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		if (user.hasDeathCountdown()) {
@@ -269,35 +279,40 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onPickupItem(EntityPickupItemEvent event) {
-		if (!(event.getEntity() instanceof Player))
+		if (!(event.getEntity() instanceof Player)) {
 			return;
+		}
 		final Player player = (Player) event.getEntity();
 		ItemStack pickup = event.getItem().getItemStack();
 		User user = UserLoader.fromPlayer(player);
-		if (pickup == null)
+		if (pickup == null) {
 			return;
-		if (pickup.getItemMeta() == null)
+		}
+		if (pickup.getItemMeta() == null) {
 			return;
-		if (pickup.getItemMeta().getDisplayName() == null)
+		}
+		if (pickup.getItemMeta().getDisplayName() == null) {
 			return;
+		}
 		final Item item = ItemLoader.fromBukkit(pickup);
-		if (item == null)
+		if (item == null) {
 			return;
-		this.LOGGER.finer("Pickup item event on " + player.getName() + " of " + ((item == null) ? "null" : item.getIdentifier()) + " (x" + pickup.getAmount() + ")");
+		}
+		LOGGER.finer("Pickup item event on " + player.getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + pickup.getAmount() + ")");
 		if (pickup.getItemMeta().getDisplayName().equals(GOLD_CURRENCY_DISPLAY_NAME)) {
 			int amount = pickup.getAmount();
 			user.giveGold(amount * 1.0D);
-			(new BukkitRunnable() {
+			new BukkitRunnable() {
 				@Override
 				public void run() {
 					Arrays.<ItemStack>asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
 							.filter(i -> (i.getItemMeta().getDisplayName() != null)).filter(i -> i.getItemMeta().getDisplayName().equals(PlayerEventListeners.GOLD_CURRENCY_DISPLAY_NAME))
 							.forEach(i -> {
 								player.getInventory().remove(i);
-								PlayerEventListeners.this.plugin.getGameObjectRegistry().removeFromDatabase(item);
+								plugin.getGameObjectRegistry().removeFromDatabase(item);
 							});
 				}
-			}).runTaskLater(this.plugin, 1L);
+			}.runTaskLater(plugin, 1L);
 			player.playSound(player.getLocation(), Sound.BLOCK_NOTE_HARP, 1.0F, 1.3F);
 			return;
 		}
@@ -310,7 +325,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		this.LOGGER.finer("Quit event on " + event.getPlayer().getName());
+		LOGGER.finer("Quit event on " + event.getPlayer().getName());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.handleQuit();
 		event.setQuitMessage(null);

@@ -25,18 +25,20 @@ public class LootTable {
 	private Document lootTable;
 
 	public LootTable(NPCClass npcClass) {
-		this.lootTable = (Document) npcClass.getStorageAccess().get("lootTable");
+		lootTable = (Document) npcClass.getStorageAccess().get("lootTable");
 	}
 
 	public Set<Item> getDrops(Location loc) {
-		if (this.lootTable == null)
+		if (lootTable == null) {
 			return new HashSet<>();
+		}
 		Set<Region> regions = regionLoader.getRegionsByLocation(loc);
 		Set<Item> drops = new HashSet<>();
 		for (Region region : regions) {
-			Document regionLoots = (Document) this.lootTable.get(region.getName());
-			if (regionLoots == null)
+			Document regionLoots = (Document) lootTable.get(region.getName());
+			if (regionLoots == null) {
 				continue;
+			}
 			for (Entry<String, Object> loot : (Iterable<Entry<String, Object>>) regionLoots.entrySet()) {
 				double chance = (double) loot.getValue();
 				if (Math.random() < chance / 100.0D) {
@@ -50,15 +52,17 @@ public class LootTable {
 	}
 
 	public Map<String, Map<String, Double>> asMap() {
-		if (this.lootTable == null)
+		if (lootTable == null) {
 			return new HashMap<>();
+		}
 		Map<String, Map<String, Double>> result = new HashMap<>();
-		for (Entry<String, Object> regions : (Iterable<Entry<String, Object>>) this.lootTable.entrySet()) {
+		for (Entry<String, Object> regions : (Iterable<Entry<String, Object>>) lootTable.entrySet()) {
 			Map<String, Double> regionItemChances = new HashMap<>();
 			String regionName = regions.getKey();
 			Document chances = (Document) regions.getValue();
-			for (Entry<String, Object> itemChance : (Iterable<Entry<String, Object>>) chances.entrySet())
+			for (Entry<String, Object> itemChance : (Iterable<Entry<String, Object>>) chances.entrySet()) {
 				regionItemChances.put(itemChance.getKey(), Double.valueOf((double) itemChance.getValue()));
+			}
 			result.put(regionName, regionItemChances);
 		}
 		return result;

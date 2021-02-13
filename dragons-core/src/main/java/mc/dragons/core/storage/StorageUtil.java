@@ -17,7 +17,7 @@ public class StorageUtil {
 	}
 
 	public static Document vecToDoc(Vector vec) {
-		return (new Document()).append("x", vec.getX()).append("y", vec.getY()).append("z", vec.getZ());
+		return new Document().append("x", vec.getX()).append("y", vec.getY()).append("z", vec.getZ());
 	}
 
 	public static Document locToDoc(Location loc) {

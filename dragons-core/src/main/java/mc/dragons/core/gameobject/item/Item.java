@@ -35,44 +35,45 @@ public class Item extends GameObject {
 	private ItemClass itemClass;
 
 	private List<String> getCompleteLore() {
-		return this.itemClass.getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), getUUID(), isCustom());
+		return itemClass.getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), getUUID(), isCustom());
 	}
 
 	private List<String> getCompleteLore(String[] customLore) {
-		return this.itemClass.getCompleteLore(customLore, getUUID(), isCustom());
+		return itemClass.getCompleteLore(customLore, getUUID(), isCustom());
 	}
 	
 	public Item(ItemStack itemStack, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing RPG Item (" + itemStack.getType() + " x" + itemStack.getAmount() + ", " + storageManager + ", " + storageAccess + ")");
-		this.itemClass = itemClassLoader.getItemClassByClassName(getClassName());
+		itemClass = itemClassLoader.getItemClassByClassName(getClassName());
 		ItemMeta meta = itemStack.getItemMeta();
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());
 		meta.setLore(getCompleteLore());
 		meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE });
 		itemStack.setItemMeta(meta);
 		itemStack.setAmount(getQuantity());
-		if (isUnbreakable())
+		if (isUnbreakable()) {
 			Dragons.getInstance().getBridge().setItemStackUnbreakable(itemStack, true);
+		}
 		this.itemStack = itemStack;
 		getItemClass().getAddons().forEach(addon -> addon.initialize(this));
 	}
 
 	public void updateItemStackData() {
-		ItemMeta meta = this.itemStack.getItemMeta();
+		ItemMeta meta = itemStack.getItemMeta();
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());
 		meta.setLore(getCompleteLore());
 		meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE });
-		this.itemStack.setItemMeta(meta);
-		this.itemStack.setAmount(getQuantity());
+		itemStack.setItemMeta(meta);
+		itemStack.setAmount(getQuantity());
 	}
 
 	public boolean isCustom() {
-		return ((Boolean) getData("isCustom")).booleanValue();
+		return (boolean) getData("isCustom");
 	}
 
 	public void setCustom(boolean custom) {
-		setData("isCustom", Boolean.valueOf(custom));
+		setData("isCustom", custom);
 	}
 
 	public String getClassName() {
@@ -80,7 +81,7 @@ public class Item extends GameObject {
 	}
 
 	public ItemClass getItemClass() {
-		return this.itemClass;
+		return itemClass;
 	}
 
 	public int getQuantity() {
@@ -88,12 +89,12 @@ public class Item extends GameObject {
 	}
 
 	public void setQuantity(int quantity) {
-		setData("quantity", Integer.valueOf(quantity));
-		this.itemStack.setAmount(quantity);
+		setData("quantity", quantity);
+		itemStack.setAmount(quantity);
 	}
 
 	public void resyncQuantityFromBukkit() {
-		setData("quantity", Integer.valueOf(this.itemStack.getAmount()));
+		setData("quantity", itemStack.getAmount());
 	}
 
 	public String getName() {
@@ -117,7 +118,7 @@ public class Item extends GameObject {
 	}
 
 	public void setSpeedBoost(double speedBoost) {
-		setData("speedBoost", Double.valueOf(speedBoost));
+		setData("speedBoost", speedBoost);
 	}
 
 	public ItemStack rename(String name) {
@@ -126,10 +127,10 @@ public class Item extends GameObject {
 	}
 
 	public ItemStack localRename(String name) {
-		ItemMeta itemMeta = this.itemStack.getItemMeta();
+		ItemMeta itemMeta = itemStack.getItemMeta();
 		itemMeta.setDisplayName(name);
-		this.itemStack.setItemMeta(itemMeta);
-		return this.itemStack;
+		itemStack.setItemMeta(itemMeta);
+		return itemStack;
 	}
 
 	public ItemStack relore(String[] lore) {
@@ -138,10 +139,10 @@ public class Item extends GameObject {
 	}
 
 	public ItemStack localRelore(String[] lore) {
-		ItemMeta itemMeta = this.itemStack.getItemMeta();
+		ItemMeta itemMeta = itemStack.getItemMeta();
 		itemMeta.setLore(getCompleteLore(lore));
-		this.itemStack.setItemMeta(itemMeta);
-		return this.itemStack;
+		itemStack.setItemMeta(itemMeta);
+		return itemStack;
 	}
 
 	public String getDecoratedName() {
@@ -173,19 +174,19 @@ public class Item extends GameObject {
 	}
 
 	public boolean isUnbreakable() {
-		return ((Boolean) getData("unbreakable")).booleanValue();
+		return (boolean) getData("unbreakable");
 	}
 
 	public void setUnbreakable(boolean unbreakable) {
-		setData("unbreakable", Boolean.valueOf(true));
+		setData("unbreakable", unbreakable);
 	}
 
 	public boolean isUndroppable() {
-		return ((Boolean) getData("undroppable")).booleanValue();
+		return (boolean) getData("undroppable");
 	}
 
 	public void setUndroppable(boolean undroppable) {
-		setData("undroppable", Boolean.valueOf(undroppable));
+		setData("undroppable", undroppable);
 	}
 
 	public double getDamage() {
@@ -193,7 +194,7 @@ public class Item extends GameObject {
 	}
 
 	public void setDamage(double damage) {
-		setData("damage", Double.valueOf(damage));
+		setData("damage", damage);
 	}
 
 	public double getArmor() {
@@ -201,7 +202,7 @@ public class Item extends GameObject {
 	}
 
 	public void setArmor(double armor) {
-		setData("armor", Double.valueOf(armor));
+		setData("armor", armor);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -214,7 +215,7 @@ public class Item extends GameObject {
 	}
 
 	public ItemStack getItemStack() {
-		return this.itemStack;
+		return itemStack;
 	}
 
 	public void setItemStack(ItemStack itemStack) {
@@ -223,21 +224,21 @@ public class Item extends GameObject {
 	}
 
 	public void registerUse() {
-		getLocalData().append("lastUsed", Long.valueOf(System.currentTimeMillis()));
+		getLocalData().append("lastUsed", System.currentTimeMillis());
 	}
 
 	public double getCooldownRemaining() {
-		return Math.max(0.0D, getCooldown() - (System.currentTimeMillis() - ((Long) getLocalData().getOrDefault("lastUsed", Long.valueOf(0L))).longValue()) / 1000.0D);
+		return Math.max(0.0D, getCooldown() - (System.currentTimeMillis() - (long)(getLocalData().getOrDefault("lastUsed", 0L))) / 1000.0D);
 	}
 
 	public boolean hasCooldownRemaining() {
-		return (Math.abs(getCooldownRemaining()) > 0.001D);
+		return Math.abs(getCooldownRemaining()) > 0.001D;
 	}
 
 	@Override
 	public void autoSave() {
 		super.autoSave();
-		setData("quantity", Integer.valueOf(this.itemStack.getAmount()));
+		setData("quantity", itemStack.getAmount());
 	}
 
 	public int getMaxStackSize() {
@@ -245,6 +246,6 @@ public class Item extends GameObject {
 	}
 
 	public void setMaxStackSize(int maxStackSize) {
-		setData("maxStackSize", Integer.valueOf(maxStackSize));
+		setData("maxStackSize", maxStackSize);
 	}
 }

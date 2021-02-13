@@ -39,28 +39,29 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 
 	private NPCLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
-		this.masterRegistry = instance.getGameObjectRegistry();
-		this.localStorageManager = instance.getLocalStorageManager();
-		this.npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+		masterRegistry = instance.getGameObjectRegistry();
+		localStorageManager = instance.getLocalStorageManager();
+		npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 	}
 
 	public static synchronized NPCLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null)
+		if (INSTANCE == null) {
 			INSTANCE = new NPCLoader(instance, storageManager);
+		}
 		return INSTANCE;
 	}
 
 	@Override
 	public NPC loadObject(StorageAccess storageAccess) {
 		lazyLoadAllPermanent();
-		this.LOGGER.fine("Loading NPC " + storageAccess.getIdentifier());
+		LOGGER.fine("Loading NPC " + storageAccess.getIdentifier());
 		NPC.NPCType npcType = NPC.NPCType.valueOf((String) storageAccess.get("npcType"));
 		Location loc = StorageUtil.docToLoc((Document) storageAccess.get("lastLocation"));
 		Entity e = loc.getWorld().spawnEntity(loc, EntityType.valueOf((String) storageAccess.get("entityType")));
-		NPC npc = new NPC(e, npcType.isPersistent() ? this.storageManager : (StorageManager) this.localStorageManager,
-				npcType.isPersistent() ? storageAccess : (StorageAccess) this.localStorageManager.downgrade(storageAccess));
-		e.setMetadata("handle", new FixedMetadataValue(this.plugin, npc));
-		this.masterRegistry.getRegisteredObjects().add(npc);
+		NPC npc = new NPC(e, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager,
+				npcType.isPersistent() ? storageAccess : (StorageAccess) localStorageManager.downgrade(storageAccess));
+		e.setMetadata("handle", new FixedMetadataValue(plugin, npc));
+		masterRegistry.getRegisteredObjects().add(npc);
 		return npc;
 	}
 
@@ -70,29 +71,29 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 	
 	public NPC loadObject(UUID uuid, UUID cid) {
 		lazyLoadCorrelation();
-		CORRELATION.log(cid, Level.INFO, "loading NPC with uuid " + uuid);
-		for (GameObject gameObject : this.masterRegistry.getRegisteredObjects(new GameObjectType[] { GameObjectType.NPC })) {
+		CORRELATION.log(cid, Level.FINE, "loading NPC with uuid " + uuid);
+		for (GameObject gameObject : masterRegistry.getRegisteredObjects(new GameObjectType[] { GameObjectType.NPC })) {
 			NPC npc = (NPC) gameObject;
 			if (npc.getUUID().equals(uuid)) {
-				CORRELATION.log(cid, Level.INFO, "found in local cache (" + npc + "), returning");
+				CORRELATION.log(cid, Level.FINE, "found in local cache (" + npc + "), returning");
 				return npc;
 			}
 		}
-		StorageAccess storageAccess = this.storageManager.getStorageAccess(GameObjectType.NPC, uuid);
+		StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.NPC, uuid);
 		if (storageAccess == null) {
 			CORRELATION.log(cid, Level.WARNING, "could not load NPC from database: returned null storage access");
 			return null;
 		}
-		CORRELATION.log(cid, Level.INFO, "loaded storage access (" + storageAccess + "), constructing downstream");
+		CORRELATION.log(cid, Level.FINE, "loaded storage access (" + storageAccess + "), constructing downstream");
 		return loadObject(storageAccess);
 	}
 
 	public NPC registerNew(Entity entity, String npcClassName) {
-		return registerNew(entity, this.npcClassLoader.getNPCClassByClassName(npcClassName));
+		return registerNew(entity, npcClassLoader.getNPCClassByClassName(npcClassName));
 	}
 
 	public NPC registerNew(World world, Location spawnLocation, String npcClassName) {
-		return registerNew(world, spawnLocation, this.npcClassLoader.getNPCClassByClassName(npcClassName));
+		return registerNew(world, spawnLocation, npcClassLoader.getNPCClassByClassName(npcClassName));
 	}
 
 	public NPC registerNew(Entity entity, NPCClass npcClass) {
@@ -110,52 +111,59 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 	}
 
 	public static NPC fromBukkit(Entity entity) {
-		if (entity == null)
+		if (entity == null) {
 			return null;
-		if (!entity.hasMetadata("handle"))
+		}
+		if (!entity.hasMetadata("handle")) {
 			return null;
-		if (entity.getMetadata("handle").size() == 0)
+		}
+		if (entity.getMetadata("handle").size() == 0) {
 			return null;
+		}
 		Object value = entity.getMetadata("handle").get(0).value();
-		if (value instanceof NPC)
+		if (value instanceof NPC) {
 			return (NPC) value;
+		}
 		return null;
 	}
 
 	public NPC registerNew(Entity entity, String className, String name, double maxHealth, int level, NPC.NPCType npcType, boolean ai, boolean immortal) {
-		this.LOGGER.fine("Registering new NPC of class " + className + " using Bukkit entity " + StringUtil.entityToString(entity));
+		LOGGER.fine("Registering new NPC of class " + className + " using Bukkit entity " + StringUtil.entityToString(entity));
 		lazyLoadAllPermanent();
-		Document data = (new Document("_id", UUID.randomUUID())).append("className", className).append("name", name).append("entityType", entity.getType().toString())
+		Document data = new Document("_id", UUID.randomUUID()).append("className", className).append("name", name).append("entityType", entity.getType().toString())
 				.append("maxHealth", Double.valueOf(maxHealth)).append("lastLocation", StorageUtil.locToDoc(entity.getLocation())).append("level", Integer.valueOf(level))
 				.append("npcType", npcType.toString()).append("ai", Boolean.valueOf(ai)).append("immortal", Boolean.valueOf(immortal)).append("lootTable", new Document());
-		this.npcClassLoader.getNPCClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(data));
-		StorageAccess storageAccess = npcType.isPersistent() ? this.storageManager.getNewStorageAccess(GameObjectType.NPC, data)
-				: this.localStorageManager.getNewStorageAccess(GameObjectType.NPC, data);
-		NPC npc = new NPC(entity, npcType.isPersistent() ? this.storageManager : (StorageManager) this.localStorageManager, storageAccess);
-		if (storageAccess instanceof mc.dragons.core.storage.local.LocalStorageAccess)
-			this.LOGGER.fine("- Using local storage access for NPC of type " + npcType + " (" + storageAccess + ")");
-		if (storageAccess == null)
-			this.LOGGER.warning("- Whoops! The storage access was null!");
+		npcClassLoader.getNPCClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(data));
+		StorageAccess storageAccess = npcType.isPersistent() ? storageManager.getNewStorageAccess(GameObjectType.NPC, data)
+				: localStorageManager.getNewStorageAccess(GameObjectType.NPC, data);
+		NPC npc = new NPC(entity, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager, storageAccess);
+		if (storageAccess instanceof mc.dragons.core.storage.local.LocalStorageAccess) {
+			LOGGER.fine("- Using local storage access for NPC of type " + npcType + " (" + storageAccess + ")");
+		}
+		if (storageAccess == null) {
+			LOGGER.warning("- Whoops! The storage access was null!");
+		}
 		npc.setMaxHealth(maxHealth);
 		npc.setHealth(maxHealth);
-		entity.setMetadata("handle", new FixedMetadataValue(this.plugin, npc));
-		this.masterRegistry.getRegisteredObjects().add(npc);
+		entity.setMetadata("handle", new FixedMetadataValue(plugin, npc));
+		masterRegistry.getRegisteredObjects().add(npc);
 		return npc;
 	}
 
 	public void loadAllPermanent(boolean force) {
-		if (this.allPermanentLoaded && !force)
+		if (allPermanentLoaded && !force) {
 			return;
-		this.LOGGER.fine("Loading all permanent NPCs...");
-		this.allPermanentLoaded = true;
-		this.masterRegistry.removeFromRegistry(GameObjectType.NPC);
-		this.storageManager
+		}
+		LOGGER.fine("Loading all permanent NPCs...");
+		allPermanentLoaded = true;
+		masterRegistry.removeFromRegistry(GameObjectType.NPC);
+		storageManager
 				.getAllStorageAccess(GameObjectType.NPC, new Document("$or", Arrays.<NPC.NPCType>asList(NPC.NPCType.values()).stream()
 						.filter(type -> (type.isPersistent() && type.isLoadedImmediately())).map(type -> new Document("npcType", type.toString())).collect(Collectors.toList())))
 				.stream().forEach(storageAccess -> {
 					NPC npc = loadObject(storageAccess);
 					Dragons.getInstance().getLogger().fine("Loaded permanent NPC: " + npc.getIdentifier() + " of class " + npc.getNPCClass().getClassName());
-					this.masterRegistry.getRegisteredObjects().add(npc);
+					masterRegistry.getRegisteredObjects().add(npc);
 				});
 		Dragons.getInstance().getLogger().info("Initial entity count: " + Dragons.getInstance().getEntities().size());
 	}

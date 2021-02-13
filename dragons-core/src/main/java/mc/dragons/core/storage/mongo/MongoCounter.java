@@ -19,10 +19,10 @@ public class MongoCounter implements Counter {
 	
 	@Override
 	public int getCurrentId(String counter) {
-		FindIterable<Document> iter = this.counters.find(new Document("_id", counter));
+		FindIterable<Document> iter = counters.find(new Document("_id", counter));
 		Document result = iter.first();
 		if (result == null) {
-			this.counters.insertOne((new Document("_id", counter)).append("seq", 0));
+			counters.insertOne(new Document("_id", counter).append("seq", 0));
 			return 0;
 		}
 		return result.getInteger("seq", 0);
@@ -31,7 +31,7 @@ public class MongoCounter implements Counter {
 	@Override
 	public int reserveNextId(String counter) {
 		int id = getCurrentId(counter) + 1;
-		this.counters.updateOne(new Document("_id", counter), new Document("$set", new Document("seq", id)));
+		counters.updateOne(new Document("_id", counter), new Document("$set", new Document("seq", id)));
 		return id;
 	}
 }

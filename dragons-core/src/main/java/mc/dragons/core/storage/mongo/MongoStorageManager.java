@@ -45,14 +45,15 @@ public class MongoStorageManager implements StorageManager {
 
 	@Override
 	public StorageAccess getStorageAccess(GameObjectType objectType, Document search) {
-		FindIterable<Document> results = this.gameObjectCollection.find(search.append("type", objectType.toString()));
+		FindIterable<Document> results = gameObjectCollection.find(search.append("type", objectType.toString()));
 		Document result = results.first();
-		if (result == null)
+		if (result == null) {
 			return null;
+		}
 		UUID uuid = result.get("_id", UUID.class);
 		Identifier identifier = new Identifier(objectType, uuid);
-		this.LOGGER.finer("Retrieved storage access for type " + objectType.toString());
-		return new MongoStorageAccess(identifier, result, this.gameObjectCollection);
+		LOGGER.finer("Retrieved storage access for type " + objectType.toString());
+		return new MongoStorageAccess(identifier, result, gameObjectCollection);
 	}
 
 	@Override
@@ -62,23 +63,25 @@ public class MongoStorageManager implements StorageManager {
 
 	@Override
 	public Set<StorageAccess> getAllStorageAccess(GameObjectType objectType, Document filter) {
-		if (this.gameObjectCollection == null)
-			this.LOGGER.severe("Could not load batch storage access: gameObjectCollection is NULL");
-		if (objectType == null)
-			this.LOGGER.warning("objectType parameter is NULL");
-		FindIterable<Document> dbResults = this.gameObjectCollection.find(filter.append("type", objectType.toString()));
+		if (gameObjectCollection == null) {
+			LOGGER.severe("Could not load batch storage access: gameObjectCollection is NULL");
+		}
+		if (objectType == null) {
+			LOGGER.warning("objectType parameter is NULL");
+		}
+		FindIterable<Document> dbResults = gameObjectCollection.find(filter.append("type", objectType.toString()));
 		Set<StorageAccess> result = new HashSet<>();
 		for (Document d : dbResults) {
 			Identifier id = new Identifier(GameObjectType.get(d.getString("type")), d.get("_id", UUID.class));
-			result.add(new MongoStorageAccess(id, d, this.gameObjectCollection));
+			result.add(new MongoStorageAccess(id, d, gameObjectCollection));
 		}
-		this.LOGGER.finer("Found " + result.size() + " results for filtered storage accesses of type " + objectType.toString());
+		LOGGER.finer("Found " + result.size() + " results for filtered storage accesses of type " + objectType.toString());
 		return result;
 	}
 
 	@Override
 	public void storeObject(GameObject gameObject) {
-		this.gameObjectCollection.updateOne((new Document("type", gameObject.getType().toString())).append("_id", gameObject.getUUID()), new Document("$set", gameObject.getData()));
+		gameObjectCollection.updateOne(new Document("type", gameObject.getType().toString()).append("_id", gameObject.getUUID()), new Document("$set", gameObject.getData()));
 	}
 
 	@Override
@@ -94,23 +97,23 @@ public class MongoStorageManager implements StorageManager {
 	@Override
 	public StorageAccess getNewStorageAccess(GameObjectType objectType, Document initialData) {
 		Identifier identifier = new Identifier(objectType, initialData.containsKey("_id") ? (UUID) initialData.get("_id", UUID.class) : UUID.randomUUID());
-		StorageAccess storageAccess = new MongoStorageAccess(identifier, initialData, this.gameObjectCollection);
+		StorageAccess storageAccess = new MongoStorageAccess(identifier, initialData, gameObjectCollection);
 		Document insert = new Document(identifier.getDocument());
 		insert.putAll(initialData);
-		this.gameObjectCollection.insertOne(insert);
-		this.LOGGER.finer("Creating new storage access of type " + objectType.toString());
+		gameObjectCollection.insertOne(insert);
+		LOGGER.finer("Creating new storage access of type " + objectType.toString());
 		return storageAccess;
 	}
 
 	@Override
 	public void removeObject(GameObject gameObject) {
-		DeleteResult result = this.gameObjectCollection.deleteOne(gameObject.getIdentifier().getDocument());
-		this.LOGGER.finer("Results for deleting " + gameObject.getIdentifier() + ": deleted " + result.getDeletedCount() + " objects with identifier " + gameObject.getIdentifier());
+		DeleteResult result = gameObjectCollection.deleteOne(gameObject.getIdentifier().getDocument());
+		LOGGER.finer("Results for deleting " + gameObject.getIdentifier() + ": deleted " + result.getDeletedCount() + " objects with identifier " + gameObject.getIdentifier());
 	}
 
 	@Override
 	public void push(GameObjectType objectType, Document selector, Document update) {
-		UpdateResult result = this.gameObjectCollection.updateMany((new Document(selector)).append("type", objectType.toString()), new Document("$set", update));
-		this.LOGGER.finer("Pushed database mass update for type " + objectType.toString() + ". Matched " + result.getMatchedCount() + ", modified " + result.getModifiedCount());
+		UpdateResult result = gameObjectCollection.updateMany(new Document(selector).append("type", objectType.toString()), new Document("$set", update));
+		LOGGER.finer("Pushed database mass update for type " + objectType.toString() + ". Matched " + result.getMatchedCount() + ", modified " + result.getModifiedCount());
 	}
 }

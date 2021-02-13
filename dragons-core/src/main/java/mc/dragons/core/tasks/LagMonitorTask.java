@@ -24,7 +24,7 @@ public class LagMonitorTask extends BukkitRunnable {
 	private List<Double> tpsRecord = new ArrayList<>();
 
 	public List<Double> getTPSRecord() {
-		return this.tpsRecord;
+		return tpsRecord;
 	}
 
 	@Override
@@ -33,11 +33,13 @@ public class LagMonitorTask extends BukkitRunnable {
 			while (true) {
 				Thread.sleep(1000L);
 				double tps = LagMeter.getRoundedTPS();
-				if (this.tpsRecord.size() >= 3000.0D)
-					this.tpsRecord.remove(0);
-				this.tpsRecord.add(Double.valueOf(tps));
-				if (tps <= 16.0D)
+				if (tpsRecord.size() >= 3000.0D) {
+					tpsRecord.remove(0);
+				}
+				tpsRecord.add(Double.valueOf(tps));
+				if (tps <= 16.0D) {
 					LOGGER.warning("TPS is unusually low! (" + tps + ")");
+				}
 			}
 		} catch (Exception exception) {
 			return;

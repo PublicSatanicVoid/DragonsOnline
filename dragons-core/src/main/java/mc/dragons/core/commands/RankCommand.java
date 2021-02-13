@@ -25,8 +25,9 @@ public class RankCommand implements CommandExecutor {
 		if (sender instanceof Player) {
 			player = (Player) sender;
 			user = UserLoader.fromPlayer(player);
-			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, true))
+			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, true)) {
 				return true;
+			}
 		}
 		if (args.length < 2) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /rank <player> <rank>");
@@ -34,9 +35,11 @@ public class RankCommand implements CommandExecutor {
 		}
 		String username = args[0];
 		Player targetPlayer = Bukkit.getPlayerExact(username);
-		User targetUser = this.userLoader.loadObject(username);
+		User targetUser = userLoader.loadObject(username);
 		Rank rank = StringUtil.parseEnum(sender, Rank.class, args[1]);
-		if (rank == null) return true;
+		if (rank == null) {
+			return true;
+		}
 		targetUser.setRank(rank);
 		if (targetPlayer == null) {
 			sender.sendMessage(ChatColor.YELLOW + "Player is not online on this server! They will have to rejoin for the rank update to be fully applied.");

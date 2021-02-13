@@ -16,12 +16,13 @@ public class UpdateScoreboardTask extends BukkitRunnable {
 	private Dragons plugin;
 
 	public UpdateScoreboardTask(Dragons instance) {
-		this.plugin = instance;
+		plugin = instance;
 	}
 
 	@Override
 	public void run() {
-		for (Player player : Bukkit.getOnlinePlayers())
-			this.plugin.getSidebarManager().updateScoreboard(player);
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			plugin.getSidebarManager().updateScoreboard(player);
+		}
 	}
 }

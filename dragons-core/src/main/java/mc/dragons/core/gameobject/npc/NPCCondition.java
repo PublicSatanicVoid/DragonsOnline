@@ -73,43 +73,43 @@ public class NPCCondition {
 	}
 
 	public NPCConditionType getType() {
-		return this.type;
+		return type;
 	}
 
 	public boolean isInverse() {
-		return this.inverse;
+		return inverse;
 	}
 
 	public Quest getQuest() {
-		return this.quest;
+		return quest;
 	}
 
 	public int getStageRequirement() {
-		return this.stageRequirement;
+		return stageRequirement;
 	}
 
 	public int getLevelRequirement() {
-		return this.levelRequirement;
+		return levelRequirement;
 	}
 
 	public double getGoldRequirement() {
-		return this.goldRequirement;
+		return goldRequirement;
 	}
 
 	public Document toDocument() {
-		Document document = (new Document("type", this.type.toString())).append("inverse", Boolean.valueOf(this.inverse));
-		switch (this.type) {
+		Document document = new Document("type", type.toString()).append("inverse", Boolean.valueOf(inverse));
+		switch (type) {
 		case HAS_COMPLETED_QUEST:
-			document.append("quest", this.quest.getName());
+			document.append("quest", quest.getName());
 			break;
 		case HAS_QUEST_STAGE:
-			document.append("quest", this.quest.getName()).append("stage", Integer.valueOf(this.stageRequirement));
+			document.append("quest", quest.getName()).append("stage", Integer.valueOf(stageRequirement));
 			break;
 		case HAS_LEVEL:
-			document.append("level", Integer.valueOf(this.levelRequirement));
+			document.append("level", Integer.valueOf(levelRequirement));
 			break;
 		case HAS_GOLD:
-			document.append("gold", Double.valueOf(this.goldRequirement));
+			document.append("gold", Double.valueOf(goldRequirement));
 			break;
 		}
 		return document;
@@ -118,30 +118,30 @@ public class NPCCondition {
 	public boolean test(User user) {
 		QuestStep step, step2;
 		boolean result = false;
-		switch (this.type) {
+		switch (type) {
 		case HAS_COMPLETED_QUEST:
-			step = user.getQuestProgress().get(this.quest);
+			step = user.getQuestProgress().get(quest);
 			if (step == null) {
 				result = false;
 				break;
 			}
-			result = user.getQuestProgress().get(this.quest).getStepName().equals("Complete");
+			result = user.getQuestProgress().get(quest).getStepName().equals("Complete");
 			break;
 		case HAS_QUEST_STAGE:
-			step2 = user.getQuestProgress().get(this.quest);
+			step2 = user.getQuestProgress().get(quest);
 			if (step2 == null) {
 				result = false;
 				break;
 			}
-			result = (this.quest.getStepIndex(step2) >= this.stageRequirement);
+			result = quest.getStepIndex(step2) >= stageRequirement;
 			break;
 		case HAS_LEVEL:
-			result = (user.getLevel() >= this.levelRequirement);
+			result = user.getLevel() >= levelRequirement;
 			break;
 		case HAS_GOLD:
-			result = (user.getGold() >= this.goldRequirement);
+			result = user.getGold() >= goldRequirement;
 			break;
 		}
-		return this.inverse ? (!result) : result;
+		return inverse ? !result : result;
 	}
 }

@@ -30,10 +30,10 @@ public class SystemLogonCommand implements CommandExecutor {
 	private Map<User, Integer> rateLimitingCounter;
 
 	public SystemLogonCommand(Dragons instance) {
-		this.systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
-		this.CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
-		this.rateLimiting = new HashMap<>();
-		this.rateLimitingCounter = new HashMap<>();
+		systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
+		CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+		rateLimiting = new HashMap<>();
+		rateLimitingCounter = new HashMap<>();
 	}
 
 	@Override
@@ -61,12 +61,15 @@ public class SystemLogonCommand implements CommandExecutor {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
 			PermissionLevel level = StringUtil.parseEnum(sender, PermissionLevel.class, args[4]);
-			if(level == null) return true;
-			this.systemProfileLoader.createProfile(args[1], args[2], args[3], level);
+			if(level == null) {
+				return true;
+			}
+			systemProfileLoader.createProfile(args[1], args[2], args[3], level);
 			sender.sendMessage(ChatColor.GREEN + "Created system profile successfully.");
 			return true;
 		}
@@ -74,12 +77,15 @@ public class SystemLogonCommand implements CommandExecutor {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
 			PermissionLevel level = StringUtil.parseEnum(sender, PermissionLevel.class, args[2]);
-			if(level == null) return true;
-			this.systemProfileLoader.setProfileMaxPermissionLevel(args[1], level);
+			if(level == null) {
+				return true;
+			}
+			systemProfileLoader.setProfileMaxPermissionLevel(args[1], level);
 			sender.sendMessage(ChatColor.GREEN + "Updated system profile successfully.");
 			return true;
 		}
@@ -87,10 +93,11 @@ public class SystemLogonCommand implements CommandExecutor {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
-			this.systemProfileLoader.setProfileFlag(args[1], args[2].toUpperCase(), Boolean.valueOf(args[3]).booleanValue());
+			systemProfileLoader.setProfileFlag(args[1], args[2].toUpperCase(), Boolean.valueOf(args[3]).booleanValue());
 			sender.sendMessage(ChatColor.GREEN + "Updated system profile successfully.");
 			return true;
 		}
@@ -98,10 +105,11 @@ public class SystemLogonCommand implements CommandExecutor {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
-			SystemProfile systemProfile = this.systemProfileLoader.loadProfile(args[1]);
+			SystemProfile systemProfile = systemProfileLoader.loadProfile(args[1]);
 			sender.sendMessage(ChatColor.GOLD + "Viewing system profile " + systemProfile.getProfileName());
 			sender.sendMessage(ChatColor.YELLOW + "Status: " + ChatColor.RESET + (systemProfile.isActive() ? "Active" : "Inactive"));
 			sender.sendMessage(ChatColor.YELLOW + "Max. Permission Level: " + ChatColor.RESET + systemProfile.getMaxPermissionLevel());
@@ -116,17 +124,18 @@ public class SystemLogonCommand implements CommandExecutor {
 					sender.sendMessage(ChatColor.RESET + "- " + uuid + " (" + user.getName() + ")");
 				}
 			}
-			sender.sendMessage(ChatColor.YELLOW + "Current User: " + ChatColor.RESET + ((systemProfile.getCurrentUser() == null) ? "(None)" : systemProfile.getCurrentUser().getName()));
+			sender.sendMessage(ChatColor.YELLOW + "Current User: " + ChatColor.RESET + (systemProfile.getCurrentUser() == null ? "(None)" : systemProfile.getCurrentUser().getName()));
 			return true;
 		}
 		if(args[0].equalsIgnoreCase("-migrate")) {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
-			this.systemProfileLoader.migrateProfile(args[1], args[2]);
+			systemProfileLoader.migrateProfile(args[1], args[2]);
 			sender.sendMessage(ChatColor.GREEN + "Migrated profile " + args[1] + " and locked to user " + args[2]);
 			return true;
 		}
@@ -135,10 +144,11 @@ public class SystemLogonCommand implements CommandExecutor {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
-			this.systemProfileLoader.setActive(args[1], true);
+			systemProfileLoader.setActive(args[1], true);
 			sender.sendMessage(ChatColor.GREEN + "Activated system profile successfully.");
 			return true;
 		}
@@ -146,10 +156,11 @@ public class SystemLogonCommand implements CommandExecutor {
 			if (sender instanceof Player) {
 				Player player = (Player) sender;
 				User user = UserLoader.fromPlayer(player);
-				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true))
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
 					return true;
+				}
 			}
-			this.systemProfileLoader.setActive(args[1], false);
+			systemProfileLoader.setActive(args[1], false);
 			sender.sendMessage(ChatColor.GREEN + "Deactivated system profile successfully.");
 			return true;
 		}
@@ -165,7 +176,9 @@ public class SystemLogonCommand implements CommandExecutor {
 				return true;
 			}
 			PermissionLevel level = StringUtil.parseEnum(sender, PermissionLevel.class, args[1]);
-			if(level == null) return true;
+			if(level == null) {
+				return true;
+			}
 			boolean result = user.setActivePermissionLevel(level);
 			if (result) {
 				sender.sendMessage(ChatColor.GREEN + "Changed active permission level to " + args[1]);
@@ -183,8 +196,8 @@ public class SystemLogonCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Incorrect current password!");
 				return true;
 			}
-			this.systemProfileLoader.setProfilePassword(user.getSystemProfile().getProfileName(), user.getUUID(), args[2]);
-			this.systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
+			systemProfileLoader.setProfilePassword(user.getSystemProfile().getProfileName(), user.getUUID(), args[2]);
+			systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			sender.sendMessage(ChatColor.GREEN + "Password updated successfully. Please log back in to your system profile with your updated credentials.");
 			return true;
@@ -194,7 +207,7 @@ public class SystemLogonCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "You're not logged in to a system profile.");
 				return true;
 			}
-			this.systemProfileLoader.registerAlt(user.getSystemProfile().getProfileName(), args[1], args[2]);
+			systemProfileLoader.registerAlt(user.getSystemProfile().getProfileName(), args[1], args[2]);
 			sender.sendMessage(ChatColor.GREEN + "Registered alt account " + args[1] + " successfully.");
 			return true;
 		}
@@ -203,7 +216,7 @@ public class SystemLogonCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "You're not logged in to a system profile.");
 				return true;
 			}
-			this.systemProfileLoader.unregisterAlt(user.getSystemProfile().getProfileName(), args[1]);
+			systemProfileLoader.unregisterAlt(user.getSystemProfile().getProfileName(), args[1]);
 			sender.sendMessage(ChatColor.GREEN + "Unregistered alt account " + args[1] + " successfully.");
 			return true;
 		}
@@ -212,7 +225,7 @@ public class SystemLogonCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "You're not logged in to a system profile.");
 				return true;
 			}
-			this.systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
+			systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			user.setSystemProfile(null);
 			sender.sendMessage(ChatColor.GREEN + "Successfully logged out of your system profile.");
@@ -222,25 +235,25 @@ public class SystemLogonCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "/syslogon <profile> <password>");
 			return true;
 		}
-		long wait = this.rateLimiting.getOrDefault(user, Long.valueOf(0L)).longValue() + (1000 * this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)));
+		long wait = rateLimiting.getOrDefault(user, Long.valueOf(0L)).longValue() + 1000 * rateLimitingCounter.getOrDefault(user, Integer.valueOf(0));
 		if (wait > System.currentTimeMillis()) {
-			sender.sendMessage(ChatColor.RED + "Please wait " + this.rateLimitingCounter.get(user) + "s.");
+			sender.sendMessage(ChatColor.RED + "Please wait " + rateLimitingCounter.get(user) + "s.");
 			return true;
 		}
 		UUID cid = CORRELATION.registerNewCorrelationID();
 		if (user.getSystemProfile() != null) {
 			CORRELATION.log(cid, Level.INFO, "user is currently signed in. signing out first");
-			this.systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
+			systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			sender.sendMessage(ChatColor.GREEN + "Signed out of current system profile");
 		}
-		SystemProfile profile = this.systemProfileLoader.authenticateProfile(user, args[0], args[1], cid);
+		SystemProfile profile = systemProfileLoader.authenticateProfile(user, args[0], args[1], cid);
 		if (profile == null) {
 			CORRELATION.log(cid, Level.INFO, "user notified of error");
 			sender.sendMessage(ChatColor.RED + "Could not log in! Make sure you are authorized on this account and entered the correct password.");
 			sender.sendMessage(ChatColor.RED + "If the issue persists, report the following error message: " + StringUtil.toHdFont("Correlation ID: " + cid));
-			this.rateLimiting.put(user, Long.valueOf(System.currentTimeMillis()));
-			this.rateLimitingCounter.put(user, Integer.valueOf(Math.max(this.rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
+			rateLimiting.put(user, Long.valueOf(System.currentTimeMillis()));
+			rateLimitingCounter.put(user, Integer.valueOf(Math.max(rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
 			return true;
 		}
 		CORRELATION.log(cid, Level.INFO, "completing sign-on");

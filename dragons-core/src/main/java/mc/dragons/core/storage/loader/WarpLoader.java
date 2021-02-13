@@ -27,48 +27,49 @@ public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> 
 		}
 
 		public String getWarpName() {
-			return this.warpName;
+			return warpName;
 		}
 
 		public Location getLocation() {
-			return this.location;
+			return location;
 		}
 
 		public Document toDocument() {
-			return (new Document("name", this.warpName)).append("location", StorageUtil.locToDoc(this.location));
+			return new Document("name", warpName).append("location", StorageUtil.locToDoc(location));
 		}
 	}
 
 	public WarpLoader(MongoConfig config) {
 		super(config, "#unused#", "warps");
-		this.warps = new LinkedHashMap<>();
-		for (Document doc : this.collection.find()) {
+		warps = new LinkedHashMap<>();
+		for (Document doc : collection.find()) {
 			WarpEntry entry = new WarpEntry(doc);
-			this.warps.put(entry.getWarpName().toLowerCase(), entry);
+			warps.put(entry.getWarpName().toLowerCase(), entry);
 		}
 	}
 
 	public Location getWarp(String warpName) {
 		String storedWarpName = warpName.toLowerCase();
-		if (!this.warps.containsKey(storedWarpName))
+		if (!warps.containsKey(storedWarpName)) {
 			return null;
-		return this.warps.get(storedWarpName).getLocation();
+		}
+		return warps.get(storedWarpName).getLocation();
 	}
 
 	public Collection<WarpEntry> getWarps() {
-		return this.warps.values();
+		return warps.values();
 	}
 
 	public void addWarp(String warpName, Location location) {
 		String storedWarpName = warpName.toLowerCase();
 		WarpEntry entry = new WarpEntry(storedWarpName, location);
-		this.warps.put(entry.getWarpName(), entry);
-		this.collection.insertOne(entry.toDocument());
+		warps.put(entry.getWarpName(), entry);
+		collection.insertOne(entry.toDocument());
 	}
 
 	public void delWarp(String warpName) {
 		String storedWarpName = warpName.toLowerCase();
-		this.collection.deleteOne(new Document("name", storedWarpName));
-		this.warps.remove(warpName);
+		collection.deleteOne(new Document("name", storedWarpName));
+		warps.remove(warpName);
 	}
 }

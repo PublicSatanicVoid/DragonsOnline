@@ -19,8 +19,8 @@ public class AutoSaveTask extends BukkitRunnable {
 	private GameObjectRegistry registry;
 
 	public AutoSaveTask(Dragons instance) {
-		this.plugin = instance;
-		this.registry = instance.getGameObjectRegistry();
+		plugin = instance;
+		registry = instance.getGameObjectRegistry();
 	}
 
 	@Override
@@ -29,13 +29,14 @@ public class AutoSaveTask extends BukkitRunnable {
 	}
 
 	public void run(boolean forceSave) {
-		if (!this.plugin.getServerOptions().isAutoSaveEnabled() && !forceSave)
+		if (!plugin.getServerOptions().isAutoSaveEnabled() && !forceSave) {
 			return;
+		}
 		int n = 0;
-		for (GameObject gameObject : this.registry.getRegisteredObjects(new GameObjectType[] { GameObjectType.USER, GameObjectType.NPC })) {
+		for (GameObject gameObject : registry.getRegisteredObjects(new GameObjectType[] { GameObjectType.USER, GameObjectType.NPC })) {
 			gameObject.autoSave();
 			n++;
 		}
-		this.plugin.getLogger().info("Auto-saved " + n + " game objects");
+		plugin.getLogger().info("Auto-saved " + n + " game objects");
 	}
 }

@@ -54,19 +54,19 @@ public class NPCAction {
 		}
 
 		public String getItemClassName() {
-			return this.itemClass;
+			return itemClass;
 		}
 
 		public int getQuantity() {
-			return this.quantity;
+			return quantity;
 		}
 
 		public double getCostPer() {
-			return this.costPer;
+			return costPer;
 		}
 
 		public Document toDocument() {
-			return (new Document("itemClass", this.itemClass)).append("quantity", Integer.valueOf(this.quantity)).append("costPer", Double.valueOf(this.costPer));
+			return new Document("itemClass", itemClass).append("quantity", Integer.valueOf(quantity)).append("costPer", Double.valueOf(costPer));
 		}
 	}
 
@@ -133,101 +133,103 @@ public class NPCAction {
 	}
 
 	public NPCActionType getType() {
-		return this.type;
+		return type;
 	}
 
 	public NPCClass getNPCClass() {
-		return this.npcClass;
+		return npcClass;
 	}
 
 	public Quest getQuest() {
-		return this.quest;
+		return quest;
 	}
 
 	public List<String> getDialogue() {
-		return this.dialogue;
+		return dialogue;
 	}
 
 	public Location getTo() {
-		return this.to;
+		return to;
 	}
 
 	public String getShopName() {
-		return this.shopName;
+		return shopName;
 	}
 
 	public List<ShopItem> getShopItems() {
-		return this.shopItems;
+		return shopItems;
 	}
 
 	public Document toDocument() {
-		Document result = new Document("type", this.type.toString());
-		switch (this.type) {
+		Document result = new Document("type", type.toString());
+		switch (type) {
 		case BEGIN_QUEST:
-			result.append("quest", this.quest.getName());
+			result.append("quest", quest.getName());
 			break;
 		case BEGIN_DIALOGUE:
-			result.append("dialogue", this.dialogue);
+			result.append("dialogue", dialogue);
 			break;
 		case TELEPORT_NPC:
 		case PATHFIND_NPC:
-			result.append("to", StorageUtil.locToDoc(this.to));
+			result.append("to", StorageUtil.locToDoc(to));
 			break;
 		case OPEN_SHOP:
-			result.append("name", this.shopName).append("items", this.shopItems.stream().map(item -> item.toDocument()).collect(Collectors.toList()));
+			result.append("name", shopName).append("items", shopItems.stream().map(item -> item.toDocument()).collect(Collectors.toList()));
 			break;
 		}
 		return result;
 	}
 
 	public void execute(final User user, NPC npc) {
-		switch (this.type) {
+		switch (type) {
 		case BEGIN_QUEST:
 			GUI confirmation = new GUI(1, "Accept quest?");
 			confirmation.add(new GUIElement(1, Material.EMERALD_BLOCK, ChatColor.GREEN + "✓ " + ChatColor.DARK_GREEN + ChatColor.BOLD + "Accept",
 					ChatColor.GRAY + "You will be unable to interact with\n" + ChatColor.GRAY + "other players, mobs, or NPCs during\n" + ChatColor.GRAY + "quest dialogue.", u -> {
-						u.updateQuestProgress(this.quest, this.quest.getSteps().get(0));
+						u.updateQuestProgress(quest, quest.getSteps().get(0));
 						u.closeGUI(true);
 					}));
 			confirmation.add(new GUIElement(4, Material.PAPER, ChatColor.YELLOW + "Quest Information",
-					ChatColor.GRAY + "Quest: " + ChatColor.RESET + this.quest.getQuestName() + "\n" + ChatColor.GRAY + "Lv Min: " + ChatColor.RESET + this.quest.getLevelMin()));
+					ChatColor.GRAY + "Quest: " + ChatColor.RESET + quest.getQuestName() + "\n" + ChatColor.GRAY + "Lv Min: " + ChatColor.RESET + quest.getLevelMin()));
 			confirmation.add(new GUIElement(7, Material.REDSTONE_BLOCK, ChatColor.RED + "✘ " + ChatColor.DARK_RED + ChatColor.BOLD + "Not Now",
 					ChatColor.GRAY + "You can always come back later to\n" + ChatColor.GRAY + "start the quest.", u -> u.closeGUI(true)));
 			confirmation.open(user);
 			break;
 		case BEGIN_DIALOGUE:
-			user.setDialogueBatch(null, this.npcClass.getName(), this.dialogue);
-			(new BukkitRunnable() {
+			user.setDialogueBatch(null, npcClass.getName(), dialogue);
+			new BukkitRunnable() {
 				@Override
 				public void run() {
-					if (!user.nextDialogue())
+					if (!user.nextDialogue()) {
 						cancel();
+					}
 				}
-			}).runTaskTimer(Dragons.getInstance(), 0L, 40L);
+			}.runTaskTimer(Dragons.getInstance(), 0L, 40L);
 			break;
 		case TELEPORT_NPC:
-			npc.getEntity().teleport(this.to);
+			npc.getEntity().teleport(to);
 			break;
 		case PATHFIND_NPC:
 			boolean hasAI = Dragons.getInstance().getBridge().hasAI(npc.getEntity());
 			if(hasAI) {
 				Dragons.getInstance().getBridge().setEntityAI(npc.getEntity(), false);
 			}
-			PathfindingUtil.walkToLocation(npc.getEntity(), this.to, 0.15D, (e) -> {
+			PathfindingUtil.walkToLocation(npc.getEntity(), to, 0.15D, (e) -> {
 				Dragons.getInstance().getBridge().setEntityAI(e, true);
 			});
 			break;
 		case OPEN_SHOP:
-			int rows = 2 + (int) Math.ceil(this.shopItems.size() / 7.0D);
-			GUI shop = new GUI(rows, this.shopName);
-			user.debug("opening shop with " + rows + " rows and name " + this.shopName + " with " + this.shopItems.size() + " items");
+			int rows = 2 + (int) Math.ceil(shopItems.size() / 7.0D);
+			GUI shop = new GUI(rows, shopName);
+			user.debug("opening shop with " + rows + " rows and name " + shopName + " with " + shopItems.size() + " items");
 			int slot = 10;
-			for (ShopItem item : this.shopItems) {
+			for (ShopItem item : shopItems) {
 				ItemClass itemClass = itemClassLoader.getItemClassByClassName(item.getItemClassName());
 				shop.add(itemClass.getAsGuiElement(slot, item.getQuantity(), item.getCostPer(), false, u -> u.buyItem(itemClass, item.getQuantity(), item.getCostPer())));
 				slot++;
-				if ((slot + 1) % 9 == 0)
+				if ((slot + 1) % 9 == 0) {
 					slot += 2;
+				}
 			}
 			shop.open(user);
 			break;

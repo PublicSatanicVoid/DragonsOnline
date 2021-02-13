@@ -23,7 +23,7 @@ public class ChangeLogCommands implements CommandExecutor {
 	private ChangeLogLoader changeLogLoader;
 
 	public ChangeLogCommands(Dragons instance) {
-		this.changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
+		changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class ChangeLogCommands implements CommandExecutor {
 		Player player = (Player) sender;
 		User user = UserLoader.fromPlayer(player);
 		if (label.equalsIgnoreCase("whatsnew") || label.equalsIgnoreCase("news")) {
-			List<ChangeLogLoader.ChangeLogEntry> unread = this.changeLogLoader.getUnreadChangelogs(user.getLastReadChangeLogId());
+			List<ChangeLogLoader.ChangeLogEntry> unread = changeLogLoader.getUnreadChangelogs(user.getLastReadChangeLogId());
 			if (unread.size() == 0) {
 				sender.sendMessage(ChatColor.RED + "You have no unread announcements or changelogs!");
 				return true;
@@ -43,16 +43,18 @@ public class ChangeLogCommands implements CommandExecutor {
 			for (ChangeLogLoader.ChangeLogEntry entry : unread) {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + entry.getTitle());
 				sender.sendMessage(ChatColor.LIGHT_PURPLE + entry.getBy() + " - " + entry.getDate());
-				for (String line : entry.getChangeLog())
+				for (String line : entry.getChangeLog()) {
 					sender.sendMessage(ChatColor.GRAY + "- " + line);
+				}
 				sender.sendMessage("");
 			}
 			user.markChangeLogsRead();
 			return true;
 		}
 		if (label.equalsIgnoreCase("newsmanager")) {
-			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true))
+			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) {
 				return true;
+			}
 			if (args.length == 0) {
 				sender.sendMessage(ChatColor.YELLOW + "/newsmanager title <title>");
 				sender.sendMessage(ChatColor.YELLOW + "/newsmanager add <changelog line>");
@@ -68,8 +70,9 @@ public class ChangeLogCommands implements CommandExecutor {
 			}
 			if (args[0].equalsIgnoreCase("add")) {
 				List<String> lines = user.getLocalData().getList("news.lines", String.class);
-				if (lines == null)
+				if (lines == null) {
 					lines = new ArrayList<>();
+				}
 				lines.add(StringUtil.concatArgs(args, 1));
 				user.getLocalData().append("news.lines", lines);
 				sender.sendMessage(ChatColor.GREEN + "Added line to post successfully.");
@@ -91,7 +94,7 @@ public class ChangeLogCommands implements CommandExecutor {
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("publish")) {
-				this.changeLogLoader.addChangeLog(user.getName(), user.getLocalData().getString("news.title"), user.getLocalData().getList("news.lines", String.class));
+				changeLogLoader.addChangeLog(user.getName(), user.getLocalData().getString("news.title"), user.getLocalData().getList("news.lines", String.class));
 				sender.sendMessage(ChatColor.GREEN + "Published post successfully.");
 				return true;
 			}

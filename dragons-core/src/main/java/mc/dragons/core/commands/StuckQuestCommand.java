@@ -59,7 +59,7 @@ public class StuckQuestCommand implements CommandExecutor {
 				if(!entry.getValue().getStepName().equalsIgnoreCase("Complete")) {
 					TextComponent questOption = new TextComponent(ChatColor.GRAY + " • " + ChatColor.GREEN + entry.getKey().getQuestName());
 					questOption.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-							(new ComponentBuilder(ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName()).create())));
+							new ComponentBuilder(ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName()).create()));
 					questOption.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stuckquest " + entry.getKey().getName()));
 					user.getPlayer().spigot().sendMessage(questOption);
 				}
@@ -76,7 +76,7 @@ public class StuckQuestCommand implements CommandExecutor {
 			for(String[] issue : POSSIBLE_ISSUES) {
 				TextComponent issueOption = new TextComponent(ChatColor.GRAY + " • " + ChatColor.GREEN + issue[0]);
 				issueOption.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-						(new ComponentBuilder(ChatColor.GRAY + issue[1])).create()));
+						new ComponentBuilder(ChatColor.GRAY + issue[1]).create()));
 				issueOption.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stuckquest " + args[0] + " " + issue[2]));
 				user.getPlayer().spigot().sendMessage(issueOption);
 			}

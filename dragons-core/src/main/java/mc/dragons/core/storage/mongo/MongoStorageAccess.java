@@ -29,35 +29,36 @@ public class MongoStorageAccess implements StorageAccess {
 
 	@Override
 	public void set(String key, Object value) {
-		if (key.equals("type") || key.equals("_id"))
+		if (key.equals("type") || key.equals("_id")) {
 			throw new IllegalArgumentException("Cannot modify type or UUID of storage access once instantiated");
-		this.document.append(key, value);
+		}
+		document.append(key, value);
 		update(new Document(key, value));
 	}
 
 	@Override
 	public void update(Document document) {
 		this.document.putAll(document);
-		this.collection.updateOne(this.identifier.getDocument(), new Document("$set", document));
+		collection.updateOne(identifier.getDocument(), new Document("$set", document));
 	}
 
 	@Override
 	public Object get(String key) {
-		return this.document.get(key);
+		return document.get(key);
 	}
 
 	@Override
 	public Set<Entry<String, Object>> getAll() {
-		return this.document.entrySet();
+		return document.entrySet();
 	}
 
 	@Override
 	public Document getDocument() {
-		return this.document;
+		return document;
 	}
 
 	@Override
 	public Identifier getIdentifier() {
-		return this.identifier;
+		return identifier;
 	}
 }

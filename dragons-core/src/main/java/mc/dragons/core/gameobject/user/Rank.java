@@ -19,6 +19,7 @@ public enum Rank {
 	INVESTOR("Investor", "Investor", ChatColor.GOLD + "[Investor]", ChatColor.YELLOW, ChatColor.WHITE, false),
 	YOUTUBE("YouTuber", "YouTuber", ChatColor.RED + "[You" + ChatColor.WHITE + "Tube" + ChatColor.RED + "]", ChatColor.RED, ChatColor.WHITE, false),
 	MEDIA("Media", "Media", ChatColor.DARK_PURPLE + "[Media]", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, false),
+	UNSPECIFIED_STAFF("Staff", "Staff", ChatColor.YELLOW + "[Staff]", ChatColor.YELLOW, ChatColor.WHITE, true),
 	CONTENT_TEAM("Content Team", "Content Team", ChatColor.BLUE + "[Content Team]", ChatColor.BLUE, ChatColor.WHITE, true),
 	TRIAL_BUILDER("Trial Builder", "Trial Builder", ChatColor.WHITE + "[Trial Builder]", ChatColor.GRAY, ChatColor.WHITE, false),
 	NEW_BUILDER("New Builder", "New Builder", ChatColor.BLUE + "[New Builder]", ChatColor.BLUE, ChatColor.WHITE, true),
@@ -42,7 +43,7 @@ public enum Rank {
 	private ChatColor chatColor;
 	private boolean staff;
 
-	public static String OFF_DUTY_STAFF_PREFIX = ChatColor.BLUE + "[OD]";
+	public static String OFF_DUTY_STAFF_PREFIX = "[Off Duty]";
 	
 	Rank(String rankName, String shortName, String chatPrefix, ChatColor nameColor, ChatColor chatColor, boolean staff) {
 		this.rankName = rankName;
@@ -54,30 +55,30 @@ public enum Rank {
 	}
 
 	public String getRankName() {
-		return this.rankName;
+		return rankName;
 	}
 
 	public String getShortName() {
-		return this.shortName;
+		return shortName;
 	}
 
 	public boolean hasChatPrefix() {
-		return (this != DEFAULT);
+		return this != DEFAULT;
 	}
 
 	public String getChatPrefix() {
-		return this.chatPrefix;
+		return chatPrefix;
 	}
 
 	public ChatColor getNameColor() {
-		return this.nameColor;
+		return nameColor;
 	}
 
 	public ChatColor getChatColor() {
-		return this.chatColor;
+		return chatColor;
 	}
 	
 	public boolean isStaff() {
-		return this.staff;
+		return staff;
 	}
 }

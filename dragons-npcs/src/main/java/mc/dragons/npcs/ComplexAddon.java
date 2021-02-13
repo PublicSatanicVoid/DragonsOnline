@@ -21,6 +21,16 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.user.User;
 
+/**
+ * Complex NPCs are NPCs that do not appear to follow any "vanilla" entity models
+ * (vanilla models being zombie, skeleton, etc.)
+ * 
+ * This is accomplished through the use of Minecraft's armor stands, which allow models to be
+ * built "pixel-by-pixel" out of scaled-down rotatable blocks.
+ * 
+ * @author Adam
+ *
+ */
 public abstract class ComplexAddon extends NPCAddon {
 
 	protected Map<NPC, List<ArmorStand>> parts;

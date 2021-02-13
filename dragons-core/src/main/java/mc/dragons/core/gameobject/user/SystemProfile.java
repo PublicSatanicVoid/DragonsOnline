@@ -64,23 +64,25 @@ public class SystemProfile {
 
 		public SystemProfileFlags(Document flags) {
 			this.flags = new HashMap<>();
-			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) flags.entrySet())
-				this.flags.put(SystemProfileFlag.valueOf(entry.getKey()), Boolean.valueOf(((Boolean) entry.getValue()).booleanValue()));
+			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) flags.entrySet()) {
+				this.flags.put(SystemProfileFlag.valueOf(entry.getKey()), (Boolean) entry.getValue());
+			}
 		}
 
 		public boolean hasFlag(SystemProfileFlag flag) {
-			return this.flags.getOrDefault(flag, Boolean.valueOf(false)).booleanValue();
+			return flags.getOrDefault(flag, false);
 		}
 
 		public void setLocalFlag(SystemProfileFlag flag, boolean value) {
-			this.flags.put(flag, Boolean.valueOf(value));
+			flags.put(flag, value);
 		}
 
 		@Override
 		public String toString() {
 			String result = "";
-			for (Entry<SystemProfileFlag, Boolean> flag : this.flags.entrySet())
-				result = String.valueOf(result) + flag.getKey().getName() + "(" + flagToAccess(flag.getValue().booleanValue()) + ") ";
+			for (Entry<SystemProfileFlag, Boolean> flag : flags.entrySet()) {
+				result = String.valueOf(result) + flag.getKey().getName() + "(" + flagToAccess(flag.getValue()) + ") ";
+			}
 			return result.trim();
 		}
 	}
@@ -95,39 +97,39 @@ public class SystemProfile {
 	}
 
 	public String getProfileName() {
-		return this.profileName;
+		return profileName;
 	}
 
 	public String getPasswordHash(UUID uuid) {
-		return this.passwordHashes.getOrDefault(uuid, "");
+		return passwordHashes.getOrDefault(uuid, "");
 	}
 
 	public void setLocalPasswordHash(UUID uuid, String passwordHash) {
-		this.passwordHashes.put(uuid, passwordHash);
+		passwordHashes.put(uuid, passwordHash);
 	}
 
 	public void removeLocalPasswordHash(UUID uuid) {
-		this.passwordHashes.remove(uuid);
+		passwordHashes.remove(uuid);
 	}
 	
 	public Set<UUID> getAllowedUUIDs() {
-		return this.passwordHashes.keySet();
+		return passwordHashes.keySet();
 	}
 
 	public PermissionLevel getMaxPermissionLevel() {
-		return this.maxPermissionLevel;
+		return maxPermissionLevel;
 	}
 
 	public void setLocalMaxPermissionLevel(PermissionLevel level) {
-		this.maxPermissionLevel = level;
+		maxPermissionLevel = level;
 	}
 
 	public SystemProfileFlags getFlags() {
-		return this.flags;
+		return flags;
 	}
 
 	public boolean isActive() {
-		return this.active;
+		return active;
 	}
 
 	public void setLocalActive(boolean active) {
@@ -135,10 +137,10 @@ public class SystemProfile {
 	}
 
 	public User getCurrentUser() {
-		return this.currentUser;
+		return currentUser;
 	}
 
 	public void setLocalCurrentUser(User user) {
-		this.currentUser = user;
+		currentUser = user;
 	}
 }

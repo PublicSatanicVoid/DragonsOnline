@@ -42,10 +42,10 @@ public class GUIElement {
 		ItemStack is = new ItemStack(type, quantity);
 		ItemMeta meta = is.getItemMeta();
 		meta.setDisplayName(name);
-		meta.setLore((lore == null) ? new ArrayList<String>() : lore);
+		meta.setLore(lore == null ? new ArrayList<String>() : lore);
 		meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE });
 		is.setItemMeta(meta);
-		this.itemStack = is;
+		itemStack = is;
 	}
 
 	public GUIElement(int slot, Material type, String name, String lore, int quantity, Consumer<User> callback) {
@@ -73,20 +73,20 @@ public class GUIElement {
 	}
 
 	public int getSlot() {
-		return this.slot;
+		return slot;
 	}
 
 	public ItemStack getItemStack() {
-		return this.itemStack;
+		return itemStack;
 	}
 
 	public void click(User user) {
-		user.debug("clicked gui element " + this.itemStack.getType() + " x" + this.itemStack.getAmount() + " [" + this.itemStack.getItemMeta().getDisplayName() + "]");
-		this.callback.accept(user);
+		user.debug("clicked gui element " + itemStack.getType() + " x" + itemStack.getAmount() + " [" + itemStack.getItemMeta().getDisplayName() + "]");
+		callback.accept(user);
 	}
 
 	public Document toDocument() {
-		return (new Document("slot", Integer.valueOf(this.slot))).append("type", this.itemStack.getType().toString()).append("amount", Integer.valueOf(this.itemStack.getAmount()))
-				.append("name", this.itemStack.getItemMeta().getDisplayName()).append("lore", this.itemStack.getItemMeta().getLore());
+		return new Document("slot", Integer.valueOf(slot)).append("type", itemStack.getType().toString()).append("amount", Integer.valueOf(itemStack.getAmount()))
+				.append("name", itemStack.getItemMeta().getDisplayName()).append("lore", itemStack.getItemMeta().getLore());
 	}
 }

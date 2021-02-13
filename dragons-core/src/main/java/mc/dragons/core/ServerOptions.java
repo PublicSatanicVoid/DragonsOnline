@@ -41,121 +41,121 @@ public class ServerOptions {
 
 	public ServerOptions(org.apache.logging.log4j.core.Logger pluginLogger) {
 		this.pluginLogger = pluginLogger;
-		this.LOGGER = Dragons.getInstance().getLogger();
-		this.autoSavePeriodTicks = 6000;
-		this.autoSaveEnabled = true;
-		this.customSpawnMargin = 25;
-		this.customSpawnRate = 100;
-		this.customSpawningEnabled = true;
-		this.deathCountdown = 10;
-		this.verifyIntegritySweepRate = 1200;
-		this.verifyIntegrityEnabled = true;
-		this.defaultWalkSpeed = 0.2D;
-		this.logLevel = Level.INFO;
+		LOGGER = Dragons.getInstance().getLogger();
+		autoSavePeriodTicks = 6000;
+		autoSaveEnabled = true;
+		customSpawnMargin = 25;
+		customSpawnRate = 100;
+		customSpawningEnabled = true;
+		deathCountdown = 10;
+		verifyIntegritySweepRate = 1200;
+		verifyIntegrityEnabled = true;
+		defaultWalkSpeed = 0.2D;
+		logLevel = Level.INFO;
 	}
 
 	public void setAutoSavePeriodTicks(int period) {
-		this.autoSavePeriodTicks = period;
+		autoSavePeriodTicks = period;
 		Dragons.getInstance().getAutoSaveRunnable().cancel();
 		AutoSaveTask task = new AutoSaveTask(Dragons.getInstance());
 		Dragons.getInstance().setAutoSaveRunnable(task);
 		task.runTaskTimer(Dragons.getInstance(), 0L, period);
-		this.LOGGER.config("Set auto-save period to " + period + " ticks");
+		LOGGER.config("Set auto-save period to " + period + " ticks");
 	}
 
 	public int getAutoSavePeriodTicks() {
-		return this.autoSavePeriodTicks;
+		return autoSavePeriodTicks;
 	}
 
 	public void setAutoSaveEnabled(boolean enabled) {
-		this.autoSaveEnabled = enabled;
-		this.LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " auto-saving");
+		autoSaveEnabled = enabled;
+		LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " auto-saving");
 	}
 
 	public boolean isAutoSaveEnabled() {
-		return this.autoSaveEnabled;
+		return autoSaveEnabled;
 	}
 
 	public void setCustomSpawnRate(int rate) {
-		this.customSpawnRate = rate;
+		customSpawnRate = rate;
 		Dragons.getInstance().getSpawnEntityRunnable().cancel();
 		SpawnEntityTask task = new SpawnEntityTask(Dragons.getInstance());
 		Dragons.getInstance().setSpawnEntityRunnable(task);
 		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
-		this.LOGGER.config("Custom spawn rate set to " + rate + "s.");
+		LOGGER.config("Custom spawn rate set to " + rate + "s.");
 	}
 
 	public int getCustomSpawnRate() {
-		return this.customSpawnRate;
+		return customSpawnRate;
 	}
 	
 	public void setCustomSpawnMargin(int margin) {
-		this.customSpawnMargin = margin;
-		this.LOGGER.config("Custom spawn margin set to " + margin + "m.");
+		customSpawnMargin = margin;
+		LOGGER.config("Custom spawn margin set to " + margin + "m.");
 	}
 	
 	public int getCustomSpawnMargin() {
-		return this.customSpawnMargin;
+		return customSpawnMargin;
 	}
 
 	public void setCustomSpawningEnabled(boolean enabled) {
-		this.customSpawningEnabled = enabled;
-		this.LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " custom spawning");
+		customSpawningEnabled = enabled;
+		LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " custom spawning");
 	}
 
 	public boolean isCustomSpawningEnabled() {
-		return this.customSpawningEnabled;
+		return customSpawningEnabled;
 	}
 
 	public void setDeathCountdown(int seconds) {
-		this.deathCountdown = seconds;
-		this.LOGGER.config("Default death countdown set to " + seconds + "s");
+		deathCountdown = seconds;
+		LOGGER.config("Default death countdown set to " + seconds + "s");
 	}
 
 	public int getDeathCountdown() {
-		return this.deathCountdown;
+		return deathCountdown;
 	}
 
 	public void setVerifyIntegritySweepRate(int rate) {
-		this.verifyIntegritySweepRate = rate;
+		verifyIntegritySweepRate = rate;
 		Dragons.getInstance().getVerifyGameIntegrityRunnable().cancel();
 		VerifyGameIntegrityTask task = new VerifyGameIntegrityTask(Dragons.getInstance());
 		Dragons.getInstance().setVerifyGameIntegrityRunnable(task);
 		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
-		this.LOGGER.config("Game verification sweep rate set to " + rate + "s.");
+		LOGGER.config("Game verification sweep rate set to " + rate + "s.");
 	}
 
 	public int getVerifyIntegritySweepRate() {
-		return this.verifyIntegritySweepRate;
+		return verifyIntegritySweepRate;
 	}
 
 	public void setVerifyIntegrityEnabled(boolean enabled) {
-		this.verifyIntegrityEnabled = enabled;
-		this.LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " game environment verification");
+		verifyIntegrityEnabled = enabled;
+		LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " game environment verification");
 	}
 
 	public boolean isVerifyIntegrityEnabled() {
-		return this.verifyIntegrityEnabled;
+		return verifyIntegrityEnabled;
 	}
 
 	public void setDefaultWalkSpeed(double speed) {
-		this.defaultWalkSpeed = speed;
-		this.LOGGER.config("Default walk speed set to " + speed);
+		defaultWalkSpeed = speed;
+		LOGGER.config("Default walk speed set to " + speed);
 	}
 
 	public double getDefaultWalkSpeed() {
-		return this.defaultWalkSpeed;
+		return defaultWalkSpeed;
 	}
 
 	public void setLogLevel(Level level) {
-		this.logLevel = level;
-		this.LOGGER.setLevel(level);
-		this.pluginLogger.setLevel(LogFilter.fromJUL(level));
+		logLevel = level;
+		LOGGER.setLevel(level);
+		pluginLogger.setLevel(LogFilter.fromJUL(level));
 		Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(Plugin::getLogger).forEach(logger -> logger.setLevel(level));
-		this.LOGGER.info("Log level changed to " + level);
+		LOGGER.info("Log level changed to " + level);
 	}
 
 	public Level getLogLevel() {
-		return this.logLevel;
+		return logLevel;
 	}
 }

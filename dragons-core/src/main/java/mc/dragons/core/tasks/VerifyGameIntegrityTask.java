@@ -16,7 +16,7 @@ public class VerifyGameIntegrityTask extends BukkitRunnable {
 	private Dragons plugin;
 
 	public VerifyGameIntegrityTask(Dragons instance) {
-		this.plugin = instance;
+		plugin = instance;
 	}
 
 	@Override
@@ -25,7 +25,8 @@ public class VerifyGameIntegrityTask extends BukkitRunnable {
 	}
 
 	public void run(boolean force) {
-		if (this.plugin.getServerOptions().isVerifyIntegrityEnabled() || force)
+		if (plugin.getServerOptions().isVerifyIntegrityEnabled() || force) {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "verifygameintegrity -resolve -silent");
+		}
 	}
 }

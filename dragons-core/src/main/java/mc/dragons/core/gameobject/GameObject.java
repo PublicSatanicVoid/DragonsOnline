@@ -39,54 +39,54 @@ public abstract class GameObject {
 
 	protected GameObject(GameObjectType type, UUID uuid, StorageManager storageManager) {
 		this.storageManager = storageManager;
-		this.storageAccess = storageManager.getStorageAccess(type, uuid);
-		this.localData = new Document();
+		storageAccess = storageManager.getStorageAccess(type, uuid);
+		localData = new Document();
 		LOGGER.finer("Initializing game object (" + type + ", " + uuid + ", " + storageManager + ")");
 	}
 
 	protected GameObject(StorageManager storageManager, StorageAccess storageAccess) {
 		this.storageManager = storageManager;
 		this.storageAccess = storageAccess;
-		this.localData = new Document();
+		localData = new Document();
 		LOGGER.finer("Initializing game object (" + storageManager + ", " + storageAccess + ")");
 	}
 
 	protected void setData(String key, Object value) {
-		this.storageAccess.set(key, value);
+		storageAccess.set(key, value);
 		LOGGER.finest("Set data on " + this + ": " + key + "=" + value);
 	}
 
 	protected void update(Document document) {
-		this.storageAccess.update(document);
+		storageAccess.update(document);
 		LOGGER.finest("Update document on " + this + ": " + document);
 	}
 
 	protected Object getData(String key) {
-		return this.storageAccess.get(key);
+		return storageAccess.get(key);
 	}
 
 	public final GameObjectType getType() {
-		return this.storageAccess.getIdentifier().getType();
+		return storageAccess.getIdentifier().getType();
 	}
 
 	public final UUID getUUID() {
-		return this.storageAccess.getIdentifier().getUUID();
+		return storageAccess.getIdentifier().getUUID();
 	}
 
 	public StorageAccess getStorageAccess() {
-		return this.storageAccess;
+		return storageAccess;
 	}
 	
 	public void replaceStorageAccess(StorageAccess replacement) {
-		this.storageAccess = replacement;
+		storageAccess = replacement;
 	}
 
 	public Document getData() {
-		return this.storageAccess.getDocument();
+		return storageAccess.getDocument();
 	}
 
 	public Identifier getIdentifier() {
-		return this.storageAccess.getIdentifier();
+		return storageAccess.getIdentifier();
 	}
 
 	public void autoSave() {
@@ -94,16 +94,18 @@ public abstract class GameObject {
 	}
 
 	public Document getLocalData() {
-		return this.localData;
+		return localData;
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		if (object == null)
+		if (object == null) {
 			return false;
-		if (!(object instanceof GameObject))
+		}
+		if (!(object instanceof GameObject)) {
 			return false;
+		}
 		GameObject gameObject = (GameObject) object;
-		return (getType() == gameObject.getType() && getUUID().equals(gameObject.getUUID()));
+		return getType() == gameObject.getType() && getUUID().equals(gameObject.getUUID());
 	}
 }

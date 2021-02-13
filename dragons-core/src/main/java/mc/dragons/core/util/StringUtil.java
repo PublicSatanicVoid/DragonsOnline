@@ -37,10 +37,12 @@ public class StringUtil {
 
 	public static String docToString(Document doc) {
 		String result = "";
-		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) doc.entrySet())
+		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) doc.entrySet()) {
 			result = String.valueOf(result) + entry.getKey() + "=" + entry.getValue().toString() + "; ";
-		if (result.equals(""))
+		}
+		if (result.equals("")) {
 			return "";
+		}
 		return result.substring(0, result.length() - 1);
 	}
 
@@ -49,13 +51,16 @@ public class StringUtil {
 	}
 
 	public static String concatArgs(String[] args, int startIndex, int endIndex) {
-		if (endIndex <= startIndex)
+		if (endIndex <= startIndex) {
 			return "";
-		if (startIndex >= args.length)
+		}
+		if (startIndex >= args.length) {
 			return "";
+		}
 		String result = "";
-		for (int i = startIndex; i < Math.min(endIndex, args.length); i++)
+		for (int i = startIndex; i < Math.min(endIndex, args.length); i++) {
 			result = String.valueOf(result) + args[i] + " ";
+		}
 		return result.trim();
 	}
 
@@ -65,38 +70,40 @@ public class StringUtil {
 
 	public static int getFlagIndex(String[] args, String flag, int startIndex) {
 		for (int i = startIndex; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase(flag))
+			if (args[i].equalsIgnoreCase(flag)) {
 				return i;
+			}
 		}
 		return -1;
 	}
 
 	public static long parseTimespanToSeconds(String timespan) {
-		if (timespan.equals(""))
+		if (timespan.equals("")) {
 			return -1L;
+		}
 		long timespanSeconds = 0L;
 		int buffer = 0;
 		char[] chars = timespan.toCharArray();
 		for(char ch : chars) {
 			switch (ch) {
 			case 'y':
-				timespanSeconds += (31536000 * buffer);
+				timespanSeconds += 31536000 * buffer;
 				buffer = 0;
 				break;
 			case 'w':
-				timespanSeconds += (604800 * buffer);
+				timespanSeconds += 604800 * buffer;
 				buffer = 0;
 				break;
 			case 'd':
-				timespanSeconds += (86400 * buffer);
+				timespanSeconds += 86400 * buffer;
 				buffer = 0;
 				break;
 			case 'h':
-				timespanSeconds += (3600 * buffer);
+				timespanSeconds += 3600 * buffer;
 				buffer = 0;
 				break;
 			case 'm':
-				timespanSeconds += (60 * buffer);
+				timespanSeconds += 60 * buffer;
 				buffer = 0;
 				break;
 			case 's':
@@ -113,11 +120,11 @@ public class StringUtil {
 	}
 
 	public static String parseSecondsToTimespan(long seconds) {
-		int days = (int) Math.floor((seconds / 86400L));
+		int days = (int) Math.floor(seconds / 86400L);
 		seconds %= 86400L;
-		int hours = (int) Math.floor((seconds / 3600L));
+		int hours = (int) Math.floor(seconds / 3600L);
 		seconds %= 3600L;
-		int minutes = (int) Math.floor((seconds / 60L));
+		int minutes = (int) Math.floor(seconds / 60L);
 		seconds %= 60L;
 		return String.valueOf(days) + "d " + hours + "h " + minutes + "m " + seconds + "s";
 	}

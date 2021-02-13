@@ -30,7 +30,7 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 
 	private FloorLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
-		this.masterRegistry = instance.getGameObjectRegistry();
+		masterRegistry = instance.getGameObjectRegistry();
 	}
 
 	public static synchronized FloorLoader getInstance(Dragons instance, StorageManager storageManager) {
@@ -45,9 +45,9 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 	@Override
 	public Floor loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
-		this.LOGGER.fine("Loading floor " + storageAccess.getIdentifier());
-		Floor floor = new Floor(this.storageManager, storageAccess, false);
-		this.masterRegistry.getRegisteredObjects().add(floor);
+		LOGGER.fine("Loading floor " + storageAccess.getIdentifier());
+		Floor floor = new Floor(storageManager, storageAccess, false);
+		masterRegistry.getRegisteredObjects().add(floor);
 		worldNameToFloor.put(floor.getWorldName(), floor);
 		floorNameToFloor.put(floor.getFloorName(), floor);
 		return floor;
@@ -55,11 +55,11 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 
 	public Floor registerNew(String floorName, String worldName, String displayName, int levelMin, boolean superflat) {
 		lazyLoadAll();
-		this.LOGGER.fine("Registering new floor " + floorName + " (world " + worldName + ", displayName " + displayName + ", lvMin " + levelMin + ", superflat=" + superflat + ")");
-		StorageAccess storageAccess = this.storageManager.getNewStorageAccess(GameObjectType.FLOOR,
-				(new Document("floorName", floorName)).append("worldName", worldName).append("displayName", displayName).append("levelMin", Integer.valueOf(levelMin)));
-		Floor floor = new Floor(this.storageManager, storageAccess, superflat);
-		this.masterRegistry.getRegisteredObjects().add(floor);
+		LOGGER.fine("Registering new floor " + floorName + " (world " + worldName + ", displayName " + displayName + ", lvMin " + levelMin + ", superflat=" + superflat + ")");
+		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.FLOOR,
+				new Document("floorName", floorName).append("worldName", worldName).append("displayName", displayName).append("levelMin", Integer.valueOf(levelMin)));
+		Floor floor = new Floor(storageManager, storageAccess, superflat);
+		masterRegistry.getRegisteredObjects().add(floor);
 		worldNameToFloor.put(worldName, floor);
 		floorNameToFloor.put(floorName, floor);
 		return floor;
@@ -91,12 +91,13 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 	}
 
 	public void loadAll(boolean force) {
-		if (this.allLoaded && !force)
+		if (allLoaded && !force) {
 			return;
-		this.LOGGER.fine("Loading all floors...");
-		this.allLoaded = true;
-		this.masterRegistry.removeFromRegistry(GameObjectType.FLOOR);
-		this.storageManager.getAllStorageAccess(GameObjectType.FLOOR).stream().forEach(storageAccess -> this.masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));
+		}
+		LOGGER.fine("Loading all floors...");
+		allLoaded = true;
+		masterRegistry.removeFromRegistry(GameObjectType.FLOOR);
+		storageManager.getAllStorageAccess(GameObjectType.FLOOR).stream().forEach(storageAccess -> masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));
 	}
 
 	public void lazyLoadAll() {

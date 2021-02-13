@@ -24,6 +24,6 @@ public enum SkillType {
 	}
 
 	public String getFriendlyName() {
-		return this.friendlyName;
+		return friendlyName;
 	}
 }

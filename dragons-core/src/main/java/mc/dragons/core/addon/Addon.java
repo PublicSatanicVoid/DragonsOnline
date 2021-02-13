@@ -7,12 +7,20 @@ import org.bson.Document;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 
+/**
+ * Addons allow the functionality of certain game objects
+ * to be programmatically extended in other modules/plugins,
+ * providing a standardized API to interface with DragonsCore.
+ * 
+ * @author Adam
+ *
+ */
 public interface Addon {
-	public static final Logger LOGGER = Dragons.getInstance().getLogger();
+	Logger LOGGER = Dragons.getInstance().getLogger();
 
 	String getName();
 	AddonType getType();
-	void initialize(GameObject paramGameObject);
+	void initialize(GameObject gameObject);
 	void onEnable();
-	void onCreateStorageAccess(Document paramDocument);
+	void onCreateStorageAccess(Document initialData);
 }

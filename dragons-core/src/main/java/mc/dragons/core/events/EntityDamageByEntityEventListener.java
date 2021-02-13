@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -20,15 +21,17 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCConditionalActions;
+import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
+import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.MathUtil;
+import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.ProgressBarUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -39,14 +42,20 @@ public class EntityDamageByEntityEventListener implements Listener {
 	private RegionLoader regionLoader;
 
 	public EntityDamageByEntityEventListener(Dragons instance) {
-		this.regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-		this.dragons = instance;
-		this.LOGGER = instance.getLogger();
+		regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		dragons = instance;
+		LOGGER = instance.getLogger();
 	}
 
+	/**
+	 * Handles player-vs-player, player-vs-entity, and entity-vs-player interactions.
+	 * Calculates damage amounts and applies any special damage effects.
+	 * 
+	 * @param event
+	 */
 	@EventHandler
 	public void onEntityDamage(EntityDamageByEntityEvent event) {
-		this.LOGGER.finer("Damage event on " + StringUtil.entityToString(event.getEntity()) + " by " + StringUtil.entityToString(event.getDamager()));
+		LOGGER.finer("Damage event on " + StringUtil.entityToString(event.getEntity()) + " by " + StringUtil.entityToString(event.getDamager()));
 		Entity damager = event.getDamager();
 		User userDamager = null;
 		NPC npcDamager = null;
@@ -54,8 +63,9 @@ public class EntityDamageByEntityEventListener implements Listener {
 			userDamager = UserLoader.fromPlayer((Player) damager);
 		} else if (damager instanceof Arrow) {
 			Arrow arrow = (Arrow) damager;
-			if (arrow.getShooter() instanceof Entity)
+			if (arrow.getShooter() instanceof Entity) {
 				npcDamager = NPCLoader.fromBukkit((Entity) arrow.getShooter());
+			}
 		} else {
 			npcDamager = NPCLoader.fromBukkit(damager);
 		}
@@ -69,9 +79,16 @@ public class EntityDamageByEntityEventListener implements Listener {
 		NPC npcTarget = null;
 		if (target instanceof Player) {
 			userTarget = UserLoader.fromPlayer((Player) target);
-		} else if (target instanceof org.bukkit.entity.ArmorStand) {
+		} else if (target instanceof ArmorStand) {
+			
+			/*
+			 * Complex entities are rendered as composites of simpler entities.
+			 * When a player attacks a complex entity, one of those component
+			 * entities actually receives the damage. We route it to the appropriate
+			 * actual entity by checking for the appropriate metadata.
+			 */
 			if (target.hasMetadata("partOf")) {
-				this.LOGGER.finer("-Target is part of a complex entity!");
+				LOGGER.finer("-Target is part of a complex entity!");
 				npcTarget = (NPC) target.getMetadata("partOf").get(0).value();
 				external = true;
 			}
@@ -82,9 +99,14 @@ public class EntityDamageByEntityEventListener implements Listener {
 					event.setCancelled(true);
 					if (userDamager != null) {
 						Item item = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
+						
+						/*
+						 * This specific item class allows removal of immortal entities,
+						 * intended for use by the content team.
+						 */
 						if (item != null && item.getClassName().equals("Special:ImmortalOverride")) {
 							npcTarget.getEntity().remove();
-							this.dragons.getGameObjectRegistry().removeFromDatabase(npcTarget);
+							dragons.getGameObjectRegistry().removeFromDatabase(npcTarget);
 							userDamager.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 							return;
 						}
@@ -94,9 +116,20 @@ public class EntityDamageByEntityEventListener implements Listener {
 					return;
 				}
 			} else {
-				this.LOGGER.finer("-ERROR: TARGET IS AN ENTITY BUT NOT AN NPC!!!! HasHandle=" + target.hasMetadata("handle"));
+				
+				/*
+				 * Sometimes vanilla entities will sneak their way into a production world.
+				 */
+				LOGGER.finer("-ERROR: Target is an entity but not an NPC! HasHandle=" + target.hasMetadata("handle"));
+				if(userDamager != null && PermissionUtil.verifyActivePermissionLevel(userDamager, PermissionLevel.TESTER, false)) {
+					HologramUtil.temporaryArmorStand(target, ChatColor.RED + "Error: Unbound Entity Target", 20 * 5, true);
+				}
 			}
 		}
+		
+		/*
+		 * When a player is talking to a quest NPC, they cannot interact with other entities.
+		 */
 		if (userDamager != null && npcTarget != null && userDamager.hasActiveDialogue()) {
 			userDamager.sendActionBar(ChatColor.GRAY + "PVE is disabled during quest dialogue!");
 			event.setCancelled(true);
@@ -106,10 +139,12 @@ public class EntityDamageByEntityEventListener implements Listener {
 			event.setCancelled(true);
 			return;
 		}
+		
 		double distance = damager.getLocation().distance(target.getLocation());
 		double damage = event.getDamage();
-		if ((userDamager == null && npcDamager == null) || (userTarget == null && npcTarget == null) || (npcDamager != null && npcTarget != null))
+		if (userDamager == null && npcDamager == null || userTarget == null && npcTarget == null || npcDamager != null && npcTarget != null) {
 			return;
+		}
 		if (userDamager != null && userDamager.isGodMode()) {
 			if (npcTarget != null) {
 				npcTarget.remove();
@@ -125,21 +160,32 @@ public class EntityDamageByEntityEventListener implements Listener {
 			event.setCancelled(true);
 			return;
 		}
-		Set<Region> regions = this.regionLoader.getRegionsByLocation(target.getLocation());
+		
+		Set<Region> regions = regionLoader.getRegionsByLocation(target.getLocation());
 		if (userTarget != null) {
 			userTarget.debug("user target");
 			for (Region region : regions) {
-				if (!Boolean.valueOf(region.getFlags().getString("pve")).booleanValue()) {
-					userTarget.debug("- Cancelled damage due to a region " + region.getName() + " PVE flag = false");
+				if (!Boolean.valueOf(region.getFlags().getString("pve"))) {
+					userTarget.debug("- Cancelled damage due to region " + region.getName() + ": PVE flag = false");
 					event.setCancelled(true);
 					return;
 				}
 			}
 		}
+		
 		if (npcDamager != null) {
+			
+			/*
+			 * Adjust damage amount based on the level difference. A high level entity will damage a
+			 * low level player more than it would damage a high level player.
+			 */
 			double weightedLevelDiscrepancy = Math.max(0.0D, npcDamager.getLevel() - 0.3D * userTarget.getLevel());
 			damage += 0.25D * weightedLevelDiscrepancy;
 		} else {
+			
+			/*
+			 * Apply item based damage modifiers and cooldowns
+			 */
 			final Item attackerHeldItem = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
 			double itemDamage = 0.5D;
 			if (attackerHeldItem != null) {
@@ -148,17 +194,20 @@ public class EntityDamageByEntityEventListener implements Listener {
 					event.setCancelled(true);
 					return;
 				}
-				if (!external)
+				if (!external) {
 					attackerHeldItem.registerUse();
+				}
 				final User fUserDamager = userDamager;
-				(new BukkitRunnable() {
+				new BukkitRunnable() {
 					@Override
 					public void run() {
 						Item currentHeldItem = ItemLoader.fromBukkit(fUserDamager.getPlayer().getInventory().getItemInMainHand());
-						if (currentHeldItem == null)
+						if (currentHeldItem == null) {
 							return;
-						if (!currentHeldItem.equals(attackerHeldItem))
+						}
+						if (!currentHeldItem.equals(attackerHeldItem)) {
 							return;
+						}
 						double percentRemaining = attackerHeldItem.getCooldownRemaining() / attackerHeldItem.getCooldown();
 						String cooldownName = String.valueOf(attackerHeldItem.getDecoratedName()) + ChatColor.DARK_GRAY + " [" + ChatColor.RESET + "Recharging "
 								+ ProgressBarUtil.getCountdownBar(percentRemaining) + ChatColor.DARK_GRAY + "]";
@@ -168,10 +217,11 @@ public class EntityDamageByEntityEventListener implements Listener {
 							cancel();
 						}
 					}
-				}).runTaskTimer(this.dragons, 0L, 5L);
+				}.runTaskTimer(dragons, 0L, 5L);
 				itemDamage = attackerHeldItem.getDamage();
 				damage += itemDamage;
 			}
+			
 			if (userTarget == null) {
 				for (Region region : regions) {
 					if (!Boolean.valueOf(region.getFlags().getString("pve")).booleanValue()) {
@@ -189,6 +239,8 @@ public class EntityDamageByEntityEventListener implements Listener {
 					}
 				}
 			}
+			
+			/* Melee skill increases inversely proportionally with distance from target */
 			userDamager.incrementSkillProgress(SkillType.MELEE, Math.min(0.5D, 1.0D / distance));
 			double randomMelee = Math.random() * userDamager.getSkillLevel(SkillType.MELEE) / distance;
 			damage += randomMelee;
@@ -198,46 +250,55 @@ public class EntityDamageByEntityEventListener implements Listener {
 			damage -= randomDefense;
 			Item targetHeldItem = ItemLoader.fromBukkit(userTarget.getPlayer().getInventory().getItemInMainHand());
 			double itemDefense = 0.0D;
-			if (targetHeldItem != null)
+			if (targetHeldItem != null) {
 				itemDefense = targetHeldItem.getArmor();
+			}
 			for(ItemStack itemStack : userTarget.getPlayer().getInventory().getArmorContents()) {
 				Item armorItem = ItemLoader.fromBukkit(itemStack);
-				if (armorItem != null)
+				if (armorItem != null) {
 					itemDefense += armorItem.getArmor();
+				}
 			}
 			double actualItemDefense = Math.min(damage, Math.random() * itemDefense);
 			damage -= actualItemDefense;
 			userTarget.incrementSkillProgress(SkillType.DEFENSE, Math.random() * actualItemDefense);
 		}
+		
 		damage = Math.max(0.0D, damage);
-		if (npcTarget != null)
+		
+		if (npcTarget != null) {
 			npcTarget.setDamageExternalized(external);
+		}
 		if (external) {
 			npcTarget.damage(damage, damager);
 			event.setDamage(0.0D);
-			this.LOGGER.finer("-Damage event external from " + StringUtil.entityToString(target) + " to " + StringUtil.entityToString(npcTarget.getEntity()));
+			LOGGER.finer("-Damage event external from " + StringUtil.entityToString(target) + " to " + StringUtil.entityToString(npcTarget.getEntity()));
 		} else {
 			event.setDamage(damage);
 			if (userDamager != null) {
 				String tag = ChatColor.RED + "-" + Math.round(damage) + "❤";
-				if (target.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L)
+				if (target.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L) {
 					tag = String.valueOf(tag) + ChatColor.GRAY + " from " + userDamager.getName();
+				}
 				HologramUtil.temporaryArmorStand(target, tag, 20, false);
 			}
 		}
 		if (npcTarget != null) {
-			npcTarget.getNPCClass().handleTakeDamage(npcTarget, (npcDamager != null) ? (GameObject) npcDamager : (GameObject) userDamager, damage);
+			npcTarget.getNPCClass().handleTakeDamage(npcTarget, npcDamager != null ? (GameObject) npcDamager : (GameObject) userDamager, damage);
 			npcTarget.updateHealthBar(damage);
-			if (userDamager != null)
-				npcTarget.getNPCClass().executeConditionals(NPCConditionalActions.NPCTrigger.HIT, userDamager, npcTarget);
+			if (userDamager != null) {
+				npcTarget.getNPCClass().executeConditionals(NPCTrigger.HIT, userDamager, npcTarget);
+			}
 		}
-		if (npcDamager != null)
-			npcDamager.getNPCClass().handleDealDamage(npcDamager, (npcTarget != null) ? (GameObject) npcTarget : (GameObject) userTarget, damage);
+		if (npcDamager != null) {
+			npcDamager.getNPCClass().handleDealDamage(npcDamager, npcTarget != null ? (GameObject) npcTarget : (GameObject) userTarget, damage);
+		}
 	}
 
 	public void immortalTarget(Entity target, User damager) {
-		if (damager == null)
+		if (damager == null) {
 			return;
+		}
 		damager.sendActionBar(ChatColor.RED + "Target is immortal!");
 		HologramUtil.temporaryArmorStand(target, ChatColor.LIGHT_PURPLE + "✦ Immortal Object", 40, false);
 	}

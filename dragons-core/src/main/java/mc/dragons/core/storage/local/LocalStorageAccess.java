@@ -23,46 +23,47 @@ public class LocalStorageAccess implements StorageAccess {
 	private Identifier id;
 
 	public LocalStorageAccess(Identifier identifier, Document data) {
-		this.id = identifier;
+		id = identifier;
 		this.data = data;
-		this.data.putAll(this.id.getDocument());
+		this.data.putAll(id.getDocument());
 	}
 
 	public LocalStorageAccess(GameObjectType type, Document data) {
-		this.id = new Identifier(type, UUID.randomUUID());
+		id = new Identifier(type, UUID.randomUUID());
 		this.data = data;
-		this.data.putAll(this.id.getDocument());
+		this.data.putAll(id.getDocument());
 	}
 
 	@Override
 	public void set(String key, Object value) {
-		if (key.equals("type") || key.equals("_id"))
+		if (key.equals("type") || key.equals("_id")) {
 			throw new IllegalArgumentException("Cannot modify type or UUID of storage access once instantiated");
-		this.data.append(key, value);
+		}
+		data.append(key, value);
 	}
 
 	@Override
 	public void update(Document document) {
-		this.data.putAll(document);
+		data.putAll(document);
 	}
 
 	@Override
 	public Object get(String key) {
-		return this.data.get(key);
+		return data.get(key);
 	}
 
 	@Override
 	public Set<Entry<String, Object>> getAll() {
-		return this.data.entrySet();
+		return data.entrySet();
 	}
 
 	@Override
 	public Document getDocument() {
-		return this.data;
+		return data;
 	}
 
 	@Override
 	public Identifier getIdentifier() {
-		return this.id;
+		return id;
 	}
 }
