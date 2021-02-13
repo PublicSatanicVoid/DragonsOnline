@@ -21,8 +21,8 @@ import mc.dragons.social.GuildLoader.GuildAccessLevel;
 
 public class GuildCommand implements CommandExecutor {
 
-	GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
-	UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
+	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

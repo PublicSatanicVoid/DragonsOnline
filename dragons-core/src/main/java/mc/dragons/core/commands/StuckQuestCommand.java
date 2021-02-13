@@ -44,7 +44,7 @@ public class StuckQuestCommand implements CommandExecutor {
 	};
 
 	public StuckQuestCommand(Dragons instance) {
-		feedbackLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
+		feedbackLoader = instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
 	}
 	
 	@Override

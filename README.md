@@ -6,18 +6,14 @@ Dragons Online is a Minecraft-based MMORPG created by Adam Priebe (UniverseCraft
  
 ## Where to dive in
 If you're new to the repository, here are the most important files to check out (in this order!)
-- `dragons-core: mc.dragons.core.Dragons` is the main class and the entry point. It contains all the high-level object managers, service providers, loaders, and configuration data necessary to start a server instance.
+  - `dragons-core: mc.dragons.core.Dragons` is the main class and the entry point. It contains all the high-level object managers, service providers, loaders, and configuration data necessary to start a server instance.
+  - `dragons-core: mc.dragons.core.gameobject.GameObject` defines the interface for `GameObject`s, the main unit of content within Dragons Online. Users, NPCs, items, etc. are all `GameObject`s.
+  - `dragons-core: mc.dragons.core.gameobject.GameObjectType` defines the various types of `GameObject`s.
+  
+  - `dragons-core: mc.dragons.core.gameobject.user.User` defines the `User` object, which represents a player in the game.
+  - `dragons-moderationtools: mc.dragons.tools.moderation.InfoCommand` defines a console command to fetch and display a user's data. This class illustrates the basic structure of a command and demonstrates how data is fetched from the database at a high level, as well as how various components tie together.
 
-- `dragons-core: mc.dragons.core.gameobject.GameObject` defines the interface for `GameObject`s, the main unit of content within Dragons Online. Users, NPCs, items, etc. are all `GameObject`s.
-
-- `dragons-core: mc.dragons.core.gameobject.GameObjectType` defines the various types of `GameObject`s.
-
-- `dragons-core: mc.dragons.core.gameobject.user.User` defines the `User` object, which represents a player in the game.
-
-- `dragons-moderationtools: mc.dragons.tools.moderation.InfoCommand` defines a console command to fetch and display a user's data. This class illustrates the basic structure of a command and demonstrates how data is fetched from the database at a high level, as well as how various components tie together.
-
-- `dragons-core: mc.dragons.core.gameobject` - all classes in subpackages of this are at the heart of Dragons Online, and define the key elements of the game. If you want to take a deep dive into the workings of Dragons Online, these are a great place to start.
- 
+  - `dragons-core: mc.dragons.core.gameobject` - all classes in subpackages of this are at the heart of Dragons Online, and define the key elements of the game. If you want to take a deep dive into the workings of Dragons Online, these are a great place to start.
 ## Basic Code Structure
 The codebase is divided into several plugins, each with a specific purpose. The core plugin is `dragons-core` and contains all necessary functionality to create a minimally working game. All other plugins depend either directly or indirectly on `dragons-core`.
 

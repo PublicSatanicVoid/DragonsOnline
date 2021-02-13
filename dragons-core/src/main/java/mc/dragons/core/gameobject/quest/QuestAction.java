@@ -442,14 +442,12 @@ public class QuestAction {
 			int remaining = quantity;
 			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
 				Item item = ItemLoader.fromBukkit(itemStack);
-				if (item != null) {
-					if(item.getClassName().equals(itemClass.getClassName())) {							
-						int removeAmount = Math.min(remaining, item.getQuantity());
-						user.takeItem(item, removeAmount, true, true, false);
-						remaining -= item.getQuantity();
-						if (remaining <= 0) {
-							return new QuestActionResult(false, false);
-						}
+				if (item != null && item.getClassName().equals(itemClass.getClassName())) {							
+					int removeAmount = Math.min(remaining, item.getQuantity());
+					user.takeItem(item, removeAmount, true, true, false);
+					remaining -= item.getQuantity();
+					if (remaining <= 0) {
+						return new QuestActionResult(false, false);
 					}
 				}
 			}
