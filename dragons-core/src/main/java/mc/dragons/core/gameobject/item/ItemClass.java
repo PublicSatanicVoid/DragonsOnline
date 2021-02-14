@@ -1,9 +1,7 @@
 package mc.dragons.core.gameobject.item;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -18,7 +16,6 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PermissionUtil;
 
 public class ItemClass extends GameObject {
@@ -31,7 +28,7 @@ public class ItemClass extends GameObject {
 		addons = ((List<String>) getData("addons")).stream()
 				.map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
 	}
-
+	
 	private void saveAddons() {
 		setData("addons", addons.stream().map(a -> a.getName()).collect(Collectors.toList()));
 	}
@@ -58,52 +55,10 @@ public class ItemClass extends GameObject {
 		addons.forEach(a -> a.onRightClick(user));
 	}
 
-	public List<String> getCompleteLore(String[] customLore, UUID uuid, boolean custom) {
-		String dataTag = uuid == null ? "" : HiddenStringUtil.encodeString(uuid.toString());
-		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + getLevelMin() + dataTag }));
-		if (customLore.length > 0) {
-			lore.add("");
-		}
-		lore.addAll(Arrays.<String>asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
-		List<String> statsMeta = new ArrayList<>();
-		if (getDamage() > 0.0D) {
-			statsMeta.add(ChatColor.GREEN + " " + getDamage() + " Damage");
-		}
-		if (getArmor() > 0.0D) {
-			statsMeta.add(ChatColor.GREEN + " " + getArmor() + " Armor");
-		}
-		if (isWeapon()) {
-			statsMeta.add(ChatColor.GREEN + " " + getCooldown() + "s Attack Speed");
-		}
-		if (getSpeedBoost() != 0.0D) {
-			statsMeta.add(" " + (getSpeedBoost() < 0.0D ? ChatColor.RED : ChatColor.GREEN + "+") + getSpeedBoost() + " Walk Speed");
-		}
-		if (isUnbreakable() || isUndroppable()) {
-			statsMeta.add("");
-		}
-		if (isUnbreakable()) {
-			statsMeta.add(ChatColor.BLUE + "Unbreakable");
-		}
-		if (isUndroppable()) {
-			statsMeta.add(ChatColor.BLUE + "Undroppable");
-		}
-		if(isGMLocked()) {
-			statsMeta.add(ChatColor.RED + "GM Locked");
-		}
-		if (custom) {
-			statsMeta.addAll(Arrays.asList(new String[] { "", ChatColor.AQUA + "Custom Item" }));
-		}
-		if (statsMeta.size() > 0) {
-			lore.addAll(Arrays.asList(new String[] { "", ChatColor.GRAY + "When equipped:" }));
-			lore.addAll(statsMeta);
-		}
-		return lore;
-	}
 
 	public boolean isWeapon() {
 		Material type = getMaterial();
-		return !(type != Material.BOW && type != Material.DIAMOND_SWORD && type != Material.GOLD_SWORD && type != Material.IRON_SWORD && type != Material.STONE_SWORD && type != Material.WOOD_SWORD
-				&& type != Material.STICK);
+		return Item.isWeapon(type);
 	}
 
 	public String getClassName() {
@@ -226,7 +181,7 @@ public class ItemClass extends GameObject {
 	public GUIElement getAsGuiElement(int slot, int quantity, double costPer, boolean custom, Consumer<User> callback) {
 		List<String> lore = new ArrayList<>();
 		lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + costPer + " Gold " + (quantity == 1 ? "" : "x" + quantity + " = " + quantity * costPer + " Gold"));
-		lore.addAll(getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), null, custom));
+		lore.addAll(Item.getCompleteLore(getData(), getLore().<String>toArray(new String[getLore().size()]), null, custom, this));
 		return new GUIElement(slot, getMaterial(), getDecoratedName(), lore, quantity, callback);
 	}
 }

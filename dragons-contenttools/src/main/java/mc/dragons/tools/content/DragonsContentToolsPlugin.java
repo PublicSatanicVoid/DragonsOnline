@@ -19,6 +19,7 @@ public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExec
 		getCommand("quest").setExecutor(new QuestCommand(dragons));
 		getCommand("rename").setExecutor(new RenameCommand());
 		getCommand("relore").setExecutor(new ReloreCommand());
+		getCommand("restat").setExecutor(new RestatCommand());
 		getCommand("resetprofile").setExecutor(new ResetProfileCommand());
 		
 		CommandExecutor gamemodeCommandExecutor = new GamemodeCommand();

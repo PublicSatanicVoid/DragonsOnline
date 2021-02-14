@@ -15,12 +15,6 @@ import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class RenameCommand implements CommandExecutor {
-
-	//private UserLoader userLoader;
-	
-	public RenameCommand() {
-		//userLoader = (UserLoader) GameObjectType.USER.<User>getLoader();
-	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

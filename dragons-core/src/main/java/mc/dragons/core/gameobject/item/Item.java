@@ -1,8 +1,12 @@
 package mc.dragons.core.gameobject.item;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
@@ -14,6 +18,7 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.util.HiddenStringUtil;
 
 /**
  * Represents a general item in the RPG.
@@ -34,12 +39,68 @@ public class Item extends GameObject {
 	private ItemStack itemStack;
 	private ItemClass itemClass;
 
+
+	public static boolean isWeapon(Material type) {
+		return type == Material.BOW || type == Material.DIAMOND_SWORD || type == Material.GOLD_SWORD || type == Material.IRON_SWORD || type == Material.STONE_SWORD 
+				|| type == Material.WOOD_SWORD || type == Material.STICK;
+	}
+	
+	public static List<String> getCompleteLore(Document data, String[] customLore, UUID uuid, boolean custom, ItemClass itemClass) {
+		String dataTag = uuid == null ? "" : HiddenStringUtil.encodeString(uuid.toString());
+		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + data.getInteger("lvMin") + dataTag }));
+		if (customLore.length > 0) {
+			lore.add("");
+		}
+		lore.addAll(Arrays.<String>asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
+		List<String> statsMeta = new ArrayList<>();
+		double damage = data.getDouble("damage");
+		double armor = data.getDouble("armor");
+		boolean isWeapon = Item.isWeapon(Material.valueOf(data.getString("materialType")));
+		double cooldown = data.getDouble("cooldown");
+		double speedBoost = data.getDouble("speedBoost");
+		boolean unbreakable = data.getBoolean("unbreakable");
+		boolean undroppable = data.getBoolean("undroppable");
+		boolean gmLock = itemClass.isGMLocked();
+		if (damage > 0.0D) {
+			statsMeta.add(ChatColor.GREEN + " " + damage + " Damage");
+		}
+		if (armor > 0.0D) {
+			statsMeta.add(ChatColor.GREEN + " " + armor + " Armor");
+		}
+		if (isWeapon) {
+			statsMeta.add(ChatColor.GREEN + " " + cooldown + "s Attack Speed");
+		}
+		if (speedBoost != 0.0D) {
+			statsMeta.add(" " + (speedBoost < 0.0D ? ChatColor.RED : ChatColor.GREEN + "+") + speedBoost + " Walk Speed");
+		}
+		if (unbreakable || undroppable || gmLock) {
+			statsMeta.add("");
+		}
+		if (unbreakable) {
+			statsMeta.add(ChatColor.BLUE + "Unbreakable");
+		}
+		if (undroppable) {
+			statsMeta.add(ChatColor.BLUE + "Undroppable");
+		}
+		if(gmLock) {
+			statsMeta.add(ChatColor.RED + "GM Locked");
+		}
+		if (custom) {
+			statsMeta.addAll(Arrays.asList(new String[] { "", ChatColor.AQUA + "Custom Item" }));
+		}
+		if (statsMeta.size() > 0) {
+			lore.addAll(Arrays.asList(new String[] { "", ChatColor.GRAY + "When equipped:" }));
+			lore.addAll(statsMeta);
+		}
+		return lore;
+	}
+	
 	private List<String> getCompleteLore() {
-		return itemClass.getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), getUUID(), isCustom());
+		return getCompleteLore(getData(), getLore().<String>toArray(new String[getLore().size()]), getUUID(), isCustom(), itemClass);
 	}
 
 	private List<String> getCompleteLore(String[] customLore) {
-		return itemClass.getCompleteLore(customLore, getUUID(), isCustom());
+		return getCompleteLore(getData(), customLore, getUUID(), isCustom(), itemClass);
 	}
 	
 	public Item(ItemStack itemStack, StorageManager storageManager, StorageAccess storageAccess) {
