@@ -13,11 +13,13 @@ import org.bukkit.Material;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.ItemAddon;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.HiddenStringUtil;
+import mc.dragons.core.util.PermissionUtil;
 
 public class ItemClass extends GameObject {
 	private List<ItemAddon> addons;
@@ -85,6 +87,9 @@ public class ItemClass extends GameObject {
 		if (isUndroppable()) {
 			statsMeta.add(ChatColor.BLUE + "Undroppable");
 		}
+		if(isGMLocked()) {
+			statsMeta.add(ChatColor.RED + "GM Locked");
+		}
 		if (custom) {
 			statsMeta.addAll(Arrays.asList(new String[] { "", ChatColor.AQUA + "Custom Item" }));
 		}
@@ -150,19 +155,31 @@ public class ItemClass extends GameObject {
 	}
 
 	public boolean isUnbreakable() {
-		return ((Boolean) getData("unbreakable")).booleanValue();
+		return (boolean) getData("unbreakable");
 	}
 
 	public void setUnbreakable(boolean unbreakable) {
-		setData("unbreakable", Boolean.valueOf(unbreakable));
+		setData("unbreakable", unbreakable);
 	}
 
 	public boolean isUndroppable() {
-		return ((Boolean) getData("undroppable")).booleanValue();
+		return (boolean) getData("undroppable");
 	}
 
 	public void setUndroppable(boolean undroppable) {
-		setData("undroppable", Boolean.valueOf(undroppable));
+		setData("undroppable", undroppable);
+	}
+	
+	public boolean isGMLocked() {
+		return (boolean) getData("gmlock");
+	}
+	
+	public boolean canUse(User user) {
+		return !isGMLocked() || PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false);
+	}
+	
+	public void setGMLocked(boolean gmlock) {
+		setData("gmlock", gmlock);
 	}
 
 	public double getDamage() {
@@ -170,7 +187,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public void setDamage(double damage) {
-		setData("damage", Double.valueOf(damage));
+		setData("damage", damage);
 	}
 
 	public double getArmor() {
@@ -178,7 +195,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public void setArmor(double armor) {
-		setData("armor", Double.valueOf(armor));
+		setData("armor", armor);
 	}
 
 	public double getSpeedBoost() {
@@ -186,7 +203,7 @@ public class ItemClass extends GameObject {
 	}
 
 	public void setSpeedBoost(double speedBoost) {
-		setData("speedBoost", Double.valueOf(speedBoost));
+		setData("speedBoost", speedBoost);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -203,13 +220,13 @@ public class ItemClass extends GameObject {
 	}
 
 	public void setMaxStackSize(int maxStackSize) {
-		setData("maxStackSize", Integer.valueOf(maxStackSize));
+		setData("maxStackSize", maxStackSize);
 	}
 
 	public GUIElement getAsGuiElement(int slot, int quantity, double costPer, boolean custom, Consumer<User> callback) {
 		List<String> lore = new ArrayList<>();
 		lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + costPer + " Gold " + (quantity == 1 ? "" : "x" + quantity + " = " + quantity * costPer + " Gold"));
-		lore.addAll(getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), (UUID) null, custom));
+		lore.addAll(getCompleteLore(getLore().<String>toArray(new String[getLore().size()]), null, custom));
 		return new GUIElement(slot, getMaterial(), getDecoratedName(), lore, quantity, callback);
 	}
 }

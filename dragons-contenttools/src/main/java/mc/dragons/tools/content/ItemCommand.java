@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -153,6 +154,7 @@ public class ItemCommand implements CommandExecutor {
 					sender.sendMessage(ChatColor.GRAY + "Walk Speed Boost: " + ChatColor.GREEN + itemClass.getSpeedBoost());
 					sender.sendMessage(ChatColor.GRAY + "Unbreakable: " + ChatColor.GREEN + itemClass.isUnbreakable());
 					sender.sendMessage(ChatColor.GRAY + "Undroppable: " + ChatColor.GREEN + itemClass.isUndroppable());
+					sender.sendMessage(ChatColor.GRAY + "GM Locked: " + ChatColor.GREEN + itemClass.isGMLocked());
 					sender.sendMessage(ChatColor.GRAY + "Max. Stack Size: " + ChatColor.GREEN + itemClass.getMaxStackSize());
 					sender.sendMessage(ChatColor.GRAY + "Lore:");
 					for(String loreLine : itemClass.getLore()) {
@@ -278,6 +280,13 @@ public class ItemCommand implements CommandExecutor {
 					return true;
 				}
 				
+				if(args[3].equalsIgnoreCase("gmlock")) {
+					boolean gmlock = Boolean.valueOf(args[4]);
+					itemClass.setGMLocked(gmlock);
+					sender.sendMessage(ChatColor.GREEN + "Updated GM Lock status successfully.");
+					return true;
+				}
+				
 				if(args[3].equalsIgnoreCase("damage")) {
 					double damage = Double.valueOf(args[4]);
 					itemClass.setDamage(damage);
@@ -334,7 +343,7 @@ public class ItemCommand implements CommandExecutor {
 		
 		if(args[0].equalsIgnoreCase("give")) {
 			if(args.length == 1) {
-				sender.sendMessage(ChatColor.RED + "Insufficient arguments! /item give <ClassName>");
+				sender.sendMessage(ChatColor.RED + "Insufficient arguments! /item give <ClassName> [Player] [Quantity]");
 				return true;
 			}
 
@@ -346,7 +355,22 @@ public class ItemCommand implements CommandExecutor {
 			}
 			
 			Item item = itemLoader.registerNew(itemClass);
-			user.giveItem(item);		
+			if(args.length > 3) {
+				item.setQuantity(Integer.valueOf(args[3]));
+			}
+			
+			if(args.length > 2) {
+				Player target = Bukkit.getPlayerExact(args[2]);
+				if(target == null) {
+					sender.sendMessage(ChatColor.RED + "That player is not online!");
+					return true;
+				}
+				User targetUser = UserLoader.fromPlayer(target);
+				targetUser.giveItem(item);
+			}
+			else {
+				user.giveItem(item);		
+			}
 			return true;
 		}
 		

@@ -18,6 +18,8 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.GuildLoader.Guild;
 import mc.dragons.social.GuildLoader.GuildAccessLevel;
+import mc.dragons.social.GuildLoader.GuildEvent;
+import mc.dragons.social.GuildLoader.GuildThemeColor;
 
 public class GuildCommand implements CommandExecutor {
 
@@ -44,6 +46,8 @@ public class GuildCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/guild list" + ChatColor.AQUA + " lists all public guilds.");
 			sender.sendMessage(ChatColor.YELLOW + "/guild join <GuildName>" + ChatColor.AQUA + " requests to join a guild.");
 			sender.sendMessage(ChatColor.YELLOW + "/guild info <GuildName>" + ChatColor.AQUA + " views information about a guild.");
+			sender.sendMessage(ChatColor.YELLOW + "/guild motd <Message of the day|REMOVE>" + ChatColor.AQUA + " sets the guild's MOTD.");
+			sender.sendMessage(ChatColor.YELLOW + "/guild themecolor <GRAY|GREEN|BLUE|GOLD|RED|PURPLE>" + ChatColor.AQUA + " sets the guild's theme color.");
 			sender.sendMessage(ChatColor.YELLOW + "/guild invite <Player>" + ChatColor.AQUA + " invites a player to your guild.");
 			sender.sendMessage(ChatColor.YELLOW + "/guild pending" + ChatColor.AQUA + " view pending applications to your guild.");
 			sender.sendMessage(ChatColor.YELLOW + "/guild accept <Player>" + ChatColor.AQUA + " accepts a player to your guild.");
@@ -88,6 +92,7 @@ public class GuildCommand implements CommandExecutor {
 				guild.save();
 				// TODO notify guild members
 				sender.sendMessage(ChatColor.GREEN + "Joined guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully!");
+				guild.update(GuildEvent.JOIN, user);
 				return true;
 			}
 			else if(guild.getAccessLevel() == GuildAccessLevel.REQUEST) {
@@ -103,8 +108,9 @@ public class GuildCommand implements CommandExecutor {
 					guild.getInvited().remove(player.getUniqueId());
 					guild.getMembers().add(player.getUniqueId());
 					guild.save();
-					// TODO notify gulid members
+					// TODO notify guild members
 					sender.sendMessage(ChatColor.GREEN + "Accepted invitation and joined guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully!");
+					guild.update(GuildEvent.JOIN, user);
 					return true;
 				}
 				else {
@@ -129,14 +135,115 @@ public class GuildCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "This guild is unlisted!");
 				return true;
 			}
-			sender.sendMessage(ChatColor.YELLOW + "Information for guild " + ChatColor.GOLD + guild.getName());
+			sender.sendMessage(guild.getThemeColor().secondary() + "Information for guild " + guild.getThemeColor().primary() + "" + ChatColor.BOLD + guild.getName());
 			sender.sendMessage(ChatColor.GRAY + "Description: " + ChatColor.WHITE + guild.getDescription());
 			sender.sendMessage(ChatColor.GRAY + "XP: " + ChatColor.WHITE + guild.getXP()
 				+ ChatColor.GRAY + "  -  Members: " + ChatColor.WHITE + guild.getMembers().size());
 			sender.sendMessage(ChatColor.GRAY + "Status: " + ChatColor.WHITE + guild.getAccessLevel().friendlyName());
 			sender.sendMessage(ChatColor.GRAY + "Owner: " + ChatColor.WHITE + userLoader.loadObject(guild.getOwner()).getName());
-			sender.sendMessage(ChatColor.GRAY + "Members: " + ChatColor.WHITE 
+			sender.sendMessage(ChatColor.GRAY + "Members: (" + guild.getMembers().size() + ") " + ChatColor.WHITE 
 					+ StringUtil.parseList(guild.getMembers().stream().map(uuid -> userLoader.loadObject(uuid).getName()).collect(Collectors.toList())));
+			return true;
+		}
+		
+		if(args[0].equalsIgnoreCase("motd") || args[0].equalsIgnoreCase("themecolor") || args[0].equalsIgnoreCase("access")) {
+			String setting;
+			switch(args[0].toLowerCase()) {
+			case "motd":
+				setting = "Message of the day";
+				break;
+			case "themecolor":
+				setting = "Theme color";
+				break;
+			case "access":
+				setting = "Access level";
+				break;
+			default:
+				setting = "[Error parsing option parameter]";
+				break;
+			}
+			if(guilds.size() == 0) {
+				sender.sendMessage(ChatColor.RED + "You don't belong to a guild!");
+				return true;
+			}
+			if(args.length == 1) {
+				for(Guild guild : guilds) {
+					if(setting.equalsIgnoreCase("Message of the day")) {
+						sender.sendMessage(guild.getThemeColor().primary() + "" + ChatColor.BOLD + guild.getName() + ": " + guild.getThemeColor().secondary() + guild.getMOTD());
+					}
+					else if(setting.equalsIgnoreCase("Theme color")) {
+						sender.sendMessage(guild.getThemeColor().primary() + "" + ChatColor.BOLD + guild.getName() + ": " + guild.getThemeColor().secondary() + guild.getThemeColor().toString());
+					}
+					else if(setting.equalsIgnoreCase("Access level")) {
+						sender.sendMessage(guild.getThemeColor().primary() + "" + ChatColor.BOLD + guild.getName() + ": " + guild.getThemeColor().secondary() + guild.getAccessLevel().friendlyName());
+					}
+				}
+				return true;
+			}
+			List<Guild> ownedGuilds = guilds.stream().filter(g -> g.getOwner().equals(user.getUUID())).collect(Collectors.toList());
+			Guild target = null;
+			if(ownedGuilds.size() == 1) {
+				target = ownedGuilds.get(0);
+			}
+			else {
+				if(args.length > 2) {
+					target = guildLoader.getGuildByName(args[1]);
+					if(target == null) {
+						sender.sendMessage(ChatColor.RED + "No guild by that name exists!");
+						return true;
+					}
+					if(!guilds.contains(target)) {
+						sender.sendMessage(ChatColor.RED + "You don't belong to that guild!");
+						return true;
+					}
+				}
+				else {
+					sender.sendMessage(ChatColor.RED + "You own multiple guilds! Select one guild to set its " + setting + ".");
+					sender.sendMessage(ChatColor.RED + "/guild motd <" + StringUtil.parseList(ownedGuilds.stream().map(g -> g.getName()).collect(Collectors.toList()), "|") + ">"
+							+ " <" + setting + ">");
+					return true;
+				}
+			}
+			if(!target.getOwner().equals(user.getUUID())) {
+				sender.sendMessage(ChatColor.RED + "You must be the guild owner to set the " + setting + "!");
+				return true;
+			}
+			int motdIndex = ownedGuilds.size() == 1 ? 1 : 2;
+			String value = StringUtil.concatArgs(args, motdIndex);
+			if(setting.equalsIgnoreCase("Message of the day")) {
+				if(value.equalsIgnoreCase("REMOVE")) {
+					target.setMOTD("");
+					sender.sendMessage(ChatColor.GREEN + "Removed guild MOTD successfully.");
+					return true;
+				}
+				target.setMOTD(value);
+				sender.sendMessage(ChatColor.GREEN + "Updated guild MOTD successfully. Members will see this upon joining.");
+			}
+			else if(setting.equalsIgnoreCase("Theme color")) {
+				GuildThemeColor themeColor = StringUtil.parseEnum(sender, GuildThemeColor.class, value);
+				if(themeColor == null) {
+					return true;
+				}
+				if(target.getXP() < themeColor.xpreq()) {
+					sender.sendMessage(ChatColor.RED + "Your guild must have at least " + themeColor.xpreq() + " XP to unlock this theme color! (Currently have " + target.getXP() + ")");
+					return true;
+				}
+				target.setThemeColor(themeColor);
+				sender.sendMessage(ChatColor.GREEN + "Updated guild theme color successfully.");
+				sender.sendMessage(ChatColor.GRAY + "Primary Color: " + themeColor.primary() + "" + ChatColor.BOLD + themeColor.primary().name());
+				sender.sendMessage(ChatColor.GRAY + "Secondary Color: " + themeColor.secondary() + themeColor.secondary().name());
+				sender.sendMessage(ChatColor.GRAY + "Tab List Tag: " + themeColor.tag() + "[" + target.getName() + "]");
+				return true;
+			}
+			else if(setting.equalsIgnoreCase("Access level")) {
+				GuildAccessLevel level = StringUtil.parseEnum(sender, GuildAccessLevel.class, value);
+				if(level == null) {
+					return true;
+				}
+				target.setAccessLevel(level);
+				sender.sendMessage(ChatColor.GREEN + "Updated guild access level to " + ChatColor.AQUA + level.friendlyName());
+				return true;
+			}
 			return true;
 		}
 		
@@ -295,6 +402,7 @@ public class GuildCommand implements CommandExecutor {
 					target.getPlayer().sendMessage(ChatColor.GREEN + "You were accepted into the guild " + ChatColor.AQUA + guild.getName());
 				}
 				// TODO notify
+				guild.update(GuildEvent.JOIN, target);
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("reject")) {
@@ -317,6 +425,7 @@ public class GuildCommand implements CommandExecutor {
 				if(target.getPlayer() != null) {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were kicked from the guild " + ChatColor.YELLOW + guild.getName());
 				}
+				guild.update(GuildEvent.KICK, target);
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("ban")) {
@@ -331,6 +440,7 @@ public class GuildCommand implements CommandExecutor {
 				if(target.getPlayer() != null) {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were banned from the guild " + ChatColor.YELLOW + guild.getName());
 				}
+				guild.update(GuildEvent.BAN, target);
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("unban")) {
@@ -340,49 +450,9 @@ public class GuildCommand implements CommandExecutor {
 				if(target.getPlayer() != null) {
 					target.getPlayer().sendMessage(ChatColor.GREEN + "You were unbanned from the guild " + ChatColor.AQUA + guild.getName());
 				}
+				guild.update(GuildEvent.UNBAN, target);
 				return true;
 			}
-		}
-		
-		if(args[0].equalsIgnoreCase("access")) {
-			if(guilds.size() == 0) {
-				sender.sendMessage(ChatColor.RED + "You don't belong to a guild!");
-				return true;
-			}
-			if(args.length == 1) {
-				for(Guild guild : guilds) {
-					sender.sendMessage(ChatColor.GREEN + "Access level of " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " is " + ChatColor.AQUA + guild.getAccessLevel().friendlyName());
-				}
-				return true;
-			}
-			Guild guild = guilds.get(0);
-			if(guilds.size() > 1) {
-				if(args.length > 2) {
-					guild = guildLoader.getGuildByName(args[2]);
-					if(guild == null) {
-						sender.sendMessage(ChatColor.RED + "No guild by that name exists!");
-						return true;
-					}
-					if(!guilds.contains(guild)) {
-						sender.sendMessage(ChatColor.RED + "You don't belong to this guild!");
-						return true;
-					}
-				}
-				else {
-					sender.sendMessage(ChatColor.RED + "You belong to multiple guilds! Select one guild to change its access level.");
-					sender.sendMessage(ChatColor.RED + "/guild access <" + StringUtil.parseList(GuildAccessLevel.values(), "|") + "> <GuildName>");
-					return true;
-				}
-			}
-			if(!guild.getOwner().equals(user.getUUID())) {
-				sender.sendMessage(ChatColor.RED + "You must be the owner of this guild to change its access level!");
-				return true;
-			}
-			GuildAccessLevel level = StringUtil.parseEnum(sender, GuildAccessLevel.class, args[1]);
-			if(level == null) return true;
-			guild.setAccessLevel(level);
-			sender.sendMessage(ChatColor.GREEN + "Updated guild access level to " + ChatColor.AQUA + level.friendlyName());
-			return true;
 		}
 		
 		if(args[0].equalsIgnoreCase("broadcast") || args[0].equalsIgnoreCase("bc") || args[0].equalsIgnoreCase("chat")) {
@@ -397,7 +467,7 @@ public class GuildCommand implements CommandExecutor {
 			String message = StringUtil.concatArgs(args, 1);
 			Guild guild = guilds.get(0);
 			if(guilds.size() > 1) {
-				if(args.length > 3) {
+				if(args.length > 2) {
 					guild = guildLoader.getGuildByName(args[1]);
 					message = StringUtil.concatArgs(args, 2);
 					if(guild == null) {
@@ -416,8 +486,8 @@ public class GuildCommand implements CommandExecutor {
 				}
 			}
 			String formatted = ChatColor.GRAY + "@" + guild.getName() + " " 
-					+ ChatColor.DARK_GREEN + "" + ChatColor.BOLD + user.getName() + " "
-					+ ChatColor.GREEN + message;
+					+ guild.getThemeColor().primary() + "" + ChatColor.BOLD + user.getName() + " "
+					+ guild.getThemeColor().secondary() + message;
 			for(UUID uuid : guild.getMembers()) {
 				User member = userLoader.loadObject(uuid);
 				if(member.getPlayer() != null) {
@@ -435,7 +505,7 @@ public class GuildCommand implements CommandExecutor {
 			}
 			Guild guild = guilds.get(0);
 			if(guilds.size() > 1) {
-				if(args.length > 1) {
+				if(args.length > 2) {
 					guild = guildLoader.getGuildByName(args[2]);
 					if(guild == null) {
 						sender.sendMessage(ChatColor.RED + "No guild by that name exists!");
@@ -469,11 +539,14 @@ public class GuildCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "That player is not a member of this guild!");
 				return true;
 			}
+			guild.getMembers().add(guild.getOwner());
 			guild.setOwner(target.getUUID());
+			guild.getMembers().remove(target.getUUID());
 			sender.sendMessage(ChatColor.GREEN + "Transferred ownership of " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " to " + ChatColor.AQUA + target.getName());
-			if(user.getPlayer() != null) {
-				user.getPlayer().sendMessage(ChatColor.GREEN + "You are now the owner of " + ChatColor.AQUA + guild.getName());
+			if(target.getPlayer() != null) {
+				target.getPlayer().sendMessage(ChatColor.GREEN + "You are now the owner of " + ChatColor.AQUA + guild.getName());
 			}
+			guild.update(GuildEvent.TRANSFER_OWNERSHIP, target);
 			return true;
 		}
 		
@@ -509,6 +582,7 @@ public class GuildCommand implements CommandExecutor {
 			guild.getMembers().remove(user.getUUID());
 			guild.save();
 			sender.sendMessage(ChatColor.GREEN + "Left guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully.");
+			guild.update(GuildEvent.LEAVE, user);
 			return true;
 		}
 		

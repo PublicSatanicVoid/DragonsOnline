@@ -50,6 +50,7 @@ public class GuildAdminCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/guildadmin desc <GuildID> <Description>");
 			sender.sendMessage(ChatColor.YELLOW + "/guildadmin forcejoin <GuildID> [Player=you]");
 			sender.sendMessage(ChatColor.YELLOW + "/guildadmin forceleave <GuildID> [Player=you]");
+			sender.sendMessage(ChatColor.YELLOW + "/guildadmin setowner <GuildID> [Player=you]");
 			sender.sendMessage(ChatColor.YELLOW + "/guildadmin delete <GuildID>");
 			return true;
 		}
@@ -225,6 +226,34 @@ public class GuildAdminCommand implements CommandExecutor {
 			guild.getMembers().remove(joining);
 			guild.save();
 			sender.sendMessage(ChatColor.GREEN + "Removed user " + joiningUser.getName() + " from guild " + guild.getName());
+			return true;
+		}
+		
+		if(args[0].equalsIgnoreCase("setowner")) {
+			if(args.length < 2) {
+				sender.sendMessage(ChatColor.RED + "Usage: /guildadmin setowner <GuildID> [Player=you]");
+				return true;
+			}
+			Guild guild = guildLoader.getGuildById(Integer.valueOf(args[1]));
+			if(guild == null) {
+				sender.sendMessage(ChatColor.RED + "Invalid guild ID!");
+				return true;
+			}
+			User ownerUser = user;
+			UUID owner = user.getUUID();
+			if(args.length >= 3) {
+				ownerUser = userLoader.loadObject(args[2]);
+				if(ownerUser == null) {
+					sender.sendMessage(ChatColor.RED + "Invalid user!");
+					return true;
+				}
+				owner = ownerUser.getUUID();
+			}
+			guild.getMembers().add(guild.getOwner());
+			guild.setOwner(owner);
+			guild.getMembers().remove(owner);
+			guild.save();
+			sender.sendMessage(ChatColor.GREEN + "Set owner of guid " + guild.getName() + " to " + ownerUser.getName());
 			return true;
 		}
 		

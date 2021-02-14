@@ -1259,6 +1259,11 @@ public class User extends GameObject {
 		}
 		return ChatColor.WHITE;
 	}
+	
+	public String getListName() {
+		return getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
+				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ").trim();
+	}
 
 	public static void updateVanishStateBetween(User userOf, User userFor) {
 		if (userOf == null || userFor == null) {
@@ -1285,9 +1290,9 @@ public class User extends GameObject {
 		player.setCollidable(!isVanished());
 		player.setAllowFlight(!(!isVanished() && player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR));
 		if (isVanished()) {
-			player.setPlayerListName(ChatColor.DARK_GRAY + "" + ChatColor.MAGIC + "[Staff Member Joining]");
+			player.setPlayerListName(" ");
 		} else {
-			player.setPlayerListName(getRank().getNameColor() + player.getName());
+			player.setPlayerListName(getListName());
 		}
 		for (Player test : Bukkit.getOnlinePlayers()) {
 			updateVanishStateBetween(this, UserLoader.fromPlayer(test));

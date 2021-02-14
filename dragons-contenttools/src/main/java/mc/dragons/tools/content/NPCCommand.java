@@ -101,7 +101,7 @@ public class NPCCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/npc class -s <ClassName> addon [<add|remove> <AddonName>]" + ChatColor.GRAY + " manage addons");
 			sender.sendMessage(ChatColor.YELLOW + "/npc class -s <ClassName> attribute [<Attribute> <Value|DEL>]" + ChatColor.GRAY + " manage attributes");
 			sender.sendMessage(ChatColor.YELLOW + "/npc class -d <ClassName>" + ChatColor.GRAY + " delete NPC class");
-			sender.sendMessage(ChatColor.YELLOW + "/npc spawn <ClassName>  [-phase <Player>]" + ChatColor.GRAY + " spawn a new NPC of the given class");
+			sender.sendMessage(ChatColor.YELLOW + "/npc spawn <ClassName>  [Quantity] [-phase <Player>]" + ChatColor.GRAY + " spawn a new NPC of the given class");
 			sender.sendMessage(ChatColor.DARK_GRAY + "" +  ChatColor.BOLD + "Note:" + ChatColor.DARK_GRAY + " Class names must not contain spaces.");
 			sender.sendMessage(ChatColor.GRAY + "View the full documentation at " + ChatColor.UNDERLINE + Dragons.STAFF_DOCUMENTATION);
 			return true;
@@ -539,14 +539,23 @@ public class NPCCommand implements CommandExecutor {
 		}
 		if(args[0].equalsIgnoreCase("spawn")) {
 			if(args.length == 1) {
-				sender.sendMessage(ChatColor.RED + "Specify an NPC class to spawn! /npc spawn <ClassName>");
+				sender.sendMessage(ChatColor.RED + "Specify an NPC class to spawn! /npc spawn <ClassName> [Quantity] [-phase <Player>]");
 				return true;
 			}
-			NPC npc = npcLoader.registerNew(player.getWorld(), player.getLocation(), args[1]);
-			sender.sendMessage(ChatColor.GREEN + "Spawned an NPC of class " + args[1] + " at your location.");
-			if(args.length >= 3 && args[2].equalsIgnoreCase("-phase")) {
-				Player phaseFor = Bukkit.getPlayerExact(args[3]);
-				npc.phase(phaseFor);
+			List<NPC> spawned = new ArrayList<>();
+			int quantity = 1;
+			if(args.length > 2) {
+				quantity = Integer.valueOf(args[2]);
+			}
+			int remaining = quantity;
+			while(remaining > 0) {
+				spawned.add(npcLoader.registerNew(player.getWorld(), player.getLocation(), args[1]));
+				remaining--;
+			}
+			sender.sendMessage(ChatColor.GREEN + "Spawned an NPC of class " + args[1] + " at your location (x" + quantity + ")");
+			if(args.length > 4 && args[3].equalsIgnoreCase("-phase")) {
+				Player phaseFor = Bukkit.getPlayerExact(args[4]);
+				spawned.stream().forEach(npc -> npc.phase(phaseFor));
 				sender.sendMessage(ChatColor.GREEN + "Phased NPC successfully.");
 			}
 			return true;

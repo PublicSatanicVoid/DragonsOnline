@@ -17,7 +17,7 @@ public interface UserHook {
 	 * 
 	 * @param user
 	 */
-	void onInitialize(User user);
+	default void onInitialize(User user) {}
 	
 	/**
 	 * Called when the user joins with verification,
@@ -25,7 +25,16 @@ public interface UserHook {
 	 * 
 	 * @param user
 	 */
-	void onVerifiedJoin(User user);
+	default void onVerifiedJoin(User user) {}
+	
+	/**
+	 * Called when we need to update the user's
+	 * tab list name tag.
+	 * 
+	 * @param user
+	 * @return
+	 */
+	default String getListNameSuffix(User user) { return ""; }
 	
 	/**
 	 * Called whenever the user's state is updated.
@@ -33,7 +42,7 @@ public interface UserHook {
 	 * @param user
 	 * @param location
 	 */
-	void onUpdateState(User user, Location location);
+	default void onUpdateState(User user, Location location) {};
 	
 	/**
 	 * Called whenever the user's data is auto-saved to
@@ -42,12 +51,12 @@ public interface UserHook {
 	 * @param user
 	 * @param document
 	 */
-	void onAutoSave(User user, Document document);
+	default void onAutoSave(User user, Document document) {}
 	
 	/**
 	 * Called whenever the user leaves the game.
 	 * 
 	 * @param user
 	 */
-	void onQuit(User user);
+	default void onQuit(User user) {}
 }

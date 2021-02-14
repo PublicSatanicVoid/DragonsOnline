@@ -3,9 +3,7 @@ package mc.dragons.npcs;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import org.bson.Document;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
@@ -25,9 +23,6 @@ public class NPCUserHook implements UserHook {
 			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
 		}
 	}
-	
-	@Override
-	public void onInitialize(User user) {}
 
 	@Override
 	public void onVerifiedJoin(User user) {
@@ -49,12 +44,6 @@ public class NPCUserHook implements UserHook {
 		}
 		user.debug("Spawned your companion " + companion.getName() + " at " + StringUtil.locToString(companion.getEntity().getLocation()));
 	}
-
-	@Override
-	public void onUpdateState(User user, Location cached) {}
-
-	@Override
-	public void onAutoSave(User user, Document autoSaveData) {}
 
 	@Override
 	public void onQuit(User user) {
