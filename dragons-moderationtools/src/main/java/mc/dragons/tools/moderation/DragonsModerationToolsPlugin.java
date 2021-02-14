@@ -3,14 +3,10 @@ package mc.dragons.tools.moderation;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import mc.dragons.core.Dragons;
-
 public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandExecutor {
 	
 	public void onEnable() {
-		Dragons dragons = Dragons.getInstance();
-		
-		getCommand("info").setExecutor(new InfoCommand(dragons));
+		getCommand("info").setExecutor(new InfoCommand());
 		getCommand("godmode").setExecutor(new GodModeCommand());
 		getCommand("escalate").setExecutor(new EscalateCommand());
 		getCommand("fly").setExecutor(new FlyCommand());

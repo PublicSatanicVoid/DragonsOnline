@@ -44,8 +44,9 @@ public class HealCommand implements CommandExecutor {
 		}
 		
 		target.setHealth(target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+		
 		target.sendMessage(ChatColor.GREEN + "You have been healed.");
-		if(target != sender) {
+		if(!target.equals(sender)) {
 			sender.sendMessage(ChatColor.GREEN + "Healed " + target.getName() + " successfully.");
 		}
 		

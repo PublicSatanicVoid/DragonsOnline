@@ -31,6 +31,9 @@ import mc.dragons.social.GuildLoader.Guild;
  *
  */
 public class GuildLoader extends AbstractLightweightLoader<Guild> {
+	private static final String GUILD_COLLECTION = "guilds";
+	
+	private Map<Integer, Guild> guildPool = new HashMap<>();
 	
 	public static enum GuildAccessLevel {
 		ALL("Public"),
@@ -55,6 +58,8 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		RED(ChatColor.DARK_RED, ChatColor.RED, ChatColor.RED, 50000),
 		PURPLE(ChatColor.DARK_PURPLE, ChatColor.LIGHT_PURPLE, ChatColor.LIGHT_PURPLE, 100000);
 		
+		public static final GuildThemeColor DEFAULT = GRAY;
+		
 		private ChatColor primary;
 		private ChatColor secondary;
 		private ChatColor tag;
@@ -72,7 +77,6 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		public ChatColor tag() { return tag; }
 		public int xpreq() { return xpreq; }
 		
-		public static final GuildThemeColor DEFAULT = GRAY;
 	}
 	
 	public static enum GuildEvent {
@@ -231,9 +235,6 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 			return guild;
 		}
 	}
-	
-	private Map<Integer, Guild> guildPool = new HashMap<>();
-	private static final String GUILD_COLLECTION = "guilds";
 	
 	public GuildLoader(MongoConfig config) {
 		super(config, "guilds", GUILD_COLLECTION);

@@ -26,7 +26,7 @@ public class HologramUtil {
 		hologram.setCollidable(false);
 		hologram.setInvulnerable(true);
 		hologram.setSmall(true);
-		hologram.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), Boolean.valueOf(true)));
+		hologram.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
 		return hologram;
 	}
 
@@ -39,7 +39,7 @@ public class HologramUtil {
 		armorStand.setCollidable(false);
 		armorStand.setInvulnerable(true);
 		armorStand.setSmall(true);
-		armorStand.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), Boolean.valueOf(true)));
+		armorStand.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
 		new BukkitRunnable() {
 			@Override
 			public void run() {

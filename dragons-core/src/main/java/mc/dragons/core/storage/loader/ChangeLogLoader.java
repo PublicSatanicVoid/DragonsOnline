@@ -20,6 +20,7 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 		private List<String> changelog;
 
 		public ChangeLogEntry(int id, String date, String by, String title, List<String> changelog) {
+			this.id = id;
 			this.date = date;
 			this.by = by;
 			this.title = title;

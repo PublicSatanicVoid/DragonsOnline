@@ -87,7 +87,7 @@ public class ResetProfileCommand implements CommandExecutor {
 		target.getPlayer().sendTitle(ChatColor.DARK_RED + "RESET", ChatColor.RED + "Your profile has been reset!", 10, 70, 20);
 		target.sendActionBar(ChatColor.DARK_RED + "- Your profile has been reset! -");
 		target.debug("Profile forcibly reset");
-		if(target == user) {
+		if(target.equals(user)) {
 			sender.sendMessage(ChatColor.GREEN + "Reset your profile.");
 		}
 		else {

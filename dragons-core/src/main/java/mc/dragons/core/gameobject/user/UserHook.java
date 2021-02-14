@@ -17,7 +17,7 @@ public interface UserHook {
 	 * 
 	 * @param user
 	 */
-	default void onInitialize(User user) {}
+	default void onInitialize(User user) { /* default */ }
 	
 	/**
 	 * Called when the user joins with verification,
@@ -25,7 +25,7 @@ public interface UserHook {
 	 * 
 	 * @param user
 	 */
-	default void onVerifiedJoin(User user) {}
+	default void onVerifiedJoin(User user) { /* default */ }
 	
 	/**
 	 * Called when we need to update the user's
@@ -42,7 +42,7 @@ public interface UserHook {
 	 * @param user
 	 * @param location
 	 */
-	default void onUpdateState(User user, Location location) {};
+	default void onUpdateState(User user, Location location) { /* default */ };
 	
 	/**
 	 * Called whenever the user's data is auto-saved to
@@ -51,12 +51,12 @@ public interface UserHook {
 	 * @param user
 	 * @param document
 	 */
-	default void onAutoSave(User user, Document document) {}
+	default void onAutoSave(User user, Document document) { /* default */ }
 	
 	/**
 	 * Called whenever the user leaves the game.
 	 * 
 	 * @param user
 	 */
-	default void onQuit(User user) {}
+	default void onQuit(User user) { /* default */ }
 }

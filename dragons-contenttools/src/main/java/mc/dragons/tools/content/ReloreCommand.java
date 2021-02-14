@@ -17,12 +17,6 @@ import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class ReloreCommand implements CommandExecutor {
-
-	//private UserLoader userLoader;
-	
-	public ReloreCommand() {
-		//userLoader = (UserLoader) GameObjectType.USER.<User>getLoader();
-	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

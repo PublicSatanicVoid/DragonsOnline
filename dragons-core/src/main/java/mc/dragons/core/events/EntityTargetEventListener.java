@@ -17,7 +17,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 
 public class EntityTargetEventListener implements Listener {
-	Logger LOGGER;
+	private Logger LOGGER;
 
 	public EntityTargetEventListener(Dragons instance) {
 		LOGGER = instance.getLogger();

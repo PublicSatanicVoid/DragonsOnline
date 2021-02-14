@@ -35,8 +35,9 @@ public class NPCCondition {
 			return hasLevel(document.getInteger("level").intValue(), document.getBoolean("inverse").booleanValue());
 		case HAS_GOLD:
 			return hasGold(document.getDouble("gold").doubleValue(), document.getBoolean("inverse").booleanValue());
+		default:
+			return null;
 		}
-		return null;
 	}
 
 	public static NPCCondition hasCompletedQuest(Quest quest, boolean inverse) {
@@ -116,7 +117,7 @@ public class NPCCondition {
 	}
 
 	public boolean test(User user) {
-		QuestStep step, step2;
+		QuestStep step;
 		boolean result = false;
 		switch (type) {
 		case HAS_COMPLETED_QUEST:
@@ -128,12 +129,12 @@ public class NPCCondition {
 			result = user.getQuestProgress().get(quest).getStepName().equals("Complete");
 			break;
 		case HAS_QUEST_STAGE:
-			step2 = user.getQuestProgress().get(quest);
-			if (step2 == null) {
+			step = user.getQuestProgress().get(quest);
+			if (step == null) {
 				result = false;
 				break;
 			}
-			result = quest.getStepIndex(step2) >= stageRequirement;
+			result = quest.getStepIndex(step) >= stageRequirement;
 			break;
 		case HAS_LEVEL:
 			result = user.getLevel() >= levelRequirement;

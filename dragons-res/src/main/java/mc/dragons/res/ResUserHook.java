@@ -18,9 +18,6 @@ public class ResUserHook implements UserHook {
 	}
 	
 	@Override
-	public void onInitialize(User user) { }
-
-	@Override
 	public void onVerifiedJoin(User user) {
 		for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
 			resPointLoader.updateResHologramOn(user, resPoint);
@@ -34,14 +31,4 @@ public class ResUserHook implements UserHook {
 		user.getStorageAccess().set("resExitTo", null);
 
 	}
-
-	@Override
-	public void onUpdateState(User user, Location cachedLocation) { }
-
-	@Override
-	public void onAutoSave(User user, Document autoSaveData) { }
-
-	@Override
-	public void onQuit(User user) { }
-
 }

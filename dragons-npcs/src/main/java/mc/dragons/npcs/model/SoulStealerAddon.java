@@ -18,7 +18,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
@@ -27,17 +26,16 @@ import mc.dragons.npcs.DragonsNPCAddons;
 import mc.dragons.npcs.util.NPCUtil;
 
 public class SoulStealerAddon extends ComplexAddon {
-
+	private static final int N_SOULS = 5;
+	
 	private Map<NPC, List<ArmorStand>> capturedSouls = new HashMap<>();
+	private Map<NPC, BukkitRunnable> attackRunnables = new HashMap<>();
 	
 	public SoulStealerAddon() {
 		super("SoulStealer");
 		hideEntity = false;
 	}
 
-	private static final int N_SOULS = 5;
-	
-	private Map<NPC, BukkitRunnable> attackRunnables = new HashMap<>();
 	
 	@Override
 	public void initializeParts(NPC npc) {
@@ -130,10 +128,4 @@ public class SoulStealerAddon extends ComplexAddon {
 		attackRunnables.get(npc).cancel();
 		attackRunnables.remove(npc);
 	}
-	
-	@Override
-	public void onDealDamage(NPC from, GameObject to, double amount) {
-
-	}
-
 }

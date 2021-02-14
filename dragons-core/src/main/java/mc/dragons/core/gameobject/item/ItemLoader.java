@@ -21,9 +21,10 @@ import mc.dragons.core.util.HiddenStringUtil;
 
 public class ItemLoader extends GameObjectLoader<Item> {
 	private static ItemLoader INSTANCE;
-	private static Map<String, Item> uuidToItem;
+	private static Map<String, Item> uuidToItem = new HashMap<>();
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
+	
 	private GameObjectRegistry masterRegistry;
 	private ItemClassLoader itemClassLoader;
 
@@ -31,7 +32,6 @@ public class ItemLoader extends GameObjectLoader<Item> {
 		super(instance, storageManager);
 		masterRegistry = instance.getGameObjectRegistry();
 		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-		uuidToItem = new HashMap<>();
 	}
 
 	public static synchronized ItemLoader getInstance(Dragons instance, StorageManager storageManager) {

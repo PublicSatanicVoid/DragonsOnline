@@ -74,11 +74,9 @@ public class GamemodeCommand implements CommandExecutor {
 			}
 		}
 		
-		if(gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) {
-			if(!user.getSystemProfile().getFlags().hasFlag(SystemProfileFlag.BUILD)) {
-				sender.sendMessage(ChatColor.RED + "Creative and survival gamemodes require build permissions.");
-				return true;
-			}
+		if((gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) && !user.getSystemProfile().getFlags().hasFlag(SystemProfileFlag.BUILD)) {
+			sender.sendMessage(ChatColor.RED + "Creative and survival gamemodes require build permissions.");
+			return true;
 		}
 		
 		Player target = player;

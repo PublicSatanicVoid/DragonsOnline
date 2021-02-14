@@ -37,18 +37,16 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import net.md_5.bungee.api.ChatColor;
 
 public class UserLoader extends GameObjectLoader<User> {
 	private static UserLoader INSTANCE;
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
-	private static Set<User> users;
+	private static Set<User> users = new HashSet<>();
 
 	private GameObjectRegistry masterRegistry;
 
 	private UserLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
-		users = new HashSet<>();
 		masterRegistry = instance.getGameObjectRegistry();
 	}
 
@@ -62,9 +60,8 @@ public class UserLoader extends GameObjectLoader<User> {
 	public static User fixUser(User user) {
 		Player oldPlayer = user.getPlayer();
 		Player newPlayer = Bukkit.getPlayerExact(user.getName());
-		if (oldPlayer != newPlayer) {
-			newPlayer.sendMessage(ChatColor.YELLOW + "" + ChatColor.ITALIC + "Reloading your user profile...");
-
+		if (!newPlayer.equals(oldPlayer)) {
+			LOGGER.fine("Reloading user profile of " + newPlayer.getName() + " (old=" + oldPlayer + " != " + newPlayer + ")");
 			user.initialize(newPlayer);
 			users.add(user);
 			assign(newPlayer, user);
@@ -75,10 +72,10 @@ public class UserLoader extends GameObjectLoader<User> {
 	@Override
 	public User loadObject(StorageAccess storageAccess) {
 		LOGGER.finest("Loading user by storage access " + storageAccess.getIdentifier());
-		for (User user1 : users) {
-			if (user1.getIdentifier().equals(storageAccess.getIdentifier())) {
+		for (User user : users) {
+			if (user.getIdentifier().equals(storageAccess.getIdentifier())) {
 				LOGGER.finest(" - Found user in cache, fixing and returning");
-				return fixUser(user1);
+				return fixUser(user);
 			}
 		}
 		Player p = plugin.getServer().getPlayer((UUID) storageAccess.get("_id"));

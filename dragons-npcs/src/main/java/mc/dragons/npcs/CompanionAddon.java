@@ -4,9 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bson.Document;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
@@ -27,7 +25,6 @@ import mc.dragons.core.util.BlockUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class CompanionAddon extends NPCAddon {
-
 	private Set<NPC> companions = new HashSet<>();
 	
 	public User getCompanionOwner(NPC npc) {
@@ -93,16 +90,6 @@ public class CompanionAddon extends NPCAddon {
 	}
 
 	@Override
-	public void onCreateStorageAccess(Document data) {
-		
-	}
-
-	@Override
-	public void onMove(NPC npc, Location loc) {
-		
-	}
-
-	@Override
 	public void onTakeDamage(NPC on, GameObject from, double amount) {
 		if(from instanceof User && getCompanionOwner(on) == from) {
 			User user = (User) from;
@@ -134,24 +121,6 @@ public class CompanionAddon extends NPCAddon {
 				}
 			}.runTaskTimer(Dragons.getInstance(), 20L, 1L);
 		}
-	}
-
-	@Override
-	public void onDealDamage(NPC from, GameObject to, double amount) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onInteract(NPC with, User from) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onDeath(NPC gameObject) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

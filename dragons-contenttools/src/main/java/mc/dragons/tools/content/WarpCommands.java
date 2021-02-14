@@ -61,7 +61,7 @@ public class WarpCommands implements CommandExecutor {
 				return true;
 			}
 			target.teleport(to);
-			sender.sendMessage(ChatColor.GREEN + "Warped" + (target == sender ? "" : " " + target.getName()) + " to " + args[0] + " successfully.");
+			sender.sendMessage(ChatColor.GREEN + "Warped" + (target.equals(sender) ? "" : " " + target.getName()) + " to " + args[0] + " successfully.");
 			return true;
 		}
 		
@@ -106,8 +106,6 @@ public class WarpCommands implements CommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Set warp " + args[0] + " to your current location");
 			return true;
 		}
-		
-
 		
 		return true;
 	}

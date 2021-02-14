@@ -57,7 +57,7 @@ public class SystemProfile {
 		public static Document emptyFlagsDocument() {
 			Document document = new Document();
 			for(SystemProfileFlag flag : SystemProfileFlag.values()) {
-				document.append(flag.toString(), Boolean.valueOf(false));
+				document.append(flag.toString(), false);
 			}
 			return document;
 		}
@@ -65,7 +65,7 @@ public class SystemProfile {
 		public SystemProfileFlags(Document flags) {
 			this.flags = new HashMap<>();
 			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) flags.entrySet()) {
-				this.flags.put(SystemProfileFlag.valueOf(entry.getKey()), (Boolean) entry.getValue());
+				this.flags.put(SystemProfileFlag.valueOf(entry.getKey()), (boolean) entry.getValue());
 			}
 		}
 

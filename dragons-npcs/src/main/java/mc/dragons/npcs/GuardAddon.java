@@ -3,8 +3,6 @@ package mc.dragons.npcs;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.bson.Document;
-import org.bukkit.Location;
 import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
@@ -22,7 +20,6 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPC.NPCType;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -94,41 +91,4 @@ public class GuardAddon extends NPCAddon {
 		att.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(0.2);
 		guards.add(npc);
 	}
-
-	@Override
-	public void onMove(NPC npc, Location floc) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onTakeDamage(NPC on, GameObject from, double amount) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onDealDamage(NPC from, GameObject to, double amount) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onDeath(NPC gameObject) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onInteract(NPC with, User from) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onCreateStorageAccess(Document data) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

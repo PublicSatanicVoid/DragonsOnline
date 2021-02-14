@@ -12,12 +12,6 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.PermissionUtil;
 
 public class GodModeCommand implements CommandExecutor {
-
-	//private UserLoader userLoader;
-	
-	public GodModeCommand() {
-		//userLoader = (UserLoader) GameObjectType.USER.<User>getLoader();
-	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

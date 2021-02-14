@@ -18,9 +18,9 @@ import mc.dragons.core.gameobject.GameObject;
 public interface Addon {
 	Logger LOGGER = Dragons.getInstance().getLogger();
 
-	String getName();
-	AddonType getType();
-	void initialize(GameObject gameObject);
-	void onEnable();
-	void onCreateStorageAccess(Document initialData);
+	default String getName() { return ""; }
+	default AddonType getType() { return null; }
+	default void initialize(GameObject gameObject) { /* default */ }
+	default void onEnable() { /* default */ }
+	default void onCreateStorageAccess(Document initialData) { /* default */ }
 }

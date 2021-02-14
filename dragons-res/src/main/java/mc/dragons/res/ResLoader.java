@@ -31,6 +31,20 @@ import mc.dragons.res.ResLoader.Residence.ResAccess;
 import mc.dragons.res.ResPointLoader.ResPoint;
 
 public class ResLoader extends AbstractLightweightLoader<Residence> {
+	private static final String RES_COUNTER = "res";
+	private static final String RES_COLLECTION = "res";
+
+	private static int RES_SPACING = 5;
+	private static Vector RES_SPAWN_OFFSET = new Vector(0, 1, -12);
+	
+	private static int resNextIndex = 0;
+	private static Map<Integer, Integer> resIdToLocalIndex = new HashMap<>();
+	
+	private static BukkitWorld resWorld = new BukkitWorld(Bukkit.getWorld("res_temp"));
+	private static Clipboard residenceSchematic = DragonsResPlugin.loadSchematic("Residence_1", resWorld);
+	private static EditSession worldEditSession = DragonsResPlugin.getEditSession(resWorld);
+	
+	private static List<Integer> generated = new ArrayList<>();
 	
 	public ResLoader(MongoConfig config) {
 		super(config, RES_COUNTER, RES_COLLECTION);
@@ -94,20 +108,6 @@ public class ResLoader extends AbstractLightweightLoader<Residence> {
 		}
 	}
 	
-	private static final String RES_COUNTER = "res";
-	
-	private static final String RES_COLLECTION = "res";
-	
-	private static int resNextIndex = 0;
-	private static Map<Integer, Integer> resIdToLocalIndex = new HashMap<>();
-	private static int RES_SPACING = 5;
-	private static Vector RES_SPAWN_OFFSET = new Vector(0, 1, -12);
-	
-	private static BukkitWorld resWorld = new BukkitWorld(Bukkit.getWorld("res_temp"));
-	private static Clipboard residenceSchematic = DragonsResPlugin.loadSchematic("Residence_1", resWorld);
-	private static EditSession worldEditSession = DragonsResPlugin.getEditSession(resWorld);
-	
-	private static List<Integer> generated = new ArrayList<>();
 	public List<Residence> asResidences(FindIterable<Document> tasks) {
 		List<Document> result = new ArrayList<>();
 		for(Document task : tasks) {

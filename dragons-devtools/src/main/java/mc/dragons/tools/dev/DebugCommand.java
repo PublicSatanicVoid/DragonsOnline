@@ -137,10 +137,8 @@ public class DebugCommand implements CommandExecutor {
 				}
 				logger.info("=== BEGIN COMPLETE WORKER DUMP" + filter.toUpperCase() + " ===");
 				for(BukkitWorker worker : Bukkit.getScheduler().getActiveWorkers()) {
-					if(pluginFor != null) {
-						if(worker.getOwner() != pluginFor) {
-							continue;
-						}
+					if(pluginFor != null && worker.getOwner() != pluginFor) {
+						continue;
 					}
 					logger.info("WORKER " + worker.getTaskId() + ": Class " + worker.getClass().getName() + ", Owner " + worker.getOwner().getName()
 							+ ", Thread " + worker.getThread().getId() + " (" + worker.getThread().getName() + ") ");

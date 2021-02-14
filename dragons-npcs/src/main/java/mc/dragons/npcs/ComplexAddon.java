@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bson.Document;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
@@ -19,7 +18,6 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.user.User;
 
 /**
  * Complex NPCs are NPCs that do not appear to follow any "vanilla" entity models
@@ -32,11 +30,11 @@ import mc.dragons.core.gameobject.user.User;
  *
  */
 public abstract class ComplexAddon extends NPCAddon {
-
-	protected Map<NPC, List<ArmorStand>> parts;
-	protected boolean hideEntity = true;
 	private Map<NPC, Location> lastLocations;
 	private String modelName;
+	
+	protected Map<NPC, List<ArmorStand>> parts;
+	protected boolean hideEntity = true;
 	
 	protected ArmorStand newPart(NPC npc) {
 		return newPart(npc, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2);
@@ -67,12 +65,6 @@ public abstract class ComplexAddon extends NPCAddon {
 		parts = new HashMap<>();
 		lastLocations = new HashMap<>();
 	}
-	
-	@Override
-	public void onEnable() {}
-	
-	@Override
-	public void onCreateStorageAccess(Document data) {}
 	
 	@Override
 	public String getName() {
@@ -110,21 +102,6 @@ public abstract class ComplexAddon extends NPCAddon {
 			part.teleport(to);
 		}
 		lastLocations.put(npc, loc);
-	}
-
-	@Override
-	public void onTakeDamage(NPC on, GameObject from, double amount) {
-		
-	}
-
-	@Override
-	public void onDealDamage(NPC from, GameObject to, double amount) {
-		
-	}
-
-	@Override
-	public void onInteract(NPC with, User from) {
-		
 	}
 
 	@Override

@@ -73,8 +73,9 @@ public class EntityHider implements Listener {
 			return !setMembership(observer, entityID, !visible);
 		case WHITELIST:
 			return setMembership(observer, entityID, visible);
+		default:
+			throw new IllegalArgumentException("Unknown policy: " + policy);
 		}
-		throw new IllegalArgumentException("Unknown policy: " + policy);
 	}
 
 	protected boolean setMembership(Player observer, int entityID, boolean member) {

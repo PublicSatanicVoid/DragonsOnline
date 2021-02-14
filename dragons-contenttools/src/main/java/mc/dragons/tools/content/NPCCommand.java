@@ -358,6 +358,8 @@ public class NPCCommand implements CommandExecutor {
 								case HAS_LEVEL:
 									cond = NPCCondition.hasLevel(Integer.valueOf(args[9]), inverted);
 									break;
+								default:
+									break;
 								}
 								conditions.add(cond.toDocument());
 								behaviorsLocal.getConditional(behaviorNo).getKey().add(cond);
@@ -438,6 +440,8 @@ public class NPCCommand implements CommandExecutor {
 									break;
 								case PATHFIND_NPC:
 									action = NPCAction.pathfindNPC(npcClass, player.getLocation());
+									break;
+								default:
 									break;
 								}
 								actions.add(action.toDocument());

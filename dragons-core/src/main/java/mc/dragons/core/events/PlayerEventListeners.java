@@ -35,7 +35,7 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
-import mc.dragons.core.gameobject.item.ItemConfig;
+import mc.dragons.core.gameobject.item.ItemConstants;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions;
@@ -216,7 +216,7 @@ public class PlayerEventListeners implements Listener {
 					user.sendActionBar(ChatColor.DARK_RED + "- This item is GM locked! -");
 					return;
 				}
-				if (item.getClassName().equals(ItemConfig.IMMORTAL_OVERRIDE_ITEM_CLASS)) {
+				if (item.getClassName().equals(ItemConstants.IMMORTAL_OVERRIDE_ITEM_CLASS)) {
 					user.debug("- Destroy the NPC");
 					npc.getEntity().remove();
 					plugin.getGameObjectRegistry().removeFromDatabase(npc);

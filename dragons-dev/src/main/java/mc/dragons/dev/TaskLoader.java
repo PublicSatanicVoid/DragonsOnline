@@ -16,6 +16,7 @@ import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.dev.TaskLoader.Task;
 
 public class TaskLoader extends AbstractLightweightLoader<Task> {
+	private static final String TASK_COLLECTION = "tasks";
 	
 	public static class Task {
 		private static TaskLoader taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
@@ -88,8 +89,6 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 					document.getList("assignees", String.class), document.getBoolean("done"), document.getBoolean("closed"));
 		}
 	}
-	
-	private static final String TASK_COLLECTION = "tasks";
 	
 	public TaskLoader() {
 		super(Dragons.getInstance().getMongoConfig(), "tasks", TASK_COLLECTION);

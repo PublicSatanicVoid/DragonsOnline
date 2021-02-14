@@ -43,7 +43,7 @@ public class PrivateMessageCommands implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "That player is not online!");
 				return true;
 			}
-			if (target == player) {
+			if (target.equals(player)) {
 				sender.sendMessage(ChatColor.RED + "You can't message yourself!");
 				return true;
 			}

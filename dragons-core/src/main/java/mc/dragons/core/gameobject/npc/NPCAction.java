@@ -87,8 +87,9 @@ public class NPCAction {
 			return pathfindNPC(npcClass, StorageUtil.docToLoc(document.get("to", Document.class)));
 		case OPEN_SHOP:
 			return openShop(npcClass, document.getString("name"), document.getList("items", Document.class).stream().map(doc -> new ShopItem(doc)).collect(Collectors.toList()));
+		default:
+			return null;
 		}
-		return null;
 	}
 
 	public static NPCAction beginQuest(NPCClass npcClass, Quest quest) {

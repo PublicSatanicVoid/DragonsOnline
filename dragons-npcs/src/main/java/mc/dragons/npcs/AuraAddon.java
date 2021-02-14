@@ -3,7 +3,6 @@ package mc.dragons.npcs;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bson.Document;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
@@ -14,16 +13,14 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.user.User;
 
 public class AuraAddon extends NPCAddon {
-
+	private Map<NPC, BukkitRunnable> auraRunnables = new HashMap<>();
+	
 	@Override
 	public String getName() {
 		return "Aura";
 	}
-
-	private Map<NPC, BukkitRunnable> auraRunnables = new HashMap<>();
 	
 	@Override
 	public void initialize(GameObject gameObject) {
@@ -45,41 +42,6 @@ public class AuraAddon extends NPCAddon {
 		};
 		auraRunnable.runTaskTimer(Dragons.getInstance(), 0L, 2L);
 		auraRunnables.put(npc, auraRunnable);
-	}
-
-	@Override
-	public void onEnable() {
-		
-	}
-
-	@Override
-	public void onCreateStorageAccess(Document data) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onMove(NPC npc, Location loc) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onTakeDamage(NPC on, GameObject from, double amount) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onDealDamage(NPC from, GameObject to, double amount) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onInteract(NPC with, User from) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

@@ -19,7 +19,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.item.ItemConfig;
+import mc.dragons.core.gameobject.item.ItemConstants;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
@@ -112,7 +112,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 						 * This specific item class allows removal of immortal entities,
 						 * intended for use by the content team.
 						 */
-						if (item != null && item.getClassName().equals(ItemConfig.IMMORTAL_OVERRIDE_ITEM_CLASS)) {
+						if (item != null && item.getClassName().equals(ItemConstants.IMMORTAL_OVERRIDE_ITEM_CLASS)) {
 							npcTarget.getEntity().remove();
 							dragons.getGameObjectRegistry().removeFromDatabase(npcTarget);
 							userDamager.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");

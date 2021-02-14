@@ -103,11 +103,9 @@ public class ExperimentalCommands implements CommandExecutor {
 						for(int y  = cY - radius; y <= cY + radius; y++) {
 							for(int z = cZ - radius; z <= cZ + radius; z++) {
 								Block block = center.getWorld().getBlockAt(x, y, z);
-								if(block.getType() == Material.AIR) {
-									if(done < regen) {
-										done++;
-										block.setType(Material.GOLD_BLOCK);
-									}
+								if(block.getType() == Material.AIR && done < regen) {
+									done++;
+									block.setType(Material.GOLD_BLOCK);
 								}
 							}
 						}
@@ -192,7 +190,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			sender.sendMessage("Player="+player);
 			sender.sendMessage("User="+user);
 			for(User test : UserLoader.allUsers()) {
-				if(user.getIdentifier().equals(test.getIdentifier()) && test != user) {
+				if(user.getIdentifier().equals(test.getIdentifier()) && !test.equals(user)) {
 					sender.sendMessage("-Also user " + test + " => " + test.getPlayer());
 				}
 			}
