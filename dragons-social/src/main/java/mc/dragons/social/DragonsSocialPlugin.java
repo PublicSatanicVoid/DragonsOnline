@@ -17,6 +17,7 @@ public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 		
 		getCommand("guild").setExecutor(new GuildCommand());
 		getCommand("guildadmin").setExecutor(new GuildAdminCommand());
+		getCommand("duel").setExecutor(new DuelCommand());
 
 		PrivateMessageCommands privateMessageCommands = new PrivateMessageCommands();
 		getCommand("msg").setExecutor(privateMessageCommands);

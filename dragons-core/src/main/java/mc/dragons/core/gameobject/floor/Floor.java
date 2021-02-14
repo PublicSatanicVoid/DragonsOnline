@@ -76,6 +76,22 @@ public class Floor extends GameObject {
 	}
 
 	public void setLevelMin(int levelMin) {
-		setData("levelMin", Integer.valueOf(levelMin));
+		setData("levelMin", levelMin);
+	}
+	
+	/**
+	 * While a player is on a volatile floor,
+	 * their location is not saved. Thus, if
+	 * they rejoin, they will go to their last
+	 * saved location *NOT* on that floor.
+	 * 
+	 * @return whether the floor is volatile.
+	 */
+	public boolean isVolatile() {
+		return (boolean) getData("volatile");
+	}
+	
+	public void setVolatile(boolean isVolatile) {
+		setData("volatile", isVolatile);
 	}
 }

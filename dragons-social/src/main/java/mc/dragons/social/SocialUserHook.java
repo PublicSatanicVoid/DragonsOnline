@@ -1,6 +1,7 @@
 package mc.dragons.social;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -14,14 +15,7 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.GuildLoader.Guild;
 
 public class SocialUserHook implements UserHook {
-	
 	private GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
-	
-	@Override
-	public void onInitialize(User user) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void onVerifiedJoin(User user) {
@@ -50,4 +44,57 @@ public class SocialUserHook implements UserHook {
 		return ChatColor.DARK_GRAY + "[" + StringUtil.parseList(guildNames, ChatColor.DARK_GRAY + "/") + ChatColor.DARK_GRAY + "]";
 	}
 
+	@Override
+	public boolean onDeath(User user) {
+		for(Set<User> dueling : DuelCommand.getActive()) {
+			if(dueling.contains(user)) {
+				User loser = user;
+				dueling.remove(user);
+				User winner = (User) dueling.toArray()[0];
+				
+				String[] endMessage = new String[] {
+					" ",
+					DuelCommand.DUEL_MESSAGE_HEADER,
+					ChatColor.GOLD + "" + ChatColor.BOLD + "DUEL ENDED",
+					ChatColor.YELLOW + "Winner: " + ChatColor.GRAY + winner.getName(),
+					ChatColor.RED + "Loser: " + ChatColor.GRAY + loser.getName(),
+					DuelCommand.DUEL_MESSAGE_HEADER,
+					" "
+				};
+				
+				winner.getPlayer().sendMessage(endMessage);
+				loser.getPlayer().sendMessage(endMessage);
+				
+				Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+					DuelCommand.restore(winner);
+					DuelCommand.restore(loser);
+					
+					DuelCommand.getActive().remove(dueling);
+				}, 20L);
+				
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public void onQuit(User user) {
+		for(Set<User> dueling : DuelCommand.getActive()) {
+			if(dueling.contains(user)) {
+				dueling.remove(user);
+				if(dueling.size() == 0) {
+					return; // Workaround for one-person duel, only necessary for TESTING PURPOSES.
+				}
+				User other = (User) dueling.toArray()[0];
+				other.getPlayer().sendMessage(ChatColor.RED + user.getName() + " left while the duel was in progress!");
+
+				Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+					DuelCommand.restore(other);
+					DuelCommand.getActive().remove(dueling);
+				}, 20L);
+			}
+		}
+	}
+	
 }

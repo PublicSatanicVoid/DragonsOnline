@@ -1,7 +1,10 @@
 package mc.dragons.core.util;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.entity.Entity;
@@ -28,6 +31,7 @@ import mc.dragons.core.exception.DragonsInternalException;
 
 /**
  * Open-source library to implement entity phasing.
+ * Adapted by Adam for use within Dragons Online.
  * 
  * @author comphenix
  *
@@ -48,7 +52,8 @@ public class EntityHider implements Listener {
 	private ProtocolManager manager;
 	private Listener bukkitListener;
 	private PacketAdapter protocolListener;
-	protected final Policy policy;
+	private final Policy DEFAULT_POLICY;
+	protected Map<Player, Policy> policy;
 
 	/**
 	 * The current entity visibility policy.
@@ -61,14 +66,15 @@ public class EntityHider implements Listener {
 
 	public EntityHider(Plugin plugin, Policy policy) {
 		Preconditions.checkNotNull(plugin, "plugin cannot be NULL.");
-		this.policy = policy;
+		DEFAULT_POLICY = policy;
+		this.policy = new HashMap<>();
 		manager = ProtocolLibrary.getProtocolManager();
 		plugin.getServer().getPluginManager().registerEvents(bukkitListener = constructBukkit(), plugin);
 		manager.addPacketListener(protocolListener = constructProtocol(plugin));
 	}
 
 	protected boolean setVisibility(Player observer, int entityID, boolean visible) {
-		switch (policy) {
+		switch (policy.getOrDefault(observer, DEFAULT_POLICY)) {
 		case BLACKLIST:
 			return !setMembership(observer, entityID, !visible);
 		case WHITELIST:
@@ -91,7 +97,7 @@ public class EntityHider implements Listener {
 
 	protected boolean isVisible(Player observer, int entityID) {
 		boolean presence = getMembership(observer, entityID);
-		return policy == Policy.WHITELIST ? presence : !presence;
+		return policy.getOrDefault(observer, DEFAULT_POLICY) == Policy.WHITELIST ? presence : !presence;
 	}
 
 	protected void removeEntity(Entity entity, boolean destroyed) {
@@ -171,6 +177,30 @@ public class EntityHider implements Listener {
 		return visibleBefore;
 	}
 
+	/**
+	 * Potentially costly function. Should be used sparingly.
+	 * 
+	 * @param observer
+	 */
+	public final void updateEntities(Player observer) {
+		List<Player> players = new ArrayList<>();
+		players.add(observer);
+		for(Entity entity : observer.getWorld().getEntities()) {
+			if(canSee(observer, entity)) {
+				manager.updateEntity(entity, players);
+			}
+			else {
+				PacketContainer destroyEntity = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
+				destroyEntity.getIntegerArrays().write(0, new int[] { entity.getEntityId() });
+				try {
+					manager.sendServerPacket(observer, destroyEntity);
+				} catch (InvocationTargetException e) {
+					throw new DragonsInternalException("Cannot send server packet.", e);
+				}
+			}
+		}
+	}
+	
 	public final boolean canSee(Player observer, Entity entity) {
 		validate(observer, entity);
 		return isVisible(observer, entity.getEntityId());
@@ -181,8 +211,16 @@ public class EntityHider implements Listener {
 		Preconditions.checkNotNull(entity, "entity cannot be NULL.");
 	}
 
-	public Policy getPolicy() {
-		return policy;
+	public Policy getPolicy(Player player) {
+		return policy.getOrDefault(player, DEFAULT_POLICY);
+	}
+	
+	public void setPolicy(Player player, Policy policy) {
+		this.policy.put(player, policy);
+	}
+	
+	public void resetPolicy(Player player) {
+		policy.remove(player);
 	}
 
 	public void close() {

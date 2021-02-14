@@ -43,6 +43,8 @@ import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserHook;
+import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
@@ -52,7 +54,9 @@ public class PlayerEventListeners implements Listener {
 	
 	private static ItemClassLoader itemClassLoader;
 	public static ItemClass[] DEFAULT_INVENTORY;
-
+	
+	private UserHookRegistry userHookRegistry;
+	
 	static {
 		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
@@ -70,6 +74,7 @@ public class PlayerEventListeners implements Listener {
 		LOGGER = instance.getLogger();
 		userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 		itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+		userHookRegistry = instance.getUserHookRegistry();
 	}
 
 	@EventHandler
@@ -145,13 +150,26 @@ public class PlayerEventListeners implements Listener {
 		LOGGER.finer("Death event from " + event.getEntity().getName());
 		Player player = event.getEntity();
 		final User user = UserLoader.fromPlayer(player);
+		user.debug("death!");
 		player.sendMessage(ChatColor.DARK_RED + "You died!");
 		final int countdown = plugin.getServerOptions().getDeathCountdown();
+		boolean normal = true;
+		for(UserHook hook : userHookRegistry.getHooks()) {
+			if(!hook.onDeath(user)) {
+				normal = false;
+			}
+		}
+		user.debug("-normal="+normal);
+		boolean fNormal = normal;
 		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-			user.sendToFloor("BeginnerTown");
+			if(fNormal) {
+				user.sendToFloor("BeginnerTown");
+			}
 			user.respawn();
-			user.getPlayer().sendTitle(ChatColor.RED + "< " + ChatColor.DARK_RED + "You are dead" + ChatColor.RED + " >", ChatColor.GRAY + "Respawning on floor 1", 0, 20 * (countdown - 2), 40);
-			user.setDeathCountdown(countdown);
+			if(fNormal) {
+				user.getPlayer().sendTitle(ChatColor.RED + "< " + ChatColor.DARK_RED + "You are dead" + ChatColor.RED + " >", ChatColor.GRAY + "Respawning on floor 1", 0, 20 * (countdown - 2), 40);
+				user.setDeathCountdown(countdown);
+			}
 		}, 1L);
 	}
 

@@ -57,7 +57,11 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 		lazyLoadAll();
 		LOGGER.fine("Registering new floor " + floorName + " (world " + worldName + ", displayName " + displayName + ", lvMin " + levelMin + ", superflat=" + superflat + ")");
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.FLOOR,
-				new Document("floorName", floorName).append("worldName", worldName).append("displayName", displayName).append("levelMin", Integer.valueOf(levelMin)));
+				new Document("floorName", floorName)
+				.append("worldName", worldName)
+				.append("displayName", displayName)
+				.append("levelMin", levelMin)
+				.append("volatile", false));
 		Floor floor = new Floor(storageManager, storageAccess, superflat);
 		masterRegistry.getRegisteredObjects().add(floor);
 		worldNameToFloor.put(worldName, floor);

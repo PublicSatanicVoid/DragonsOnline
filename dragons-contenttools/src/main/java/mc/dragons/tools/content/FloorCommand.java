@@ -52,6 +52,7 @@ public class FloorCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/floor -s <FloorName> name <NewFloorName>" + ChatColor.GRAY + " change floor name");
 			sender.sendMessage(ChatColor.YELLOW + "/floor -s <FloorName> displayname <NewFloorDisplayName>" + ChatColor.GRAY + " change floor display name");
 			sender.sendMessage(ChatColor.YELLOW + "/floor -s <FloorName> lvmin <NewLevelMin>" + ChatColor.GRAY + " change floor level requirement");
+			sender.sendMessage(ChatColor.YELLOW + "/floor -s <FloorName> volatile <Volatile>" + ChatColor.GRAY + " set whether the floor is volatile");
 			sender.sendMessage(ChatColor.YELLOW + "/floor -d <FloorName>" + ChatColor.GRAY + " delete floor");
 			sender.sendMessage(ChatColor.YELLOW + "/floor -g <FloorName>" + ChatColor.GRAY + " teleport to floor (bypasses level min)");
 			sender.sendMessage(ChatColor.DARK_GRAY + "" +  ChatColor.BOLD + "Note:" + ChatColor.DARK_GRAY + " Floor names must not contain spaces.");
@@ -99,10 +100,11 @@ public class FloorCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.GRAY + "Display Name: " + ChatColor.GREEN + floor.getDisplayName());
 				sender.sendMessage(ChatColor.GRAY + "World Name: " + ChatColor.GREEN + floor.getWorldName());
 				sender.sendMessage(ChatColor.GRAY + "Level Min: " + ChatColor.GREEN + floor.getLevelMin());
+				sender.sendMessage(ChatColor.GRAY + "Volatile: " + ChatColor.GREEN + floor.isVolatile());
 				return true;
 			}
 			if(args.length == 3) {
-				sender.sendMessage(ChatColor.RED + "Insufficient arguments! /floor -s <FloorName> <name|displayname|lvmin> <Value>");
+				sender.sendMessage(ChatColor.RED + "Insufficient arguments! /floor -s <FloorName> <name|displayname|lvmin|volatile> <Value>");
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("name")) {
@@ -118,6 +120,11 @@ public class FloorCommand implements CommandExecutor {
 			if(args[2].equalsIgnoreCase("lvmin")) {
 				floor.setLevelMin(Integer.valueOf(args[3]));
 				sender.sendMessage(ChatColor.GREEN + "Updated floor level requirement successfully.");
+				return true;
+			}
+			if(args[2].equalsIgnoreCase("volatile")) {
+				floor.setVolatile(Boolean.valueOf(args[3]));
+				sender.sendMessage(ChatColor.GREEN + "Updated floor volatility status sucessfully.");
 				return true;
 			}
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! /floor -s <FloorName> <name|displayname|lvmin> <Value>");

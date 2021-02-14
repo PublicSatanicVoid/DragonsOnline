@@ -54,6 +54,16 @@ public interface UserHook {
 	default void onAutoSave(User user, Document document) { /* default */ }
 	
 	/**
+	 * Called whenever the user dies.
+	 * 
+	 * @param user
+	 * @return Whether the user should be placed on a death countdown at the default spawnpoint.
+	 * 	Return true to retain default behavior.
+	 * 	Return false only if you plan to handle the death yourself.
+	 */
+	default boolean onDeath(User user) { return true; }
+	
+	/**
 	 * Called whenever the user leaves the game.
 	 * 
 	 * @param user

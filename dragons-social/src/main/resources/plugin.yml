@@ -31,3 +31,5 @@ commands:
   channel:
     description: Set speaking and listening chat channels.
     aliases: [c, ch, chat]
+  duel:
+    description: 1v1 a player.

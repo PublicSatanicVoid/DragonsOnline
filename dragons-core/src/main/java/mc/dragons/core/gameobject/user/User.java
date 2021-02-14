@@ -399,7 +399,7 @@ public class User extends GameObject {
 						player.sendMessage(ChatColor.RED + "This region requires level " + lvMin + " to enter");
 					}
 				}
-				if (Boolean.valueOf(region.getFlags().getString("hidden")).booleanValue()) {
+				if (Boolean.valueOf(region.getFlags().getString("hidden"))) {
 					continue;
 				}
 				if (notify) {
@@ -1548,7 +1548,10 @@ public class User extends GameObject {
 				.append("gamemode", joined ? player.getGameMode().toString() : getSavedGameMode().toString()).append("inventory", getInventoryAsDocument());
 		if (joined) {
 			String key = PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false) ? "lastStaffLocation" : "lastLocation";
-			autoSaveData.append(key, StorageUtil.locToDoc(player.getLocation()));
+			Floor floor = FloorLoader.fromLocation(player.getLocation());
+			if(!floor.isVolatile()) {
+				autoSaveData.append(key, StorageUtil.locToDoc(player.getLocation()));
+			}
 		}
 		for (ItemStack itemStack : player.getInventory().getContents()) {
 			if (itemStack != null) {
