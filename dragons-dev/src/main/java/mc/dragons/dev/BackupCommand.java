@@ -15,9 +15,7 @@ public class BackupCommand implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(sender instanceof Player) {
-			if(!PermissionUtil.verifyActivePermissionLevel(UserLoader.fromPlayer((Player) sender), PermissionLevel.BUILDER, true)) return true;
-		}
+		if(sender instanceof Player && !PermissionUtil.verifyActivePermissionLevel(UserLoader.fromPlayer((Player) sender), PermissionLevel.BUILDER, true)) return true;
 		
 		JavaPlugin.getPlugin(DragonsDevPlugin.class).backupFloors();
 		sender.sendMessage(ChatColor.GREEN + "Backed up all floors successfully.");

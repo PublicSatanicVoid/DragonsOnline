@@ -104,37 +104,35 @@ public class CompanionAddon extends NPCAddon {
 
 	@Override
 	public void onTakeDamage(NPC on, GameObject from, double amount) {
-		if(from instanceof User) {
-			if(getCompanionOwner(on) == from) {
-				User user = (User) from;
-				Player player = user.getPlayer();
-				player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Your companion is more powerful than you thought. " + on.getName() + " takes revenge on you.");
-				Entity companion = on.getEntity();
-				boolean hasAI = on.getNPCClass().hasAI();
-				Dragons.getInstance().getBridge().setEntityAI(companion, false);
-				companion.getWorld().spawnParticle(Particle.CRIT_MAGIC, companion.getLocation().add(0, 1, 0), 10);
-				new BukkitRunnable() {
-					private int iterations = 0;
-					@Override public void run() {
-						iterations++;
-						if(iterations > 50 || companion.getLocation().distanceSquared(player.getLocation()) < 0.2 * 0.2) {
-							player.damage(10.0, companion);
-							player.setVelocity(new Vector(0, 5, 0));
-							player.addPotionEffect(new PotionEffect(PotionEffectType.HARM, 20 * 5, 1));
-							player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 5, 1));
-							this.cancel();
-							if(hasAI) {
-								Dragons.getInstance().getBridge().setEntityAI(companion, true);
-							}
-							return;
+		if(from instanceof User && getCompanionOwner(on) == from) {
+			User user = (User) from;
+			Player player = user.getPlayer();
+			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Your companion is more powerful than you thought. " + on.getName() + " takes revenge on you.");
+			Entity companion = on.getEntity();
+			boolean hasAI = on.getNPCClass().hasAI();
+			Dragons.getInstance().getBridge().setEntityAI(companion, false);
+			companion.getWorld().spawnParticle(Particle.CRIT_MAGIC, companion.getLocation().add(0, 1, 0), 10);
+			new BukkitRunnable() {
+				private int iterations = 0;
+				@Override public void run() {
+					iterations++;
+					if(iterations > 50 || companion.getLocation().distanceSquared(player.getLocation()) < 0.2 * 0.2) {
+						player.damage(10.0, companion);
+						player.setVelocity(new Vector(0, 5, 0));
+						player.addPotionEffect(new PotionEffect(PotionEffectType.HARM, 20 * 5, 1));
+						player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 5, 1));
+						this.cancel();
+						if(hasAI) {
+							Dragons.getInstance().getBridge().setEntityAI(companion, true);
 						}
-						fixCompanion(on, player);
-						Vector move = player.getLocation().subtract(companion.getLocation()).toVector().normalize().multiply(0.1).add(new Vector(0, 0.5, 0));
-						companion.teleport(companion.getLocation().add(move));
-						companion.getWorld().spawnParticle(Particle.CRIT_MAGIC, companion.getLocation().add(0, 1, 0), 10);
+						return;
 					}
-				}.runTaskTimer(Dragons.getInstance(), 20L, 1L);
-			}
+					fixCompanion(on, player);
+					Vector move = player.getLocation().subtract(companion.getLocation()).toVector().normalize().multiply(0.1).add(new Vector(0, 0.5, 0));
+					companion.teleport(companion.getLocation().add(move));
+					companion.getWorld().spawnParticle(Particle.CRIT_MAGIC, companion.getLocation().add(0, 1, 0), 10);
+				}
+			}.runTaskTimer(Dragons.getInstance(), 20L, 1L);
 		}
 	}
 

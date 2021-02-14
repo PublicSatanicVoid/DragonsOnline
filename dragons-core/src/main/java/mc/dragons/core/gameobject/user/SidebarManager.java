@@ -131,10 +131,11 @@ public class SidebarManager {
 	private String getEntryString(int index) {
 		String result = "";
 		int len = ChatColor.values().length;
-		while (index > 0) {
-			result = String.valueOf(result) + ChatColor.values()[index % len];
-			index -= len;
+		int buf = index;
+		while (buf > 0) {
+			result = result + ChatColor.values()[buf % len];
+			buf -= len;
 		}
-		return String.valueOf(result) + ChatColor.RESET;
+		return result + ChatColor.RESET;
 	}
 }

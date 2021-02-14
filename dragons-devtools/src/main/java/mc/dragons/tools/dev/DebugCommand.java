@@ -48,7 +48,7 @@ public class DebugCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump workers [Plugin]");
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump pendingtasks [Plugin]");
 			sender.sendMessage(ChatColor.YELLOW + "/debug errors [-stop]");
-			sender.sendMessage(ChatColor.YELLOW + "/debug attach <Player> [-stop]");
+			sender.sendMessage(ChatColor.YELLOW + "/debug <attach|detach> <Player>");
 			return true;
 		}
 		
@@ -191,32 +191,41 @@ public class DebugCommand implements CommandExecutor {
 		
 		else if(args[0].equalsIgnoreCase("attach")) {
 			if(args.length == 1) {
-				sender.sendMessage(ChatColor.RED + "Specify a player to debug! (Must be online) /debug attach <Player> [-stop]");
+				sender.sendMessage(ChatColor.RED + "Specify a player to debug! (Must be online) /debug attach <Player>");
 				return true;
 			}
 			
 			Player target = Bukkit.getPlayerExact(args[1]);
 			if(target == null) {
-				sender.sendMessage(ChatColor.RED + "Invalid player! (Must be online) /debug attach <Player> [-stop]");
+				sender.sendMessage(ChatColor.RED + "Invalid player! (Must be online) /debug attach <Player>");
 				return true;
 			}
 			
 			User targetUser = UserLoader.fromPlayer(target);
 			
-			if(args.length > 2) {
-				if(args[2].equalsIgnoreCase("-stop")) {
-					targetUser.removeDebugTarget(sender);
-					sender.sendMessage(ChatColor.GREEN + "Stopped debugging " + target.getName());
-					return true;
-				}
-				sender.sendMessage(ChatColor.RED + "Invalid options! /debug attach <Player> [-stop]");
-				return true;
-			}
-			
 			targetUser.addDebugTarget(sender);
 			sender.sendMessage(ChatColor.GREEN + "Began debugging " + target.getName());
 		}
 		
+		else if(args[0].equalsIgnoreCase("detach")) {
+			if(args.length == 1) {
+				sender.sendMessage(ChatColor.RED + "Specify a player to stop debugging! /debug detach <Player>");
+				return true;
+			}
+
+			Player target = Bukkit.getPlayerExact(args[1]);
+			if(target == null) {
+				sender.sendMessage(ChatColor.RED + "Invalid player! (Must be online) /debug detach <Player>");
+				return true;
+			}
+			
+			User targetUser = UserLoader.fromPlayer(target);
+			
+			targetUser.removeDebugTarget(sender);
+			sender.sendMessage(ChatColor.GREEN + "Stopped debugging " + target.getName());
+		}
+		
+		sender.sendMessage(ChatColor.RED + "Invalid usage! /debug");
 		return true;
 	}
 

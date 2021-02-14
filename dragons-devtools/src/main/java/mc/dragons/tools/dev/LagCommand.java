@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
@@ -18,6 +20,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.tasks.LagMeter;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.PermissionUtil;
@@ -26,6 +29,7 @@ import mc.dragons.core.util.StringUtil;
 public class LagCommand implements CommandExecutor {
 
 	private Map<User, Long> cooldown = new HashMap<>();
+	private CorrelationLogLoader CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -36,26 +40,14 @@ public class LagCommand implements CommandExecutor {
 			player = (Player) sender;
 			user = UserLoader.fromPlayer(player);
 			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, false)) {
-				if(cooldown.containsKey(user)) {
-					if(System.currentTimeMillis() - cooldown.get(user) < 1000 * 2) {
-						sender.sendMessage(ChatColor.RED + "Please don't spam this command!");
-						return true;
-					}
+				if(cooldown.containsKey(user) && System.currentTimeMillis() - cooldown.get(user) < 1000 * 2) {
+					sender.sendMessage(ChatColor.RED + "Please don't spam this command!");
+					return true;
 				}
 				cooldown.put(user, System.currentTimeMillis());
 			}
 		}
-		
-		if (args.length == 1) {
-			if (args[0].equalsIgnoreCase("-gc")) {
-				if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, true)) return true;
-				sender.sendMessage(ChatColor.GREEN + "Running GC...");
-				Runtime.getRuntime().gc();
-				sender.sendMessage(ChatColor.GREEN + "... Complete!");
-				return true;
-			}
-		}
-
+	
 		sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
 		sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName()
 				+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
@@ -156,8 +148,11 @@ public class LagCommand implements CommandExecutor {
 		boolean warn = memoryUsedPerc > 70 || minTPS < 10 || avgTPS < 17;
 		
 		if(warn) {
-			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "/!\\ " + ChatColor.RED + "Server may be experiencing performance issues. "
-					+ "Please notify an administrator and include a screenshot of this data.");
+			UUID cid = CORRELATION.registerNewCorrelationID();
+			CORRELATION.log(cid, Level.WARNING, "Server " + Dragons.getInstance().getServerName() + " may be experiencing performance issues.");
+			CORRELATION.log(cid, Level.WARNING, "Memory used %: " + memoryUsedPerc + " - Min TPS: " + minTPS + " - Avg TPS: " + avgTPS + " - Curr TPS: " + LagMeter.getRoundedTPS());
+			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "/!\\ " + ChatColor.RED + "Server may be experiencing performance issues. ");
+			sender.sendMessage(ChatColor.RED + "     " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
 
 		sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");

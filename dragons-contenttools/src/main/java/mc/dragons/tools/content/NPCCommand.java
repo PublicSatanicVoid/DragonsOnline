@@ -389,6 +389,22 @@ public class NPCCommand implements CommandExecutor {
 									sender.sendMessage(ChatColor.GREEN + "Added item to shop successfully.");
 									return true;
 								}
+								else if(args[8].equalsIgnoreCase("remove")) {
+									if(args.length < 11) {
+										sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc class -s <ClassName> behavior <CLICK|HIT> <#> action shop remove <action#> <item#>");
+										return true;
+									}
+									int actionNo = Integer.valueOf(args[9]);
+									int slotNo = Integer.valueOf(args[10]);
+									NPCAction action = behaviorsLocal.getConditional(behaviorNo).getValue().get(actionNo);
+									action.getShopItems().remove(slotNo);
+									actions.get(actionNo).clear();
+									actions.get(actionNo).putAll(action.toDocument());
+									behavior.append("actions", actions);
+									npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
+									sender.sendMessage(ChatColor.GREEN + "Removed item from shop successfully.");
+									return true;
+								}
 							}
 							if(args[7].equalsIgnoreCase("add")) {
 								NPCActionType actionType = NPCActionType.valueOf(args[8]);
@@ -528,12 +544,10 @@ public class NPCCommand implements CommandExecutor {
 			}
 			NPC npc = npcLoader.registerNew(player.getWorld(), player.getLocation(), args[1]);
 			sender.sendMessage(ChatColor.GREEN + "Spawned an NPC of class " + args[1] + " at your location.");
-			if(args.length >= 3) {
-				if(args[2].equalsIgnoreCase("-phase")) {
-					Player phaseFor = Bukkit.getPlayerExact(args[3]);
-					npc.phase(phaseFor);
-					sender.sendMessage(ChatColor.GREEN + "Phased NPC successfully.");
-				}
+			if(args.length >= 3 && args[2].equalsIgnoreCase("-phase")) {
+				Player phaseFor = Bukkit.getPlayerExact(args[3]);
+				npc.phase(phaseFor);
+				sender.sendMessage(ChatColor.GREEN + "Phased NPC successfully.");
 			}
 			return true;
 		}
@@ -557,6 +571,8 @@ public class NPCCommand implements CommandExecutor {
 		case HAS_GOLD:
 			result += cond.getGoldRequirement() + " Gold";
 			break;
+		default:
+			return ChatColor.RED + "[Error parsing condition]";
 		}
 		result += ")";
 		return result;
@@ -580,6 +596,9 @@ public class NPCCommand implements CommandExecutor {
 					.stream()
 					.map(item -> item.getItemClassName() + " (x" + item.getQuantity() + "@" + item.getCostPer() + "g per)")
 					.collect(Collectors.toList()));
+			break;
+		default:
+			return ChatColor.RED + "[Error parsing action]";
 		}
 		result += ChatColor.GRAY + ")";
 		return result;

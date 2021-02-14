@@ -310,6 +310,7 @@ public class QuestAction {
 			break;
 		case WAIT:
 			document.append("waitTime", Integer.valueOf(waitTime));
+			break;
 		case CHOICES:
 			choices = new ArrayList<>();
 			for (Entry<String, Integer> choice : this.choices.entrySet()) {
@@ -318,6 +319,8 @@ public class QuestAction {
 			document.append("choices", choices);
 			break;
 		case COMPLETION_HEADER:
+			break;
+		default:
 			break;
 		}
 		return document;

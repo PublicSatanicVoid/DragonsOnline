@@ -82,11 +82,11 @@ public class HiddenStringUtil {
 		if (colors == null) {
 			return null;
 		}
-		colors = colors.toLowerCase().replace("§", "");
-		if (colors.length() % 2 != 0) {
-			colors = colors.substring(0, colors.length() / 2 * 2);
+		String buf = colors.toLowerCase().replace("§", "");
+		if (buf.length() % 2 != 0) {
+			buf = buf.substring(0, buf.length() / 2 * 2);
 		}
-		char[] chars = colors.toCharArray();
+		char[] chars = buf.toCharArray();
 		byte[] bytes = new byte[chars.length / 2];
 		for (int i = 0; i < chars.length; i += 2) {
 			bytes[i / 2] = hexToByte(chars[i], chars[i + 1]);

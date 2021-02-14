@@ -24,6 +24,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
+import mc.dragons.core.exception.DragonsInternalException;
+
 /**
  * Open-source library to implement entity phasing.
  * 
@@ -162,7 +164,7 @@ public class EntityHider implements Listener {
 			try {
 				manager.sendServerPacket(observer, destroyEntity);
 			} catch (InvocationTargetException e) {
-				throw new RuntimeException("Cannot send server packet.", e);
+				throw new DragonsInternalException("Cannot send server packet.", e);
 			}
 		}
 		return visibleBefore;

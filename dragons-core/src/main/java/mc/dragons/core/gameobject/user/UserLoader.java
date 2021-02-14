@@ -131,14 +131,28 @@ public class UserLoader extends GameObjectLoader<User> {
 			skills.append(skill.toString(), Integer.valueOf(0));
 			skillProgress.append(skill.toString(), Double.valueOf(0.0D));
 		}
-		Document data = new Document("_id", player.getUniqueId()).append("username", player.getName())
-				.append("maxHealth", Double.valueOf(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())).append("xp", Integer.valueOf(0)).append("level", Integer.valueOf(1))
-				.append("rank", Rank.DEFAULT.toString()).append("gold", Double.valueOf(0.0D)).append("godMode", Boolean.valueOf(false)).append("firstJoined", Long.valueOf(System.currentTimeMillis()))
-				.append("lastJoined", Long.valueOf(System.currentTimeMillis())).append("lastSeen", Long.valueOf(System.currentTimeMillis())).append("skills", skills)
-				.append("skillProgress", skillProgress).append("inventory", new Document()).append("quests", new Document()).append("vanished", Boolean.valueOf(false))
-				.append("punishmentHistory", new ArrayList<>()).append("chatChannels", new ArrayList<>(Arrays.asList(new String[] { ChatChannel.LOCAL.toString() })))
-				.append("speakingChannel", ChatChannel.LOCAL.toString()).append("gamemode", GameMode.ADVENTURE.toString()).append("lastReadChangeLog", Integer.valueOf(0))
-				.append("ip", player.getAddress().getAddress().getHostAddress()).append("totalOnlineTime", Long.valueOf(0L));
+		Document data = new Document("_id", player.getUniqueId())
+				.append("username", player.getName())
+				.append("maxHealth", player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())
+				.append("xp", 0)
+				.append("level", 1)
+				.append("rank", Rank.DEFAULT.toString())
+				.append("gold", 0.0)
+				.append("godMode", false)
+				.append("firstJoined", System.currentTimeMillis())
+				.append("lastJoined", System.currentTimeMillis())
+				.append("lastSeen", System.currentTimeMillis())
+				.append("skills", skills)
+				.append("skillProgress", skillProgress)
+				.append("inventory", new Document()).append("quests", new Document())
+				.append("vanished", false)
+				.append("punishmentHistory", new ArrayList<>())
+				.append("chatChannels", new ArrayList<>(Arrays.asList(new String[] { ChatChannel.LOCAL.toString() })))
+				.append("speakingChannel", ChatChannel.LOCAL.toString())
+				.append("gamemode", GameMode.ADVENTURE.toString())
+				.append("lastReadChangeLog", 0)
+				.append("ip", player.getAddress().getAddress().getHostAddress())
+				.append("totalOnlineTime", 0L);
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
 		User user = new User(player, storageManager, storageAccess);
 		assign(player, user);

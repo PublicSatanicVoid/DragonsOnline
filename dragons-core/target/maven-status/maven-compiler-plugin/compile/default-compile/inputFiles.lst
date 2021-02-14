@@ -92,6 +92,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\Sto
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\tasks\AutoSaveTask.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SidebarManager.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\logging\CustomLayout.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\exception\DragonsInternalException.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\ChangeLogLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\item\ItemLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\ChangeLogCommands.java

@@ -120,13 +120,14 @@ public class StringUtil {
 	}
 
 	public static String parseSecondsToTimespan(long seconds) {
-		int days = (int) Math.floor(seconds / 86400L);
-		seconds %= 86400L;
-		int hours = (int) Math.floor(seconds / 3600L);
-		seconds %= 3600L;
-		int minutes = (int) Math.floor(seconds / 60L);
-		seconds %= 60L;
-		return String.valueOf(days) + "d " + hours + "h " + minutes + "m " + seconds + "s";
+		long remaining = seconds;
+		int days = (int) Math.floor(remaining / 86400L);
+		remaining %= 86400L;
+		int hours = (int) Math.floor(remaining / 3600L);
+		remaining %= 3600L;
+		int minutes = (int) Math.floor(remaining / 60L);
+		remaining %= 60L;
+		return String.valueOf(days) + "d " + hours + "h " + minutes + "m " + remaining + "s";
 	}
 
 	public static <T> String parseList(List<T> list) {

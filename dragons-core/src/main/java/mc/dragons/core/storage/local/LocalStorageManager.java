@@ -35,7 +35,7 @@ public class LocalStorageManager implements StorageManager {
 			if (storageAccess.getIdentifier().getType() == objectType) {
 				for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) search.entrySet()) {
 					if (!search.get(entry.getKey()).equals(entry.getValue())) {
-						;
+						continue;
 					}
 				}
 				return storageAccess;
