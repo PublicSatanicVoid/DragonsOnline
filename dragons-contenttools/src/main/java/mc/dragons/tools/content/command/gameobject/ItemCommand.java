@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.gameobject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +23,13 @@ import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.util.MetadataConstants;
 
 public class ItemCommand implements CommandExecutor {
 	//private UserLoader userLoader;
@@ -39,7 +40,7 @@ public class ItemCommand implements CommandExecutor {
 	private AddonRegistry addonRegistry;
 	
 	public ItemCommand(Dragons instance) {
-		//userLoader = (UserLoader) GameObjectType.USER.<User>getLoader();
+		//userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 		itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 		registry = instance.getGameObjectRegistry();
@@ -112,6 +113,7 @@ public class ItemCommand implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "An error occurred! Does a class by this name already exist?");
 					return true;
 				}
+				MetadataConstants.addBlankMetadata(itemClass, user);
 				sender.sendMessage(ChatColor.GREEN + "Successfully created item class " + args[2]);
 				return true;
 			}
@@ -160,6 +162,7 @@ public class ItemCommand implements CommandExecutor {
 					for(String loreLine : itemClass.getLore()) {
 						sender.sendMessage(ChatColor.GREEN + " " + loreLine);
 					}
+					MetadataConstants.displayMetadata(sender, itemClass);
 					return true;
 				}
 
@@ -197,11 +200,13 @@ public class ItemCommand implements CommandExecutor {
 					if(args[4].equalsIgnoreCase("add")) {
 						itemClass.addAddon((ItemAddon) addon);
 						sender.sendMessage(ChatColor.GREEN + "Added addon " + addon.getName() + " to item class " + itemClass.getClassName() + ".");
+						MetadataConstants.incrementRevisionCount(itemClass, user);
 						return true;
 					}
 					if(args[4].equalsIgnoreCase("remove")) {
 						itemClass.removeAddon((ItemAddon) addon);
 						sender.sendMessage(ChatColor.GREEN + "Removed addon " + addon.getName() + " from item class " + itemClass.getClassName() + ".");
+						MetadataConstants.incrementRevisionCount(itemClass, user);
 						return true;
 					}
 					sender.sendMessage(ChatColor.RED + "Invalid arguments! /item class -s <ClassName> addon [<add|remove> <AddonName>]");
@@ -217,6 +222,7 @@ public class ItemCommand implements CommandExecutor {
 					String name = StringUtil.concatArgs(args, 4);
 					itemClass.setName(ChatColor.translateAlternateColorCodes('&', name));
 					sender.sendMessage(ChatColor.GREEN + "Updated item display name successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -224,6 +230,7 @@ public class ItemCommand implements CommandExecutor {
 					ChatColor nameColor = ChatColor.valueOf(args[4]);
 					itemClass.setNameColor(nameColor);
 					sender.sendMessage(ChatColor.GREEN + "Updated item display name color successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -234,6 +241,7 @@ public class ItemCommand implements CommandExecutor {
 						lore.add(loreLine);
 						itemClass.setLore(lore);
 						sender.sendMessage(ChatColor.GREEN + "Updated item lore successfully.");
+						MetadataConstants.incrementRevisionCount(itemClass, user);
 						return true;
 					}
 					if(args[4].equalsIgnoreCase("remove")) {
@@ -241,6 +249,7 @@ public class ItemCommand implements CommandExecutor {
 						lore.remove(Integer.valueOf(args[5]) - 1);
 						itemClass.setLore(lore);
 						sender.sendMessage(ChatColor.GREEN + "Updated item lore successfully.");
+						MetadataConstants.incrementRevisionCount(itemClass, user);
 						return true;
 					}
 				}
@@ -249,6 +258,7 @@ public class ItemCommand implements CommandExecutor {
 					Material type = Material.valueOf(args[4]);
 					itemClass.setMaterial(type);
 					sender.sendMessage(ChatColor.GREEN + "Updated item type successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -256,6 +266,7 @@ public class ItemCommand implements CommandExecutor {
 					int lvMin = Integer.valueOf(args[4]);
 					itemClass.setLevelMin(lvMin);
 					sender.sendMessage(ChatColor.GREEN + "Updated level min successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -263,6 +274,7 @@ public class ItemCommand implements CommandExecutor {
 					double cooldown = Double.valueOf(args[4]);
 					itemClass.setCooldown(cooldown);
 					sender.sendMessage(ChatColor.GREEN + "Updated cooldown successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -270,6 +282,7 @@ public class ItemCommand implements CommandExecutor {
 					boolean unbreakable = Boolean.valueOf(args[4]);
 					itemClass.setUnbreakable(unbreakable);
 					sender.sendMessage(ChatColor.GREEN + "Updated unbreakable status successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -277,6 +290,7 @@ public class ItemCommand implements CommandExecutor {
 					boolean undroppable = Boolean.valueOf(args[4]);
 					itemClass.setUndroppable(undroppable);
 					sender.sendMessage(ChatColor.GREEN + "Updated undroppable status successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -284,6 +298,7 @@ public class ItemCommand implements CommandExecutor {
 					boolean gmlock = Boolean.valueOf(args[4]);
 					itemClass.setGMLocked(gmlock);
 					sender.sendMessage(ChatColor.GREEN + "Updated GM Lock status successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -291,6 +306,7 @@ public class ItemCommand implements CommandExecutor {
 					double damage = Double.valueOf(args[4]);
 					itemClass.setDamage(damage);
 					sender.sendMessage(ChatColor.GREEN + "Updated damage successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -298,6 +314,7 @@ public class ItemCommand implements CommandExecutor {
 					double speedboost = Double.valueOf(args[4]);
 					itemClass.setSpeedBoost(speedboost);
 					sender.sendMessage(ChatColor.GREEN + "Updated speed boost successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -305,6 +322,7 @@ public class ItemCommand implements CommandExecutor {
 					double armor = Double.valueOf(args[4]);
 					itemClass.setArmor(armor);
 					sender.sendMessage(ChatColor.GREEN + "Updated armor successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				
@@ -312,6 +330,7 @@ public class ItemCommand implements CommandExecutor {
 					int stackSize = Integer.valueOf(args[4]);
 					itemClass.setMaxStackSize(stackSize);
 					sender.sendMessage(ChatColor.GREEN + "Updated max. stack size successfully.");
+					MetadataConstants.incrementRevisionCount(itemClass, user);
 					return true;
 				}
 				

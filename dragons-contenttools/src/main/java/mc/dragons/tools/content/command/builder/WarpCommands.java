@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.builder;
 
 import java.util.stream.Collectors;
 

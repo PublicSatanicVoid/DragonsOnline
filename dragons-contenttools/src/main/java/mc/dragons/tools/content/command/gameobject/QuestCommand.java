@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.gameobject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +36,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.util.MetadataConstants;
 
 public class QuestCommand implements CommandExecutor {
 	private QuestLoader questLoader;
@@ -99,7 +100,8 @@ public class QuestCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest -c <ShortName> <LvMin>");
 				return true;
 			}
-			questLoader.registerNew(args[1], "Unnamed Quest", Integer.valueOf(args[2]));
+			Quest quest = questLoader.registerNew(args[1], "Unnamed Quest", Integer.valueOf(args[2]));
+			MetadataConstants.addBlankMetadata(quest, user);
 			sender.sendMessage(ChatColor.GREEN + "Quest created successfully.");
 			return true;
 		}
@@ -139,6 +141,7 @@ public class QuestCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.GRAY + "Full name: " + ChatColor.GREEN + quest.getQuestName());
 				sender.sendMessage(ChatColor.GRAY + "Level min: " + ChatColor.GREEN + quest.getLevelMin());
 				sender.sendMessage(ChatColor.GRAY + "# Stages: " + ChatColor.GREEN + quest.getSteps().size());
+				MetadataConstants.displayMetadata(sender, quest);
 				if(!quest.isValid()) {
 					sender.sendMessage(ChatColor.RED + "Warning: Invalid or incomplete quest! To be valid, the final stage must be named \"Complete\", have trigger type INSTANT, and have no actions.");
 				}
@@ -160,11 +163,13 @@ public class QuestCommand implements CommandExecutor {
 			if(args[2].equalsIgnoreCase("questname")) {
 				quest.setQuestName(StringUtil.concatArgs(args, 3));
 				sender.sendMessage(ChatColor.GREEN + "Updated quest name successfully.");
+				MetadataConstants.incrementRevisionCount(quest, user);
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("lvmin")) {
 				quest.setLevelMin(Integer.valueOf(args[3]));
 				sender.sendMessage(ChatColor.GREEN + "Updated quest level min successfully.");
+				MetadataConstants.incrementRevisionCount(quest, user);
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("stage")) {
@@ -189,6 +194,7 @@ public class QuestCommand implements CommandExecutor {
 					QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 5 ? Arrays.copyOfRange(args, 5, args.length) : null), new ArrayList<>(), quest);
 					quest.addStep(step);
 					sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
+					MetadataConstants.incrementRevisionCount(quest, user);
 					return true;
 				}
 				
@@ -279,6 +285,7 @@ public class QuestCommand implements CommandExecutor {
 							return true;
 						}
 						sender.sendMessage(ChatColor.GREEN + "Added new action to quest stage successfully.");
+						MetadataConstants.incrementRevisionCount(quest, user);
 						return true;
 					}
 					if(args[5].equalsIgnoreCase("dialogue")) {
@@ -289,6 +296,7 @@ public class QuestCommand implements CommandExecutor {
 						if(args[6].equalsIgnoreCase("add")) {
 							step.addDialogue(Integer.valueOf(args[7]), StringUtil.concatArgs(args, 8).replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)")));
 							sender.sendMessage(ChatColor.GREEN + "Added dialogue to quest stage action successfully.");
+							MetadataConstants.incrementRevisionCount(quest, user);
 							return true;
 						}
 					}
@@ -302,6 +310,7 @@ public class QuestCommand implements CommandExecutor {
 							QuestAction action = QuestAction.goToStageAction(quest, Integer.valueOf(args[7]), false);
 							step.addBranchPoint(trigger, action);
 							sender.sendMessage(ChatColor.GREEN + "Added branch point successfully.");
+							MetadataConstants.incrementRevisionCount(quest, user);
 							return true;
 						}
 					}
@@ -313,6 +322,7 @@ public class QuestCommand implements CommandExecutor {
 						if(args[6].equalsIgnoreCase("add")) {
 							step.addChoice(Integer.valueOf(args[7]), StringUtil.concatArgs(args, 9).replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)")), Integer.valueOf(args[8]));
 							sender.sendMessage(ChatColor.GREEN + "Added choice to quest stage action successfully.");
+							MetadataConstants.incrementRevisionCount(quest, user);
 							return true;
 						}
 					}
@@ -323,6 +333,7 @@ public class QuestCommand implements CommandExecutor {
 						}
 						step.deleteAction(Integer.valueOf(args[6]));
 						sender.sendMessage(ChatColor.GREEN + "Removed action from quest stage successfully.");
+						MetadataConstants.incrementRevisionCount(quest, user);
 						return true;
 					}
 				}
@@ -333,6 +344,7 @@ public class QuestCommand implements CommandExecutor {
 				if(args[4].equalsIgnoreCase("name")) {
 					step.setStepName(StringUtil.concatArgs(args, 5));
 					sender.sendMessage(ChatColor.GREEN + "Updated quest step name successfully.");
+					MetadataConstants.incrementRevisionCount(quest, user);
 					return true;
 				}
 				if(args[4].equalsIgnoreCase("trigger")) {
@@ -346,11 +358,13 @@ public class QuestCommand implements CommandExecutor {
 					}
 					step.setTrigger(makeTrigger(type, args[6]));
 					sender.sendMessage(ChatColor.GREEN + "Updated quest stage trigger successfully.");
+					MetadataConstants.incrementRevisionCount(quest, user);
 					return true;
 				}
 				if(args[4].equalsIgnoreCase("del")) {
 					quest.delStep(stepNo);
 					sender.sendMessage(ChatColor.GREEN + "Deleted quest stage successfully.");
+					MetadataConstants.incrementRevisionCount(quest, user);
 					return true;
 				}
 			}

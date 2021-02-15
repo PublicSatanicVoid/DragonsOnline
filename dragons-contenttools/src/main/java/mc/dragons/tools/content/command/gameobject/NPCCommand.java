@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.gameobject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +45,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.util.MetadataConstants;
 
 public class NPCCommand implements CommandExecutor {
 	//private UserLoader userLoader;
@@ -135,6 +136,7 @@ public class NPCCommand implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "An error occurred! Does a class by this name already exist?");
 					return true;
 				}
+				MetadataConstants.addBlankMetadata(npcClass, user);
 				sender.sendMessage(ChatColor.GREEN + "Successfully created NPC class " + npcClassName);
 				return true;
 			}
@@ -177,6 +179,7 @@ public class NPCCommand implements CommandExecutor {
 						heldItemTypeName = heldItemType.toString();
 					}
 					sender.sendMessage(ChatColor.GRAY + "Holding: " + ChatColor.GREEN + heldItemTypeName);
+					MetadataConstants.displayMetadata(sender, npcClass);
 					sender.sendMessage(ChatColor.GRAY + "/npc class -s " + npcClass.getClassName() + " loot" + ChatColor.YELLOW + " to view loot table");
 					sender.sendMessage(ChatColor.GRAY + "/npc class -s " + npcClass.getClassName() + " behavior" + ChatColor.YELLOW + " to view behaviors");
 					sender.sendMessage(ChatColor.GRAY + "/npc class -s " + npcClass.getClassName() + " addon" + ChatColor.YELLOW + " to view addons");
@@ -209,6 +212,7 @@ public class NPCCommand implements CommandExecutor {
 					else {
 						npcClass.setCustomAttribute(att, Double.valueOf(args[5]));
 					}
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					sender.sendMessage(ChatColor.GREEN + "Updated attributes successfully.");
 					return true;
 				}
@@ -236,11 +240,13 @@ public class NPCCommand implements CommandExecutor {
 					if(args[4].equalsIgnoreCase("add")) {
 						npcClass.addAddon((NPCAddon) addon);
 						sender.sendMessage(ChatColor.GREEN + "Added addon " + addon.getName() + " to NPC class " + npcClass.getClassName() + ".");
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					if(args[4].equalsIgnoreCase("remove")) {
 						npcClass.removeAddon((NPCAddon) addon);
 						sender.sendMessage(ChatColor.GREEN + "Removed addon " + addon.getName() + " from NPC class " + npcClass.getClassName() + ".");
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					sender.sendMessage(ChatColor.RED + "Invalid arguments! /npc class -s <ClassName> addon [<add|remove> <AddonName>]");
@@ -264,10 +270,12 @@ public class NPCCommand implements CommandExecutor {
 					if(args[6].equalsIgnoreCase("del")) {
 						npcClass.deleteFromLootTable(args[4], args[5]);
 						sender.sendMessage(ChatColor.GREEN + "Removed from entity loot table successfully.");
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					npcClass.updateLootTable(args[4], args[5], Double.valueOf(args[6]));
 					sender.sendMessage(ChatColor.GREEN + "Updated entity loot table successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("behavior") || args[3].equalsIgnoreCase("b")) {
@@ -306,6 +314,7 @@ public class NPCCommand implements CommandExecutor {
 						npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 						parsedBehaviors.addLocalEntry();
 						sender.sendMessage(ChatColor.GREEN + "Successfully added a new conditional with trigger " + trigger);
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					else if(args[5].equalsIgnoreCase("remove")) {
@@ -317,6 +326,7 @@ public class NPCCommand implements CommandExecutor {
 						npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 						parsedBehaviors.removeLocalEntry(Integer.valueOf(args[6]));
 						sender.sendMessage(ChatColor.GREEN + "Successfully removed conditional #" + args[6] + " with trigger " + trigger);
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					else {
@@ -389,6 +399,7 @@ public class NPCCommand implements CommandExecutor {
 									behavior.append("actions", actions);
 									npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 									sender.sendMessage(ChatColor.GREEN + "Added item to shop successfully.");
+									MetadataConstants.incrementRevisionCount(npcClass, user);
 									return true;
 								}
 								else if(args[8].equalsIgnoreCase("remove")) {
@@ -405,6 +416,7 @@ public class NPCCommand implements CommandExecutor {
 									behavior.append("actions", actions);
 									npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 									sender.sendMessage(ChatColor.GREEN + "Removed item from shop successfully.");
+									MetadataConstants.incrementRevisionCount(npcClass, user);
 									return true;
 								}
 							}
@@ -463,6 +475,7 @@ public class NPCCommand implements CommandExecutor {
 						}
 						npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 						sender.sendMessage(ChatColor.GREEN + "Updated behavior successfully.");
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					
@@ -475,21 +488,25 @@ public class NPCCommand implements CommandExecutor {
 					EntityType type = EntityType.valueOf(args[4].toUpperCase());
 					npcClass.setEntityType(type);
 					sender.sendMessage(ChatColor.GREEN + "Updated entity type successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("name")) {
 					npcClass.setName(StringUtil.concatArgs(args, 4));
 					sender.sendMessage(ChatColor.GREEN + "Updated entity display name successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("health")) {
 					npcClass.setMaxHealth(Double.valueOf(args[4]));
 					sender.sendMessage(ChatColor.GREEN + "Updated entity max health successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("level")) {
 					npcClass.setLevel(Integer.valueOf(args[4]));
 					sender.sendMessage(ChatColor.GREEN + "Updated entity level successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("npctype")) {
@@ -499,28 +516,33 @@ public class NPCCommand implements CommandExecutor {
 						npcClass.setAI(false);
 						sender.sendMessage(ChatColor.GREEN + "Automatically toggled off AI for this class based on the NPC type.");
 					}
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("holding")) {
 					if(args[4].equalsIgnoreCase("none")) {
 						npcClass.setHeldItemType(null);
 						sender.sendMessage(ChatColor.GREEN + "Removed held item successfully.");
+						MetadataConstants.incrementRevisionCount(npcClass, user);
 						return true;
 					}
 					Material type = StringUtil.parseMaterialType(sender, args[4]);
 					if(type == null) return true;
 					npcClass.setHeldItemType(type);
 					sender.sendMessage(ChatColor.GREEN + "Set held item successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("ai")) {
 					npcClass.setAI(Boolean.valueOf(args[4]));
 					sender.sendMessage(ChatColor.GREEN + "Updated entity AI successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				if(args[3].equalsIgnoreCase("immortal")) {
 					npcClass.setImmortal(Boolean.valueOf(args[4]));
 					sender.sendMessage(ChatColor.GREEN + "Updated entity immortality successfully.");
+					MetadataConstants.incrementRevisionCount(npcClass, user);
 					return true;
 				}
 				return true;

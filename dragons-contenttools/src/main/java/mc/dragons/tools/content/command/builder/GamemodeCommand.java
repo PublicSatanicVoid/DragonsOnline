@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.builder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

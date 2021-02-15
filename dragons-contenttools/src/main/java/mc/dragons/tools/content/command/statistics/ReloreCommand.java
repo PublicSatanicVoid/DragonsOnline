@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.statistics;
 
 import java.util.regex.Pattern;
 

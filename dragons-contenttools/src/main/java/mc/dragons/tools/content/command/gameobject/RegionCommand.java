@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.gameobject;
 
 import java.util.Map.Entry;
 
@@ -20,6 +20,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.util.MetadataConstants;
 
 public class RegionCommand implements CommandExecutor {
 	//private UserLoader userLoader;
@@ -76,6 +77,7 @@ public class RegionCommand implements CommandExecutor {
 				return true;
 			}
 			Region region = (Region) regionLoader.registerNew(args[1], player.getLocation(), player.getLocation());
+			MetadataConstants.addBlankMetadata(region, user);
 			sender.sendMessage(ChatColor.GREEN + "Created region " + args[1] + ". Its database identifier is " + region.getIdentifier().toString());
 			return true;
 		}
@@ -115,6 +117,7 @@ public class RegionCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.GRAY + "Min: " + ChatColor.GREEN + StringUtil.locToString(region.getMin()));
 				sender.sendMessage(ChatColor.GRAY + "Max: " + ChatColor.GREEN + StringUtil.locToString(region.getMax()));
 				sender.sendMessage(ChatColor.GRAY + "Flags: " + ChatColor.GREEN + StringUtil.docToString(region.getFlags()));
+				MetadataConstants.displayMetadata(sender, region);
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("corner")) {
@@ -140,6 +143,7 @@ public class RegionCommand implements CommandExecutor {
 					Vector newMax = Vector.getMaximum(corner1, corner2);
 					region.updateCorners(newMin.toLocation(player.getWorld()), newMax.toLocation(player.getWorld()));
 					sender.sendMessage(ChatColor.GREEN + "Updated region corners successfully. Min=(" + StringUtil.vecToString(newMin) + "), Max=" + StringUtil.vecToString(newMax) + ")");
+					MetadataConstants.incrementRevisionCount(region, user);
 					break;
 				default:
 					sender.sendMessage(ChatColor.RED + "Invalid corner number! Must be 1 or 2. /region -s <RegionName> corner <Corner#|go>");
@@ -164,6 +168,7 @@ public class RegionCommand implements CommandExecutor {
 					double spawnRate = Double.parseDouble(args[4]);
 					region.setSpawnRate(args[3], spawnRate);
 					sender.sendMessage(ChatColor.GREEN + "Set spawn rate of entity class " + args[3] + " to " + spawnRate);
+					MetadataConstants.incrementRevisionCount(region, user);
 				}
 				catch(Exception e) {
 					sender.sendMessage(ChatColor.RED + "That's not a valid number! Please specify a decimal number for the spawn rate. /region -s <RegionName> spawnrate [NpcClass] [SpawnRate]");
@@ -188,6 +193,7 @@ public class RegionCommand implements CommandExecutor {
 				String value = StringUtil.concatArgs(args, 4);
 				region.setFlag(args[3], value);
 				sender.sendMessage(ChatColor.GREEN + "Set flag " + args[3] + " to " + value);
+				MetadataConstants.incrementRevisionCount(region, user);
 				return true;
 			}
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! For usage info, do /region");

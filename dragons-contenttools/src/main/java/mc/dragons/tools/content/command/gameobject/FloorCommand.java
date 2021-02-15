@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.gameobject;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -17,6 +17,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.util.MetadataConstants;
 
 public class FloorCommand implements CommandExecutor {
 	private FloorLoader floorLoader;
@@ -72,7 +73,8 @@ public class FloorCommand implements CommandExecutor {
 					superflat = true;
 				}
 			}
-			floorLoader.registerNew(args[1], args[2], args[2], Integer.valueOf(args[3]), superflat);
+			Floor floor = floorLoader.registerNew(args[1], args[2], args[2], Integer.valueOf(args[3]), superflat);
+			MetadataConstants.addBlankMetadata(floor, user);
 			sender.sendMessage(ChatColor.GREEN + "Created new floor successfully!");
 			return true;
 		}
@@ -101,6 +103,7 @@ public class FloorCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.GRAY + "World Name: " + ChatColor.GREEN + floor.getWorldName());
 				sender.sendMessage(ChatColor.GRAY + "Level Min: " + ChatColor.GREEN + floor.getLevelMin());
 				sender.sendMessage(ChatColor.GRAY + "Volatile: " + ChatColor.GREEN + floor.isVolatile());
+				MetadataConstants.displayMetadata(sender, floor);
 				return true;
 			}
 			if(args.length == 3) {
@@ -110,21 +113,25 @@ public class FloorCommand implements CommandExecutor {
 			if(args[2].equalsIgnoreCase("name")) {
 				floor.setFloorName(args[3]);
 				sender.sendMessage(ChatColor.GREEN + "Updated floor name successfully.");
+				MetadataConstants.incrementRevisionCount(floor, user);
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("displayname")) {
 				floor.setDisplayName(StringUtil.concatArgs(args, 3));
 				sender.sendMessage(ChatColor.GREEN + "Updated floor display name successfully.");
+				MetadataConstants.incrementRevisionCount(floor, user);
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("lvmin")) {
 				floor.setLevelMin(Integer.valueOf(args[3]));
 				sender.sendMessage(ChatColor.GREEN + "Updated floor level requirement successfully.");
+				MetadataConstants.incrementRevisionCount(floor, user);
 				return true;
 			}
 			if(args[2].equalsIgnoreCase("volatile")) {
 				floor.setVolatile(Boolean.valueOf(args[3]));
 				sender.sendMessage(ChatColor.GREEN + "Updated floor volatility status sucessfully.");
+				MetadataConstants.incrementRevisionCount(floor, user);
 				return true;
 			}
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! /floor -s <FloorName> <name|displayname|lvmin> <Value>");

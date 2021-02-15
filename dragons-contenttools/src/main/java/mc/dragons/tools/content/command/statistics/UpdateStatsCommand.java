@@ -1,4 +1,4 @@
-package mc.dragons.tools.content;
+package mc.dragons.tools.content.command.statistics;
 
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
