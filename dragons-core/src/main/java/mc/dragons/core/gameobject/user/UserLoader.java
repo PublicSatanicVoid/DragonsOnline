@@ -60,6 +60,7 @@ public class UserLoader extends GameObjectLoader<User> {
 	public static User fixUser(User user) {
 		Player oldPlayer = user.getPlayer();
 		Player newPlayer = Bukkit.getPlayerExact(user.getName());
+		if(newPlayer == null) return user; // Offline user, so nothing to fix
 		if (!newPlayer.equals(oldPlayer)) {
 			LOGGER.fine("Reloading user profile of " + newPlayer.getName() + " (old=" + oldPlayer + " != " + newPlayer + ")");
 			user.initialize(newPlayer);

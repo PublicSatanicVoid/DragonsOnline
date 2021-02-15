@@ -75,7 +75,7 @@ public class ItemCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/item class -s <ItemClass> addon [add <AddonName>]" + ChatColor.GRAY + " manage addons to this item class.");
 			sender.sendMessage(ChatColor.YELLOW + "/item class -s <ItemClass> push" + ChatColor.GRAY + " update all items of this class with updated stats (will revert custom changes made to these items)");
 			sender.sendMessage(ChatColor.YELLOW + "/item class -d <ItemClass>" + ChatColor.GRAY + " delete item class");
-			sender.sendMessage(ChatColor.YELLOW + "/item give <ItemClass>" + ChatColor.GRAY + " receive an item of the specified class");
+			sender.sendMessage(ChatColor.YELLOW + "/item give <ItemClass> [Player] [Quantity]" + ChatColor.GRAY + " give an item of the specified class");
 			sender.sendMessage(ChatColor.DARK_GRAY + "" +  ChatColor.BOLD + "Note:" + ChatColor.DARK_GRAY + " Class names must not contain spaces.");
 			sender.sendMessage(ChatColor.GRAY + "View the full documentation at " + ChatColor.UNDERLINE + Dragons.STAFF_DOCUMENTATION);
 			return true;

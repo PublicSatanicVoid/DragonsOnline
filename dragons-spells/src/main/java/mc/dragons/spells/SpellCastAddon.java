@@ -36,7 +36,7 @@ public class SpellCastAddon extends ItemAddon {
 	
 	public static void updateItemData(Item item) {
 		ItemMeta meta = item.getItemStack().getItemMeta();
-		List<String> lore = item.getItemClass().getCompleteLore(item.getLore().toArray(new String[item.getLore().size()]), item.getUUID(), item.isCustom());
+		List<String> lore = Item.getCompleteLore(item.getData(), item.getLore().toArray(new String[item.getLore().size()]), item.getUUID(), item.isCustom(), item.getItemClass());
 		List<Spell> spells = registry.getSpells(item);
 		lore.add(" ");
 		if(spells.size() == 0) {
