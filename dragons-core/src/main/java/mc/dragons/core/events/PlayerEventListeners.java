@@ -41,6 +41,8 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.PermissionLevel;
+import mc.dragons.core.gameobject.user.PunishmentData;
+import mc.dragons.core.gameobject.user.PunishmentType;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
@@ -270,7 +272,7 @@ public class PlayerEventListeners implements Listener {
 				user.giveItem(itemLoader.registerNew(itemClass), true, false, true);
 			}
 		}
-		User.PunishmentData banData = user.getActivePunishmentData(User.PunishmentType.BAN);
+		PunishmentData banData = user.getActivePunishmentData(PunishmentType.BAN);
 		if (banData != null) {
 			player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You are banned.\n\n"
 					+ (banData.getReason().equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + banData.getReason() + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE

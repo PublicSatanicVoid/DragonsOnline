@@ -40,6 +40,7 @@ import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.quest.Quest;
+import mc.dragons.core.gameobject.quest.Quest.QuestPauseState;
 import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.region.Region;
@@ -113,78 +114,6 @@ public class User extends GameObject {
 	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level bug.
 	private boolean joined; // If the user has joined and authenticated yet.
 
-	public enum PunishmentType {
-		BAN("ban", true, SystemProfileFlag.MODERATION),
-		MUTE("mute", true, SystemProfileFlag.MODERATION),
-		KICK("kick", false, SystemProfileFlag.HELPER),
-		WARNING("warn", false, SystemProfileFlag.HELPER);
-
-		private String dataHeader;
-		private boolean hasDuration;
-		private SystemProfileFlag requiredFlag;
-
-		PunishmentType(String dataHeader, boolean hasDuration, SystemProfileFlag requiredFlagToApply) {
-			this.dataHeader = dataHeader;
-			this.hasDuration = hasDuration;
-			requiredFlag = requiredFlagToApply;
-		}
-
-		public String getDataHeader() {
-			return dataHeader;
-		}
-
-		public boolean hasDuration() {
-			return hasDuration;
-		}
-
-		public SystemProfileFlag getRequiredFlagToApply() {
-			return requiredFlag;
-		}
-
-		public static PunishmentType fromDataHeader(String header) {
-			for(PunishmentType type : values()) {
-				if(type.getDataHeader().equalsIgnoreCase(header)) {
-					return type;
-				}
-			}
-			return null;
-		}
-	}
-
-	public class PunishmentData {
-		private User.PunishmentType type;
-		private String reason;
-		private Date expiry;
-		public boolean permanent;
-
-		public PunishmentData(User.PunishmentType type, String reason, Date expiry, boolean permanent) {
-			this.type = type;
-			this.reason = reason;
-			this.expiry = expiry;
-			this.permanent = permanent;
-		}
-
-		public User.PunishmentType getType() {
-			return type;
-		}
-
-		public String getReason() {
-			return reason;
-		}
-
-		public Date getExpiry() {
-			return expiry;
-		}
-
-		public boolean isPermanent() {
-			return permanent;
-		}
-	}
-
-	public enum QuestPauseState {
-		NORMAL, PAUSED, RESUMED;
-	}
-
 	/**
 	 * Calculates the user's global level based on their current XP.
 	 * 
@@ -236,61 +165,13 @@ public class User extends GameObject {
 			if (getData("health") != null) {
 				player.setHealth((double) getData("health"));
 			}
-			Document inventory = (Document) getData("inventory");
-			CORRELATION.log(initCorrelationID, Level.FINEST, "stored inventory data: " + inventory);
-			List<String> brokenItems = new ArrayList<>();
-			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
-				String[] labels = entry.getKey().split(Pattern.quote("-"));
-				String part = labels[0];
-				int slot = Integer.valueOf(labels[1]).intValue();
-				Item item = itemLoader.loadObject((UUID) entry.getValue());
-				if (item == null) {
-					brokenItems.add(entry.getValue().toString());
-					continue;
-				}
-				ItemStack itemStack = item.getItemStack();
-				if (part.equals("I")) {
-					player.getInventory().setItem(slot, itemStack);
-					continue;
-				}
-				if (part.equals("Helmet")) {
-					player.getInventory().setHelmet(itemStack);
-					continue;
-				}
-				if (part.equals("Chestplate")) {
-					player.getInventory().setChestplate(itemStack);
-					continue;
-				}
-				if (part.equals("Leggings")) {
-					player.getInventory().setLeggings(itemStack);
-					continue;
-				}
-				if (part.equals("Boots")) {
-					player.getInventory().setBoots(itemStack);
-				}
-			}
-			if (brokenItems.size() > 0) {
-				brokenItems.forEach(uuid -> CORRELATION.log(initCorrelationID, Level.WARNING, "Item with UUID " + uuid + " could not be loaded"));
-				player.sendMessage(ChatColor.RED + "" + brokenItems.size() + " items in your saved inventory could not be loaded.");
-				player.sendMessage(ChatColor.RED + "Please report the following error: " + StringUtil.toHdFont("Correlation ID: " + initCorrelationID));
-			}
+			loadInventory(initCorrelationID);
 		}
 		questProgress = new HashMap<>();
 		questActionIndices = new HashMap<>();
 		questPauseStates = new HashMap<>();
 		questCorrelationIDs = new HashMap<>();
-		Document questProgressDoc = (Document) getData("quests");
-		CORRELATION.log(initCorrelationID, Level.FINEST, "stored quest data: " + questProgress);
-		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) questProgressDoc.entrySet()) {
-			Quest quest = questLoader.getQuestByName(entry.getKey());
-			if (quest == null) {
-				continue;
-			}
-			questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
-			questActionIndices.put(quest, Integer.valueOf(0));
-			questPauseStates.put(quest, QuestPauseState.NORMAL);
-			questCorrelationIDs.put(quest, CORRELATION.registerNewCorrelationID());
-		}
+		loadQuests(initCorrelationID);
 		cachedRegions = new HashSet<>();
 		activePermissionLevel = PermissionLevel.USER;
 		guiHotfixOpenedBefore = new ArrayList<>();
@@ -299,25 +180,6 @@ public class User extends GameObject {
 		CORRELATION.log(initCorrelationID, Level.FINE, "initialization complete");
 		LOGGER.fine("Finished initializing user " + this);
 		return this;
-	}
-
-	public void logQuestEvent(Quest quest, Level level, String message) {
-		CORRELATION.log(questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID()), level, quest.getName() + " | " + message);
-	}
-	
-	public void logAllQuestData(Quest quest) {
-		logQuestEvent(quest, Level.CONFIG, "Dumping all quest data");
-		logQuestEvent(quest, Level.CONFIG, "Current Step: " + getQuestProgress().get(quest).getStepName());
-		logQuestEvent(quest, Level.CONFIG, "Current Action Index: " + getQuestActionIndex(quest));
-		logQuestEvent(quest, Level.CONFIG, "Current Pause State: " + getQuestPauseState(quest));
-		logQuestEvent(quest, Level.CONFIG, "Has Active Dialogue: " + hasActiveDialogue());
-		if(hasActiveDialogue()) {
-			logQuestEvent(quest, Level.CONFIG, "Number of dialogue callbacks: " + currentDialogueCompletionHandlers.size());
-		}
-	}
-	
-	public UUID getQuestCorrelationID(Quest quest) {
-		return questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID());
 	}
 	
 	public void addDebugTarget(CommandSender debugger) {
@@ -425,6 +287,45 @@ public class User extends GameObject {
 		cachedRegions = regions;
 		updateEffectiveWalkSpeed();
 	}
+	
+	
+	/*
+	 * Quest management
+	 */
+	
+	private void loadQuests(UUID cid) {
+		Document questProgressDoc = (Document) getData("quests");
+		CORRELATION.log(cid, Level.FINEST, "stored quest data: " + questProgress);
+		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) questProgressDoc.entrySet()) {
+			Quest quest = questLoader.getQuestByName(entry.getKey());
+			if (quest == null) {
+				continue;
+			}
+			questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
+			questActionIndices.put(quest, 0);
+			questPauseStates.put(quest, QuestPauseState.NORMAL);
+			questCorrelationIDs.put(quest, CORRELATION.registerNewCorrelationID());
+		}
+	}
+
+	public void logQuestEvent(Quest quest, Level level, String message) {
+		CORRELATION.log(questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID()), level, quest.getName() + " | " + message);
+	}
+	
+	public void logAllQuestData(Quest quest) {
+		logQuestEvent(quest, Level.CONFIG, "Dumping all quest data");
+		logQuestEvent(quest, Level.CONFIG, "Current Step: " + getQuestProgress().get(quest).getStepName());
+		logQuestEvent(quest, Level.CONFIG, "Current Action Index: " + getQuestActionIndex(quest));
+		logQuestEvent(quest, Level.CONFIG, "Current Pause State: " + getQuestPauseState(quest));
+		logQuestEvent(quest, Level.CONFIG, "Has Active Dialogue: " + hasActiveDialogue());
+		if(hasActiveDialogue()) {
+			logQuestEvent(quest, Level.CONFIG, "Number of dialogue callbacks: " + currentDialogueCompletionHandlers.size());
+		}
+	}
+	
+	public UUID getQuestCorrelationID(Quest quest) {
+		return questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID());
+	}
 
 	public void setDialogueBatch(Quest quest, String speaker, List<String> dialogue) {
 		currentDialogueSpeaker = speaker;
@@ -504,26 +405,31 @@ public class User extends GameObject {
 		return questPauseStates.getOrDefault(quest, QuestPauseState.NORMAL);
 	}
 
+	/**
+	 * Called whenever a quest trigger has been potentially updated.
+	 * 
+	 * @param event
+	 */
 	public void updateQuests(Event event) {
 		if (currentDialogueBatch != null && currentDialogueIndex < currentDialogueBatch.size()) {
-			debug("updateQuests() : Cancelled quest update because of active dialogue");
+			debug("updateQuests(): Cancelled quest update because of active dialogue");
 			return;
 		}
 		for (Entry<Quest, QuestStep> questStep : questProgress.entrySet()) {			
 			if (questStep.getValue().getStepName().equalsIgnoreCase("Complete")) {
 				continue;
 			}
-			debug("updateQuests() : Step " + questStep.getValue().getStepName() + " of " + questStep.getKey().getName());
+			debug("updateQuests(): Step " + questStep.getValue().getStepName() + " of " + questStep.getKey().getName());
 			QuestPauseState pauseState = getQuestPauseState(questStep.getKey());
 			if (pauseState == QuestPauseState.PAUSED) {
 				continue;
 			}
-			debug("updateQuests() :   - Trigger = " + questStep.getValue().getTrigger().getTriggerType());
+			debug("updateQuests():   - Trigger = " + questStep.getValue().getTrigger().getTriggerType());
 			if (questStep.getValue().getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED) {
 				Quest quest = questStep.getKey();
-				debug("updateQuests() :     - Triggered (starting @ action #" + getQuestActionIndex(quest) + ")");
+				debug("updateQuests():     - Triggered (starting @ action #" + getQuestActionIndex(quest) + ")");
 				if (questStep.getValue().executeActions(this, getQuestActionIndex(quest))) {
-					debug("updateQuests() :      - Normal progression to next step");
+					debug("updateQuests():      - Normal progression to next step");
 					int nextIndex = quest.getSteps().indexOf(questStep.getValue()) + 1;
 					if (nextIndex != quest.getSteps().size()) {
 						QuestStep nextStep = quest.getSteps().get(nextIndex);
@@ -582,6 +488,11 @@ public class User extends GameObject {
 		updateQuestProgress(quest, questStep, true);
 	}
 
+	
+	/*
+	 * GUI management
+	 */
+	
 	public void openGUI(GUI gui, Inventory inventory) {
 		player.closeInventory();
 		debug("opening gui " + gui.getMenuName());
@@ -604,6 +515,7 @@ public class User extends GameObject {
 		return guiHotfixOpenedBefore.contains(gui.getMenuName());
 	}
 
+	// FIXME Flashing GUI bug.
 	public void hotfixGUI() {
 		if (currentGUI == null) {
 			return;
@@ -630,6 +542,10 @@ public class User extends GameObject {
 	public GUI getCurrentGUI() {
 		return currentGUI;
 	}
+	
+	/*
+	 * Chat management
+	 */
 
 	@SuppressWarnings("unchecked")
 	public List<ChatChannel> getActiveChatChannels() {
@@ -785,6 +701,12 @@ public class User extends GameObject {
 	public boolean hasChatSpy() {
 		return chatSpy;
 	}
+	
+	
+	/*
+	 * Item management
+	 */
+	
 
 	/**
 	 * Give the player an RPG item.
@@ -885,6 +807,58 @@ public class User extends GameObject {
 				+ ChatColor.GOLD + price + "g");
 	}
 
+	
+	/*
+	 * Inventory management
+	 */
+	
+	private void loadInventory(UUID cid) {
+		Document inventory = (Document) getData("inventory");
+		CORRELATION.log(cid, Level.FINEST, "stored inventory data: " + inventory);
+		List<String> brokenItems = new ArrayList<>();
+		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
+			String[] labels = entry.getKey().split(Pattern.quote("-"));
+			String part = labels[0];
+			int slot = Integer.valueOf(labels[1]).intValue();
+			Item item = itemLoader.loadObject((UUID) entry.getValue());
+			if (item == null) {
+				brokenItems.add(entry.getValue().toString());
+				continue;
+			}
+			ItemStack itemStack = item.getItemStack();
+			if (part.equals("I")) {
+				player.getInventory().setItem(slot, itemStack);
+				continue;
+			}
+			if (part.equals("Helmet")) {
+				player.getInventory().setHelmet(itemStack);
+				continue;
+			}
+			if (part.equals("Chestplate")) {
+				player.getInventory().setChestplate(itemStack);
+				continue;
+			}
+			if (part.equals("Leggings")) {
+				player.getInventory().setLeggings(itemStack);
+				continue;
+			}
+			if (part.equals("Boots")) {
+				player.getInventory().setBoots(itemStack);
+			}
+		}
+		if (brokenItems.size() > 0) {
+			brokenItems.forEach(uuid -> CORRELATION.log(cid, Level.WARNING, "Item with UUID " + uuid + " could not be loaded"));
+			player.sendMessage(ChatColor.RED + "" + brokenItems.size() + " items in your saved inventory could not be loaded.");
+			player.sendMessage(ChatColor.RED + "Please report the following error: " + StringUtil.toHdFont("Correlation ID: " + cid));
+		}
+	}
+	
+	public void clearInventory() {
+		player.getInventory().clear();
+		setData("inventory", new ArrayList<>());
+		sendActionBar(ChatColor.DARK_RED + "- All items have been lost! -");
+	}
+	
 	public Document getInventoryAsDocument() {
 		Document inventory = new Document();
 		for (int i = 0; i < player.getInventory().getContents().length; i++) {
@@ -918,6 +892,11 @@ public class User extends GameObject {
 		}
 		return inventory;
 	}
+	
+	
+	/*
+	 * Event handlers
+	 */
 
 	public void handleJoin(boolean firstJoin) {
 		joined = true;
@@ -986,14 +965,6 @@ public class User extends GameObject {
 		userLoader.removeStalePlayer(player);
 	}
 
-	public long getTotalOnlineTime() {
-		return ((Long) getData("totalOnlineTime")).longValue();
-	}
-
-	public long getLocalOnlineTime() {
-		return (long) Math.floor((System.currentTimeMillis() - ((Long) getData("lastJoined")).longValue()) / 1000L);
-	}
-
 	public void handleMove() {
 		boolean update = false;
 		if (cachedLocation == null) {
@@ -1006,6 +977,63 @@ public class User extends GameObject {
 		if (update) {
 			updateState();
 		}
+	}
+	
+	
+	/*
+	 * Miscellaneous setters and getters
+	 */
+
+	public int getLastReadChangeLogId() {
+		return (int) getData("lastReadChangeLog");
+	}
+
+	public List<ChangeLogLoader.ChangeLogEntry> getUnreadChangeLogs() {
+		return changeLogLoader.getUnreadChangelogs(getLastReadChangeLogId());
+	}
+
+	public void markChangeLogsRead() {
+		setData("lastReadChangeLog", Integer.valueOf(changeLogLoader.getCurrentMaxId()));
+	}
+
+	public String getLastIP() {
+		return (String) getData("ip");
+	}
+
+	public Rank getRank() {
+		return Rank.valueOf((String) getData("rank"));
+	}
+
+	public void setRank(Rank rank) {
+		setData("rank", rank.toString());
+	}
+
+	public Set<Region> getRegions() {
+		return cachedRegions;
+	}
+
+	public Date getFirstJoined() {
+		return new Date(((Long) getData("firstJoined")).longValue());
+	}
+
+	public Date getLastJoined() {
+		return new Date(((Long) getData("lastJoined")).longValue());
+	}
+
+	public Date getLastSeen() {
+		return new Date(((Long) getData("lastSeen")).longValue());
+	}
+
+	public boolean hasJoined() {
+		return joined;
+	}
+	
+	public long getTotalOnlineTime() {
+		return ((Long) getData("totalOnlineTime")).longValue();
+	}
+
+	public long getLocalOnlineTime() {
+		return (long) Math.floor((System.currentTimeMillis() - ((Long) getData("lastJoined")).longValue()) / 1000L);
 	}
 
 	public Player getPlayer() {
@@ -1037,6 +1065,25 @@ public class User extends GameObject {
 		return StorageUtil.docToLoc((Document) getData("lastStaffLocation"));
 	}
 
+	public void setSavedLocation(Location loc) {
+		setData("lastLocation", StorageUtil.locToDoc(loc));
+	}
+
+	public void setSavedStaffLocation(Location loc) {
+		setData("lastStaffLocation", StorageUtil.locToDoc(loc));
+	}
+	
+	public GameMode getSavedGameMode() {
+		return GameMode.valueOf((String) getData("gamemode"));
+	}
+
+	public void setGameMode(GameMode gameMode, boolean updateBukkit) {
+		setData("gamemode", gameMode.toString());
+		if (updateBukkit) {
+			player.setGameMode(gameMode);
+		}
+	}
+	
 	public double getSavedHealth() {
 		return (double) getData("health");
 	}
@@ -1131,12 +1178,6 @@ public class User extends GameObject {
 		player.setWalkSpeed((float) getEffectiveWalkSpeed());
 	}
 
-	public void clearInventory() {
-		player.getInventory().clear();
-		setData("inventory", new ArrayList<>());
-		sendActionBar(ChatColor.DARK_RED + "- All items have been lost! -");
-	}
-
 	/**
 	 * When the player dies, they are frozen for a given period of time
 	 * until they can respawn.
@@ -1192,6 +1233,16 @@ public class User extends GameObject {
 		sendToFloor(floorName, false);
 	}
 
+	public String getListName() {
+		return getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
+				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ").trim();
+	}
+	
+	
+	/*
+	 * Leveling management
+	 */
+	
 	public void addXP(int xp) {
 		setXP(getXP() + xp);
 	}
@@ -1260,10 +1311,10 @@ public class User extends GameObject {
 		return ChatColor.WHITE;
 	}
 	
-	public String getListName() {
-		return getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
-				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ").trim();
-	}
+	
+	/*
+	 * Vanish management (only applies to staff)
+	 */
 
 	public static void updateVanishStateBetween(User userOf, User userFor) {
 		if (userOf == null || userFor == null) {
@@ -1321,6 +1372,11 @@ public class User extends GameObject {
 	public boolean isGodMode() {
 		return ((Boolean) getData("godMode")).booleanValue();
 	}
+	
+	
+	/*
+	 * Authentication management
+	 */
 
 	public void setSystemProfile(SystemProfile profile) {
 		this.profile = profile;
@@ -1359,50 +1415,11 @@ public class User extends GameObject {
 		updateVanishStatesOnSelf();
 		return true;
 	}
-
-	public int getLastReadChangeLogId() {
-		return (int) getData("lastReadChangeLog");
-	}
-
-	public List<ChangeLogLoader.ChangeLogEntry> getUnreadChangeLogs() {
-		return changeLogLoader.getUnreadChangelogs(getLastReadChangeLogId());
-	}
-
-	public void markChangeLogsRead() {
-		setData("lastReadChangeLog", Integer.valueOf(changeLogLoader.getCurrentMaxId()));
-	}
-
-	public String getLastIP() {
-		return (String) getData("ip");
-	}
-
-	public Rank getRank() {
-		return Rank.valueOf((String) getData("rank"));
-	}
-
-	public void setRank(Rank rank) {
-		setData("rank", rank.toString());
-	}
-
-	public Set<Region> getRegions() {
-		return cachedRegions;
-	}
-
-	public Date getFirstJoined() {
-		return new Date(((Long) getData("firstJoined")).longValue());
-	}
-
-	public Date getLastJoined() {
-		return new Date(((Long) getData("lastJoined")).longValue());
-	}
-
-	public Date getLastSeen() {
-		return new Date(((Long) getData("lastSeen")).longValue());
-	}
-
-	public boolean hasJoined() {
-		return joined;
-	}
+	
+	
+	/*
+	 * Skill management
+	 */
 
 	public int getSkillLevel(SkillType type) {
 		return ((Document) getData("skills")).getInteger(type.toString()).intValue();
@@ -1434,17 +1451,11 @@ public class User extends GameObject {
 	public double getSkillProgress(SkillType type) {
 		return ((Document) getData("skillProgress")).getDouble(type.toString()).doubleValue();
 	}
-
-	public GameMode getSavedGameMode() {
-		return GameMode.valueOf((String) getData("gamemode"));
-	}
-
-	public void setGameMode(GameMode gameMode, boolean updateBukkit) {
-		setData("gamemode", gameMode.toString());
-		if (updateBukkit) {
-			player.setGameMode(gameMode);
-		}
-	}
+	
+	
+	/*
+	 * Punishment management
+	 */	
 
 	@SuppressWarnings("unchecked")
 	public List<PunishmentData> getPunishmentHistory() {
@@ -1528,14 +1539,11 @@ public class User extends GameObject {
 		return new PunishmentData(type, reason, expiry, false);
 	}
 
-	public void setSavedLocation(Location loc) {
-		setData("lastLocation", StorageUtil.locToDoc(loc));
-	}
-
-	public void setSavedStaffLocation(Location loc) {
-		setData("lastStaffLocation", StorageUtil.locToDoc(loc));
-	}
-
+	
+	/*
+	 * Auto-saving
+	 */
+	
 	@Override
 	public void autoSave() {
 		super.autoSave();
