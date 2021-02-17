@@ -207,8 +207,7 @@ public class EntityDamageByEntityEventListener implements Listener {
 				final User fUserDamager = userDamager;
 				final Item fAttackerHeldItem = attackerHeldItem;
 				new BukkitRunnable() {
-					@Override
-					public void run() {
+					@Override public void run() {
 						Item currentHeldItem = ItemLoader.fromBukkit(fUserDamager.getPlayer().getInventory().getItemInMainHand());
 						if (currentHeldItem == null) {
 							return;
@@ -221,7 +220,11 @@ public class EntityDamageByEntityEventListener implements Listener {
 								+ ProgressBarUtil.getCountdownBar(percentRemaining) + ChatColor.DARK_GRAY + "]";
 						fUserDamager.getPlayer().getInventory().setItemInMainHand(fAttackerHeldItem.localRename(cooldownName));
 						if (!fAttackerHeldItem.hasCooldownRemaining()) {
-							fUserDamager.getPlayer().getInventory().setItemInMainHand(fAttackerHeldItem.localRename(fAttackerHeldItem.getDecoratedName()));
+							new BukkitRunnable() {
+								@Override public void run() {
+									fUserDamager.getPlayer().getInventory().setItemInMainHand(fAttackerHeldItem.localRename(fAttackerHeldItem.getDecoratedName()));
+								}
+							}.runTaskLater(dragons, 10L);
 							cancel();
 						}
 					}

@@ -522,17 +522,15 @@ public class User extends GameObject {
 		}
 		guiHotfixOpenedBefore.add(currentGUI.getMenuName());
 		new BukkitRunnable() {
-			@Override
-			public void run() {
+			@Override public void run() {
 				currentGUI.open(User.this);
 			}
-		}.runTaskLater(instance, 1L);		
+		}.runTaskLater(instance, 2L);		
 		new BukkitRunnable() {
-			@Override
-			public void run() {
+			@Override public void run() {
 				player.closeInventory();
 			}
-		}.runTaskLater(instance, 2L);
+		}.runTaskLater(instance, 1L);
 	}
 
 	public boolean hasOpenGUI() {
