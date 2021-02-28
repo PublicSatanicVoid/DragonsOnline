@@ -32,8 +32,8 @@ import mc.dragons.core.commands.RespawnCommand;
 import mc.dragons.core.commands.StuckQuestCommand;
 import mc.dragons.core.commands.SystemLogonCommand;
 import mc.dragons.core.events.EntityCombustListener;
-import mc.dragons.core.events.EntityDamageByEntityEventListener;
-import mc.dragons.core.events.EntityDeathEventListener;
+import mc.dragons.core.events.EntityDamageListener;
+import mc.dragons.core.events.EntityDeathListener;
 import mc.dragons.core.events.EntityMoveListener;
 import mc.dragons.core.events.EntityTargetEventListener;
 import mc.dragons.core.events.InventoryEventListeners;
@@ -53,12 +53,13 @@ import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.SidebarManager;
-import mc.dragons.core.gameobject.user.SystemProfileLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.logging.correlation.CorrelationLogLoader;
@@ -98,6 +99,7 @@ public class Dragons extends JavaPlugin {
 	private LightweightLoaderRegistry lightweightLoaderRegistry;
 	private SidebarManager sidebarManager;
 	private EntityHider entityHider;
+	private ChatMessageRegistry chatMessageRegistry;
 
 	private BukkitRunnable autoSaveRunnable;
 	private BukkitRunnable spawnEntityRunnable;
@@ -130,7 +132,7 @@ public class Dragons extends JavaPlugin {
 				break;
 			default:
 				getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");
-				getLogger().severe("Cannot run Dragons.");
+				getLogger().severe("Cannot run DragonsOnline.");
 				getServer().getPluginManager().disablePlugin(this);
 				return;
 			}
@@ -144,6 +146,7 @@ public class Dragons extends JavaPlugin {
 			userHookRegistry = new UserHookRegistry();
 			lightweightLoaderRegistry = new LightweightLoaderRegistry();
 			sidebarManager = new SidebarManager(this);
+			chatMessageRegistry = new ChatMessageRegistry();
 			
 			autoSaveRunnable = new AutoSaveTask(this);
 			spawnEntityRunnable = new SpawnEntityTask(this);
@@ -230,8 +233,8 @@ public class Dragons extends JavaPlugin {
 
 		getLogger().info("Registering events...");
 		PluginManager pluginManager = getServer().getPluginManager();
-		pluginManager.registerEvents(new EntityDeathEventListener(this), this);
-		pluginManager.registerEvents(new EntityDamageByEntityEventListener(this), this);
+		pluginManager.registerEvents(new EntityDeathListener(this), this);
+		pluginManager.registerEvents(new EntityDamageListener(this), this);
 		pluginManager.registerEvents(new WorldEventListeners(this), this);
 		pluginManager.registerEvents(new EntityTargetEventListener(this), this);
 		pluginManager.registerEvents(new InventoryEventListeners(), this);
@@ -342,6 +345,10 @@ public class Dragons extends JavaPlugin {
 
 	public EntityHider getEntityHider() {
 		return entityHider;
+	}
+	
+	public ChatMessageRegistry getChatMessageRegistry() {
+		return chatMessageRegistry;
 	}
 	
 	public ServerOptions getServerOptions() {

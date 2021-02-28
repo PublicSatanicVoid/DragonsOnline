@@ -9,19 +9,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
+import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.social.GuildLoader.Guild;
 
 /**
@@ -31,6 +33,8 @@ import mc.dragons.social.GuildLoader.Guild;
  *
  */
 public class GuildLoader extends AbstractLightweightLoader<Guild> {
+	public static final int PAGE_SIZE = 10;
+	
 	private static final String GUILD_COLLECTION = "guilds";
 	
 	private Map<Integer, Guild> guildPool = new HashMap<>();
@@ -240,24 +244,36 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		super(config, "guilds", GUILD_COLLECTION);
 	}
 
-	public List<Guild> asGuilds(FindIterable<Document> guilds) {
-		List<Document> result = new ArrayList<>();
-		for(Document guild : guilds) {
-			result.add(guild);
-		}
-		return asGuilds(result);
+	public PaginatedResult<Guild> asGuilds(FindIterable<Document> guilds, int page) {
+		int total = Iterables.size(guilds);
+		return new PaginatedResult<Guild>(PaginationUtil.sortAndPaginate(guilds, page, PAGE_SIZE, "_id", true)
+				.map(d -> Guild.fromDocument(d))
+				.into(new ArrayList<>()), total, page, PAGE_SIZE);
+
 	}
 	
-	public List<Guild> asGuilds(List<Document> guilds) {
+	public List<Guild> asGuildsRaw(FindIterable<Document> guilds) {
+		return guilds.map(d -> Guild.fromDocument(d)).into(new ArrayList<>());
+	}
+	
+	/*public List<Guild> asGuilds(List<Document> guilds) {
 		return guilds.stream().map(doc -> Guild.fromDocument(doc)).sorted((a, b) -> a.getId() - b.getId()).collect(Collectors.toList());
+	}*/
+	
+	public PaginatedResult<Guild> getAllGuilds(int page) {
+		return asGuilds(collection.find(), page);
 	}
 	
-	public List<Guild> getAllGuilds() {
-		return asGuilds(collection.find());
+	private FindIterable<Document> getAllGuildsWithInternal(UUID uuid) {
+		return collection.find(new Document("$or", Arrays.asList(new Document("members", uuid), new Document("owner", uuid))));
 	}
 	
-	public List<Guild> getAllGuildsWith(UUID uuid) {
-		return asGuilds(collection.find(new Document("$or", Arrays.asList(new Document("members", uuid), new Document("owner", uuid)))));
+	public PaginatedResult<Guild> getAllGuildsWith(UUID uuid, int page) {
+		return asGuilds(getAllGuildsWithInternal(uuid), page);
+	}
+	
+	public List<Guild> getAllGuildsWithRaw(UUID uuid) {
+		return asGuildsRaw(getAllGuildsWithInternal(uuid));
 	}
 	
 	public Guild getGuildByName(String name) {

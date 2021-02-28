@@ -13,11 +13,11 @@ import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.quest.Quest;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 
 public class ResetProfileCommand implements CommandExecutor {

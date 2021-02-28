@@ -1,15 +1,19 @@
 package mc.dragons.core.storage.loader;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.bson.Document;
 
+import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
+import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 
 public class FeedbackLoader extends AbstractLightweightLoader<FeedbackLoader.FeedbackEntry> {
+	public static final int PAGE_SIZE = 10;
+	
 	public static class FeedbackEntry {
 		private int id;
 		private String from;
@@ -38,13 +42,12 @@ public class FeedbackLoader extends AbstractLightweightLoader<FeedbackLoader.Fee
 		super(config, "feedback", "feedback");
 	}
 
-	public List<FeedbackEntry> getUnreadFeedback() {
-		List<FeedbackEntry> result = new ArrayList<>();
-		FindIterable<Document> dbResults = collection.find(new Document("read", Boolean.valueOf(false)));
-		for (Document d : dbResults) {
-			result.add(new FeedbackEntry(d.getInteger("_id"), d.getString("from"), d.getString("feedback")));
-		}
-		return result;
+	public PaginatedResult<FeedbackEntry> getUnreadFeedback(int page) {
+		FindIterable<Document> results = collection.find(new Document("read", Boolean.valueOf(false)));
+		int total = Iterables.size(results);
+		return new PaginatedResult<FeedbackEntry>(PaginationUtil.sortAndPaginate(results, page, PAGE_SIZE)
+				.map(d -> new FeedbackEntry(d.getInteger("_id"), d.getString("from"), d.getString("feedback")))
+				.into(new ArrayList<>()), total, page, PAGE_SIZE);
 	}
 
 	public void deleteFeedback(int id) {

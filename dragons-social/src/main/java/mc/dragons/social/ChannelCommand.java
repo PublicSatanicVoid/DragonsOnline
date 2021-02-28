@@ -6,10 +6,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import mc.dragons.core.gameobject.user.ChatChannel;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 

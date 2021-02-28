@@ -139,4 +139,21 @@ public class QuestBuilder {
 	public B newQuest() { return new B(); }
 	public O newObjective() { return new O(); }
 	public A newAction() { return new A(); }
+	
+	public Quest test() {
+		Quest compiled = newQuest()
+				.setShortName("testshort")
+				.setQuestName("test long")
+				.setLvMin(10)
+				.addObjective(newObjective()
+						.setObjectiveName("Talk to Joe")
+						.setInternalName("opening")
+						.setTriggerType(TriggerType.CLICK_NPC)
+						.setTriggerParams(new Document("npcClass", "Joe")))
+				.build();
+		
+		// TODO test that the quest was compiled correctly
+		
+		return compiled;
+	}
 }

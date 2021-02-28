@@ -8,10 +8,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import mc.dragons.core.gameobject.user.PermissionLevel;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 
 public class GamemodeCommand implements CommandExecutor {
@@ -25,7 +26,12 @@ public class GamemodeCommand implements CommandExecutor {
 		
 		Player player = (Player) sender;
 		User user = UserLoader.fromPlayer(player);
-		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.BUILDER, true)) return true;
+		
+		boolean isAdminFloor = user.getSystemProfile() != null && user.getSystemProfile().getLocalAdminFloors().contains(FloorLoader.fromLocation(player.getLocation()));
+		if(!isAdminFloor && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.BUILDER, false)) {
+			sender.sendMessage(ChatColor.RED + "You don't have permission to do this!");
+			return true;
+		}
 		
 		boolean hasModPermission = PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.MODERATOR, false);
 		
@@ -74,7 +80,7 @@ public class GamemodeCommand implements CommandExecutor {
 			}
 		}
 		
-		if((gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) && !user.getSystemProfile().getFlags().hasFlag(SystemProfileFlag.BUILD)) {
+		if((gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) && !isAdminFloor && !user.getSystemProfile().getFlags().hasFlag(SystemProfileFlag.BUILD)) {
 			sender.sendMessage(ChatColor.RED + "Creative and survival gamemodes require build permissions.");
 			return true;
 		}
@@ -89,11 +95,6 @@ public class GamemodeCommand implements CommandExecutor {
 		}
 		
 		target.setGameMode(gameMode);
-		
-		
-		
-		
-		
 		sender.sendMessage(ChatColor.GREEN + "Gamemode updated successfully.");
 		
 		return true;

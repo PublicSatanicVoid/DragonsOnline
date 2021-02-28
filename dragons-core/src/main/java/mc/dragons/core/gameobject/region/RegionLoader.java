@@ -27,9 +27,7 @@ public class RegionLoader extends GameObjectLoader<Region> {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 
 	private boolean allLoaded = false;
-
 	private GameObjectRegistry masterRegistry;
-
 	private Map<String, Set<Region>> worldToRegions;
 
 	private RegionLoader(Dragons instance, StorageManager storageManager) {
@@ -120,8 +118,11 @@ public class RegionLoader extends GameObjectLoader<Region> {
 		storageAccess.set("world", corner1.getWorld().getName());
 		storageAccess.set("corner1", StorageUtil.vecToDoc(corner1.toVector()));
 		storageAccess.set("corner2", StorageUtil.vecToDoc(corner2.toVector()));
-		storageAccess.set("flags", new Document("fullname", "New Region").append("desc", "").append("lvmin", "0").append("lvrec", "0").append("showtitle", "false").append("allowhostile", "true")
-				.append("pvp", "true").append("pve", "true").append("hidden", "false").append("spawncap", "-1").append("nospawn", "false").append("3d", "false").append("nearbyspawncap", "-1"));
+		Document flags = new Document();
+		for(String[] flag : Region.DEFAULT_FLAGS) {
+			flags.append(flag[0], flag[1]);
+		}
+		storageAccess.set("flags", flags);
 		storageAccess.set("spawnRates", new Document());
 		Region region = new Region(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(region);

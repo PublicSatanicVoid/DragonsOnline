@@ -13,7 +13,8 @@ import org.bukkit.ChatColor;
  */
 public enum Rank {
 	DEFAULT("Default", "None", "", ChatColor.GRAY, ChatColor.GRAY, false), 
-	BETA_TESTER("Beta Tester", "Beta Tester", ChatColor.WHITE + "[Beta]", ChatColor.GRAY, ChatColor.WHITE, false),
+	BETA_TESTER("Beta Tester", "Beta Tester", ChatColor.WHITE + "[Tester]", ChatColor.GRAY, ChatColor.WHITE, false),
+	FRIEND("Friend", "Friend", ChatColor.AQUA + "[Friend]", ChatColor.AQUA, ChatColor.WHITE, false),
 	PATRON("Patron", "Patron", ChatColor.DARK_AQUA + "[Patron]", ChatColor.AQUA, ChatColor.WHITE, false),
 	PATRON_PLUS("Patron+", "Patron+", ChatColor.DARK_AQUA + "[Patron" + ChatColor.YELLOW + "+" + ChatColor.DARK_AQUA + "]", ChatColor.AQUA, ChatColor.WHITE, false),
 	INVESTOR("Investor", "Investor", ChatColor.GOLD + "[Investor]", ChatColor.YELLOW, ChatColor.WHITE, false),
@@ -29,6 +30,7 @@ public enum Rank {
 	HEAD_BUILDER("Head Builder", "Head Builder", ChatColor.BLUE + "[Head Builder]", ChatColor.BLUE, ChatColor.WHITE, true),
 	HELPER("Helper", "Helper", ChatColor.GREEN + "[Helper]", ChatColor.GREEN, ChatColor.WHITE, true),
 	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[Moderator]", ChatColor.GREEN, ChatColor.WHITE, true),
+	COMMUNITY_MANAGER("Community Manager", "Community Mgr", ChatColor.LIGHT_PURPLE + "[CM]", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, true),
 	NEW_GM("New GM", "New GM", ChatColor.GOLD + "[New GM]", ChatColor.GOLD, ChatColor.WHITE, true), 
 	GM("Game Master", "Game Master", ChatColor.GOLD + "[GM]", ChatColor.GOLD, ChatColor.WHITE, true),
 	HEAD_GM("Head GM", "Head GM", ChatColor.GOLD + "[Head GM]", ChatColor.GOLD, ChatColor.WHITE, true),

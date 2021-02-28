@@ -1,5 +1,6 @@
 package mc.dragons.tools.content;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,6 +21,7 @@ import mc.dragons.tools.content.command.statistics.RestatCommand;
 import mc.dragons.tools.content.command.statistics.UpdateStatsCommand;
 import mc.dragons.tools.content.command.testing.GoToFloorCommand;
 import mc.dragons.tools.content.command.testing.TestQuestCommand;
+import mc.dragons.tools.content.event.PlayerChangedWorldListener;
 
 public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExecutor {
 	
@@ -53,5 +55,7 @@ public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExec
 		getCommand("setwarp").setExecutor(warpCommandsExecutor);
 		getCommand("warp").setExecutor(warpCommandsExecutor);
 		getCommand("warps").setExecutor(warpCommandsExecutor);
+		
+		Bukkit.getPluginManager().registerEvents(new PlayerChangedWorldListener(), this);
 	}
 }

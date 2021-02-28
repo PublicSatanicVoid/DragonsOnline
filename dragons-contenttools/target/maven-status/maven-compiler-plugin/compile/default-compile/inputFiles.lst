@@ -6,6 +6,7 @@ C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\co
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\statistics\UpdateStatsCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\gameobject\ItemCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\builder\ClearInventoryCommand.java
+C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\event\PlayerChangedWorldListener.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\util\MetadataConstants.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\testing\TestQuestCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\statistics\RestatCommand.java

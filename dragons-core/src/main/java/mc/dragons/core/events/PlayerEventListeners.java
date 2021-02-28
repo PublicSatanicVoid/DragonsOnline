@@ -24,6 +24,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -40,14 +41,14 @@ import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
-import mc.dragons.core.gameobject.user.PunishmentData;
-import mc.dragons.core.gameobject.user.PunishmentType;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.punishment.PunishmentData;
+import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -205,6 +206,16 @@ public class PlayerEventListeners implements Listener {
 		user.takeItem(item, amt, true, false, true);
 	}
 
+	@EventHandler
+	public void onItemHeldChange(PlayerItemHeldEvent event) {
+		LOGGER.finer("Item held change event on " + event.getPlayer().getName() + ": " + event.getPreviousSlot() + " -> " + event.getNewSlot());
+		ItemStack held = event.getPlayer().getInventory().getItemInMainHand();
+		Item heldItem = ItemLoader.fromBukkit(held);
+		if(heldItem != null && !heldItem.hasCooldownRemaining()) {
+			event.getPlayer().getInventory().setItemInMainHand(heldItem.localRename(heldItem.getDecoratedName()));
+		}
+	}
+	
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		LOGGER.finer("Gamemode change event on " + event.getPlayer().getName() + " to " + event.getNewGameMode());

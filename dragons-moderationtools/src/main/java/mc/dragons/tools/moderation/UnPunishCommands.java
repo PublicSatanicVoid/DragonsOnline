@@ -7,10 +7,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.user.PunishmentType;
-import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 
 public class UnPunishCommands implements CommandExecutor {

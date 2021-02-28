@@ -8,7 +8,7 @@ import org.bukkit.Location;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
-import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.dev.TaskLoader.Task;
 import net.md_5.bungee.api.ChatColor;

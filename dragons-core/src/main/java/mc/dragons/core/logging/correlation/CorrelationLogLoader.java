@@ -87,7 +87,7 @@ public class CorrelationLogLoader extends AbstractLightweightLoader<CorrelationL
 		if(correlationID == null) {
 			return;
 		}
-		Bukkit.getLogger().log(level, "[CID " + correlationID.toString().substring(0, 5) + "] " + message);
+		Bukkit.getLogger().log(level, "[" + correlationID.toString().substring(0, 5) + "] " + message);
 		collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", level.getName())
 				.append("timestamp", StringUtil.dateFormatNow()).append("message", message)
 				.append("instance", Dragons.getInstance().getServerName()));

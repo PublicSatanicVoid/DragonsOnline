@@ -7,10 +7,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.loader.FeedbackLoader;
+import mc.dragons.core.storage.loader.FeedbackLoader.FeedbackEntry;
+import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -35,7 +37,7 @@ public class FeedbackCommand implements CommandExecutor {
 		if (args.length == 0) {
 			sender.sendMessage(ChatColor.YELLOW + "/feedback <Your feedback here>");
 			if (PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
-				sender.sendMessage(ChatColor.YELLOW + "/feedback -list");
+				sender.sendMessage(ChatColor.YELLOW + "/feedback -list [Page#]");
 				sender.sendMessage(ChatColor.YELLOW + "/feedback -unread <Feedback#>");
 			}
 			return true;
@@ -44,8 +46,13 @@ public class FeedbackCommand implements CommandExecutor {
 			if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) {
 				return true;
 			}
-			sender.sendMessage(ChatColor.GREEN + "Listing all unread feedback:");
-			for (FeedbackLoader.FeedbackEntry entry : feedbackLoader.getUnreadFeedback()) {
+			int page = 1;
+			if(args.length > 1) {
+				page = Integer.valueOf(args[1]);
+			}
+			PaginatedResult<FeedbackEntry> results = feedbackLoader.getUnreadFeedback(page);
+			sender.sendMessage(ChatColor.GREEN + "Listing unread feedback (Page " + page + " of " + results.getPages() + ", " + results.getTotal() + " total)");
+			for (FeedbackEntry entry : results.getPage()) {
 				sender.sendMessage(ChatColor.YELLOW + "[#" + entry.getId() + "] " + ChatColor.GREEN + "[" + entry.getFrom() + "] " + ChatColor.RESET + entry.getFeedback());
 				feedbackLoader.markRead(entry.getId(), true);
 			}

@@ -5,6 +5,11 @@ author: UniverseCraft
 depend: [DragonsCore]
 commands:
   escalate:
+  report:
+  chatreport:
+  reports:
+  viewreport:
+    aliases: vr
   godmode:
   info:
   warn:

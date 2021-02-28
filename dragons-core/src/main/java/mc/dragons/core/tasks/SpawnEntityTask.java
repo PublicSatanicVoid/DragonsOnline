@@ -90,7 +90,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 			
 			boolean nospawn = false;
 			for (Region region : regions) {
-				if (Boolean.valueOf(region.getFlags().getString("nospawn")).booleanValue()) {
+				if (Boolean.valueOf(region.getFlags().getString(Region.FLAG_NOSPAWN))) {
 					nospawn = true;
 					break;
 				}
@@ -99,11 +99,11 @@ public class SpawnEntityTask extends BukkitRunnable {
 						spawnRates.put(entry.getKey(), entry.getValue());
 					}
 				}
-				int regionCap = Integer.valueOf(region.getFlags().getString("spawncap")).intValue();
+				int regionCap = Integer.valueOf(region.getFlags().getString(Region.FLAG_SPAWNCAP));
 				if (regionCap < cap && regionCap != -1 || cap == -1) {
 					cap = regionCap;
 				}
-				int theRadiusCap = Integer.valueOf(region.getFlags().getString("nearbyspawncap")).intValue();
+				int theRadiusCap = Integer.valueOf(region.getFlags().getString(Region.FLAG_NEARBYSPAWNCAP)).intValue();
 				if (theRadiusCap < radiusCap && theRadiusCap != -1 || radiusCap == -1) {
 					radiusCap = theRadiusCap;
 				}

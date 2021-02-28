@@ -23,9 +23,9 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 import net.md_5.bungee.api.ChatColor;
 
@@ -223,7 +223,10 @@ public class DebugCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Stopped debugging " + target.getName());
 		}
 		
-		sender.sendMessage(ChatColor.RED + "Invalid usage! /debug");
+		else {
+			sender.sendMessage(ChatColor.RED + "Invalid usage! /debug");
+		}
+		
 		return true;
 	}
 

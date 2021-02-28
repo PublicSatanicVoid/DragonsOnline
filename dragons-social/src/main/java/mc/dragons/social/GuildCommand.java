@@ -15,6 +15,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.GuildLoader.Guild;
 import mc.dragons.social.GuildLoader.GuildAccessLevel;
@@ -32,7 +33,7 @@ public class GuildCommand implements CommandExecutor {
 		Player player = (Player) sender;
 		User user = UserLoader.fromPlayer(player);
 		
-		List<Guild> guilds = guildLoader.getAllGuildsWith(user.getUUID());
+		List<Guild> guilds = guildLoader.getAllGuildsWithRaw(user.getUUID());
 		
 		if(args.length == 0) {
 			if(guilds.size() == 0) {
@@ -62,8 +63,13 @@ public class GuildCommand implements CommandExecutor {
 		}
 		
 		if(args[0].equalsIgnoreCase("list")) {
-			sender.sendMessage(ChatColor.GREEN + "Listing all guilds:");
-			for(Guild guild : guildLoader.getAllGuilds()) {
+			int page = 1;
+			if(args.length > 1) {
+				page = Integer.valueOf(args[1]);
+			}
+			PaginatedResult<Guild> results = guildLoader.getAllGuilds(page);
+			sender.sendMessage(ChatColor.GREEN + "Listing all guilds (Page " + page + " of " + results.getPages() + ", " + results.getTotal() + " total)");
+			for(Guild guild : results.getPage()) {
 				sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.YELLOW + guild.getName() + ChatColor.GRAY + " (" + guild.getMembers().size() + " members, " + guild.getXP() + " XP)");
 			}
 			return true;
@@ -111,6 +117,7 @@ public class GuildCommand implements CommandExecutor {
 					// TODO notify guild members
 					sender.sendMessage(ChatColor.GREEN + "Accepted invitation and joined guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully!");
 					guild.update(GuildEvent.JOIN, user);
+					user.updateListName();
 					return true;
 				}
 				else {
@@ -403,6 +410,7 @@ public class GuildCommand implements CommandExecutor {
 				}
 				// TODO notify
 				guild.update(GuildEvent.JOIN, target);
+				target.updateListName();
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("reject")) {
@@ -426,6 +434,7 @@ public class GuildCommand implements CommandExecutor {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were kicked from the guild " + ChatColor.YELLOW + guild.getName());
 				}
 				guild.update(GuildEvent.KICK, target);
+				target.updateListName();
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("ban")) {
@@ -441,6 +450,7 @@ public class GuildCommand implements CommandExecutor {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were banned from the guild " + ChatColor.YELLOW + guild.getName());
 				}
 				guild.update(GuildEvent.BAN, target);
+				target.updateListName();
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("unban")) {
@@ -547,6 +557,8 @@ public class GuildCommand implements CommandExecutor {
 				target.getPlayer().sendMessage(ChatColor.GREEN + "You are now the owner of " + ChatColor.AQUA + guild.getName());
 			}
 			guild.update(GuildEvent.TRANSFER_OWNERSHIP, target);
+			user.updateListName();
+			target.updateListName();
 			return true;
 		}
 		
@@ -583,6 +595,7 @@ public class GuildCommand implements CommandExecutor {
 			guild.save();
 			sender.sendMessage(ChatColor.GREEN + "Left guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully.");
 			guild.update(GuildEvent.LEAVE, user);
+			user.updateListName();
 			return true;
 		}
 		

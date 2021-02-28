@@ -8,10 +8,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -31,6 +31,7 @@ public class RankCommand implements CommandExecutor {
 		}
 		if (args.length < 2) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /rank <player> <rank>");
+			sender.sendMessage(ChatColor.RED + "Valid ranks are: " + StringUtil.parseList(Rank.values()));
 			return true;
 		}
 		String username = args[0];

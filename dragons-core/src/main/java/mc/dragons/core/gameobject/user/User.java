@@ -45,7 +45,15 @@ import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
-import mc.dragons.core.gameobject.user.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
+import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
+import mc.dragons.core.gameobject.user.chat.MessageData;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
+import mc.dragons.core.gameobject.user.punishment.PunishmentData;
+import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.storage.StorageAccess;
@@ -88,6 +96,7 @@ public class User extends GameObject {
 	private static CorrelationLogLoader CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
+	private static ChatMessageRegistry chatMessageRegistry = instance.getChatMessageRegistry();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 
@@ -113,7 +122,7 @@ public class User extends GameObject {
 	private GUI currentGUI;
 	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level bug.
 	private boolean joined; // If the user has joined and authenticated yet.
-
+	
 	/**
 	 * Calculates the user's global level based on their current XP.
 	 * 
@@ -245,37 +254,37 @@ public class User extends GameObject {
 			return;
 		}
 		for (Region region : cachedRegions) {
-			if (regions.contains(region) || Boolean.valueOf(region.getFlags().getString("hidden")).booleanValue()) {
+			if (regions.contains(region) || Boolean.valueOf(region.getFlags().getString(Region.FLAG_HIDDEN)).booleanValue()) {
 				continue;
 			}
 			if (notify) {
-				player.sendMessage(ChatColor.GRAY + "Leaving " + region.getFlags().getString("fullname"));
+				player.sendMessage(ChatColor.GRAY + "Leaving " + region.getFlags().getString(Region.FLAG_FULLNAME));
 			}
 		}
 		for (Region region : regions) {
 			if (!cachedRegions.contains(region)) {
-				int lvMin = Integer.parseInt(region.getFlags().getString("lvmin"));
+				int lvMin = Integer.parseInt(region.getFlags().getString(Region.FLAG_LVMIN));
 				if (getLevel() < lvMin) {
 					player.setVelocity(cachedLocation.toVector().subtract(player.getLocation().toVector()).multiply(2.0D));
 					if (notify) {
 						player.sendMessage(ChatColor.RED + "This region requires level " + lvMin + " to enter");
 					}
 				}
-				if (Boolean.valueOf(region.getFlags().getString("hidden"))) {
+				if (Boolean.valueOf(region.getFlags().getString(Region.FLAG_HIDDEN))) {
 					continue;
 				}
 				if (notify) {
 					if (Boolean.parseBoolean(region.getFlags().getString("showtitle"))) {
-						player.sendTitle("", ChatColor.GRAY + "Entering " + region.getFlags().getString("fullname"), 20, 40, 20);
+						player.sendTitle("", ChatColor.GRAY + "Entering " + region.getFlags().getString(Region.FLAG_FULLNAME), 20, 40, 20);
 					}
-					player.sendMessage(ChatColor.GRAY + "Entering " + region.getFlags().getString("fullname"));
-					if (!region.getFlags().getString("desc").equals("")) {
-						player.sendMessage(ChatColor.DARK_GRAY + "   " + ChatColor.ITALIC + region.getFlags().getString("desc"));
+					player.sendMessage(ChatColor.GRAY + "Entering " + region.getFlags().getString(Region.FLAG_FULLNAME));
+					if (!region.getFlags().getString(Region.FLAG_DESC).equals("")) {
+						player.sendMessage(ChatColor.DARK_GRAY + "   " + ChatColor.ITALIC + region.getFlags().getString(Region.FLAG_DESC));
 					}
 				}
-				int lvRec = Integer.parseInt(region.getFlags().getString("lvrec"));
+				int lvRec = Integer.parseInt(region.getFlags().getString(Region.FLAG_LVREC));
 				if (getLevel() < lvRec && notify) {
-					player.sendMessage(ChatColor.YELLOW + "Caution: The recommended level for this region is " + lvRec);
+					player.sendMessage(ChatColor.YELLOW + " Caution: The recommended level for this region is " + lvRec);
 				}
 			}
 		}
@@ -628,7 +637,7 @@ public class User extends GameObject {
 			return;
 		}
 		if (hasActiveDialogue()) {
-			player.sendMessage(ChatColor.RED + "Chat is unavailable while in active dialogue!");
+			player.sendMessage(ChatColor.RED + "Chat is unavailable while in NPC dialogue!");
 			return;
 		}
 		PunishmentData muteData = getActivePunishmentData(PunishmentType.MUTE);
@@ -647,19 +656,24 @@ public class User extends GameObject {
 		else if (getRank().hasChatPrefix()) {
 			messageSenderInfo += getRank().getChatPrefix() + " ";
 		}
+		MessageData messageData = new MessageData(this, message);
 		messageSenderInfo += getRank().getNameColor() + getName();
-		TextComponent messageComponent = new TextComponent(messageSenderInfo);
-		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+		TextComponent messageInfoComponent = new TextComponent(messageSenderInfo);
+		messageInfoComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 				new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + getName() + "\n")
 						.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + getRank().getNameColor() + getRank().getRankName() + "\n")
-						.append(!offDuty ? "" : ChatColor.DARK_RED + "" + ChatColor.UNDERLINE + "/!\\" + ChatColor.RED + " " + ChatColor.ITALIC + "This user is currently off-duty and cannot access staff privileges.\n")
+						.append(!offDuty ? "" : ChatColor.DARK_RED + "" + ChatColor.UNDERLINE + "/!\\" + ChatColor.RED + " " + ChatColor.ITALIC + "This staff member is currently off-duty and cannot access staff privileges.\n")
 						.append(ChatColor.GRAY + "Level: " + getLevelColor() + getLevel() + "\n").append(ChatColor.GRAY + "XP: " + ChatColor.RESET + getXP() + "\n")
 						.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + getGold() + "\n")
 						.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(player.getLocation()) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
 						.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(player.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
 								+ " (when message sent)\n")
 						.append(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + getFirstJoined().toString()).create()));
-		messageComponent.addExtra(ChatColor.GRAY + " » " + getRank().getChatColor() + message);
+		messageInfoComponent.addExtra(ChatColor.GRAY + " » ");
+		TextComponent messageComponent = new TextComponent(getRank().getChatColor() + message);
+		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+				new ComponentBuilder(ChatColor.YELLOW + "Click to report this message").create()));
+		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId()));
 		ChatChannel channel = getSpeakingChannel();
 		if (!channel.canHear(this, this)) {
 			player.sendMessage(
@@ -675,12 +689,13 @@ public class User extends GameObject {
 				continue;
 			}
 			LOGGER.finer("  -Yes!");
-			user.sendMessage(channel, location, new BaseComponent[] { messageComponent });
+			user.sendMessage(channel, location, new BaseComponent[] { messageInfoComponent, messageComponent });
 			rec++;
 		}
 		if (rec <= 1 && tot > 1) {
 			player.sendMessage(ChatColor.RED + "There's currently nobody else online in that channel!");
 		}
+		chatMessageRegistry.register(messageData);
 		LOGGER.info("[" + channel.getAbbreviation() + "/" + player.getWorld().getName() + "] [" + getName() + "] " + message);
 	}
 
@@ -813,14 +828,23 @@ public class User extends GameObject {
 	private void loadInventory(UUID cid) {
 		Document inventory = (Document) getData("inventory");
 		CORRELATION.log(cid, Level.FINEST, "stored inventory data: " + inventory);
-		List<String> brokenItems = new ArrayList<>();
+		List<UUID> usedItems = new ArrayList<>();
+		int dups = 0;
+		int broken = 0;
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
 			String[] labels = entry.getKey().split(Pattern.quote("-"));
 			String part = labels[0];
 			int slot = Integer.valueOf(labels[1]).intValue();
-			Item item = itemLoader.loadObject((UUID) entry.getValue());
+			UUID id = (UUID) entry.getValue();
+			if(usedItems.contains(id)) {
+				dups++;
+				CORRELATION.log(cid, Level.WARNING, "duplicated item: " + id);
+				continue;
+			}
+			Item item = itemLoader.loadObject(id);
 			if (item == null) {
-				brokenItems.add(entry.getValue().toString());
+				broken++;
+				CORRELATION.log(cid, Level.WARNING, "could not load item: " + id);
 				continue;
 			}
 			ItemStack itemStack = item.getItemStack();
@@ -844,10 +868,17 @@ public class User extends GameObject {
 				player.getInventory().setBoots(itemStack);
 			}
 		}
-		if (brokenItems.size() > 0) {
-			brokenItems.forEach(uuid -> CORRELATION.log(cid, Level.WARNING, "Item with UUID " + uuid + " could not be loaded"));
-			player.sendMessage(ChatColor.RED + "" + brokenItems.size() + " items in your saved inventory could not be loaded.");
-			player.sendMessage(ChatColor.RED + "Please report the following error: " + StringUtil.toHdFont("Correlation ID: " + cid));
+		boolean error = false;
+		if (broken > 0) {
+			player.sendMessage(ChatColor.RED + "" + broken + " items in your saved inventory could not be loaded.");
+			error = true;
+		}
+		if(dups > 0) {
+			player.sendMessage(ChatColor.RED + "" + dups + " duplicated items were found in your saved inventory.");
+			error = true;
+		}
+		if(error) {
+			player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
 	}
 	
@@ -898,7 +929,8 @@ public class User extends GameObject {
 
 	public void handleJoin(boolean firstJoin) {
 		joined = true;
-		setData("lastJoined", Long.valueOf(System.currentTimeMillis()));
+		setData("username", getPlayer().getName());
+		setData("lastJoined", System.currentTimeMillis());
 		if (PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false)) {
 			player.setGameMode(getSavedGameMode());
 		} else {
@@ -1236,6 +1268,11 @@ public class User extends GameObject {
 				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ").trim();
 	}
 	
+	public void updateListName() {
+		if(player == null) return;
+		player.setPlayerListName(getListName());
+	}
+	
 	
 	/*
 	 * Leveling management
@@ -1341,7 +1378,7 @@ public class User extends GameObject {
 		if (isVanished()) {
 			player.setPlayerListName(" ");
 		} else {
-			player.setPlayerListName(getListName());
+			updateListName();
 		}
 		for (Player test : Bukkit.getOnlinePlayers()) {
 			updateVanishStateBetween(this, UserLoader.fromPlayer(test));
@@ -1349,12 +1386,12 @@ public class User extends GameObject {
 	}
 
 	public void setVanished(boolean vanished) {
-		setData("vanished", Boolean.valueOf(vanished));
+		setData("vanished", vanished);
 		updateVanishState();
 	}
 
 	public boolean isVanished() {
-		return ((Boolean) getData("vanished")).booleanValue();
+		return (Boolean) getData("vanished");
 	}
 
 	/**
@@ -1364,11 +1401,11 @@ public class User extends GameObject {
 	 * @param enabled
 	 */
 	public void setGodMode(boolean enabled) {
-		setData("godMode", Boolean.valueOf(enabled));
+		setData("godMode", enabled);
 	}
 
 	public boolean isGodMode() {
-		return ((Boolean) getData("godMode")).booleanValue();
+		return (Boolean) getData("godMode");
 	}
 	
 	

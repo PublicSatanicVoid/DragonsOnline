@@ -35,6 +35,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 

@@ -20,9 +20,9 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 
 public class VerifyGameIntegrityCommand implements CommandExecutor {

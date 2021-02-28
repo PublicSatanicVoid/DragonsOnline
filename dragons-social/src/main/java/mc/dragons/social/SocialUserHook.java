@@ -20,10 +20,13 @@ public class SocialUserHook implements UserHook {
 	@Override
 	public void onVerifiedJoin(User user) {
 		Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {		
-			List<Guild> guilds = guildLoader.getAllGuildsWith(user.getUUID());
+			List<Guild> guilds = guildLoader.getAllGuildsWithRaw(user.getUUID());
 			boolean shown = false;
 			for(Guild guild : guilds) {
 				if(!guild.getMOTD().equals("")) {
+					if(!shown) {
+						user.getPlayer().sendMessage(ChatColor.GREEN + "---[ " + ChatColor.GOLD + "Guild Messages" + ChatColor.GREEN + " ]---");
+					}
 					shown = true;
 					user.getPlayer().sendMessage(" ");
 					user.getPlayer().sendMessage(guild.getThemeColor().primary() + "" + ChatColor.BOLD + guild.getName());
@@ -39,8 +42,9 @@ public class SocialUserHook implements UserHook {
 	
 	@Override
 	public String getListNameSuffix(User user) {
-		List<String> guildNames = guildLoader.getAllGuildsWith(user.getUUID()).stream().map(g ->
+		List<String> guildNames = guildLoader.getAllGuildsWithRaw(user.getUUID()).stream().map(g ->
 			(g.getOwner().equals(user.getUUID()) ? g.getThemeColor().primary() + "*" : "") + g.getThemeColor().tag() + g.getName()).collect(Collectors.toList());
+		if(guildNames.size() == 0) return "";
 		return ChatColor.DARK_GRAY + "[" + StringUtil.parseList(guildNames, ChatColor.DARK_GRAY + "/") + ChatColor.DARK_GRAY + "]";
 	}
 

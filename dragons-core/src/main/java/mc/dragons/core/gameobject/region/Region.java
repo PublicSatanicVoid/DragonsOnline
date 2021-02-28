@@ -29,6 +29,72 @@ import mc.dragons.core.storage.StorageUtil;
  *
  */
 public class Region extends GameObject {
+	
+	/* Name of the region that players see. */
+	public static String FLAG_FULLNAME = "fullname";
+	
+	/* Description of the region that players see. */
+	public static String FLAG_DESC = "desc";
+	
+	/* Minimum required level to enter the region. */
+	public static String FLAG_LVMIN = "lvmin";
+	
+	/* Minimum recommended level to enter the region. */
+	public static String FLAG_LVREC = "lvrec";
+	
+	/* Whether a banner will be shown to the user upon entering the region. */
+	public static String FLAG_SHOWTITLE = "showtitle";
+	
+	/* Whether hostile mobs can enter the region.
+	 * If this flag is set to true, mobs will instantly despawn
+	 * once entering the region.
+	 */
+	public static String FLAG_ALLOWHOSTILE = "allowhostile";
+	
+	/* Whether player-vs-player combat is enabled in the region. */
+	public static String FLAG_PVP = "pvp";
+	
+	/* Whether player-vs-environment (mob) combat is enabled in the region. */
+	public static String FLAG_PVE = "pve";
+	
+	/* Whether players receive notifications on entering the region. */
+	public static String FLAG_HIDDEN = "hidden";
+	
+	/* Maximum amount of entities that can be spawned in the region. */
+	public static String FLAG_SPAWNCAP = "spawncap";
+	
+	/* Whether this region is bounded in the z-direction. */
+	public static String FLAG_3D = "3d";
+	
+	/* Whether spawning is enabled in the region.
+	 * Internal spawning algorithms are more precise about preventing
+	 * entity spawns when this flag is set to true.
+	 */
+	public static String FLAG_NOSPAWN = "nospawn";
+	
+	/* Maximum amount of entities that can be spawned nearby a player.
+	 * This prevents "crowds" of entities forming around players.
+	 * Spawn rate is also dependent upon region spawn cap and entity
+	 * specific spawn rate.
+	 */
+	public static String FLAG_NEARBYSPAWNCAP = "nearbyspawncap";
+	
+	public static String[][] DEFAULT_FLAGS = {
+			{ FLAG_FULLNAME, "Unnamed Region" },
+			{ FLAG_DESC, "" },
+			{ FLAG_LVMIN, "0" },
+			{ FLAG_LVREC, "0" },
+			{ FLAG_SHOWTITLE, "false" },
+			{ FLAG_ALLOWHOSTILE, "true" },
+			{ FLAG_PVP, "true" },
+			{ FLAG_PVE, "true" },
+			{ FLAG_HIDDEN, "false" },
+			{ FLAG_SPAWNCAP, "-1" },
+			{ FLAG_3D, "false" },
+			{ FLAG_NOSPAWN, "false" },
+			{ FLAG_NEARBYSPAWNCAP, "-1" }
+	};
+	
 	private CachedRegionData regionData;
 	private Floor floor;
 
@@ -145,7 +211,7 @@ public class Region extends GameObject {
 	}
 
 	public boolean contains(Location test) {
-		if (Boolean.valueOf(getFlags().getString("3d")).booleanValue()) {
+		if (Boolean.valueOf(getFlags().getString(FLAG_3D))) {
 			return containsXYZ(test);
 		}
 		return containsXZ(test);

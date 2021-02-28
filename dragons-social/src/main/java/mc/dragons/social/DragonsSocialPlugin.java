@@ -4,7 +4,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.user.ChatChannel;
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
 
 public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 	

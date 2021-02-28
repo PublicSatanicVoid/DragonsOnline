@@ -9,9 +9,9 @@ import org.bukkit.entity.Player;
 import com.mongodb.client.MongoDatabase;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.util.PermissionUtil;
 

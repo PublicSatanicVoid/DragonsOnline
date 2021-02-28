@@ -12,9 +12,9 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 
 public class GoToFloorCommand implements CommandExecutor {

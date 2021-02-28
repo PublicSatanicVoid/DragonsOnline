@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,11 +14,12 @@ import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.user.PermissionLevel;
-import mc.dragons.core.gameobject.user.SystemProfile;
-import mc.dragons.core.gameobject.user.SystemProfileLoader;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile;
+import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
@@ -46,7 +48,7 @@ public class SystemLogonCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.YELLOW + "/syslogon -level <new permission level>");
 				sender.sendMessage(ChatColor.YELLOW + "/syslogon -alt <alt username> <alt password>");
 				sender.sendMessage(ChatColor.YELLOW + "/syslogon -rmalt <alt username>");
-				sender.sendMessage(ChatColor.YELLOW + "/syslogon -logout");
+				sender.sendMessage(ChatColor.YELLOW + "/syslogon -logout [-clean]");
 			}
 			sender.sendMessage(ChatColor.YELLOW + "/syslogon -create <profile> <username> <password> <max. permission level>");
 			sender.sendMessage(ChatColor.YELLOW + "/syslogon -update <profile> <new max. permission level>");
@@ -54,6 +56,7 @@ public class SystemLogonCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/syslogon -info <profile>");
 			sender.sendMessage(ChatColor.YELLOW + "/syslogon -migrate <profile> <owner>");
 			sender.sendMessage(ChatColor.YELLOW + "/syslogon -[de]activate <profile>");
+			sender.sendMessage(ChatColor.YELLOW + "/syslogon -[de]opfloor <profile> <floor>");
 			sender.sendMessage(ChatColor.DARK_GRAY + "Note: Profiles and passwords cannot contain spaces.");
 			return true;
 		}
@@ -164,6 +167,31 @@ public class SystemLogonCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Deactivated system profile successfully.");
 			return true;
 		}
+		if(args[0].equalsIgnoreCase("-opfloor")) {
+			if (sender instanceof Player) {
+				Player player = (Player) sender;
+				User user = UserLoader.fromPlayer(player);
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
+					return true;
+				}
+			}
+			systemProfileLoader.addAdminFloor(args[1], FloorLoader.fromFloorName(args[2]));
+			sender.sendMessage(ChatColor.GREEN + "Added admin floor successfully.");
+			return true;
+		}
+		if(args[0].equalsIgnoreCase("-deopfloor")) {
+			if (sender instanceof Player) {
+				Player player = (Player) sender;
+				User user = UserLoader.fromPlayer(player);
+				if (!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.SYSOP, true)) {
+					return true;
+				}
+			}
+			systemProfileLoader.removeAdminFloor(args[1], FloorLoader.fromFloorName(args[2]));
+			sender.sendMessage(ChatColor.GREEN + "Removed admin floor successfully.");
+			return true;
+		}
+		
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");
 			return true;
@@ -228,6 +256,14 @@ public class SystemLogonCommand implements CommandExecutor {
 			systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			user.setSystemProfile(null);
+			if(args.length > 1 && args[1].equalsIgnoreCase("-clean")) {
+				player.teleport(user.getSavedLocation());
+				player.setGameMode(GameMode.ADVENTURE);
+				user.setDebuggingErrors(false);
+				user.setChatSpy(false);
+				user.setGodMode(false);
+				user.setVanished(false);
+			}
 			sender.sendMessage(ChatColor.GREEN + "Successfully logged out of your system profile.");
 			return true;
 		}
@@ -242,25 +278,25 @@ public class SystemLogonCommand implements CommandExecutor {
 		}
 		UUID cid = CORRELATION.registerNewCorrelationID();
 		if (user.getSystemProfile() != null) {
-			CORRELATION.log(cid, Level.INFO, "user is currently signed in. signing out first");
+			CORRELATION.log(cid, Level.FINE, "user is currently signed in. signing out first");
 			systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			sender.sendMessage(ChatColor.GREEN + "Signed out of current system profile");
 		}
 		SystemProfile profile = systemProfileLoader.authenticateProfile(user, args[0], args[1], cid);
 		if (profile == null) {
-			CORRELATION.log(cid, Level.INFO, "user notified of error");
+			CORRELATION.log(cid, Level.FINE, "user notified of error");
 			sender.sendMessage(ChatColor.RED + "Could not log in! Make sure you are authorized on this account and entered the correct password.");
 			sender.sendMessage(ChatColor.RED + "If the issue persists, report the following error message: " + StringUtil.toHdFont("Correlation ID: " + cid));
 			rateLimiting.put(user, Long.valueOf(System.currentTimeMillis()));
 			rateLimitingCounter.put(user, Integer.valueOf(Math.max(rateLimitingCounter.getOrDefault(user, Integer.valueOf(0)) * 2, 1)));
 			return true;
 		}
-		CORRELATION.log(cid, Level.INFO, "completing sign-on");
+		CORRELATION.log(cid, Level.FINE, "completing sign-on");
 		user.setSystemProfile(profile);
 		user.setActivePermissionLevel(profile.getMaxPermissionLevel());
 		sender.sendMessage(ChatColor.GREEN + "Logged on to system console as " + profile.getProfileName() + ". Permission level: " + profile.getMaxPermissionLevel().toString());
-		CORRELATION.log(cid, Level.INFO, "sign-on complete");
+		CORRELATION.log(cid, Level.FINE, "sign-on complete");
 		return true;
 	}
 }

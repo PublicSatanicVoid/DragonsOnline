@@ -2,9 +2,9 @@ package mc.dragons.core.util;
 
 import org.bukkit.ChatColor;
 
-import mc.dragons.core.gameobject.user.PermissionLevel;
-import mc.dragons.core.gameobject.user.SystemProfile;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile;
 
 /**
  * Used primarily in commands to verify a user's access to sensitive functionality or data.

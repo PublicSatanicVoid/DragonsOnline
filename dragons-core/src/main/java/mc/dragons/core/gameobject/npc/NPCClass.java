@@ -15,6 +15,7 @@ import org.bukkit.entity.EntityType;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.npc.NPC.NPCType;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
@@ -22,7 +23,7 @@ import mc.dragons.core.storage.StorageManager;
 
 public class NPCClass extends GameObject {
 	private LootTable lootTable;
-	private NPCConditionalActions[] conditionals = new NPCConditionalActions[NPCConditionalActions.NPCTrigger.values().length];
+	private NPCConditionalActions[] conditionals = new NPCConditionalActions[NPCTrigger.values().length];
 	private List<NPCAddon> addons;
 
 	@SuppressWarnings("unchecked")
@@ -74,7 +75,7 @@ public class NPCClass extends GameObject {
 		addons.forEach(addon -> addon.onDeath(npc));
 	}
 
-	public void executeConditionals(NPCConditionalActions.NPCTrigger trigger, User user, NPC npc) {
+	public void executeConditionals(NPCTrigger trigger, User user, NPC npc) {
 		user.debug("Executing conditionals");
 		for(NPCConditionalActions conditionalAction : conditionals) {
 			if (conditionalAction.getTrigger() == trigger) {
@@ -83,7 +84,7 @@ public class NPCClass extends GameObject {
 		}
 	}
 
-	public NPCConditionalActions getConditionalActions(NPCConditionalActions.NPCTrigger trigger) {
+	public NPCConditionalActions getConditionalActions(NPCTrigger trigger) {
 		for(NPCConditionalActions conditionalAction : conditionals) {
 			if (conditionalAction.getTrigger() == trigger) {
 				return conditionalAction;
@@ -100,7 +101,7 @@ public class NPCClass extends GameObject {
 		Document lootTableData = (Document) storageAccess.get("lootTable");
 		Document regionLoot = (Document) lootTableData.get(regionName);
 		if (regionLoot == null) {
-			lootTableData.append(regionName, new Document(itemName, Double.valueOf(lootChancePercent)));
+			lootTableData.append(regionName, new Document(itemName, lootChancePercent));
 			return;
 		}
 		regionLoot.append(itemName, Double.valueOf(lootChancePercent));
@@ -154,7 +155,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public void setImmortal(boolean immortal) {
-		setData("immortal", Boolean.valueOf(immortal));
+		setData("immortal", immortal);
 	}
 
 	public boolean hasAI() {
@@ -162,7 +163,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public void setAI(boolean hasAI) {
-		setData("ai", Boolean.valueOf(hasAI));
+		setData("ai", hasAI);
 	}
 
 	public double getMaxHealth() {
@@ -170,7 +171,7 @@ public class NPCClass extends GameObject {
 	}
 
 	public void setMaxHealth(double maxHealth) {
-		setData("maxHealth", Double.valueOf(maxHealth));
+		setData("maxHealth", maxHealth);
 	}
 
 	public int getLevel() {
@@ -178,15 +179,15 @@ public class NPCClass extends GameObject {
 	}
 
 	public void setLevel(int level) {
-		setData("level", Integer.valueOf(level));
+		setData("level", level);
 	}
 
-	public NPC.NPCType getNPCType() {
-		return NPC.NPCType.valueOf((String) getData("npcType"));
+	public NPCType getNPCType() {
+		return NPCType.valueOf((String) getData("npcType"));
 	}
 
-	public void setNPCType(NPC.NPCType npcType) {
-		setData("npcType", npcType);
+	public void setNPCType(NPCType npcType) {
+		setData("npcType", npcType.toString());
 	}
 
 	public Map<Attribute, Double> getCustomAttributes() {
@@ -199,7 +200,7 @@ public class NPCClass extends GameObject {
 
 	public void setCustomAttribute(Attribute attribute, double base) {
 		Document attributes = (Document) getData("attributes");
-		attributes.append(attribute.toString(), Double.valueOf(base));
+		attributes.append(attribute.toString(), base);
 		storageAccess.update(new Document("attributes", attributes));
 	}
 

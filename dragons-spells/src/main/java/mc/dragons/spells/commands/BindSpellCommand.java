@@ -9,9 +9,9 @@ import org.bukkit.inventory.ItemStack;
 
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.spells.SpellCastAddon;
 import mc.dragons.spells.spells.Spell;

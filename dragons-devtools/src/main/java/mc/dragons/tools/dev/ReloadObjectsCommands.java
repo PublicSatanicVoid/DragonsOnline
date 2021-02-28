@@ -15,9 +15,9 @@ import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
-import mc.dragons.core.gameobject.user.PermissionLevel;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 
 public class ReloadObjectsCommands implements CommandExecutor  {

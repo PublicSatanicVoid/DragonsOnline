@@ -1,9 +1,9 @@
 package mc.dragons.social;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.user.ChannelHandler;
-import mc.dragons.core.gameobject.user.ChatChannel;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.chat.ChannelHandler;
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
 
 public class GuildChannelHandler implements ChannelHandler {
 
@@ -12,7 +12,7 @@ public class GuildChannelHandler implements ChannelHandler {
 	@Override
 	public boolean canHear(User to, User from) {
 		return to.getActiveChatChannels().contains(ChatChannel.GUILD) 
-				&& guildLoader.getAllGuildsWith(to.getUUID()).stream().filter(guildLoader.getAllGuildsWith(from.getUUID())::contains).count() > 0;
+				&& guildLoader.getAllGuildsWithRaw(to.getUUID()).stream().filter(guildLoader.getAllGuildsWithRaw(from.getUUID())::contains).count() > 0;
 	}
 
 	@Override
