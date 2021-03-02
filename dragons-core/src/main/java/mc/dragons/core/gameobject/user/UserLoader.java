@@ -151,7 +151,9 @@ public class UserLoader extends GameObjectLoader<User> {
 				.append("gamemode", GameMode.ADVENTURE.toString())
 				.append("lastReadChangeLog", 0)
 				.append("ip", player.getAddress().getAddress().getHostAddress())
-				.append("totalOnlineTime", 0L);
+				.append("ipHistory", List.of(player.getAddress().getAddress().getHostAddress()))
+				.append("totalOnlineTime", 0L)
+				.append("verified", false);
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
 		User user = new User(player, storageManager, storageAccess);
 		assign(player, user);

@@ -12,6 +12,8 @@ commands:
     aliases: vr
   godmode:
   info:
+  iphistory:
+  ipscan:
   warn:
   kick:
   mute:

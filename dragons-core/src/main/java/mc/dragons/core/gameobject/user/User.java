@@ -164,17 +164,18 @@ public class User extends GameObject {
 		UUID initCorrelationID = CORRELATION.registerNewCorrelationID();
 		CORRELATION.log(initCorrelationID, Level.FINE, "initializing player " + player);
 		LOGGER.fine("Initializing user " + this + " on player " + player);
+		boolean errorFlag = false;
 		this.player = player;
 		if (player != null) {
 			CORRELATION.log(initCorrelationID, Level.FINE, "bukkit player exists");
 			setData("lastLocation", StorageUtil.locToDoc(player.getLocation()));
-			setData("health", Double.valueOf(player.getHealth()));
+			setData("health", player.getHealth());
 			player.getInventory().clear();
 			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
 			if (getData("health") != null) {
 				player.setHealth((double) getData("health"));
 			}
-			loadInventory(initCorrelationID);
+			errorFlag |= loadInventory(initCorrelationID);
 		}
 		questProgress = new HashMap<>();
 		questActionIndices = new HashMap<>();
@@ -186,7 +187,12 @@ public class User extends GameObject {
 		guiHotfixOpenedBefore = new ArrayList<>();
 		userHookRegistry.getHooks().forEach(h -> h.onInitialize(this));
 		instance.getSidebarManager().createScoreboard(player);
-		CORRELATION.log(initCorrelationID, Level.FINE, "initialization complete");
+		if(errorFlag) {
+			CORRELATION.log(initCorrelationID, Level.WARNING, "an error occurred during initialization.");
+		}
+		else {
+			CORRELATION.discard(initCorrelationID);
+		}
 		LOGGER.fine("Finished initializing user " + this);
 		return this;
 	}
@@ -649,8 +655,11 @@ public class User extends GameObject {
 		LOGGER.finer("-Creating message text component");
 		String messageSenderInfo = "";
 		boolean offDuty = false;
+		if(isVerified()) {
+			messageSenderInfo = ChatColor.GREEN + "✓ " + ChatColor.GRAY;
+		}
 		if(getRank().isStaff() && getSystemProfile() == null) {
-			messageSenderInfo = getRank().getNameColor() + Rank.OFF_DUTY_STAFF_PREFIX + " ";
+			messageSenderInfo += getRank().getNameColor() + Rank.OFF_DUTY_STAFF_PREFIX + " ";
 			offDuty = true;
 		}
 		else if (getRank().hasChatPrefix()) {
@@ -825,7 +834,12 @@ public class User extends GameObject {
 	 * Inventory management
 	 */
 	
-	private void loadInventory(UUID cid) {
+	/**
+	 * 
+	 * @param cid
+	 * @return whether an error occurred.
+	 */
+	private boolean loadInventory(UUID cid) {
 		Document inventory = (Document) getData("inventory");
 		CORRELATION.log(cid, Level.FINEST, "stored inventory data: " + inventory);
 		List<UUID> usedItems = new ArrayList<>();
@@ -880,6 +894,7 @@ public class User extends GameObject {
 		if(error) {
 			player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
+		return error;
 	}
 	
 	public void clearInventory() {
@@ -974,13 +989,22 @@ public class User extends GameObject {
 		updateVanishState();
 		updateVanishStatesOnSelf();
 		updateVanillaLeveling();
-		setData("ip", player.getAddress().getAddress().getHostAddress());
+		String ip = player.getAddress().getAddress().getHostAddress();
+		setData("ip", ip);
+		
+		@SuppressWarnings("unchecked")
+		List<String> ipHistory = (List<String>) getData("ipHistory");
+		if(!ipHistory.contains(ip)) {
+			ipHistory.add(ip);
+		}
+		setData("ipHistory", ipHistory);
+		
 		LOGGER.exiting("User", "handleJoin");
 	}
 
 	public void handleQuit() {
 		autoSave();
-		setData("totalOnlineTime", Long.valueOf(getTotalOnlineTime() + getLocalOnlineTime()));
+		setData("totalOnlineTime", getTotalOnlineTime() + getLocalOnlineTime());
 		if (!isVanished() && joined) {
 			Bukkit.broadcastMessage(ChatColor.GRAY + player.getName() + " left!");
 		}
@@ -1029,6 +1053,11 @@ public class User extends GameObject {
 	public String getLastIP() {
 		return (String) getData("ip");
 	}
+	
+	@SuppressWarnings("unchecked")
+	public List<String> getIPHistory() {
+		return (List<String>) getData("ipHistory");
+	}
 
 	public Rank getRank() {
 		return Rank.valueOf((String) getData("rank"));
@@ -1043,15 +1072,15 @@ public class User extends GameObject {
 	}
 
 	public Date getFirstJoined() {
-		return new Date(((Long) getData("firstJoined")).longValue());
+		return new Date((long) getData("firstJoined"));
 	}
 
 	public Date getLastJoined() {
-		return new Date(((Long) getData("lastJoined")).longValue());
+		return new Date((long) getData("lastJoined"));
 	}
 
 	public Date getLastSeen() {
-		return new Date(((Long) getData("lastSeen")).longValue());
+		return new Date((long) getData("lastSeen"));
 	}
 
 	public boolean hasJoined() {
@@ -1059,11 +1088,11 @@ public class User extends GameObject {
 	}
 	
 	public long getTotalOnlineTime() {
-		return ((Long) getData("totalOnlineTime")).longValue();
+		return (long) getData("totalOnlineTime");
 	}
 
 	public long getLocalOnlineTime() {
-		return (long) Math.floor((System.currentTimeMillis() - ((Long) getData("lastJoined")).longValue()) / 1000L);
+		return (long) Math.floor((System.currentTimeMillis() - ((long) getData("lastJoined"))) / 1000L);
 	}
 
 	public Player getPlayer() {
@@ -1451,6 +1480,23 @@ public class User extends GameObject {
 		return true;
 	}
 	
+	public boolean isVerified() {
+		return (boolean) getData("verified");
+	}
+	
+	public void setVerified(boolean verified) {
+		setData("verified", verified);
+		if(player != null) {
+			if(verified) {
+				player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now verified!");
+				player.sendMessage(ChatColor.GRAY + "The staff have determined that you are a trusted member of the community.");
+			}
+			else {
+				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Your verification status was revoked.");
+			}
+		}
+	}
+	
 	
 	/*
 	 * Skill management
@@ -1497,8 +1543,9 @@ public class User extends GameObject {
 		List<PunishmentData> history = new ArrayList<>();
 		List<Document> results = (List<Document>) getData("punishmentHistory");
 		for (Document entry : results) {
-			Date expiry = new Date(1000L * (entry.getLong("banDate").longValue() + entry.getLong("duration").longValue()));
-			history.add(new PunishmentData(PunishmentType.valueOf(entry.getString("type")), entry.getString("reason"), expiry, entry.getLong("duration").longValue() == -1L));
+			history.add(PunishmentData.fromDocument(entry));
+			//Date expiry = new Date(1000L * (entry.getLong("banDate").longValue() + entry.getLong("duration").longValue()));
+			//history.add(new PunishmentData(PunishmentType.valueOf(entry.getString("type")), entry.getString("reason"), expiry, entry.getLong("duration").longValue() == -1L));
 		}
 		return history;
 	}
@@ -1509,7 +1556,7 @@ public class User extends GameObject {
 
 	public void punish(PunishmentType punishmentType, String reason, long durationSeconds) {
 		long now = Instant.now().getEpochSecond();
-		Document punishment = new Document("type", punishmentType.toString()).append("reason", reason).append("duration", Long.valueOf(durationSeconds)).append("banDate", Long.valueOf(now));
+		Document punishment = new Document("type", punishmentType.toString()).append("reason", reason).append("duration", durationSeconds).append("banDate", now);
 		setData(punishmentType.getDataHeader(), punishment);
 		
 		@SuppressWarnings("unchecked")
@@ -1555,14 +1602,14 @@ public class User extends GameObject {
 	}
 
 	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {
-		Document banData = (Document) getData(punishmentType.getDataHeader());
+		/*Document banData = (Document) getData(punishmentType.getDataHeader());
 		if (banData == null) {
 			return null;
 		}
 		PunishmentType type = PunishmentType.valueOf(banData.getString("type"));
 		String reason = banData.getString("reason");
-		long duration = banData.getLong("duration").longValue();
-		long banDate = banData.getLong("banDate").longValue();
+		long duration = banData.getLong("duration");
+		long banDate = banData.getLong("banDate");
 		long now = Instant.now().getEpochSecond();
 		Date expiry = new Date(1000L * (banDate + duration));
 		if (duration == -1L) {
@@ -1571,7 +1618,8 @@ public class User extends GameObject {
 		if (now > banDate + duration) {
 			return null;
 		}
-		return new PunishmentData(type, reason, expiry, false);
+		return new PunishmentData(type, reason, expiry, false);*/
+		return PunishmentData.fromDocument((Document) getData(punishmentType.getDataHeader()));
 	}
 
 	
@@ -1586,9 +1634,11 @@ public class User extends GameObject {
 			return;
 		}
 		sendActionBar(ChatColor.GREEN + "Autosaving...");
-		Document autoSaveData = new Document("lastSeen", Long.valueOf(System.currentTimeMillis()))
-				.append("maxHealth", Double.valueOf(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())).append("health", Double.valueOf(player.getHealth()))
-				.append("gamemode", joined ? player.getGameMode().toString() : getSavedGameMode().toString()).append("inventory", getInventoryAsDocument());
+		Document autoSaveData = new Document("lastSeen", System.currentTimeMillis())
+				.append("maxHealth", player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())
+				.append("health", player.getHealth())
+				.append("gamemode", joined ? player.getGameMode().toString() : getSavedGameMode().toString())
+				.append("inventory", getInventoryAsDocument());
 		if (joined) {
 			String key = PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false) ? "lastStaffLocation" : "lastLocation";
 			Floor floor = FloorLoader.fromLocation(player.getLocation());

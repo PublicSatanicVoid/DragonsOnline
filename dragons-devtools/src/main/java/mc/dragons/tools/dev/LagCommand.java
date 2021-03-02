@@ -35,6 +35,7 @@ public class LagCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;
 		User user = null;
+		boolean advanced = true;
 		
 		if(sender instanceof Player) {
 			player = (Player) sender;
@@ -45,12 +46,15 @@ public class LagCommand implements CommandExecutor {
 					return true;
 				}
 				cooldown.put(user, System.currentTimeMillis());
+				advanced = false;
 			}
 		}
 	
-		sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
-		sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName()
+		if(advanced) {
+			sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
+			sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName()
 				+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
+		}
 		List<Double> tpsRecord = Dragons.getInstance().getTPSRecord();
 		final int[] tps_thresholds = new int[] { 5, 10, 15, 18, 19 };
 		String[] graph = new String[tps_thresholds.length];
@@ -60,11 +64,11 @@ public class LagCommand implements CommandExecutor {
 			while (time_back > tpsRecord.size()) {
 				time_back -= time_step;
 			}
-			if (time_back == 0) {
+			if (time_back == 0 && advanced) {
 				sender.sendMessage(ChatColor.GRAY + "Not enough data points to show TPS graph.");
 			}
 		}
-		if (time_back != 0) {
+		if (time_back != 0 && advanced) {
 			sender.sendMessage(ChatColor.GREEN + "TPS Graph:" + ChatColor.GRAY + " (Last "
 					+ ((double) time_back / 60) + " mins, intervals of " + ((double) time_step / 60)
 					+ " mins)");
@@ -100,7 +104,7 @@ public class LagCommand implements CommandExecutor {
 		}
 
 		ArrayUtils.reverse(graph);
-		if (time_back != 0) {
+		if (time_back != 0 && advanced) {
 			for (String line : graph) {
 				sender.sendMessage(line);
 			}
@@ -125,38 +129,50 @@ public class LagCommand implements CommandExecutor {
 		}
 		if (lastSpike != -1) {
 			lastSpike = tpsRecord.size() - lastSpike;
-			sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + "" + lastSpike
+			if(advanced) {
+				sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + "" + lastSpike
 					+ "s ago");
-		} else {
+			}
+		} else if(advanced) {
 			sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + "> "
 					+ (tpsRecord.size() / 60) + " minutes ago");
-		}
-		sender.sendMessage(ChatColor.GREEN + "Server Uptime: " + ChatColor.GRAY + StringUtil.parseSecondsToTimespan(Dragons.getInstance().getUptime() / 1000));
+		}		
 		double avgTPS = MathUtil.round(totalTPS / count, 2);
-		sender.sendMessage(ChatColor.GREEN + "Min, Avg, Max, Current TPS: " + ChatColor.GRAY + "" + minTPS + ", " + avgTPS + ", " + maxTPS + ", " + LagMeter.getRoundedTPS());
-		//sender.sendMessage(ChatColor.DARK_GRAY + "" + ChatColor.ITALIC + " TPS values are estimates only and may be inaccurate."); // We capped TPS so it doesn't go crazy on us
 		double memoryUsedMB = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Math.pow(10, 6);
 		double memoryAvailableMB = Runtime.getRuntime().totalMemory() / Math.pow(10, 6);
 		double memoryUsedPerc = memoryUsedMB / memoryAvailableMB * 100;
-		sender.sendMessage(ChatColor.GREEN + "Used Memory / Total Memory: " + ChatColor.GRAY
-				+ MathUtil.round(memoryUsedMB) + "MB / " + MathUtil.round(memoryAvailableMB) + "MB (" + MathUtil.round(memoryUsedPerc) + "%)");
-		sender.sendMessage(ChatColor.GREEN + "CPU Cores: " + ChatColor.GRAY + ""
-				+ Runtime.getRuntime().availableProcessors() + ChatColor.GREEN + " - Active Threads: " + ChatColor.GRAY + Thread.activeCount()
-				+ ChatColor.GREEN + " - Chunks: " + ChatColor.GRAY + "" + Dragons.getInstance().getLoadedChunks().size() + ChatColor.GREEN
-				+ " - Entities: " + ChatColor.GRAY + Dragons.getInstance().getEntities().size());
+		
+		if(advanced) {
+			sender.sendMessage(ChatColor.GREEN + "Server Uptime: " + ChatColor.GRAY + StringUtil.parseSecondsToTimespan(Dragons.getInstance().getUptime() / 1000));
+	
+			sender.sendMessage(ChatColor.GREEN + "Min, Avg, Max, Current TPS: " + ChatColor.GRAY + "" + minTPS + ", " + avgTPS + ", " + maxTPS + ", " + LagMeter.getRoundedTPS());
+			//sender.sendMessage(ChatColor.DARK_GRAY + "" + ChatColor.ITALIC + " TPS values are estimates only and may be inaccurate."); // We capped TPS so it doesn't go crazy on us
+	
+			sender.sendMessage(ChatColor.GREEN + "Used Memory / Total Memory: " + ChatColor.GRAY
+					+ MathUtil.round(memoryUsedMB) + "MB / " + MathUtil.round(memoryAvailableMB) + "MB (" + MathUtil.round(memoryUsedPerc) + "%)");
+			sender.sendMessage(ChatColor.GREEN + "CPU Cores: " + ChatColor.GRAY + ""
+					+ Runtime.getRuntime().availableProcessors() + ChatColor.GREEN + " - Active Threads: " + ChatColor.GRAY + Thread.activeCount()
+					+ ChatColor.GREEN + " - Chunks: " + ChatColor.GRAY + "" + Dragons.getInstance().getLoadedChunks().size() + ChatColor.GREEN
+					+ " - Entities: " + ChatColor.GRAY + Dragons.getInstance().getEntities().size());
+		}
 		
 		boolean warn = memoryUsedPerc > 70 || minTPS < 10 || avgTPS < 17;
 		
 		if(warn) {
 			UUID cid = CORRELATION.registerNewCorrelationID();
 			CORRELATION.log(cid, Level.WARNING, "Server " + Dragons.getInstance().getServerName() + " may be experiencing performance issues.");
-			CORRELATION.log(cid, Level.WARNING, "Memory used %: " + memoryUsedPerc + " - Min TPS: " + minTPS + " - Avg TPS: " + avgTPS + " - Curr TPS: " + LagMeter.getRoundedTPS());
+			CORRELATION.log(cid, Level.WARNING, "N=" + tpsRecord.size() + " - Uptime: " + Dragons.getInstance().getUptime()/1000 + "s - Last Spike: " + lastSpike + "s ago - Memory used %: " + memoryUsedPerc + 
+					" - Min TPS: " + minTPS + " - Avg TPS: " + avgTPS + " - Curr TPS: " + LagMeter.getRoundedTPS() + " - Chunks: " + Dragons.getInstance().getLoadedChunks().size() + " - Entities: " + Dragons.getInstance().getEntities().size());
 			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "/!\\ " + ChatColor.RED + "Server may be experiencing performance issues. ");
 			sender.sendMessage(ChatColor.RED + "     " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
+		else {
+			sender.sendMessage(ChatColor.GREEN + "No issues detected with server performance.");
+		}
 
-		sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
-		
+		if(advanced) {
+			sender.sendMessage(ChatColor.DARK_GRAY + "------------------------------------------------------");
+		}
 		return true;
 	}
 

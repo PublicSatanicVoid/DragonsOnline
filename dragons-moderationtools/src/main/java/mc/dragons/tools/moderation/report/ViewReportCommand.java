@@ -33,7 +33,7 @@ public class ViewReportCommand implements CommandExecutor {
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "/vr <ID>");
 			sender.sendMessage(ChatColor.RED + "/vr <ID> -addnote <Note>");
-			sender.sendMessage(ChatColor.RED + "/vr <ID> -setstatus <Open|Closed>");
+			sender.sendMessage(ChatColor.RED + "/vr <ID> -setstatus <OPEN|NO_ACTION|ACTION_TAKEN>");
 			return true;
 		}
 		
@@ -73,20 +73,20 @@ public class ViewReportCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/vr <ID> -addnote <Note>");
 				return true;
 			}
-			report.addNote(StringUtil.concatArgs(args, 2));
+			report.addNote(StringUtil.concatArgs(args, 2) + " (by " + user.getName() + ")");
 			sender.sendMessage(ChatColor.GREEN + "Note added successfully.");
 			return true;
 		}
 		if(args[1].equalsIgnoreCase("-setstatus")) {
 			if(args.length == 2) {
-				sender.sendMessage(ChatColor.RED + "/vr <ID> -setstatus <Open|Closed>");
+				sender.sendMessage(ChatColor.RED + "/vr <ID> -setstatus <OPEN|NO_ACTION|ACTION_TAKEN>");
 				return true;
 			}
 			ReportStatus status = StringUtil.parseEnum(sender, ReportStatus.class, args[2]);
 			if(status == null) return true;
 			report.setStatus(status);
 			report.addNote("Status set to " + status + " by " + user.getName());
-			if(status == ReportStatus.CLOSED) {
+			if(status != ReportStatus.OPEN) {
 				report.setReviewedBy(user);
 			}
 			sender.sendMessage(ChatColor.GREEN + "Status changed successfully.");

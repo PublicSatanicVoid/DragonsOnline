@@ -33,7 +33,7 @@ public class ReportsCommand implements CommandExecutor {
 		if(!PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.MODERATION, true)) return true;
 		
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.RED + "/reports <all-open|all-closed|escalation|chat|internal|regular|by <player>|on <player>> [-page <#>]");
+			sender.sendMessage(ChatColor.RED + "/reports <all|all-open|escalation|chat|internal|regular|by <player>|on <player>> [-page <#>]");
 			return true;
 		}
 		
@@ -44,8 +44,8 @@ public class ReportsCommand implements CommandExecutor {
 		if(args[0].equalsIgnoreCase("all-open")) {
 			results = reportLoader.getReportsByStatus(ReportStatus.OPEN, page);
 		}
-		else if(args[0].equalsIgnoreCase("all-closed")) {
-			results = reportLoader.getReportsByStatus(ReportStatus.CLOSED, page);
+		else if(args[0].equalsIgnoreCase("all")) {
+			results = reportLoader.getAllReports(page);
 		}
 		else if(args[0].equalsIgnoreCase("escalation")) {
 			results = reportLoader.getReportsByType(ReportType.STAFF_ESCALATION, page);

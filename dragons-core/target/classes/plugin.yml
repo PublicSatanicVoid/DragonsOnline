@@ -27,6 +27,8 @@ commands:
     description: (TESTER) Skip the death countdown and respawn instantly.
   heal:
     description: (MOD) Heal yourself or another player.
+  setverification:
+    description: (MOD) Update a user's verification status.
   newsmanager:
     description: (GM) Manage announcements and changelogs.
   rank:

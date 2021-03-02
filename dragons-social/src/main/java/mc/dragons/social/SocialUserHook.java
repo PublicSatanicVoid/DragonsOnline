@@ -25,16 +25,14 @@ public class SocialUserHook implements UserHook {
 			for(Guild guild : guilds) {
 				if(!guild.getMOTD().equals("")) {
 					if(!shown) {
+						user.getPlayer().sendMessage(" ");
 						user.getPlayer().sendMessage(ChatColor.GREEN + "---[ " + ChatColor.GOLD + "Guild Messages" + ChatColor.GREEN + " ]---");
 					}
 					shown = true;
-					user.getPlayer().sendMessage(" ");
 					user.getPlayer().sendMessage(guild.getThemeColor().primary() + "" + ChatColor.BOLD + guild.getName());
 					user.getPlayer().sendMessage(guild.getThemeColor().secondary() + guild.getMOTD());
+					user.getPlayer().sendMessage(" ");
 				}
-			}
-			if(shown) {
-				user.getPlayer().sendMessage(" ");
 			}
 		}, 20L);
 

@@ -126,7 +126,8 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	
 	public static enum ReportStatus {
 		OPEN,
-		CLOSED
+		NO_ACTION,
+		ACTION_TAKEN
 	}
 	
 	public ReportLoader(MongoConfig config) {
@@ -148,6 +149,10 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	public Report getReportById(int id) {
 		Document data = collection.find(new Document("_id", id)).first();
 		return fromDocument(data);
+	}
+	
+	public PaginatedResult<Report> getAllReports(int page) {
+		return parseResults(collection.find(), page);
 	}
 	
 	public PaginatedResult<Report> getReportsByType(ReportType type, int page) {

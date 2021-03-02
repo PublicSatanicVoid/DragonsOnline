@@ -75,8 +75,8 @@ public class ViewPunishmentsCommand implements CommandExecutor {
 		int i = 1;
 		for(PunishmentData entry : targetUser.getPunishmentHistory()) {
 			String duration = "";
-			if(entry.isPermanent() && entry.getType().hasDuration()) duration = "(Permanent)";
-			if(entry.getExpiry() != null) duration = "(Until " + entry.getExpiry().toString() + ")";
+			if(entry.isPermanent()) duration = "(Permanent)";
+			else if(entry.getExpiry() != null) duration = "(Until " + entry.getExpiry().toString() + ")";
 			sender.sendMessage(ChatColor.DARK_GREEN + "#" + i + ": " + ChatColor.RED + entry.getType() + ": " + ChatColor.WHITE + entry.getReason() + " " + duration);
 			i++;
 		}

@@ -82,7 +82,7 @@ public class ServerOptions {
 		SpawnEntityTask task = new SpawnEntityTask(Dragons.getInstance());
 		Dragons.getInstance().setSpawnEntityRunnable(task);
 		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
-		LOGGER.config("Custom spawn rate set to " + rate + "s.");
+		LOGGER.config("Custom spawn rate set to " + rate + "t.");
 	}
 
 	public int getCustomSpawnRate() {
@@ -122,7 +122,7 @@ public class ServerOptions {
 		VerifyGameIntegrityTask task = new VerifyGameIntegrityTask(Dragons.getInstance());
 		Dragons.getInstance().setVerifyGameIntegrityRunnable(task);
 		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
-		LOGGER.config("Game verification sweep rate set to " + rate + "s.");
+		LOGGER.config("Game verification sweep rate set to " + rate + "t.");
 	}
 
 	public int getVerifyIntegritySweepRate() {

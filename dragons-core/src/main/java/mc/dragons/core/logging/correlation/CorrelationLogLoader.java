@@ -75,6 +75,14 @@ public class CorrelationLogLoader extends AbstractLightweightLoader<CorrelationL
 		super(config, "#unused#", "correlation");
 	}
 
+	/**
+	 * Registers a new correlation ID, with which log entries may be
+	 * associated.
+	 * 
+	 * <p>Correlation IDs are encoded as UUIDs.
+	 * 
+	 * @return the new correlation ID.
+	 */
 	public UUID registerNewCorrelationID() {
 		UUID correlationID = UUID.randomUUID();
 		collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", Level.INFO.getName())
@@ -83,6 +91,14 @@ public class CorrelationLogLoader extends AbstractLightweightLoader<CorrelationL
 		return correlationID;
 	}
 	
+	/**
+	 * Appends a log message associated with the specified correlation ID,
+	 * and writes it to the standard output at the specified log level.
+	 * 
+	 * @param correlationID
+	 * @param level
+	 * @param message
+	 */
 	public void log(UUID correlationID, Level level, String message) {
 		if(correlationID == null) {
 			return;
@@ -93,6 +109,22 @@ public class CorrelationLogLoader extends AbstractLightweightLoader<CorrelationL
 				.append("instance", Dragons.getInstance().getServerName()));
 	}
 	
+	/**
+	 * Deletes all logs associated with the specified correlation ID.
+	 * 
+	 * @param correlationID
+	 */
+	public void discard(UUID correlationID) {
+		collection.deleteMany(new Document("correlationID", correlationID.toString()));
+	}
+	
+	/**
+	 * Returns an ordered list of all log entries associated with the
+	 * specified correlation ID.
+	 * 
+	 * @param startsWith
+	 * @return
+	 */
 	public List<CorrelationLogEntry> getAllByCorrelationID(String startsWith) {
 		List<CorrelationLogEntry> result = new ArrayList<>();
 		FindIterable<Document> mongoResult = collection.find(new Document("correlationID", new Document("$regex", Pattern.quote(startsWith) + ".*")));

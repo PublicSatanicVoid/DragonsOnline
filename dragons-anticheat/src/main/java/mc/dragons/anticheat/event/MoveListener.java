@@ -145,7 +145,7 @@ public class MoveListener implements Listener {
 		double lookAngle = getSignedAngleXZ(Z_AXIS, eyes);
 		double moveAngle = getSignedAngleXZ(eyes, move);
 		
-		plugin.debug(player, round(moveAngle) + " | " + /* round(dx, 5) + ", " + round(dz, 5) + " | " + */ round(dxz, 5) + " | a=" + round(a, 5) + ", b=" + round(b, 5));
+		plugin.debug(player, round(moveAngle) + " | " + /* round(dx, 5) + ", " + round(dz, 5) + " | " + */ round(dy, 5) + ", " + round(dxz, 5) + " | a=" + round(a, 5) + ", b=" + round(b, 5));
 	
 	}
 	

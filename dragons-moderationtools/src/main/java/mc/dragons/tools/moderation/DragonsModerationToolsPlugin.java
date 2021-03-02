@@ -17,6 +17,8 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		Dragons.getInstance().getLightweightLoaderRegistry().register(new ReportLoader(Dragons.getInstance().getMongoConfig()));
 		
 		getCommand("info").setExecutor(new InfoCommand());
+		getCommand("iphistory").setExecutor(new IPHistoryCommand());
+		getCommand("ipscan").setExecutor(new IPScanCommand());
 		getCommand("godmode").setExecutor(new GodModeCommand());
 		getCommand("fly").setExecutor(new FlyCommand());
 		

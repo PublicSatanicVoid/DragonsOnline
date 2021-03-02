@@ -65,7 +65,8 @@ public class SidebarManager {
 			"RANK", 
 			"GOLD", 
 			"ONLINE", 
-			"SERVER" 
+			"SERVER",
+			"STAFF_STATUS"
 		};
 		Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		player.setScoreboard(scoreboard);
@@ -126,6 +127,15 @@ public class SidebarManager {
 		String regionName = smallestRegion == null ? "None" : smallestRegion.getFlags().getString("fullname");
 		region.setPrefix(ChatColor.GRAY + "Region: " + ChatColor.WHITE);
 		region.setSuffix(getScrolledFrameAndIncrement(player, "Region", regionName));
+		Team staffStatus = scoreboard.getTeam("STAFF_STATUS");
+		if(user.getSystemProfile() != null) {
+			staffStatus.setPrefix(ChatColor.DARK_GREEN + "- " + ChatColor.GREEN + "ON DUTY");
+			staffStatus.setSuffix(ChatColor.DARK_GREEN + " -");
+		}
+		else {
+			staffStatus.setPrefix("");
+			staffStatus.setSuffix("");
+		}
 	}
 
 	private String getEntryString(int index) {

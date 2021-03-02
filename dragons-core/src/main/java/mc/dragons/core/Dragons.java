@@ -29,6 +29,7 @@ import mc.dragons.core.commands.MyQuestsCommand;
 import mc.dragons.core.commands.QuestDialogueCommands;
 import mc.dragons.core.commands.RankCommand;
 import mc.dragons.core.commands.RespawnCommand;
+import mc.dragons.core.commands.SetVerificationCommand;
 import mc.dragons.core.commands.StuckQuestCommand;
 import mc.dragons.core.commands.SystemLogonCommand;
 import mc.dragons.core.events.EntityCombustListener;
@@ -250,6 +251,7 @@ public class Dragons extends JavaPlugin {
 		getCommand("syslogon").setExecutor(new SystemLogonCommand(this));
 		getCommand("respawn").setExecutor(new RespawnCommand());
 		getCommand("heal").setExecutor(new HealCommand());
+		getCommand("setverification").setExecutor(new SetVerificationCommand());
 		getCommand("feedback").setExecutor(new FeedbackCommand(this));
 		getCommand("myquests").setExecutor(new MyQuestsCommand());
 		getCommand("help").setExecutor(new HelpCommand());
