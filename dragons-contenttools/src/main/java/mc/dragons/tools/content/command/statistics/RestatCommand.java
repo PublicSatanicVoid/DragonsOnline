@@ -2,32 +2,21 @@ package mc.dragons.tools.content.command.statistics;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.util.PermissionUtil;
 
-public class RestatCommand implements CommandExecutor {
+public class RestatCommand extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!(sender instanceof Player)) {
-			sender.sendMessage(ChatColor.RED + "This is an ingame-only command.");
-			return true;
-		}
+		if(!requirePermission(sender, PermissionLevel.GM) || !requirePlayer(sender)) return true;
 		
-		Player player = (Player) sender;
-		User user = UserLoader.fromPlayer(player);
-		
-		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) {
-			return true;
-		}
+		User user = user(sender);
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "/restat armor <ArmorValue>");
@@ -47,7 +36,6 @@ public class RestatCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You must hold the item you want to restat!");
 			return true;
 		}
-		
 		
 		if(args[0].equalsIgnoreCase("armor")) {
 			heldItem.setArmor(Double.valueOf(args[1]));
@@ -90,7 +78,7 @@ public class RestatCommand implements CommandExecutor {
 		}
 		
 		else {
-			sender.sendMessage(ChatColor.RED + "Invalid arguments!");
+			sender.sendMessage(ChatColor.RED + "Invalid arguments! /restat");
 			return true;
 		}
 

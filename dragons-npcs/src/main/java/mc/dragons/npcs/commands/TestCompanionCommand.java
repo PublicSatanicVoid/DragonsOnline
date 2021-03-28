@@ -2,33 +2,25 @@ package mc.dragons.npcs.commands;
 
 import java.util.UUID;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
-public class TestCompanionCommand implements CommandExecutor {
+public class TestCompanionCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!(sender instanceof Player)) {
-			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");
-		}
-		
-		Player player = (Player) sender;
-		User user = UserLoader.fromPlayer(player);
-		
-		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) return true;
+		if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.GM)) return true;
+		Player player = player(sender);
+		User user = user(sender);
 		
 		if(args.length == 0) {
 			sender.sendMessage("/testcompanion remove");
@@ -57,18 +49,15 @@ public class TestCompanionCommand implements CommandExecutor {
 			sender.sendMessage("companionUUID=" + companionUUID);
 			sender.sendMessage("companion name=" + companion.getName());
 			sender.sendMessage("companion location=" + StringUtil.locToString(companion.getEntity().getLocation()));
-			return true;
 		}
 		
-		if(args[0].equalsIgnoreCase("tphere")) {
+		else if(args[0].equalsIgnoreCase("tphere")) {
 			companion.getEntity().teleport(player);
-			return true;
 		}
 		
-		if(args[0].equalsIgnoreCase("remove")) {
+		else if(args[0].equalsIgnoreCase("remove")) {
 			user.getStorageAccess().set("companion", null);
 			companion.getEntity().remove();
-			return true;
 		}
 		
 		sender.sendMessage("I dont understandddddd");

@@ -2,41 +2,29 @@ package mc.dragons.tools.content.command.builder;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.util.PermissionUtil;
 
-public class ClearInventoryCommand implements CommandExecutor {
+public class ClearInventoryCommand extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!(sender instanceof Player)) {
-			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");
-			return true;
-		}
-		
-		Player player = (Player) sender;
-		User user = UserLoader.fromPlayer(player);
-		
-		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, true)) return true;
-		
+		if(!requirePlayer(sender)) return true;
+		if(!requirePermission(sender, PermissionLevel.TESTER)) return true;
+
 		if(args.length == 0) {
-			player.sendMessage(ChatColor.GOLD + "Warning!" + ChatColor.YELLOW + " This will clear all items from your inventory. This cannot be undone.");
-			player.sendMessage(ChatColor.YELLOW + "Type" + ChatColor.GOLD + " /clear confirm" + ChatColor.YELLOW + " to proceed.");
+			sender.sendMessage(ChatColor.GOLD + "Warning! " + ChatColor.YELLOW + "This will clear all items from your inventory. This cannot be undone.");
+			sender.sendMessage(ChatColor.YELLOW + "Type " + ChatColor.GOLD + "/clear confirm" + ChatColor.YELLOW + " to proceed.");
 			return true;
 		}
-		else {
-			if(args[0].equalsIgnoreCase("confirm")) {
-				user.clearInventory();
-				player.sendMessage(ChatColor.GREEN + "Cleared your inventory.");
-				return true;
-			}
+		else if(args[0].equalsIgnoreCase("confirm")) {
+			user(sender).clearInventory();
+			sender.sendMessage(ChatColor.GREEN + "Cleared your inventory.");
+			return true;
 		}
+		
 		
 		return true;
 	}

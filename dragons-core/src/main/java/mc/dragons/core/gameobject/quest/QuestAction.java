@@ -435,9 +435,16 @@ public class QuestAction {
 			if (npc.getEntity() instanceof Attributable) {
 				speed = ((Attributable) npc.getEntity()).getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
 			}
+			boolean hasAI = Dragons.getInstance().getBridge().hasAI(npc.getEntity());
+			if(hasAI) {
+				Dragons.getInstance().getBridge().setEntityAI(npc.getEntity(), false);
+			}
 			PathfindingUtil.walkToLocation(npc.getEntity(), to, speed, e -> {
 				if (stage != -1) {
 					user.updateQuestProgress(quest, quest.getSteps().get(stage), false);
+				}
+				if(hasAI) {
+					Dragons.getInstance().getBridge().setEntityAI(e, true);
 				}
 			});
 			return new QuestActionResult(stage != -1, false);

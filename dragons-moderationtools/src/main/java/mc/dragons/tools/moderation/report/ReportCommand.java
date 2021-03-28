@@ -4,51 +4,48 @@ import java.util.regex.Pattern;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class ReportCommand implements CommandExecutor {
+public class ReportCommand extends DragonsCommandExecutor {
 
 	public static String[][] GENERIC_REASONS = {
 			{ "Suspected Hacking or Cheating", "Modded game client or other non-Vanilla behavior" },
 			{ "Residence Content Violation", "A residence owned by this user does not follow community standards" },
 			{ "Guild Content Violation", "A guild owned by this user does not follow community standards" },
 			{ "Trolling or Abuse", "Misusing game features to harass others or ruin the gameplay experience" },
-			{ "Language or Spamming", "Please click on the message that is in violation instead!" },
-			{ "Other Violation", "Please use /report <player> <reason for reporting> instead!" }
+			{ "Language or Spamming", ChatColor.RED + "Please click on the message that is in violation instead!" },
+			{ "Other Violation", ChatColor.RED + "Please use /report <player> <reason for reporting> instead!" }
 	};
 	
 	private static String CONFIRMATION_FLAG = " --internal-confirm-and-submit";
 	
-	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-	private ReportLoader reportLoader;
-	
-	public ReportCommand(Dragons instance) {
-		reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
-	}
+	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if(!requirePlayer(sender)) return true;
 		if(args.length < 1) {
 			sender.sendMessage(ChatColor.RED + "/report <player> [reason for reporting]");
 			return true;
 		}
 		
-		User reporter = UserLoader.fromPlayer((Player) sender);
-		User target = userLoader.loadObject(args[0]);
+		User reporter = user(sender);
+		User target = lookupUser(sender, args[0]);
 		if(target == null) {
 			sender.sendMessage(ChatColor.RED + "No player by the name of \"" + args[0] + "\" was found in our records!");
+			return true;
+		}
+		
+		if(target.equals(reporter) && !reporter.getLocalData().getBoolean("canSelfReport", false)) {
+			sender.sendMessage(ChatColor.RED + "You can't report yourself!");
 			return true;
 		}
 		

@@ -41,6 +41,12 @@ public class MongoStorageAccess implements StorageAccess {
 		this.document.putAll(document);
 		collection.updateOne(identifier.getDocument(), new Document("$set", document));
 	}
+	
+	@Override
+	public void delete(String key) {
+		this.document.remove(key);
+		collection.updateOne(identifier.getDocument(), new Document("$unset", new Document(key, null)));
+	}
 
 	@Override
 	public Object get(String key) {

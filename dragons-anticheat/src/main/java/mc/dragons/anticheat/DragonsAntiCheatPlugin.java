@@ -12,13 +12,20 @@ import mc.dragons.anticheat.event.MoveListener;
 public class DragonsAntiCheatPlugin extends JavaPlugin {
 	private boolean debug;
 	
+	private MoveListener moveListener;
+	
 	@Override
 	public void onEnable() {
 		CommandExecutor ac = new AntiCheatCommand(this);
 		getCommand("ac").setExecutor(ac);
 		getCommand("acdebug").setExecutor(ac);
+		getCommand("acflushlog").setExecutor(ac);
+		getCommand("acstartlog").setExecutor(ac);
+		getCommand("acblockdata").setExecutor(ac);
 		
-		Bukkit.getServer().getPluginManager().registerEvents(new MoveListener(this), this);
+		moveListener = new MoveListener(this);
+		
+		Bukkit.getServer().getPluginManager().registerEvents(moveListener, this);
 	}
 	
 	
@@ -34,6 +41,10 @@ public class DragonsAntiCheatPlugin extends JavaPlugin {
 		if(debug) {
 			sender.sendMessage(ChatColor.DARK_RED + "* " + ChatColor.RESET + message);
 		}
+	}
+	
+	public MoveListener getMoveListener() {
+		return moveListener;
 	}
 	
 }

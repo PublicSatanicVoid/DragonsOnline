@@ -64,7 +64,7 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> {
 		Document data = new Document("_id", UUID.randomUUID()).append("className", className).append("name", name).append("nameColor", nameColor.name()).append("materialType", material.toString())
 				.append("lvMin", Integer.valueOf(levelMin)).append("cooldown", Double.valueOf(cooldown)).append("unbreakable", Boolean.valueOf(unbreakable))
 				.append("undroppable", Boolean.valueOf(undroppable)).append("damage", Double.valueOf(damage)).append("armor", Double.valueOf(armor)).append("speedBoost", Double.valueOf(speedBoost))
-				.append("lore", lore).append("maxStackSize", Integer.valueOf(maxStackSize)).append("addons", new ArrayList<String>());
+				.append("lore", lore).append("maxStackSize", Integer.valueOf(maxStackSize)).append("addons", new ArrayList<String>()).append("gmlock", false);
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.ITEM_CLASS, data);
 		ItemClass itemClass = new ItemClass(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(itemClass);

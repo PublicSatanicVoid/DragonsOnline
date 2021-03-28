@@ -21,19 +21,19 @@ import mc.dragons.core.gameobject.user.UserLoader;
  *
  */
 public enum GameObjectType {
-	USER(UserLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	ITEM_CLASS(ItemClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	ITEM(ItemLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	NPC_CLASS(NPCClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	NPC(NPCLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	QUEST(QuestLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	STRUCTURE(StructureLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	REGION(RegionLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	FLOOR(FloorLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager()));
+	USER(true, UserLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	ITEM_CLASS(false, ItemClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	ITEM(false, ItemLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	NPC_CLASS(false, NPCClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	NPC(true, NPCLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	QUEST(false, QuestLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	STRUCTURE(false, StructureLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	REGION(false, RegionLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
+	FLOOR(false, FloorLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager()));
 	
 	private GameObjectLoader<?> loader;
 
-	<T extends GameObject> GameObjectType(GameObjectLoader<T> loader) {
+	<T extends GameObject> GameObjectType(boolean autoSaveable, GameObjectLoader<T> loader) {
 		this.loader = loader;
 	}
 

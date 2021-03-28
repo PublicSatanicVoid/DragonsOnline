@@ -1,26 +1,27 @@
 package mc.dragons.social;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.permission.SystemProfile;
-import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.punishment.PunishmentData;
+import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.StringUtil;
 
-public class PrivateMessageCommands implements CommandExecutor {
+public class PrivateMessageCommands extends DragonsCommandExecutor {
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		Player player = null;
 		User user = null;
 		if (sender instanceof Player) {
-			player = (Player) sender;
-			user = UserLoader.fromPlayer(player);
+			player = player(sender);
+			user = user(sender);
 			if (!user.hasJoined()) {
 				sender.sendMessage(ChatColor.RED + "You are not joined yet!");
 				return true;
@@ -29,7 +30,14 @@ public class PrivateMessageCommands implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Chat is unavailable while in active dialogue!");
 				return true;
 			}
+			PunishmentData mute = user.getActivePunishmentData(PunishmentType.MUTE);
+			if (mute != null) {
+				player.sendMessage(ChatColor.RED + "You are muted!" + (mute.getReason().equals("") ? "" : " (" + mute.getReason() + ")"));
+				player.sendMessage(ChatColor.RED + "Expires " + mute.getExpiry().toString());
+				return true;
+			}
 		}
+		
 		if (label.equalsIgnoreCase("msg") || label.equalsIgnoreCase("tell") || label.equalsIgnoreCase("whisper") || label.equalsIgnoreCase("m") || label.equalsIgnoreCase("t")
 				|| label.equalsIgnoreCase("w")) {
 			if (args.length < 2) {
@@ -38,11 +46,8 @@ public class PrivateMessageCommands implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/msg <player> <message>");
 				return true;
 			}
-			Player target = Bukkit.getPlayerExact(args[0]);
-			if (target == null) {
-				sender.sendMessage(ChatColor.RED + "That player is not online!");
-				return true;
-			}
+			Player target = lookupPlayer(sender, args[0]);
+			if(target == null) return true;
 			if (target.equals(player)) {
 				sender.sendMessage(ChatColor.RED + "You can't message yourself!");
 				return true;
@@ -62,11 +67,9 @@ public class PrivateMessageCommands implements CommandExecutor {
 			targetUser.setLastReceivedMessageFrom(sender);
 			return true;
 		}
-		if (player == null) {
-			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");
-			return true;
-		}
-		if (label.equalsIgnoreCase("reply") || label.equalsIgnoreCase("re") || label.equalsIgnoreCase("r")) {
+		
+		else if (label.equalsIgnoreCase("reply") || label.equalsIgnoreCase("re") || label.equalsIgnoreCase("r")) {
+			if(!requirePlayer(sender)) return true;
 			if (args.length == 0) {
 				if (!label.equalsIgnoreCase("reply"))
 					sender.sendMessage(ChatColor.RED + "Alias for /reply.");
@@ -95,9 +98,9 @@ public class PrivateMessageCommands implements CommandExecutor {
 			}
 			return true;
 		}
-		if (label.equalsIgnoreCase("chatspy")) {
-			if (!PermissionUtil.verifyActiveProfileFlag(user, SystemProfile.SystemProfileFlags.SystemProfileFlag.MODERATION, true))
-				return true;
+		
+		else if (label.equalsIgnoreCase("chatspy")) {
+			if(!requirePlayer(sender) || !hasPermission(sender, SystemProfileFlag.MODERATION)) return true;
 			user.setChatSpy(!user.hasChatSpy());
 			sender.sendMessage(ChatColor.GREEN + "Chat spy " + (user.hasChatSpy() ? "enabled" : "disabled"));
 			return true;

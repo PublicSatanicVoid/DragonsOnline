@@ -39,6 +39,11 @@ public class PunishmentData {
 		return expiry;
 	}
 
+	public boolean hasExpired() {
+		if(permanent) return false;
+		return expiry.before(Date.from(Instant.now()));
+	}
+	
 	public boolean isPermanent() {
 		return permanent;
 	}
@@ -46,7 +51,7 @@ public class PunishmentData {
 	public static PunishmentData fromDocument(Document data) {
 		if(data == null) return null;
 		PunishmentData pdata = new PunishmentData(data);
-		if(!pdata.isPermanent() && pdata.expiry.before(Date.from(Instant.now()))) return null;
+		//if(!pdata.isPermanent() && pdata.expiry.before(Date.from(Instant.now()))) return null;
 		return pdata;
 	}
 }

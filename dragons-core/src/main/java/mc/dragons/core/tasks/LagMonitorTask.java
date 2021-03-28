@@ -16,7 +16,7 @@ import mc.dragons.core.Dragons;
  *
  */
 public class LagMonitorTask extends BukkitRunnable {
-	public static final double TPS_RECORD_LENGTH = 3000.0D;
+	public static final double TPS_RECORD_LENGTH = 3000;
 	public static final double TPS_WARN_THRESHOLD = 16.0D;
 
 	public static Logger LOGGER = Dragons.getInstance().getLogger();
@@ -33,16 +33,17 @@ public class LagMonitorTask extends BukkitRunnable {
 			while (true) {
 				Thread.sleep(1000L);
 				double tps = LagMeter.getRoundedTPS();
-				if (tpsRecord.size() >= 3000.0D) {
+				if (tpsRecord.size() >= TPS_RECORD_LENGTH) {
 					tpsRecord.remove(0);
 				}
-				tpsRecord.add(Double.valueOf(tps));
-				if (tps <= 16.0D) {
+				tpsRecord.add(tps);
+				if (tps <= TPS_WARN_THRESHOLD) {
 					LOGGER.warning("TPS is unusually low! (" + tps + ")");
 				}
 			}
 		} catch (Exception exception) {
-			return;
+			LOGGER.warning("Exception occurred in lag monitor task: " + exception.getClass().getCanonicalName() + " (" + exception.getMessage() + ")");
+			exception.printStackTrace();
 		}
 	}
 }

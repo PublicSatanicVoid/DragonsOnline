@@ -228,4 +228,11 @@ public class StringUtil {
 		}
 		return returnString;
 	}
+	
+	public static boolean equalsAnyIgnoreCase(String input, String... tests) {
+		for(String test : tests) {
+			if(input.equalsIgnoreCase(test)) return true;
+		}
+		return false;
+	}
 }

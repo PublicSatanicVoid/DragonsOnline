@@ -1,5 +1,7 @@
 package mc.dragons.tools.dev;
 
+import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -10,7 +12,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -22,11 +23,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
-import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
@@ -35,33 +35,18 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PathfindingUtil;
-import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
-public class ExperimentalCommands implements CommandExecutor {
-
-	private ItemClassLoader itemClassLoader;
-	private NPCLoader npcLoader;
-	
+public class ExperimentalCommands extends DragonsCommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
 		
-		if(itemClassLoader == null) {
-			itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-			npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
-		}
-		
-		Player player = null;
-		User user = null;
-		
-		if(sender instanceof Player) {
-			player = (Player) sender;
-			user = UserLoader.fromPlayer(player);
-			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.ADMIN, true)) return true;
-		}
+		Player player = player(sender);
+		User user = user(sender);
 		
 		if(label.equalsIgnoreCase("testmineregen")) {
 			int minutesPerSecond = Integer.valueOf(args[0]);
@@ -119,7 +104,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			}.runTaskTimer(Dragons.getInstance(), 20L, 20L / minutesPerSecond);
 		}
 		
-		if(label.equalsIgnoreCase("testpermission")) {
+		else if(label.equalsIgnoreCase("testpermission")) {
 			if(player.hasPermission(args[0])) {
 				sender.sendMessage("Yes you have it");
 			}
@@ -129,7 +114,7 @@ public class ExperimentalCommands implements CommandExecutor {
 		}
 		
 		
-		if(label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
+		else if(label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
 			ItemStack itemStack = player.getInventory().getItemInMainHand();
 			sender.sendMessage("meta=" + itemStack.getItemMeta());
 			sender.sendMessage("lore=" + itemStack.getItemMeta().getLore());
@@ -143,7 +128,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			sender.sendMessage("bukkit amt=" + itemStack.getAmount());
 		}
 		
-		if(label.equalsIgnoreCase("testlocaluserstorage")) {
+		else if(label.equalsIgnoreCase("testlocaluserstorage")) {
 			sender.sendMessage(ChatColor.YELLOW + "METHOD ONE (Full object scan):");
 			int n_fullscan = 0;
 			for(GameObject gameObject : Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER)) {
@@ -166,7 +151,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			}
 		}
 		
-		if(label.equalsIgnoreCase("testgui")) {
+		else if(label.equalsIgnoreCase("testgui")) {
 			GUI gui = new GUI(3, "Test GUI")
 					.add(new GUIElement(11, Material.COBBLESTONE, "I matter!", "Multi-line\nlore\n\nis cool", 2, u -> u.debug("Clicked the cobble")))
 					.add(new GUIElement(13, Material.APPLE, "iApple", "", 5, u -> u.debug("Clicked da appel")))
@@ -174,19 +159,19 @@ public class ExperimentalCommands implements CommandExecutor {
 			gui.open(user);
 		}
 		
-		if(label.equalsIgnoreCase("testhdfont")) {
+		else if(label.equalsIgnoreCase("testhdfont")) {
 			player.sendMessage(StringUtil.toHdFont(StringUtil.concatArgs(args, 0)));
 		}
 		
-		if(label.equalsIgnoreCase("rawtext")) {
+		else if(label.equalsIgnoreCase("rawtext")) {
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 0)));
 		}
 		
-		if(label.equalsIgnoreCase("testtabname")) {
+		else if(label.equalsIgnoreCase("testtabname")) {
 			player.setPlayerListName(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 0)));
 		}
 		
-		if(label.equalsIgnoreCase("whoami")) {
+		else if(label.equalsIgnoreCase("whoami")) {
 			sender.sendMessage("Player="+player);
 			sender.sendMessage("User="+user);
 			for(User test : UserLoader.allUsers()) {
@@ -196,7 +181,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			}
 		}
 		
-		if(label.equalsIgnoreCase("testpathfinding")) {
+		else if(label.equalsIgnoreCase("testpathfinding")) {
 			Location spawnLoc = player.getLocation().add(player.getLocation().getDirection().clone().setY(0).normalize().multiply(10.0));
 			LivingEntity e = (LivingEntity) Bukkit.getWorld("undead_forest").spawnEntity(spawnLoc,
 					EntityType.VILLAGER);
@@ -204,7 +189,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			PathfindingUtil.walkToLocation(e, player.getLocation(), 0.2, unused -> {});
 		}
 		
-		if(label.equalsIgnoreCase("testphasing")) {
+		else if(label.equalsIgnoreCase("testphasing")) {
 			Entity entity = player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(args[0]));
 			if(entity instanceof ArmorStand) {
 				((ArmorStand) entity).setCustomName("Test test test");
@@ -213,7 +198,17 @@ public class ExperimentalCommands implements CommandExecutor {
 			Dragons.getInstance().getEntityHider().hideEntity(player, entity);
 		}
 		
-		if(label.equalsIgnoreCase("stresstest")) {
+		else if(label.equalsIgnoreCase("testtpsrecord")) {
+			List<Double> record = Dragons.getInstance().getTPSRecord();
+			int back = Integer.valueOf(args[0]);
+			sender.sendMessage(record.size() + " records");
+			sender.sendMessage("starting from " + back + " records back");
+			for(int i = record.size() - 1 - back; i < record.size(); i++) {
+				sender.sendMessage("#" + i + " = " + record.get(i) + " (" + (record.size() - 1 - i) + " frames back)");
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("stresstest")) {
 			int n = Integer.valueOf(args[0]);
 			World world = player.getWorld();
 			Location loc = player.getLocation();
@@ -223,7 +218,7 @@ public class ExperimentalCommands implements CommandExecutor {
 			player.sendMessage(ChatColor.GREEN + "Spawned " + n + " undead zombies at your location.");
 		}
 		
-		if(label.equalsIgnoreCase("killmobs")) {
+		else if(label.equalsIgnoreCase("killmobs")) {
 			int n = 0;
 			for(Entity e : player.getWorld().getEntities()) {
 				NPC npc = NPCLoader.fromBukkit(e);
@@ -235,19 +230,19 @@ public class ExperimentalCommands implements CommandExecutor {
 			player.sendMessage(ChatColor.GREEN + "Killed " + n + " non-persistent mobs.");
 		}
 		
-		if(label.equalsIgnoreCase("testarmorstandpose")) {
+		else if(label.equalsIgnoreCase("testarmorstandpose")) {
 			ArmorStand armorStand = (ArmorStand) player.getWorld().spawnEntity(player.getLocation(), EntityType.ARMOR_STAND);
 			armorStand.setLeftLegPose(new EulerAngle(Double.valueOf(args[0]), Double.valueOf(args[1]), Double.valueOf(args[2])));
 			armorStand.setRightLegPose(new EulerAngle(Double.valueOf(args[3]), Double.valueOf(args[4]), Double.valueOf(args[5])));
 		}
 		
-		if(label.equalsIgnoreCase("testlogging")) {
+		else if(label.equalsIgnoreCase("testlogging")) {
 			for(Level level : new Level[] { Level.OFF, Level.SEVERE, Level.WARNING, Level.INFO, Level.CONFIG, Level.FINE, Level.FINER, Level.FINEST, Level.ALL }) {
 				Dragons.getInstance().getLogger().log(level, "Testing log message on level " + level);
 			}
 		}
 		
-		if(label.equalsIgnoreCase("testleveling")) {
+		else if(label.equalsIgnoreCase("testleveling")) {
 			int prevMax = User.calculateMaxXP(user.getLevel());
 			player.sendMessage("prevMax=" + prevMax);
 			int n = user.getXP() - prevMax;
@@ -259,23 +254,30 @@ public class ExperimentalCommands implements CommandExecutor {
 			player.sendMessage("progress=" + user.getLevelProgress());
 		}
 		
-		if(label.equalsIgnoreCase("testexceptions")) {
+		else if(label.equalsIgnoreCase("testexceptions")) {
 			sender.sendMessage("Throwing an NPE");
 			((User)null).autoSave(); // Throws an NPE
 		}
 		
-		if(label.equalsIgnoreCase("testuuidlookup")) {
+		else if(label.equalsIgnoreCase("testuuidlookup")) {
 			UserLoader.uuidFromUsername(args[0], uuid -> {
 				sender.sendMessage("UUID of " + args[0] + " is " + uuid);
 			});
 		}
 		
-		if(label.equalsIgnoreCase("testcorrelationlogging")) {
-			CorrelationLogLoader loader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+		else if(label.equalsIgnoreCase("testcorrelationlogging")) {
+			CorrelationLogger loader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 			UUID id = loader.registerNewCorrelationID();
 			loader.log(id, Level.INFO, "hewwo uwu");
-			loader.log(id, Level.SEVERE, "what");
+			loader.log(id, Level.SEVERE, "ouch");
 			sender.sendMessage("correlation id=" + id);
+		}
+		
+		else if(label.equalsIgnoreCase("testbase64encoding")) {
+			String encoded = Base64.getEncoder().encodeToString(StringUtil.concatArgs(args, 0).getBytes());
+			sender.sendMessage("encoded: " + encoded);
+			String decoded = new String(Base64.getDecoder().decode(encoded));
+			sender.sendMessage("decoded: " + decoded);
 		}
 		
 		return true;

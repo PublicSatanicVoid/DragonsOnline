@@ -5,25 +5,51 @@ author: UniverseCraft
 depend: [DragonsCore]
 commands:
   escalate:
+    description: (HELPER) Escalate an issue with a player for action by senior staff.
   report:
+    description: Report a rule-breaker.
   chatreport:
+    description: Click on a message in chat to report it.
   reports:
+    description: (MODERATOR) List reports by a variety of search criteria.
   viewreport:
     aliases: vr
+    description: (MODERATOR) View and manage a report.
   godmode:
+    description: (MODERATOR) Activate or deactivate invincibility status.
   info:
+    description: (MODERATOR) View a summary of a player's data.
   iphistory:
+    description: (ADMIN) View all IP addresses a player has used.
   ipscan:
+    description: (MODERATOR) Search for alt accounts based on known IP.
   warn:
+    description: (HELPER) Issue a warning to a player.
   kick:
+    description: (HELPER) Kick a player from the server.
   mute:
+    description: (MODERATOR) Mute a player, optionally for a specified duration.
   ban:
+    description: (MODERATOR) Ban a player, optionally for a specified duration.
   unmute:
+    description: (MODERATOR) Unmute a player. The mute stays on the player's record.
   unban:
+    description: (MODERATOR) Unban a player. The ban stays on the player's record.
   removepunishment:
+    description: (ADMIN) Expunge a punishment from a player's record.
+  setverification:
+    description: (MODERATOR) Set a player's community verification status.
   viewpunishments:
+    description: (MODERATOR) View a player's punishment records.
   vanish:
     aliases: v
+    description: (HELPER) Become invisible.
   unvanish:
     aliases: uv
+    description: (HELPER) Become visible.
   fly:
+    description: (HELPER) Toggle survival-mode flying capability.
+  toggleselfreport:
+    description: (ADMIN) Toggle your ability to report yourself. Does not affect other players.
+  deletereport:
+    description: (ADMIN) Permanently delete a report from the database.

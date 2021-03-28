@@ -14,6 +14,7 @@ import org.bukkit.ChatColor;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.result.DeleteResult;
 
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
@@ -88,6 +89,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		}
 		
 		public void setReviewedBy(User user) {
+			if(user == null) return;
 			data.append("reviewedBy", user.getUUID().toString());
 			save();
 		}
@@ -231,5 +233,10 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("data", new Document("reason", reason));
 		Report report = fileReport(data);
 		reportNotify("[" + report.getId() + "] " + target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
+	}
+	
+	public boolean deleteReport(int id) {
+		DeleteResult result = collection.deleteOne(new Document("_id", id));
+		return result.getDeletedCount() > 0L;
 	}
 }

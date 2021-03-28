@@ -46,4 +46,16 @@ public class GameObjectRegistry {
 	public void removeFromRegistry(GameObjectType type) {
 		registeredObjects.removeIf(obj -> (obj.getType() == type));
 	}
+	
+	public void executeAutoSave(boolean forceSave) {
+		if (!plugin.getServerOptions().isAutoSaveEnabled() && !forceSave) {
+			return;
+		}
+		int n = 0;
+		for (GameObject gameObject : getRegisteredObjects(new GameObjectType[] { GameObjectType.USER, GameObjectType.NPC })) {
+			gameObject.autoSave();
+			n++;
+		}
+		plugin.getLogger().info("Auto-saved " + n + " game objects");
+	}
 }

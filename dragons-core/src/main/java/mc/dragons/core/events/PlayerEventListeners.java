@@ -268,7 +268,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		LOGGER.info("Join event on " + event.getPlayer().getName());
+		LOGGER.fine("Join event on " + event.getPlayer().getName());
 		Player player = event.getPlayer();
 		UUID uuid = player.getUniqueId();
 		User user = userLoader.loadObject(uuid);
@@ -362,7 +362,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		LOGGER.finer("Quit event on " + event.getPlayer().getName());
+		LOGGER.fine("Quit event on " + event.getPlayer().getName());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.handleQuit();
 		event.setQuitMessage(null);

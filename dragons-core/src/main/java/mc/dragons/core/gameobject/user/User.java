@@ -50,12 +50,13 @@ import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
 import mc.dragons.core.gameobject.user.chat.MessageData;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
 import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.gui.GUI;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -93,7 +94,7 @@ public class User extends GameObject {
 	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-	private static CorrelationLogLoader CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+	private static CorrelationLogger CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
 	private static ChatMessageRegistry chatMessageRegistry = instance.getChatMessageRegistry();
@@ -175,13 +176,13 @@ public class User extends GameObject {
 			if (getData("health") != null) {
 				player.setHealth((double) getData("health"));
 			}
-			errorFlag |= loadInventory(initCorrelationID);
+			errorFlag |= loadInventory(initCorrelationID, (Document) getData("inventory"));
 		}
 		questProgress = new HashMap<>();
 		questActionIndices = new HashMap<>();
 		questPauseStates = new HashMap<>();
 		questCorrelationIDs = new HashMap<>();
-		loadQuests(initCorrelationID);
+		loadQuests(initCorrelationID, (Document) getData("quests"));
 		cachedRegions = new HashSet<>();
 		activePermissionLevel = PermissionLevel.USER;
 		guiHotfixOpenedBefore = new ArrayList<>();
@@ -207,7 +208,7 @@ public class User extends GameObject {
 
 	public void debug(String message) {
 		for (CommandSender debugger : currentlyDebugging) {
-			debugger.sendMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "DBG:" + getName() + " " + ChatColor.RESET + message);
+			debugger.sendMessage(ChatColor.YELLOW + "DBG:" + getName() + " " + ChatColor.RESET + message);
 		}
 	}
 
@@ -308,9 +309,12 @@ public class User extends GameObject {
 	 * Quest management
 	 */
 	
-	private void loadQuests(UUID cid) {
-		Document questProgressDoc = (Document) getData("quests");
-		CORRELATION.log(cid, Level.FINEST, "stored quest data: " + questProgress);
+	public void loadQuests(UUID cid, Document questProgressDoc) {
+		CORRELATION.log(cid, Level.FINEST, "stored quest data: " + questProgressDoc.toJson());
+		questProgress.clear();
+		questActionIndices.clear();
+		questPauseStates.clear();
+		questCorrelationIDs.clear();
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) questProgressDoc.entrySet()) {
 			Quest quest = questLoader.getQuestByName(entry.getKey());
 			if (quest == null) {
@@ -839,8 +843,7 @@ public class User extends GameObject {
 	 * @param cid
 	 * @return whether an error occurred.
 	 */
-	private boolean loadInventory(UUID cid) {
-		Document inventory = (Document) getData("inventory");
+	public boolean loadInventory(UUID cid, Document inventory) {
 		CORRELATION.log(cid, Level.FINEST, "stored inventory data: " + inventory);
 		List<UUID> usedItems = new ArrayList<>();
 		int dups = 0;
@@ -1276,6 +1279,18 @@ public class User extends GameObject {
 		return deathTime.longValue() + 1000 * deathCountdown > now;
 	}
 
+	public int getDeathCountdownRemaining() {
+		Long deathTime = (Long) getData("deathTime");
+		if (deathTime == null) {
+			return 0;
+		}
+		int deathCountdown = (int) getData("deathCountdown");
+		long now = System.currentTimeMillis();
+		long remaining = deathTime + deathCountdown - now;
+		if(remaining < 0L) return 0;
+		return (int) remaining;
+	}
+	
 	public void respawn() {
 		instance.getBridge().respawnPlayer(player);
 	}
@@ -1406,6 +1421,19 @@ public class User extends GameObject {
 		player.setAllowFlight(!(!isVanished() && player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR));
 		if (isVanished()) {
 			player.setPlayerListName(" ");
+			
+			// This instantly stops all entities from targeting the player.
+			// Entities are prevented in future with relevant event handlers,
+			// but those alone are not sufficient to stop pre-existing targeting
+			// behaviors.
+			final GameMode restore = player.getGameMode();
+			if(restore != GameMode.CREATIVE && restore != GameMode.SPECTATOR) {
+				player.setGameMode(GameMode.SPECTATOR);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
+					player.setGameMode(restore);
+				}, 1L);
+			}
+			
 		} else {
 			updateListName();
 		}
@@ -1420,7 +1448,7 @@ public class User extends GameObject {
 	}
 
 	public boolean isVanished() {
-		return (Boolean) getData("vanished");
+		return (boolean) getData("vanished");
 	}
 
 	/**
@@ -1434,7 +1462,7 @@ public class User extends GameObject {
 	}
 
 	public boolean isGodMode() {
-		return (Boolean) getData("godMode");
+		return (boolean) getData("godMode");
 	}
 	
 	
@@ -1461,7 +1489,7 @@ public class User extends GameObject {
 		}
 		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
 		activePermissionLevel = permissionLevel;
-		SystemProfile.SystemProfileFlags flags = getSystemProfile().getFlags();
+		SystemProfileFlags flags = getSystemProfile().getFlags();
 		
 		// Permissions for non-RPG plugins need to be added separately.
 		player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
@@ -1508,7 +1536,7 @@ public class User extends GameObject {
 
 	public void setSkillLevel(SkillType type, int level) {
 		Document skillLevels = (Document) getData("skills");
-		skillLevels.append(type.toString(), Integer.valueOf(level));
+		skillLevels.append(type.toString(), level);
 		update(new Document("skills", skillLevels));
 	}
 
@@ -1518,19 +1546,19 @@ public class User extends GameObject {
 
 	public void setSkillProgress(SkillType type, double progress) {
 		Document skillProgress = (Document) getData("skillProgress");
-		skillProgress.append(type.toString(), Double.valueOf(progress));
+		skillProgress.append(type.toString(), progress);
 		int currentLevel = getSkillLevel(type);
 		int level = calculateSkillLevel(progress);
 		if (level != currentLevel) {
 			setSkillLevel(type, level);
-			player.sendTitle(ChatColor.DARK_GREEN + type.getFriendlyName() + (level > currentLevel ? " Increased!" : " Changed"), ChatColor.GREEN + "" + currentLevel + " >>> " + level, 20, 40,
-					20);
+			player.sendTitle(ChatColor.DARK_GREEN + type.getFriendlyName() + (level > currentLevel ? " Increased!" : " Changed"),
+					ChatColor.GREEN + "" + currentLevel + " >>> " + level, 20, 40, 20);
 		}
 		update(new Document("skillProgress", skillProgress));
 	}
 
 	public double getSkillProgress(SkillType type) {
-		return ((Document) getData("skillProgress")).getDouble(type.toString()).doubleValue();
+		return ((Document) getData("skillProgress")).getDouble(type.toString());
 	}
 	
 	
@@ -1544,8 +1572,6 @@ public class User extends GameObject {
 		List<Document> results = (List<Document>) getData("punishmentHistory");
 		for (Document entry : results) {
 			history.add(PunishmentData.fromDocument(entry));
-			//Date expiry = new Date(1000L * (entry.getLong("banDate").longValue() + entry.getLong("duration").longValue()));
-			//history.add(new PunishmentData(PunishmentType.valueOf(entry.getString("type")), entry.getString("reason"), expiry, entry.getLong("duration").longValue() == -1L));
 		}
 		return history;
 	}
@@ -1602,24 +1628,12 @@ public class User extends GameObject {
 	}
 
 	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {
-		/*Document banData = (Document) getData(punishmentType.getDataHeader());
-		if (banData == null) {
+		PunishmentData data = PunishmentData.fromDocument((Document) getData(punishmentType.getDataHeader()));
+		if(data != null && data.hasExpired()) {
+			removeData(punishmentType.getDataHeader());
 			return null;
 		}
-		PunishmentType type = PunishmentType.valueOf(banData.getString("type"));
-		String reason = banData.getString("reason");
-		long duration = banData.getLong("duration");
-		long banDate = banData.getLong("banDate");
-		long now = Instant.now().getEpochSecond();
-		Date expiry = new Date(1000L * (banDate + duration));
-		if (duration == -1L) {
-			return new PunishmentData(type, reason, expiry, true);
-		}
-		if (now > banDate + duration) {
-			return null;
-		}
-		return new PunishmentData(type, reason, expiry, false);*/
-		return PunishmentData.fromDocument((Document) getData(punishmentType.getDataHeader()));
+		return data;
 	}
 
 	

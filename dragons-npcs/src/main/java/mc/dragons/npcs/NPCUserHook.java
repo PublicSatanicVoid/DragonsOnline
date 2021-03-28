@@ -11,16 +11,16 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.util.StringUtil;
 
 public class NPCUserHook implements UserHook {
 
-	private CorrelationLogLoader CORRELATION;
+	private CorrelationLogger CORRELATION;
 	
 	private void lazyLoadCorrelation() {
 		if(CORRELATION == null) {
-			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 		}
 	}
 
@@ -30,7 +30,7 @@ public class NPCUserHook implements UserHook {
 		if(companionUUID == null) return;
 		lazyLoadCorrelation();
 		UUID cid = CORRELATION.registerNewCorrelationID();
-		CORRELATION.log(cid, Level.INFO, "loading companion for user " + user.getName() + " (" + user.getUUID() + ") with companion uuid " + companionUUID);
+		CORRELATION.log(cid, Level.FINE, "loading companion for user " + user.getName() + " (" + user.getUUID() + ") with companion uuid " + companionUUID);
 		NPC companion = GameObjectType.NPC.<NPC, NPCLoader>getLoader().loadObject(companionUUID, cid);
 		if(companion == null) {
 			user.getPlayer().sendMessage(ChatColor.RED + "Your companion could not be found! Try re-joining and if the issue persists report the following error message.");

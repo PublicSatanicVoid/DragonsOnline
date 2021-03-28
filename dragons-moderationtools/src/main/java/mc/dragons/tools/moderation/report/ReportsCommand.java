@@ -2,35 +2,24 @@ package mc.dragons.tools.moderation.report;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
-import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
-import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
 
-public class ReportsCommand implements CommandExecutor {
+public class ReportsCommand extends DragonsCommandExecutor {
 	
-	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-	private ReportLoader reportLoader;
-	
-	public ReportsCommand(Dragons instance) {
-		reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
-	}
+	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		User user = UserLoader.fromPlayer((Player) sender);
-		if(!PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.MODERATION, true)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "/reports <all|all-open|escalation|chat|internal|regular|by <player>|on <player>> [-page <#>]");
@@ -38,7 +27,11 @@ public class ReportsCommand implements CommandExecutor {
 		}
 		
 		int pageFlagIndex = StringUtil.getFlagIndex(args, "-page", 0);
-		int page = pageFlagIndex == -1 ? 1 : Integer.valueOf(args[++pageFlagIndex]);
+		Integer page = 1;
+		if(pageFlagIndex != -1) {
+			page = parseIntType(sender, args[++pageFlagIndex]);
+			if(page == null) return true;
+		}
 		
 		PaginatedResult<Report> results = null;
 		if(args[0].equalsIgnoreCase("all-open")) {
@@ -64,11 +57,8 @@ public class ReportsCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/reports by <player>");
 				return true;
 			}
-			User filter = userLoader.loadObject(args[1]);
-			if(filter == null) {
-				sender.sendMessage(ChatColor.RED + "Invalid player!");
-				return true;
-			}
+			User filter = lookupUser(sender, args[1]);
+			if(filter == null) return true;
 			results = reportLoader.getReportsByFiler(filter, page);
 		}
 		else if(args[0].equalsIgnoreCase("on")) {
@@ -76,11 +66,8 @@ public class ReportsCommand implements CommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/reports on <player>");
 				return true;
 			}
-			User filter = userLoader.loadObject(args[1]);
-			if(filter == null) {
-				sender.sendMessage(ChatColor.RED + "Invalid player!");
-				return true;
-			}
+			User filter = lookupUser(sender, args[1]);
+			if(filter == null) return true;
 			results = reportLoader.getReportsByTarget(filter, page);
 		}
 		else {

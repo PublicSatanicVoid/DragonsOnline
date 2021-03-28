@@ -9,6 +9,7 @@ import java.util.Set;
 import org.bson.Document;
 import org.bukkit.Location;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
@@ -32,6 +33,7 @@ public class LootTable {
 		if (lootTable == null) {
 			return new HashSet<>();
 		}
+		double multiplier = Dragons.getInstance().getServerOptions().getDropChanceMultiplier();
 		Set<Region> regions = regionLoader.getRegionsByLocation(loc);
 		Set<Item> drops = new HashSet<>();
 		for (Region region : regions) {
@@ -41,7 +43,7 @@ public class LootTable {
 			}
 			for (Entry<String, Object> loot : (Iterable<Entry<String, Object>>) regionLoots.entrySet()) {
 				double chance = (double) loot.getValue();
-				if (Math.random() < chance / 100.0D) {
+				if (Math.random() < chance * multiplier / 100.0D) {
 					ItemClass itemClass = itemClassLoader.getItemClassByClassName(loot.getKey());
 					Item item = itemLoader.registerNew(itemClass);
 					drops.add(item);

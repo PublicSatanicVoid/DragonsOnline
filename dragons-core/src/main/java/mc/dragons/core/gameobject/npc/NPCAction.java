@@ -216,7 +216,9 @@ public class NPCAction {
 				Dragons.getInstance().getBridge().setEntityAI(npc.getEntity(), false);
 			}
 			PathfindingUtil.walkToLocation(npc.getEntity(), to, 0.15D, (e) -> {
-				Dragons.getInstance().getBridge().setEntityAI(e, true);
+				if(hasAI) {
+					Dragons.getInstance().getBridge().setEntityAI(e, true);
+				}
 			});
 			break;
 		case OPEN_SHOP:

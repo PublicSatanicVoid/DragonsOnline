@@ -99,7 +99,8 @@ public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
 				new Document("worldName", "res_temp")
 				.append("floorName", "RES")
 				.append("displayName", "Residence")
-				.append("levelMin", 0));
+				.append("levelMin", 0)
+				.append("volatile", true));
 		Floor resFloor = new Floor(lsm, lsa, true);
 		FloorLoader.link(Bukkit.getWorld("res_temp"), resFloor);
 		Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects().add(resFloor);

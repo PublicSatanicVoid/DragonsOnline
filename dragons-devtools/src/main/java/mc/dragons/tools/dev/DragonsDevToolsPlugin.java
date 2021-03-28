@@ -4,30 +4,50 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.tools.dev.debug.DebugCommand;
+import mc.dragons.tools.dev.debug.StateCommands;
+import mc.dragons.tools.dev.debug.StateLoader;
+import mc.dragons.tools.dev.gameobject.AddonCommand;
+import mc.dragons.tools.dev.gameobject.ObjectCommands;
+import mc.dragons.tools.dev.gameobject.ReloadObjectsCommands;
+import mc.dragons.tools.dev.management.PluginManagementCommands;
+import mc.dragons.tools.dev.management.ServerOptionsCommands;
+import mc.dragons.tools.dev.management.TerminateCommands;
+import mc.dragons.tools.dev.monitor.CorrelationCommand;
+import mc.dragons.tools.dev.monitor.LagCommand;
+import mc.dragons.tools.dev.monitor.LogLevelCommand;
+import mc.dragons.tools.dev.monitor.MongoCommand;
+import mc.dragons.tools.dev.monitor.PerformanceCommands;
+import mc.dragons.tools.dev.monitor.PingCommand;
+import mc.dragons.tools.dev.monitor.VerifyGameIntegrityCommand;
 
-public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor {
+public class DragonsDevToolsPlugin extends JavaPlugin {
 	
 	public void onEnable() {
-
-		Dragons dragons = Dragons.getInstance();
+		Dragons.getInstance().getLightweightLoaderRegistry().register(new StateLoader(Dragons.getInstance().getMongoConfig()));
 		
-		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand(dragons));
+		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand());
 		getCommand("loglevel").setExecutor(new LogLevelCommand());
 		getCommand("debug").setExecutor(new DebugCommand());
 		getCommand("lag").setExecutor(new LagCommand());
 		getCommand("reloadquests").setExecutor(new ReloadObjectsCommands());
-		getCommand("serveroptions").setExecutor(new ServerOptionsCommand());
-		getCommand("placeholder").setExecutor(new PlaceholderCommand());
-		getCommand("addon").setExecutor(new AddonCommand(dragons));
+		getCommand("addon").setExecutor(new AddonCommand());
 		getCommand("ping").setExecutor(new PingCommand());
 		getCommand("mongo").setExecutor(new MongoCommand());
+		getCommand("correlation").setExecutor(new CorrelationCommand());
 		
 		CommandExecutor pluginManagementCommands = new PluginManagementCommands();
 		getCommand("enableplugin").setExecutor(pluginManagementCommands);
 		getCommand("disableplugin").setExecutor(pluginManagementCommands);
 		getCommand("ilikevanilla").setExecutor(pluginManagementCommands);
 		
+		CommandExecutor serverOptionsCommands = new ServerOptionsCommands();
+		getCommand("serveroptions").setExecutor(serverOptionsCommands);
+		getCommand("getservername").setExecutor(serverOptionsCommands);
+		getCommand("setservername").setExecutor(serverOptionsCommands);
+		
 		CommandExecutor objectCommands = new ObjectCommands();
+		getCommand("autosave").setExecutor(objectCommands);
 		getCommand("invalidate").setExecutor(objectCommands);
 		getCommand("invalidateall").setExecutor(objectCommands);
 		getCommand("invalidatetype").setExecutor(objectCommands);
@@ -51,6 +71,10 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("requestgc").setExecutor(performanceCommands);
 		getCommand("generatedump").setExecutor(performanceCommands);
 		
+		CommandExecutor stateCommands = new StateCommands();
+		getCommand("getstate").setExecutor(stateCommands);
+		getCommand("setstate").setExecutor(stateCommands);
+		
 		CommandExecutor experimentalCommands = new ExperimentalCommands();
 		getCommand("helditemdata").setExecutor(experimentalCommands);
 		getCommand("rawtext").setExecutor(experimentalCommands);
@@ -64,6 +88,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("testgui").setExecutor(experimentalCommands);
 		getCommand("testhdfont").setExecutor(experimentalCommands);
 		getCommand("testtabname").setExecutor(experimentalCommands);
+		getCommand("testtpsrecord").setExecutor(experimentalCommands);
 		getCommand("testpathfinding").setExecutor(experimentalCommands);
 		getCommand("testphasing").setExecutor(experimentalCommands);
 		getCommand("testarmorstandpose").setExecutor(experimentalCommands);
@@ -71,5 +96,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin implements CommandExecutor
 		getCommand("testlogging").setExecutor(experimentalCommands);
 		getCommand("testuuidlookup").setExecutor(experimentalCommands);
 		getCommand("testcorrelationlogging").setExecutor(experimentalCommands);
+		getCommand("testbase64encoding").setExecutor(experimentalCommands);
 	}
 }

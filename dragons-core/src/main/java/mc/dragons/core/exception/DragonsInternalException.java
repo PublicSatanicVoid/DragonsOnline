@@ -4,7 +4,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 
 /**
  * Exception class for internal errors with DragonsOnline.
@@ -15,7 +15,7 @@ import mc.dragons.core.logging.correlation.CorrelationLogLoader;
 public class DragonsInternalException extends RuntimeException {
 
 	private static final long serialVersionUID = -7426259903091848617L;	
-	private static final CorrelationLogLoader CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+	private static final CorrelationLogger CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 	
 	public DragonsInternalException(String message, Exception ex) {
 		super(message, ex);

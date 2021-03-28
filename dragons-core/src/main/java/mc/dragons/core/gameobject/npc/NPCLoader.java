@@ -18,7 +18,7 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -29,7 +29,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 	private static NPCLoader INSTANCE;
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
-	private CorrelationLogLoader CORRELATION;
+	private CorrelationLogger CORRELATION;
 	
 	private boolean allPermanentLoaded = false;
 
@@ -174,7 +174,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 	
 	private void lazyLoadCorrelation() {
 		if(CORRELATION == null) {
-			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 		}
 	}
 }

@@ -85,6 +85,10 @@ public class Floor extends GameObject {
 	 * they rejoin, they will go to their last
 	 * saved location *NOT* on that floor.
 	 * 
+	 * This is useful for floors like the Duel
+	 * floor where rejoining on that floor would
+	 * cause phasing issues with other players.
+	 * 
 	 * @return whether the floor is volatile.
 	 */
 	public boolean isVolatile() {

@@ -48,30 +48,35 @@ public class SocialUserHook implements UserHook {
 
 	@Override
 	public boolean onDeath(User user) {
-		for(Set<User> dueling : DuelCommand.getActive()) {
+		for(Set<User> dueling : DuelCommands.getActive()) {
 			if(dueling.contains(user)) {
 				User loser = user;
 				dueling.remove(user);
-				User winner = (User) dueling.toArray()[0];
+				User winner = user;
+				if(dueling.size() > 0) {
+					winner = (User) dueling.toArray()[0];
+				}
 				
 				String[] endMessage = new String[] {
 					" ",
-					DuelCommand.DUEL_MESSAGE_HEADER,
+					DuelCommands.DUEL_MESSAGE_HEADER,
 					ChatColor.GOLD + "" + ChatColor.BOLD + "DUEL ENDED",
 					ChatColor.YELLOW + "Winner: " + ChatColor.GRAY + winner.getName(),
 					ChatColor.RED + "Loser: " + ChatColor.GRAY + loser.getName(),
-					DuelCommand.DUEL_MESSAGE_HEADER,
+					DuelCommands.DUEL_MESSAGE_HEADER,
 					" "
 				};
 				
 				winner.getPlayer().sendMessage(endMessage);
 				loser.getPlayer().sendMessage(endMessage);
 				
+				final User fWinner = winner;
+				
 				Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
-					DuelCommand.restore(winner);
-					DuelCommand.restore(loser);
+					DuelCommands.restore(fWinner);
+					DuelCommands.restore(loser);
 					
-					DuelCommand.getActive().remove(dueling);
+					DuelCommands.getActive().remove(dueling);
 				}, 20L);
 				
 				return false;
@@ -82,7 +87,7 @@ public class SocialUserHook implements UserHook {
 	
 	@Override
 	public void onQuit(User user) {
-		for(Set<User> dueling : DuelCommand.getActive()) {
+		for(Set<User> dueling : DuelCommands.getActive()) {
 			if(dueling.contains(user)) {
 				dueling.remove(user);
 				if(dueling.size() == 0) {
@@ -92,8 +97,8 @@ public class SocialUserHook implements UserHook {
 				other.getPlayer().sendMessage(ChatColor.RED + user.getName() + " left while the duel was in progress!");
 
 				Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
-					DuelCommand.restore(other);
-					DuelCommand.getActive().remove(dueling);
+					DuelCommands.restore(other);
+					DuelCommands.getActive().remove(dueling);
 				}, 20L);
 			}
 		}

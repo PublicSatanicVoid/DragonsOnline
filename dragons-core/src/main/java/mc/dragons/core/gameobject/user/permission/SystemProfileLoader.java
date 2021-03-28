@@ -25,7 +25,7 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 
 public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile> {
@@ -33,7 +33,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 
 	private Set<SystemProfile> profileCache;
 	private Logger LOGGER;
-	private CorrelationLogLoader CORRELATION;
+	private CorrelationLogger CORRELATION;
 	
 	static {
 		saltString = Dragons.getInstance().getConfig().getString("db.mongo.password-salt-string");
@@ -42,7 +42,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 	public SystemProfileLoader(Dragons instance) {
 		super(instance.getMongoConfig(), "#unused#", "sysprofiles");
 		LOGGER = instance.getLogger();
-		CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogLoader.class);
+		CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 		profileCache = new HashSet<>();
 	}
 	

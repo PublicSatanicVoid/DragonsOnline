@@ -9,4 +9,4 @@ commands:
   testcompanion:
   iwannacompanion:
   /slay:
-    description: '[GM] Kill nearby mobs.'
+    description: '(GM) Kill nearby mobs.'

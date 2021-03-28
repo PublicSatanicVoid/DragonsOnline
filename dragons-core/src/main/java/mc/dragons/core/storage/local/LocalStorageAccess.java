@@ -48,6 +48,11 @@ public class LocalStorageAccess implements StorageAccess {
 	}
 
 	@Override
+	public void delete(String key) {
+		data.remove(key);
+	}
+	
+	@Override
 	public Object get(String key) {
 		return data.get(key);
 	}

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>mc.dragons</groupId>
-  <artifactId>dragons-mod-tools</artifactId>
+  <artifactId>dragons-moderationtools</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 

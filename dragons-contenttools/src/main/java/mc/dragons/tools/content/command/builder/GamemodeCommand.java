@@ -4,36 +4,29 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.util.PermissionUtil;
 
-public class GamemodeCommand implements CommandExecutor {
+public class GamemodeCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!(sender instanceof Player)) {
-			sender.sendMessage(ChatColor.RED + "This is an ingame-only command!");
-			return true;
-		}
-		
-		Player player = (Player) sender;
-		User user = UserLoader.fromPlayer(player);
+		User user = user(sender);
+		Player player = player(sender);
 		
 		boolean isAdminFloor = user.getSystemProfile() != null && user.getSystemProfile().getLocalAdminFloors().contains(FloorLoader.fromLocation(player.getLocation()));
-		if(!isAdminFloor && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.BUILDER, false)) {
+		if(!isAdminFloor && !hasPermission(sender, PermissionLevel.BUILDER)) {
 			sender.sendMessage(ChatColor.RED + "You don't have permission to do this!");
 			return true;
 		}
 		
-		boolean hasModPermission = PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.MODERATOR, false);
+		boolean hasModPermission = hasPermission(sender, PermissionLevel.MODERATOR);
 		
 		GameMode gameMode = GameMode.ADVENTURE;
 		
@@ -92,6 +85,10 @@ public class GamemodeCommand implements CommandExecutor {
 				return true;
 			}
 			target = Bukkit.getPlayerExact(args[1]);
+		}
+		else if(!isPlayer(sender)) {
+			sender.sendMessage(ChatColor.RED + "Console must specify a target player /" + label + " <gamemode> <player>");
+			return true;
 		}
 		
 		target.setGameMode(gameMode);

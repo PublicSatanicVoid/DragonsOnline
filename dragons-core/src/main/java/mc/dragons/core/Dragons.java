@@ -21,7 +21,6 @@ import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.impl.BridgeSpigot112R1;
 import mc.dragons.core.commands.ChangeLogCommands;
-import mc.dragons.core.commands.CorrelationCommand;
 import mc.dragons.core.commands.FeedbackCommand;
 import mc.dragons.core.commands.HealCommand;
 import mc.dragons.core.commands.HelpCommand;
@@ -29,7 +28,6 @@ import mc.dragons.core.commands.MyQuestsCommand;
 import mc.dragons.core.commands.QuestDialogueCommands;
 import mc.dragons.core.commands.RankCommand;
 import mc.dragons.core.commands.RespawnCommand;
-import mc.dragons.core.commands.SetVerificationCommand;
 import mc.dragons.core.commands.StuckQuestCommand;
 import mc.dragons.core.commands.SystemLogonCommand;
 import mc.dragons.core.events.EntityCombustListener;
@@ -63,7 +61,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
-import mc.dragons.core.logging.correlation.CorrelationLogLoader;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
 import mc.dragons.core.storage.loader.FeedbackLoader;
@@ -229,7 +227,7 @@ public class Dragons extends JavaPlugin {
 		lightweightLoaderRegistry.register(new ChangeLogLoader(mongoConfig));
 		lightweightLoaderRegistry.register(new FeedbackLoader(mongoConfig));
 		lightweightLoaderRegistry.register(new WarpLoader(mongoConfig));
-		lightweightLoaderRegistry.register(new CorrelationLogLoader(mongoConfig));
+		lightweightLoaderRegistry.register(new CorrelationLogger(mongoConfig));
 		lightweightLoaderRegistry.register(new SystemProfileLoader(this));
 
 		getLogger().info("Registering events...");
@@ -248,19 +246,17 @@ public class Dragons extends JavaPlugin {
 		
 		getLogger().info("Registering commands...");
 		getCommand("rank").setExecutor(new RankCommand());
-		getCommand("syslogon").setExecutor(new SystemLogonCommand(this));
+		getCommand("syslogon").setExecutor(new SystemLogonCommand());
 		getCommand("respawn").setExecutor(new RespawnCommand());
 		getCommand("heal").setExecutor(new HealCommand());
-		getCommand("setverification").setExecutor(new SetVerificationCommand());
-		getCommand("feedback").setExecutor(new FeedbackCommand(this));
+		getCommand("feedback").setExecutor(new FeedbackCommand());
 		getCommand("myquests").setExecutor(new MyQuestsCommand());
 		getCommand("help").setExecutor(new HelpCommand());
-		getCommand("correlation").setExecutor(new CorrelationCommand(this));
-		getCommand("stuckquest").setExecutor(new StuckQuestCommand(this));
+		getCommand("stuckquest").setExecutor(new StuckQuestCommand());
 		QuestDialogueCommands questDialogueCommands = new QuestDialogueCommands();
 		getCommand("fastforwarddialogue").setExecutor(questDialogueCommands);
 		getCommand("questchoice").setExecutor(questDialogueCommands);
-		ChangeLogCommands changeLogCommandsExecutor = new ChangeLogCommands(this);
+		ChangeLogCommands changeLogCommandsExecutor = new ChangeLogCommands();
 		getCommand("news").setExecutor(changeLogCommandsExecutor);
 		getCommand("newsmanager").setExecutor(changeLogCommandsExecutor);
 
@@ -391,6 +387,13 @@ public class Dragons extends JavaPlugin {
 
 	public String getServerName() {
 		return serverName;
+	}
+	
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
+		UserLoader.allUsers().stream()
+			.filter(u -> PermissionUtil.verifyActivePermissionLevel(u, PermissionLevel.ADMIN, false))
+			.forEach(u -> u.getPlayer().sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Server instance renamed to " + serverName));
 	}
 
 	public long getUptime() {

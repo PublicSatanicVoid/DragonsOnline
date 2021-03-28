@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,7 +26,62 @@ public class MoveListener implements Listener {
 	private static final double IMPULSE_STRAIGHT = 0.350001;
 	private static final double IMPULSE_DIAGONAL = 0.357147;
 	
+	private static final double EPSILON_RAD = rad(1.0);
+	
+	private static double rad(double deg) {
+		return deg * Math.PI / 180;
+	}
+	
+	private static double deg(double rad) {
+		return rad * 180 / Math.PI;
+	}
+	
+	private static boolean in(double x, double a, double b) {
+		return a <= x && x <= b || b <= x && x <= a;
+	}
+	
+	private static final double DEG_45 = rad(45.0);
+	
 	private static enum MoveType { STRAIGHT, DIAGONAL };
+	
+	private List<String> log = new ArrayList<>();
+	private boolean logEnabled = false;
+	
+	public void enableLog() {
+		logEnabled = true;
+	}
+	
+	public void disableLog() {
+		logEnabled = false;
+	}
+	
+	public void clearLog() {
+		log.clear();
+	}
+	
+	public void dumpLog() {
+		Bukkit.getLogger().info("=== BEGIN ANTICHEAT LOG DUMP ===");
+		log.forEach(entry -> Bukkit.getLogger().info(entry));
+		Bukkit.getLogger().info("=== END ANTICHEAT LOG DUMP ===");
+	}
+	
+	private void log(String entry) {
+		if(!logEnabled) return;
+		log.add(entry);
+	}
+	
+	public String getKeyCombo(double angle) {
+		String combo = "";
+		if(in(angle, rad(-90) + EPSILON_RAD, rad(90) - EPSILON_RAD)) combo += "W";
+		else if(!in(Math.abs(angle), rad(90) - EPSILON_RAD, rad(90) + EPSILON_RAD)) combo += "S";
+		
+		if(!in(angle, -EPSILON_RAD, EPSILON_RAD) && !in(Math.abs(angle), rad(180) - EPSILON_RAD, rad(180) + EPSILON_RAD)) {
+			if(angle > 0) combo += "D";
+			else combo += "A";
+		}
+		
+		return combo;
+	}
 	
 	public double getImpulse(MoveType moveType) {
 		switch(moveType) {
@@ -52,6 +108,7 @@ public class MoveListener implements Listener {
 			return Math.sqrt(dx * dx + dz * dz);
 		}
 	}
+	
 	
 	private class MoveContext {
 		public MoveType moveType;
@@ -135,6 +192,9 @@ public class MoveListener implements Listener {
 		float pitch = player.getEyeLocation().getPitch();
 		float yaw = player.getEyeLocation().getYaw();
 		
+		double prev_a = context.calculateRecentFactor();
+		double prev_b = context.calculateRecentImpulse();
+		
 		context.moveHistory.add(new MoveEntry(dx, dy, dz, pitch, yaw));
 		
 		double dxz = Math.sqrt(dx * dx + dz * dz);
@@ -142,11 +202,14 @@ public class MoveListener implements Listener {
 		double a = context.calculateRecentFactor();
 		double b = context.calculateRecentImpulse();
 		
+		double da = a - prev_a;
+		double db = b - prev_b;
+		
 		double lookAngle = getSignedAngleXZ(Z_AXIS, eyes);
 		double moveAngle = getSignedAngleXZ(eyes, move);
 		
-		plugin.debug(player, round(moveAngle) + " | " + /* round(dx, 5) + ", " + round(dz, 5) + " | " + */ round(dy, 5) + ", " + round(dxz, 5) + " | a=" + round(a, 5) + ", b=" + round(b, 5));
-	
+		plugin.debug(player, round(moveAngle) + " " + getKeyCombo(moveAngle) + " | " + /* round(dx, 5) + ", " + round(dz, 5) + " | " + */ round(dy, 5) + ", " + round(dxz, 5) + " | a=" + round(a, 5) + ", b=" + round(b, 5) + " | da=" + round(da, 5) + ", db=" + round(db, 5));
+		log(moveAngle + "," + dx + "," + dy + "," + dz + "," + a + "," + b + "," + da + "," + db);
 	}
 	
 }

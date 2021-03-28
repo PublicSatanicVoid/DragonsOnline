@@ -6,3 +6,6 @@ depend: [DragonsCore]
 commands:
   ac:
   acdebug:
+  acflushlog:
+  acstartlog:
+  acblockdata:

@@ -33,6 +33,13 @@ public interface StorageAccess {
 	void update(Document document);
 	
 	/**
+	 * Deletes the key-value pair with the specified key.
+	 * 
+	 * @param key
+	 */
+	void delete(String key);
+	
+	/**
 	 * 
 	 * @param key
 	 * @return The value of the given key.

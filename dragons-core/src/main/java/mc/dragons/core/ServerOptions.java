@@ -29,6 +29,8 @@ public class ServerOptions {
 	private int customSpawnMargin;
 	private int customSpawnRate;
 	private boolean customSpawningEnabled;
+	
+	private double dropChanceMultiplier;
 
 	private int deathCountdown;
 
@@ -47,6 +49,7 @@ public class ServerOptions {
 		customSpawnMargin = 25;
 		customSpawnRate = 100;
 		customSpawningEnabled = true;
+		dropChanceMultiplier = 1.0;
 		deathCountdown = 10;
 		verifyIntegritySweepRate = 1200;
 		verifyIntegrityEnabled = true;
@@ -100,13 +103,22 @@ public class ServerOptions {
 
 	public void setCustomSpawningEnabled(boolean enabled) {
 		customSpawningEnabled = enabled;
-		LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " custom spawning");
+		LOGGER.config((enabled ? "Enabled" : "Disabled") + " custom spawning");
 	}
 
 	public boolean isCustomSpawningEnabled() {
 		return customSpawningEnabled;
 	}
 
+	public void setDropChanceMultiplier(double multiplier) {
+		dropChanceMultiplier = multiplier;
+		LOGGER.config("Drop chance multiplier set to " + multiplier + "x");
+	}
+	
+	public double getDropChanceMultiplier() {
+		return dropChanceMultiplier;
+	}
+	
 	public void setDeathCountdown(int seconds) {
 		deathCountdown = seconds;
 		LOGGER.config("Default death countdown set to " + seconds + "s");
@@ -131,7 +143,7 @@ public class ServerOptions {
 
 	public void setVerifyIntegrityEnabled(boolean enabled) {
 		verifyIntegrityEnabled = enabled;
-		LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " game environment verification");
+		LOGGER.config((enabled ? "Enabled" : "Disabled") + " game environment verification");
 	}
 
 	public boolean isVerifyIntegrityEnabled() {

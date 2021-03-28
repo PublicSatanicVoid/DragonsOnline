@@ -56,6 +56,11 @@ public abstract class GameObject {
 		LOGGER.finest("Set data on " + this + ": " + key + "=" + value);
 	}
 
+	protected void removeData(String key) {
+		storageAccess.delete(key);
+		LOGGER.finest("Removed data on " + this + ": " + key);
+	}
+	
 	protected void update(Document document) {
 		storageAccess.update(document);
 		LOGGER.finest("Update document on " + this + ": " + document);

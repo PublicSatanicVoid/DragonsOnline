@@ -15,6 +15,14 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.StorageAccess;
 
+/**
+ * Utilities for managing game object metadata.
+ * Metadata is information about the creation and
+ * revision history of a game object.
+ * 
+ * @author Adam
+ *
+ */
 public class MetadataConstants {
 	
 	private static final UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
@@ -33,7 +41,17 @@ public class MetadataConstants {
 		return DATE_FORMATTER.format(Date.from(Instant.now()));
 	}
 	
+	/**
+	 * Add a metadata tag to the specified game object.
+	 * Initializes based on current datetime and specified
+	 * creator.
+	 * 
+	 * @param obj
+	 * @param creator
+	 */
 	public static final void addBlankMetadata(GameObject obj, User creator) {
+		if(creator == null) return; // console, probably
+		
 		StorageAccess storageAccess = obj.getStorageAccess();
 		Document metadata = new Document();
 		metadata.append(CREATEDBY_TAG, creator.getUUID().toString());
@@ -44,7 +62,16 @@ public class MetadataConstants {
 		storageAccess.set(METADATA_NAMESPACE, metadata);
 	}
 	
+	/**
+	 * Log a revision to the specified game object, performed
+	 * by the specified user.
+	 * 
+	 * @param obj
+	 * @param user
+	 */
 	public static final void incrementRevisionCount(GameObject obj, User user) {
+		if(user == null) return; // console, probably
+		
 		StorageAccess storageAccess = obj.getStorageAccess();
 		Document metadata = storageAccess.getDocument().get(METADATA_NAMESPACE, new Document());
 		metadata.append(REVISIONS_TAG, 1 + metadata.getInteger(REVISIONS_TAG, 0));
@@ -53,10 +80,24 @@ public class MetadataConstants {
 		storageAccess.set(METADATA_NAMESPACE, metadata);
 	}
 	
+	/**
+	 * Return the raw document of metadata associated with the specified
+	 * game object.
+	 * 
+	 * @param obj
+	 * @return The metadata document, or an empty document if none is found.
+	 */
 	public static final Document getMetadata(GameObject obj) {
 		return (Document) obj.getData().getOrDefault(METADATA_NAMESPACE, new Document());
 	}
 	
+	/**
+	 * Display all metadata associated with the specified game object to
+	 * the specified command sender.
+	 * 
+	 * @param to
+	 * @param obj
+	 */
 	public static final void displayMetadata(CommandSender to, GameObject obj) {
 		Document metadata = getMetadata(obj);
 		if(metadata.isEmpty()) {

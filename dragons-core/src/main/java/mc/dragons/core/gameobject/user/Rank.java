@@ -29,7 +29,7 @@ public enum Rank {
 	BUILD_MANAGER("Build Manager", "Build Manager", ChatColor.BLUE + "[Build Mgr]", ChatColor.BLUE, ChatColor.WHITE, true),
 	HEAD_BUILDER("Head Builder", "Head Builder", ChatColor.BLUE + "[Head Builder]", ChatColor.BLUE, ChatColor.WHITE, true),
 	HELPER("Helper", "Helper", ChatColor.GREEN + "[Helper]", ChatColor.GREEN, ChatColor.WHITE, true),
-	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[Moderator]", ChatColor.GREEN, ChatColor.WHITE, true),
+	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[Mod]", ChatColor.GREEN, ChatColor.WHITE, true),
 	COMMUNITY_MANAGER("Community Manager", "Community Mgr", ChatColor.LIGHT_PURPLE + "[CM]", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, true),
 	NEW_GM("New GM", "New GM", ChatColor.GOLD + "[New GM]", ChatColor.GOLD, ChatColor.WHITE, true), 
 	GM("Game Master", "Game Master", ChatColor.GOLD + "[GM]", ChatColor.GOLD, ChatColor.WHITE, true),

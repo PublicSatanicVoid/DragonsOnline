@@ -149,6 +149,7 @@ public class ResLoader extends AbstractLightweightLoader<Residence> {
 	
 	public void removeResidenceLocally(int id) {
 		resIdToLocalIndex.remove(id);
+		generated.remove((Integer) id); // important: keep this cast!!! without it, java thinks we want to remove INDEX and not VALUE
 	}
 	
 	public Location generateResidence(int id) {

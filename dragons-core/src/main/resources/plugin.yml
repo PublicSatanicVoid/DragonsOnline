@@ -9,6 +9,7 @@ commands:
   fastforwarddialogue:
     description: Fast-forward through active quest dialogue.
   feedback:
+    description: Send feedback about DragonsOnline.
   help:
     description: Halp
     aliases: '?'
@@ -26,12 +27,8 @@ commands:
   respawn:
     description: (TESTER) Skip the death countdown and respawn instantly.
   heal:
-    description: (MOD) Heal yourself or another player.
-  setverification:
-    description: (MOD) Update a user's verification status.
+    description: (MODERATOR) Heal yourself or another player.
   newsmanager:
     description: (GM) Manage announcements and changelogs.
   rank:
     description: (ADMIN) Set a player's rank.
-  correlation:
-    description: (ADMIN) Search log entries by correlation ID and level.

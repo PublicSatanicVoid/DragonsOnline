@@ -3,52 +3,25 @@ package mc.dragons.tools.content.command.statistics;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.events.PlayerEventListeners;
-import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
-import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.util.PermissionUtil;
 
-public class ResetProfileCommand implements CommandExecutor {
-	private UserLoader userLoader;
-	private ItemLoader itemLoader;
-	
-	public ResetProfileCommand() {
-		userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-		itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
-	}
+public class ResetProfileCommand extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.TESTER)) return true;
 		
-		Player player = null; 
-		User user = null;
-		
-		if(sender instanceof Player) {
-			player = (Player) sender;
-			user = UserLoader.fromPlayer(player);
-			if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, true)) return true;
-		}
-		
-		boolean gm = PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false);
-		
-		User target = user;
-		if(args.length != 0) {
-			if(!gm) {
-				sender.sendMessage(ChatColor.RED + "Only GM+ can reset others' profiles.");
-				return true;
-			}
+		User target = user(sender);
+		if(args.length != 0 && requirePermission(sender, PermissionLevel.GM)) {
 			target = userLoader.loadObject(args[0]);
 		}
 		
@@ -59,7 +32,7 @@ public class ResetProfileCommand implements CommandExecutor {
 		
 		boolean resetRank = false;
 		if(args.length > 1) {
-			resetRank = gm && (args[1].equalsIgnoreCase("-r") || args[1].equalsIgnoreCase("-resetrank"));
+			resetRank = hasPermission(sender, PermissionLevel.GM) && (args[1].equalsIgnoreCase("-r") || args[1].equalsIgnoreCase("-resetrank"));
 		}
 		
 		target.setXP(0);
@@ -87,13 +60,12 @@ public class ResetProfileCommand implements CommandExecutor {
 		target.getPlayer().sendTitle(ChatColor.DARK_RED + "RESET", ChatColor.RED + "Your profile has been reset!", 10, 70, 20);
 		target.sendActionBar(ChatColor.DARK_RED + "- Your profile has been reset! -");
 		target.debug("Profile forcibly reset");
-		if(target.equals(user)) {
+		if(target.equals(user(sender))) {
 			sender.sendMessage(ChatColor.GREEN + "Reset your profile.");
 		}
 		else {
 			sender.sendMessage(ChatColor.GREEN + "Reset " + target.getName() + "'s profile.");
 		}
-		
 		
 		return true;
 	}

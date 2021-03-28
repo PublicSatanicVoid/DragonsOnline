@@ -32,4 +32,7 @@ commands:
     description: Set speaking and listening chat channels.
     aliases: [c, ch, chat]
   duel:
-    description: 1v1 a player.
+    description: Request to 1v1 a player.
+  listallduelstatus:
+    description: (ADMIN) List all pending or in-progress duels.
+  testduelwin:

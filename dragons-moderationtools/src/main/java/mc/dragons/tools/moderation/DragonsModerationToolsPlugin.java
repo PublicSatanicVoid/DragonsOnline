@@ -4,8 +4,19 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.tools.moderation.abilities.FlyCommand;
+import mc.dragons.tools.moderation.abilities.GodModeCommand;
+import mc.dragons.tools.moderation.abilities.VanishCommands;
+import mc.dragons.tools.moderation.analysis.IPHistoryCommand;
+import mc.dragons.tools.moderation.analysis.IPScanCommand;
+import mc.dragons.tools.moderation.analysis.InfoCommand;
+import mc.dragons.tools.moderation.punishment.PunishCommands;
+import mc.dragons.tools.moderation.punishment.RemovePunishmentCommand;
+import mc.dragons.tools.moderation.punishment.UnPunishCommands;
+import mc.dragons.tools.moderation.punishment.ViewPunishmentsCommand;
 import mc.dragons.tools.moderation.report.ChatReportCommand;
 import mc.dragons.tools.moderation.report.EscalateCommand;
+import mc.dragons.tools.moderation.report.ReportAdminCommands;
 import mc.dragons.tools.moderation.report.ReportCommand;
 import mc.dragons.tools.moderation.report.ReportLoader;
 import mc.dragons.tools.moderation.report.ReportsCommand;
@@ -21,29 +32,34 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		getCommand("ipscan").setExecutor(new IPScanCommand());
 		getCommand("godmode").setExecutor(new GodModeCommand());
 		getCommand("fly").setExecutor(new FlyCommand());
+		getCommand("setverification").setExecutor(new SetVerificationCommand());
 		
-		getCommand("report").setExecutor(new ReportCommand(Dragons.getInstance()));
-		getCommand("escalate").setExecutor(new EscalateCommand(Dragons.getInstance()));
-		getCommand("chatreport").setExecutor(new ChatReportCommand(Dragons.getInstance()));
-		getCommand("reports").setExecutor(new ReportsCommand(Dragons.getInstance()));
-		getCommand("viewreport").setExecutor(new ViewReportCommand(Dragons.getInstance()));
+		getCommand("report").setExecutor(new ReportCommand());
+		getCommand("escalate").setExecutor(new EscalateCommand());
+		getCommand("chatreport").setExecutor(new ChatReportCommand());
+		getCommand("reports").setExecutor(new ReportsCommand());
+		getCommand("viewreport").setExecutor(new ViewReportCommand());
 		
-		CommandExecutor punishCommandsExecutor = new PunishCommands();
-		getCommand("ban").setExecutor(punishCommandsExecutor);
-		getCommand("mute").setExecutor(punishCommandsExecutor);
-		getCommand("kick").setExecutor(punishCommandsExecutor);
-		getCommand("warn").setExecutor(punishCommandsExecutor);
+		CommandExecutor reportAdminCommands = new ReportAdminCommands();
+		getCommand("toggleselfreport").setExecutor(reportAdminCommands);
+		getCommand("deletereport").setExecutor(reportAdminCommands);
 		
-		CommandExecutor unPunishCommandsExecutor = new UnPunishCommands();
-		getCommand("unban").setExecutor(unPunishCommandsExecutor);
-		getCommand("unmute").setExecutor(unPunishCommandsExecutor);
+		CommandExecutor punishCommands = new PunishCommands();
+		getCommand("ban").setExecutor(punishCommands);
+		getCommand("mute").setExecutor(punishCommands);
+		getCommand("kick").setExecutor(punishCommands);
+		getCommand("warn").setExecutor(punishCommands);
+		
+		CommandExecutor unPunishCommands = new UnPunishCommands();
+		getCommand("unban").setExecutor(unPunishCommands);
+		getCommand("unmute").setExecutor(unPunishCommands);
 		
 		getCommand("viewpunishments").setExecutor(new ViewPunishmentsCommand());
 		getCommand("removepunishment").setExecutor(new RemovePunishmentCommand());
 		
-		CommandExecutor vanishCommandsExecutor = new VanishCommands();
-		getCommand("vanish").setExecutor(vanishCommandsExecutor);
-		getCommand("unvanish").setExecutor(vanishCommandsExecutor);
+		CommandExecutor vanishCommands = new VanishCommands();
+		getCommand("vanish").setExecutor(vanishCommands);
+		getCommand("unvanish").setExecutor(vanishCommands);
 		
 	}
 }

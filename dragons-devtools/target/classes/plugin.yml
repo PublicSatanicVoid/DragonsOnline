@@ -5,43 +5,80 @@ author: UniverseCraft
 depend: [DragonsCore]
 commands:
   addon:
+    description: (ADMIN) Manage item and NPC addons.
+  autosave:
+    description: (ADMIN) Auto-save all eligible game objects immediately.
+  correlation:
+    description: (ADMIN) Search log entries by correlation ID and level.
   debug:
+    description: (ADMIN) Access debug tools.
   lag:
+    description: Analyze recent performance data for possible issues.
   loglevel:
+    description: (ADMIN) Change the console log level.
   ping:
-  placeholder:
+    description: View a player's ping, in milliseconds.
   reloadquests:
+    description: (ADMIN) Reload all quests from the database.
   serveroptions:
+    description: (ADMIN) Change active configuration data.
   serverperformance:
+    description: (ADMIN) View aggregated performance statistics about the server.
   getprocessid:
+    description: (ADMIN) View the current process ID of the server.
   killtask:
+    description: (ADMIN) Immediately cancel a running Bukkit task.
   killtasks:
+    description: (ADMIN) Immediately cancel all running Bukkit tasks.
   killtasksfor:
+    description: (ADMIN) Immediately cancel all running Bukkit tasks of the specified plugin.
   crashserver:
+    description: (ADMIN) Immediately crash the server, without data saving.
   generatedump:
+    description: (ADMIN) Dump data about the current server state, including game objects and performance.
   requestgc:
+    description: (ADMIN) Request garbage collection by the JVM. Behavior is platform-dependent and configuration-dependent.
   enableplugin:
+    description: (ADMIN) Enable a plugin that has been disabled.
   disableplugin:
+    description: (ADMIN) Disable a plugin. Associated tasks may or may not be cancelled.
   ilikevanilla:
+    description: (ADMIN) Replicate vanilla functionality by disabling all plugins.
   invalidate:
+    description: (ADMIN) Remove a specified game object from the cache.
   invalidateall:
+    description: (ADMIN) Remove all game objects from the cache.
   invalidatetype:
+    description: (ADMIN) Remove all game objects of a given type from the cache.
   invalidateuser:
+    description: (ADMIN) Remove a given player from the cache.
   localize:
+    description: (ADMIN) Disconnect a specified game object from the database. It will not be deleted, but future local changes will not be persisted until a restart.
   localizeall:
+    description: (ADMIN) Disconnect all game objects from the database. They will not be deleted, but future local changes will not be persisted until a restart.
   localizetype:
+    description: (ADMIN) Disconnect all game objects of a given type from the database. They will not be deleted, but future local changes will not be persisted until a restart.
   localizeuser:
+    description: (ADMIN) Disconnect the specified player from the database. They will not be deleted, but future local changes will not be persisted until a restart.
   verifygameintegrity:
+    description: (ADMIN) Scan game objects and caches for inconsistencies and attempt to resolve them if the -resolve flag is specified.
   worldperformance:
+    description: (ADMIN) View performance statistics broken down by world.
   helditemdata:
     aliases: whatamiholding
+    description: (ADMIN) View data about the item you are holding.
   rawtext:
+    description: (ADMIN) Display raw text, formatted with color codes.
   whoami:
+    description: (ADMIN) View your associated game object entry.
   stresstest:
+    description: (ADMIN) Spawn a large number of entities on the same tick.
   killmobs:
+    description: (ADMIN) Kill all entities.
   testexceptions:
   testmineregen:
   testpermission:
+    description: (ADMIN) Check if you have a particular Bukkit permission node.
   testlocaluserstorage:
   testgui:
   testhdfont:
@@ -49,9 +86,21 @@ commands:
   testpathfinding:
   testphasing:
   testarmorstandpose:
+  testtpsrecord:
   testleveling:
   testlogging:
   testuuidlookup:
   mongo:
+    description: (ADMIN) View data about the active MongoDB connection.
   panic:
+    description: (ADMIN) Crash the server after dumping data about the current state.
   testcorrelationlogging:
+  testbase64encoding:
+  getstate:
+    description: (MOD) Get a state token from the specified player.
+  setstate:
+    description: (MOD) Set your state to the specified state token.
+  getservername:
+    description: (ADMIN) View the name of the current server you're connected to.
+  setservername:
+    description: (ADMIN) Rename the current server you're connected to.

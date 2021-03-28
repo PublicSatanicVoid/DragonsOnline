@@ -2,33 +2,23 @@ package mc.dragons.spells.commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemLoader;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.spells.SpellCastAddon;
 import mc.dragons.spells.spells.Spell;
 
-public class BindSpellCommand implements CommandExecutor {
+public class BindSpellCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!(sender instanceof Player)) {
-			sender.sendMessage(ChatColor.RED + "This is an ingame-only command.");
-			return true;
-		}
-		
-		Player player = (Player) sender;
-		User user = UserLoader.fromPlayer(player);
-		
-		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, true)) return true;
+		if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.GM)) return true;
+		Player player = player(sender);
 		
 		ItemStack itemStack = player.getInventory().getItemInMainHand();
 		if(itemStack == null) {
