@@ -52,10 +52,8 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(" ");
 		sender.sendMessage(ChatColor.GRAY + "Click on one of the quests above to continue with the report.");
 		sender.sendMessage(" ");
-		return;
 	}
 	
-	/* 0=<questName> */
 	private void selectIssue(CommandSender sender, String[] args) {
 		sender.sendMessage(" ");
 		sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Please select the issue with this quest:");
@@ -71,7 +69,6 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(" ");
 	}
 	
-	/* 0=<questName>, 1=<issueType> */
 	private void submit(CommandSender sender, String[] args) {
 		User user = user(sender);
 		Quest quest = questLoader.getQuestByName(args[0]);

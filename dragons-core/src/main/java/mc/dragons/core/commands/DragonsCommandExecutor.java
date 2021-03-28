@@ -80,6 +80,8 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	
 	/* Helper functions */
 	
+	protected void unusedParameter(Object param) {}
+	
 	protected Player player(CommandSender sender) {
 		if(sender instanceof Player) return (Player) sender;
 		return null;

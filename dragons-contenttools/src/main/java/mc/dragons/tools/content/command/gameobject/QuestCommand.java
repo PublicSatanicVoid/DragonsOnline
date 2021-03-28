@@ -68,6 +68,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	}
 	
 	private void listQuests(CommandSender sender, String[] args) {
+		unusedParameter(args);
 		sender.sendMessage(ChatColor.GREEN + "Listing all quests:");
 		int nInvalid = 0;
 		for(GameObject gameObject : registry.getRegisteredObjects(GameObjectType.QUEST)) {
@@ -159,7 +160,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 		else if(args[4].equalsIgnoreCase("action")) {
 			if(args.length == 5) {
-				displayActionHelp(sender, args);
+				displayActionHelp(sender);
 			}
 			else if(args[5].equalsIgnoreCase("add")) {
 				addAction(sender, args);
@@ -209,7 +210,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 	}
 	
-	private void displayActionHelp(CommandSender sender, String[] args) {
+	private void displayActionHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.RED + "Insufficient arguments!");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add TELEPORT_PLAYER");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add SPAWN_NPC <NpcClass> [NpcReferenceName] [Phased?]");

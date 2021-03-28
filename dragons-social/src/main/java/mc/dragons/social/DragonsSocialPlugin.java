@@ -8,11 +8,10 @@ import mc.dragons.core.gameobject.user.chat.ChatChannel;
 
 public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 	
-	private Dragons instance;
 	private SocialUserHook socialHook;
 	
 	public void onEnable() {
-		instance = Dragons.getInstance();
+		Dragons instance = Dragons.getInstance();
 		instance.getLightweightLoaderRegistry().register(new GuildLoader(instance.getMongoConfig()));
 		socialHook = new SocialUserHook();
 		instance.getUserHookRegistry().registerHook(socialHook);

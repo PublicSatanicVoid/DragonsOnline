@@ -27,25 +27,27 @@ public class MoveListener implements Listener {
 	private static final double IMPULSE_DIAGONAL = 0.357147;
 	
 	private static final double EPSILON_RAD = rad(1.0);
+
+	private List<String> log = new ArrayList<>();
+	private boolean logEnabled = false;
+	
 	
 	private static double rad(double deg) {
 		return deg * Math.PI / 180;
 	}
 	
+	/*
 	private static double deg(double rad) {
 		return rad * 180 / Math.PI;
 	}
+	*/
 	
 	private static boolean in(double x, double a, double b) {
 		return a <= x && x <= b || b <= x && x <= a;
 	}
 	
-	private static final double DEG_45 = rad(45.0);
-	
 	private static enum MoveType { STRAIGHT, DIAGONAL };
 	
-	private List<String> log = new ArrayList<>();
-	private boolean logEnabled = false;
 	
 	public void enableLog() {
 		logEnabled = true;

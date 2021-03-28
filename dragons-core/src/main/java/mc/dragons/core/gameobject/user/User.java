@@ -869,19 +869,19 @@ public class User extends GameObject {
 				player.getInventory().setItem(slot, itemStack);
 				continue;
 			}
-			if (part.equals("Helmet")) {
+			else if (part.equals("Helmet")) {
 				player.getInventory().setHelmet(itemStack);
 				continue;
 			}
-			if (part.equals("Chestplate")) {
+			else if (part.equals("Chestplate")) {
 				player.getInventory().setChestplate(itemStack);
 				continue;
 			}
-			if (part.equals("Leggings")) {
+			else if (part.equals("Leggings")) {
 				player.getInventory().setLeggings(itemStack);
 				continue;
 			}
-			if (part.equals("Boots")) {
+			else if (part.equals("Boots")) {
 				player.getInventory().setBoots(itemStack);
 			}
 		}

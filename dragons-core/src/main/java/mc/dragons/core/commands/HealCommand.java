@@ -26,7 +26,7 @@ public class HealCommand extends DragonsCommandExecutor {
 	private void healOther(CommandSender sender, String[] args) {
 		Player player = lookupPlayer(sender, args[0]);
 		if(player == null) return;
-		if(player == sender) {
+		if(player.equals(sender)) {
 			healSelf(sender);
 			return;
 		}

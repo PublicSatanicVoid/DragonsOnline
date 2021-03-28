@@ -310,17 +310,17 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document conditionals = npcClass.getStorageAccess().getDocument().get("conditionals", Document.class);
 		List<Document> behaviors = conditionals.getList(trigger.toString(), Document.class);
 		if(args[3].equalsIgnoreCase("add")) {
-			addBehavior(sender, args, behaviors, conditionals, trigger, npcClass, parsedBehaviors);
+			addBehavior(sender, behaviors, conditionals, trigger, npcClass, parsedBehaviors);
 		}
 		else if(args[3].equalsIgnoreCase("remove")) {
 			removeBehavior(sender, args, behaviors, conditionals, trigger, npcClass, parsedBehaviors);
 		}
 		else {
-			manageBehavior(sender, args, behaviors, conditionals, trigger, npcClass, parsedBehaviors, behaviorsLocal);
+			manageBehavior(sender, args, behaviors, conditionals, trigger, npcClass, behaviorsLocal);
 		}
 	}
 	
-	private void addBehavior(CommandSender sender, String[] args, List<Document> behaviors, Document conditionals, NPCTrigger trigger, NPCClass npcClass, NPCConditionalActions parsedBehaviors) {
+	private void addBehavior(CommandSender sender, List<Document> behaviors, Document conditionals, NPCTrigger trigger, NPCClass npcClass, NPCConditionalActions parsedBehaviors) {
 		behaviors.add(new Document("conditions", new ArrayList<Document>()).append("actions", new ArrayList<Document>()));
 		npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 		parsedBehaviors.addLocalEntry();
@@ -343,7 +343,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		MetadataConstants.incrementRevisionCount(npcClass, user(sender));
 	}
 
-	private void manageBehavior(CommandSender sender, String[] args, List<Document> behaviors, Document conditionals, NPCTrigger trigger, NPCClass npcClass, NPCConditionalActions parsedBehaviors, NPCConditionalActions behaviorsLocal) {
+	private void manageBehavior(CommandSender sender, String[] args, List<Document> behaviors, Document conditionals, NPCTrigger trigger, NPCClass npcClass, NPCConditionalActions behaviorsLocal) {
 		User user = user(sender);
 		Player player = player(sender);
 		
@@ -447,7 +447,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 					return;
 				}
 			}
-			if(args[5].equalsIgnoreCase("add")) {
+			else if(args[5].equalsIgnoreCase("add")) {
 				NPCActionType actionType = StringUtil.parseEnum(sender, NPCActionType.class, args[6]);
 				if(actionType == null) return;
 				NPCAction action = null;
