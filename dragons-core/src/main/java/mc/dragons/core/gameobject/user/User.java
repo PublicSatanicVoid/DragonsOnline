@@ -121,7 +121,7 @@ public class User extends GameObject {
 	private CommandSender lastReceivedMessageFrom;
 	private boolean chatSpy; // Whether the user can see others' private messages.
 	private GUI currentGUI;
-	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level bug.
+	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level inventory bug.
 	private boolean joined; // If the user has joined and authenticated yet.
 	
 	/**
@@ -131,9 +131,13 @@ public class User extends GameObject {
 	 * @return
 	 */
 	public static int calculateLevel(int xp) {
-		return (int) Math.floor(0.8D * (xp / 1000000 + Math.sqrt(xp / 100))) + 1;
+		return (int) Math.floor(calculateLevelDecimal(xp));
 	}
 
+	public static double calculateLevelDecimal(double xp) {
+		return 0.8D * (xp / 1000000 + Math.sqrt(xp / 100)) + 1;
+	}
+	
 	/**
 	 * Calculates the maximum XP required for the given global level.
 	 * Inverse function of calculateLevel.
@@ -142,9 +146,13 @@ public class User extends GameObject {
 	 * @return
 	 */
 	public static int calculateMaxXP(int level) {
-		return (int) Math.floor(1250000.0D * Math.pow(Math.sqrt(level + 1999) - 44.721359549996D, 2.0D));
+		return (int) Math.floor(calculateMaxXPDecimal(level));
 	}
 
+	public static double calculateMaxXPDecimal(int level) {
+		return 1250000.0D * Math.pow(Math.sqrt(level + 1999) - 44.721359549996D, 2.0D);
+	}
+	
 	public static int calculateSkillLevel(double progress) {
 		return (int) Math.floor(Math.sqrt(progress / 17.0D));
 	}
@@ -1332,7 +1340,7 @@ public class User extends GameObject {
 			player.sendTitle(ChatColor.DARK_AQUA + "Level Up!", ChatColor.AQUA + "" + getLevel() + " >>> " + level, 20, 40, 20);
 			Bukkit.broadcastMessage(ChatColor.AQUA + getName() + " is now level " + level + "!");
 		}
-		update(new Document("xp", Integer.valueOf(xp)).append("level", Integer.valueOf(level)));
+		update(new Document("xp", xp).append("level", level));
 		updateVanillaLeveling();
 	}
 

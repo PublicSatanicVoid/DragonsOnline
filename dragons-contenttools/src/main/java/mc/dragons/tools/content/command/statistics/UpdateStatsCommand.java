@@ -24,11 +24,8 @@ public class UpdateStatsCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		User target = userLoader.loadObject(args[0]);
-		if(target == null) {
-			sender.sendMessage(ChatColor.RED + "That user does not exist!");
-			return true;
-		}
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return true;
 		
 		if(args[1].equalsIgnoreCase("xp")) {
 			target.setXP(Integer.valueOf(args[2]));
@@ -38,7 +35,9 @@ public class UpdateStatsCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Updated XP of " + target.getName());
 		}
 		else if(args[1].equalsIgnoreCase("level")) {
-			target.setXP(User.calculateMaxXP(Integer.valueOf(args[2]) - 1));
+			int level = Integer.valueOf(args[2]);
+			double max = User.calculateMaxXPDecimal(level);
+			target.setXP((int) Math.ceil(max+1));
 			sender.sendMessage(ChatColor.GREEN + "Updated level of " + target.getName());
 		}
 		else if(args[1].equalsIgnoreCase("gold")) {

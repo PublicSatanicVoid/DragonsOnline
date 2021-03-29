@@ -104,3 +104,5 @@ commands:
     description: (ADMIN) View the name of the current server you're connected to.
   setservername:
     description: (ADMIN) Rename the current server you're connected to.
+  tickperformance:
+    description: (ADMIN) Analyze tick-related performance data over the specified time interval.

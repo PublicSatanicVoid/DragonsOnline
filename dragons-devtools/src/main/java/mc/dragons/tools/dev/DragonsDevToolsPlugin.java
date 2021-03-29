@@ -70,6 +70,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("getprocessid").setExecutor(performanceCommands);
 		getCommand("requestgc").setExecutor(performanceCommands);
 		getCommand("generatedump").setExecutor(performanceCommands);
+		getCommand("tickperformance").setExecutor(performanceCommands);
 		
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);

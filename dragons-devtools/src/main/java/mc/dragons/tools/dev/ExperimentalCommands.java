@@ -243,10 +243,14 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("testleveling")) {
+			player.sendMessage("level=" + user.getLevel());
+			player.sendMessage("xp="+user.getXP());
 			int prevMax = User.calculateMaxXP(user.getLevel());
 			player.sendMessage("prevMax=" + prevMax);
+			int nextMax = User.calculateMaxXP(user.getLevel() + 1);
+			player.sendMessage("nextMax=" + nextMax);
 			int n = user.getXP() - prevMax;
-			int d = User.calculateMaxXP(user.getLevel() + 1) - prevMax;
+			int d = nextMax - prevMax;
 			player.sendMessage("numerator=" + n);
 			player.sendMessage("denominator=" + d);
 			player.sendMessage("progress=" + ((float)n / d));

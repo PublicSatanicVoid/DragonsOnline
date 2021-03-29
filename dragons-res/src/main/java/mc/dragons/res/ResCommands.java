@@ -260,7 +260,9 @@ public class ResCommands extends DragonsCommandExecutor {
 				resLoader.generateResidence(id);
 				sender.sendMessage(ChatColor.GREEN + "Rebuilt residence #" + id + " successfully.");
 			}
-			sender.sendMessage(ChatColor.RED + "/resadmin");
+			else {
+				sender.sendMessage(ChatColor.RED + "/resadmin");
+			}
 		}
 		
 		else if(label.equalsIgnoreCase("testcontextualholograms")) {

@@ -124,7 +124,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		case "b":
 			user.getLocalData().append("regionSelCorner2", player.getLocation());
 			sender.sendMessage(ChatColor.GREEN + "Corner 2 selection set to " + StringUtil.locToString(player.getLocation()) + ".");
-			sender.sendMessage(ChatColor.GREEN + "Changes will not take effect until you set both corners and run /region " + args[1] + " corner go");
+			sender.sendMessage(ChatColor.GREEN + "Changes will not take effect until you set both corners and run /region " + args[0] + " corner go");
 			break;
 		case "go":
 			Vector corner1 = user.getLocalData().get("regionSelCorner1", Location.class).toVector();

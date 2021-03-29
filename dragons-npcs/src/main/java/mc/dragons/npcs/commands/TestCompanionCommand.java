@@ -60,7 +60,9 @@ public class TestCompanionCommand extends DragonsCommandExecutor {
 			companion.getEntity().remove();
 		}
 		
-		sender.sendMessage("I dont understandddddd");
+		else {
+			sender.sendMessage("I dont understandddddd");
+		}
 		
 		return true;
 	}

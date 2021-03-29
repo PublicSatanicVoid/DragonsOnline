@@ -3,8 +3,10 @@ package mc.dragons.tools.dev.monitor;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -29,6 +31,8 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 
 	private static final int BYTES_IN_MB = (int) Math.pow(10, 6);
 	private static final int NS_IN_MS = (int) Math.pow(10, 6);
+	
+	private List<Long> tickTimings = new ArrayList<>();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -75,6 +79,67 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.GREEN + "System Load Average: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemLoadAverage()) + "%");
 				}
 			}.runTaskAsynchronously(instance);
+		}
+		
+		else if(label.equalsIgnoreCase("tickperformance")) {
+			if(args.length == 0) {
+				sender.sendMessage(ChatColor.RED + "/tickperformance start <recPeriodInSeconds>");
+				sender.sendMessage(ChatColor.RED + "/tickperformance clear");
+				sender.sendMessage(ChatColor.RED + "/tickperformance view [-verbose]" + ChatColor.GRAY + " (after data has been collected)");
+			}
+			else if(args[0].equalsIgnoreCase("start")) {
+				if(args.length == 1) {
+					sender.sendMessage(ChatColor.RED + "/tickperformance start <recPeriodInSeconds>");
+					return true;
+				}
+				if(tickTimings.size() > 0) {
+					sender.sendMessage(ChatColor.RED + "Please clear existing tick performance data before running this again! /tickperformance clear");
+					return true;
+				}
+				Integer seconds = parseIntType(sender, args[1]);
+				if(seconds == null) return true;
+				new BukkitRunnable() {
+					long start = System.currentTimeMillis();
+					@Override public void run() {
+						long now = System.currentTimeMillis();
+						tickTimings.add(now);
+						if((now - start) / 1000 > seconds) {
+							sender.sendMessage(ChatColor.GREEN + "Tick timings data collection has completed. Do /tickperformance view to view the data.");
+							cancel();
+						}
+					}
+				}.runTaskTimer(instance, 1L, 1L);
+				sender.sendMessage(ChatColor.GREEN + "Began tick timings data collection. Server may experience mild lag while this runs.");
+			}
+			else if(args[0].equalsIgnoreCase("clear")) {
+				tickTimings.clear();
+			}
+			else if(args[0].equalsIgnoreCase("view")) {
+				if(tickTimings.size() == 0) {
+					sender.sendMessage(ChatColor.RED + "No tick performance data available! To gather data, do /tickperformance start <recPeriodInSeconds>");
+					return true;
+				}
+				sender.sendMessage(ChatColor.DARK_GREEN + "Recorded tick data:");
+				long prev = tickTimings.get(0);
+				long longest = 0;
+				long shortest = -1;
+				long sum = 0;
+				boolean verbose = args.length > 1 && args[1].equalsIgnoreCase("-verbose");
+				for(int i = 1; i < tickTimings.size(); i++) {
+					long ms = tickTimings.get(i) - prev;
+					sum += ms;
+					if(ms > longest) longest = ms;
+					if(shortest == -1 || ms < shortest) shortest = ms;
+					if(verbose)
+						sender.sendMessage(ChatColor.GRAY + "#" + i + ": " + (ms <= 5 + 1000 / 20 ? ChatColor.GREEN : ChatColor.RED) + ms + "ms");
+					prev = tickTimings.get(i);
+				}
+				double avg = (double) sum / (tickTimings.size() - 1);
+				sender.sendMessage(ChatColor.GREEN + "Ticks Recorded: " + ChatColor.GRAY + (tickTimings.size() - 1));
+				sender.sendMessage(ChatColor.GREEN + "Shortest Tick: " + ChatColor.GRAY + shortest + "ms");
+				sender.sendMessage(ChatColor.GREEN + "Longest Tick: " + ChatColor.GRAY + longest + "ms");
+				sender.sendMessage(ChatColor.GREEN + "Average Tick: " + ChatColor.GRAY + MathUtil.round(avg) + "ms");
+			}
 		}
 		
 		else if(label.equalsIgnoreCase("getprocessid")) {
