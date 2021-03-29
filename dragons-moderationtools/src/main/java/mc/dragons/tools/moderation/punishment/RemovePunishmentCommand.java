@@ -12,12 +12,13 @@ import org.bukkit.command.CommandSender;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
 
 public class RemovePunishmentCommand extends DragonsCommandExecutor {
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 		
 		if(args.length < 2) {
 			sender.sendMessage(ChatColor.RED + "Specify a player and the punishment number! /removepunishment <player> <#>");

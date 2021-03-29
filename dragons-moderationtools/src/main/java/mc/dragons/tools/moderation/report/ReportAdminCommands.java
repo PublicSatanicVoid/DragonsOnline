@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 
 public class ReportAdminCommands extends DragonsCommandExecutor {
 
@@ -21,6 +22,7 @@ public class ReportAdminCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("deletereport")) {
+			if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 			if(args.length == 0) {
 				sender.sendMessage(ChatColor.RED + "/deletereport <ID>");
 				return true;
