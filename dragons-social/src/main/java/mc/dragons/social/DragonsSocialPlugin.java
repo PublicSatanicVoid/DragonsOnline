@@ -9,12 +9,19 @@ import mc.dragons.core.gameobject.user.chat.ChatChannel;
 public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 	
 	private SocialUserHook socialHook;
+	private DiscordNotifier buildNotifier;
 	
 	public void onEnable() {
+		saveDefaultConfig();
+		
+		buildNotifier = new DiscordNotifier(getConfig().getString("discord-notifier-webhook-url"));
+		buildNotifier.setEnabled(getConfig().getBoolean("discord-notifier-enabled"));
+		
 		Dragons instance = Dragons.getInstance();
 		instance.getLightweightLoaderRegistry().register(new GuildLoader(instance.getMongoConfig()));
 		socialHook = new SocialUserHook();
 		instance.getUserHookRegistry().registerHook(socialHook);
+		
 		
 		ChatChannel.GUILD.setHandler(new GuildChannelHandler());
 		
@@ -36,5 +43,9 @@ public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 	
 	public SocialUserHook getSocialHook() {
 		return socialHook;
+	}
+	
+	public DiscordNotifier getBuildNotifier() {
+		return buildNotifier;
 	}
 }

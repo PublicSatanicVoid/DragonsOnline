@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.UserLoader;
@@ -18,9 +19,13 @@ import mc.dragons.social.GuildLoader.Guild;
 
 public class SocialUserHook implements UserHook {
 	private GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
-
+	private DragonsSocialPlugin instance = JavaPlugin.getPlugin(DragonsSocialPlugin.class);
+	private DiscordNotifier buildNotifier = instance.getBuildNotifier();
+	
 	@Override
 	public void onVerifiedJoin(User user) {
+		
+		/* Send guild welcome(s) */
 		Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {		
 			List<Guild> guilds = guildLoader.getAllGuildsWithRaw(user.getUUID());
 			boolean shown = false;
@@ -38,6 +43,7 @@ public class SocialUserHook implements UserHook {
 			}
 		}, 20L);
 
+		/* Warn if others are online but cannot hear the user */
 		boolean anyCanHear = false;
 		for(User test : UserLoader.allUsers()) {
 			if(test.equals(user)) continue;
@@ -53,6 +59,13 @@ public class SocialUserHook implements UserHook {
 				user.getPlayer().sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Warning: " + ChatColor.RED + "Nobody else can hear you in the channel you're speaking in.");
 				user.getPlayer().sendMessage(ChatColor.GRAY + "Do " + ChatColor.RESET + "/channel " + ChatColor.GRAY + "to manage channels.");
 			}, 20L * 2);
+		}
+		
+		/* Notify Discord when builders join the server */
+		Rank rank = user.getRank();
+		if(rank == Rank.BUILDER || rank == Rank.BUILDER_CMD || rank == Rank.BUILD_MANAGER
+				|| rank == Rank.HEAD_BUILDER || rank == Rank.NEW_BUILDER) {
+			buildNotifier.sendNotification(rank.getRankName() + " " + user.getName() + " joined the server!");
 		}
 	}
 	

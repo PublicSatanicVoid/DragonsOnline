@@ -106,5 +106,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("testuuidlookup").setExecutor(experimentalCommands);
 		getCommand("testcorrelationlogging").setExecutor(experimentalCommands);
 		getCommand("testbase64encoding").setExecutor(experimentalCommands);
+		getCommand("testdiscordintegration").setExecutor(experimentalCommands);
 	}
 }

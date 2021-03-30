@@ -90,6 +90,7 @@ commands:
   testleveling:
   testlogging:
   testuuidlookup:
+  testdiscordintegration:
   mongo:
     description: (ADMIN) View data about the active MongoDB connection.
   panic:

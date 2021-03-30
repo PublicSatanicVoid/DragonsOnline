@@ -1,5 +1,10 @@
 package mc.dragons.tools.dev;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -282,6 +287,25 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("encoded: " + encoded);
 			String decoded = new String(Base64.getDecoder().decode(encoded));
 			sender.sendMessage("decoded: " + decoded);
+		}
+		
+		else if(label.equalsIgnoreCase("testdiscordintegration")) {
+			try {
+				HttpClient client = HttpClient.newHttpClient();
+				HttpRequest request = HttpRequest.newBuilder()
+						.uri(URI.create("https://discord.com/api/webhooks/826465944171315230/ygJL1q8j0QLuFV1LSPAEw7t6-FERZfeNUX26eTuTBETs_EzWKCLGpTRUmnOmqkJfiBsd"))
+						.POST(HttpRequest.BodyPublishers.ofString("content="+StringUtil.concatArgs(args, 0)))
+						.setHeader("Content-Type", "application/x-www-form-urlencoded")
+						.build();
+				sender.sendMessage("client="+client+",req="+request);
+				HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+				sender.sendMessage("response: " + response.body());
+				
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		
 		return true;

@@ -1,0 +1,5 @@
+# The URL of the webhook used to send Discord notifications.
+discord-notifier-webhook-url: 'https://discord.com/api/webhooks/webhook-id-goes-here'
+
+# Whether to enable sending Discord notifications.
+discord-notifier-enabled: true
