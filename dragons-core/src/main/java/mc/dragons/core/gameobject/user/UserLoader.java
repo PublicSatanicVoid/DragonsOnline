@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -38,10 +39,12 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.storage.loader.GlobalVarLoader;
 
 public class UserLoader extends GameObjectLoader<User> {
 	private static UserLoader INSTANCE;
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
+	private static GlobalVarLoader VAR;
 	private static Set<User> users = new HashSet<>();
 
 	private GameObjectRegistry masterRegistry;
@@ -50,7 +53,11 @@ public class UserLoader extends GameObjectLoader<User> {
 		super(instance, storageManager);
 		masterRegistry = instance.getGameObjectRegistry();
 	}
-
+	
+	public static void lazyLoadGlobalVarLoader() {
+		VAR = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
+	}
+	
 	public static synchronized UserLoader getInstance(Dragons instance, StorageManager storageManager) {
 		if (INSTANCE == null) {
 			INSTANCE = new UserLoader(instance, storageManager);
@@ -130,12 +137,28 @@ public class UserLoader extends GameObjectLoader<User> {
 			skills.append(skill.toString(), Integer.valueOf(0));
 			skillProgress.append(skill.toString(), Double.valueOf(0.0D));
 		}
+		Rank rank = Rank.DEFAULT;
+
+		if(VAR.get("autorank") == null) {
+			VAR.set("autorank", new Document());
+		}
+		
+		String autoRank = VAR.getDocument("autorank").getString(player.getUniqueId().toString());
+		if(autoRank != null) {
+			rank = Rank.valueOf(autoRank);
+			Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
+				player.sendMessage(ChatColor.GREEN + "Your rank of " + autoRank + " was successfully applied.");
+			}, 20L * 3);
+			Document autoRanks = VAR.getDocument("autorank");
+			autoRanks.remove(player.getUniqueId().toString());
+			VAR.set("autorank", autoRanks);
+		}
 		Document data = new Document("_id", player.getUniqueId())
 				.append("username", player.getName())
 				.append("maxHealth", player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())
 				.append("xp", 0)
 				.append("level", 1)
-				.append("rank", Rank.DEFAULT.toString())
+				.append("rank", rank.toString())
 				.append("gold", 0.0)
 				.append("godMode", false)
 				.append("firstJoined", System.currentTimeMillis())

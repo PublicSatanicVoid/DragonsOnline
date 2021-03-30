@@ -32,3 +32,5 @@ commands:
     description: (GM) Manage announcements and changelogs.
   rank:
     description: (ADMIN) Set a player's rank.
+  autorank:
+    description: (ADMIN) Set the default rank for the specified player when they first join.

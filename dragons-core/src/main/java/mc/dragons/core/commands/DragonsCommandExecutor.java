@@ -34,6 +34,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.storage.loader.GlobalVarLoader;
 import mc.dragons.core.util.PermissionUtil;
 
 /**
@@ -58,8 +59,9 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	protected ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 	protected QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 	
-	protected Logger LOGGER = instance.getLogger();
-	protected CorrelationLogger CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
+	protected final Logger LOGGER = instance.getLogger();
+	protected final CorrelationLogger CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
+	protected final GlobalVarLoader VAR = instance.getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
 	
 	/* Standard error messages */
 	public static final String ERR_USER_NOT_FOUND = ChatColor.RED + "That user was not found in our records!";

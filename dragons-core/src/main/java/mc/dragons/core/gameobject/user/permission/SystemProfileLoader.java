@@ -112,6 +112,10 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 		return systemProfile;
 	}
 
+	public List<SystemProfile> getAllProfiles() {
+		return collection.find().map(d -> loadProfile(d.getString("profileName"))).into(new ArrayList<>());
+	}
+
 	public void migrateProfile(String profileName, String ownerUsername) {
 		Document profile = collection.find(new Document("profileName", profileName)).first();
 		String hash = profile.getString("profilePasswordHash");
@@ -224,10 +228,10 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 		String hash = passwordHash(newPassword);
 		
 		@SuppressWarnings("unchecked")
-		Map<UUID, String> hashes = (Map<UUID, String>) collection.find(new Document("profileName", profileName)).first().get("profilePasswordHashes");
-		hashes.put(uuid, hash);
+		Map<String, String> hashesRaw = (Map<String, String>) collection.find(new Document("profileName", profileName)).first().get("profilePasswordHashes");
+		hashesRaw.put(uuid.toString(), hash);
 		
-		collection.updateOne(new Document("profileName", profileName), new Document("$set", new Document("profilePasswordHashes", hashes)));
+		collection.updateOne(new Document("profileName", profileName), new Document("$set", new Document("profilePasswordHashes", hashesRaw)));
 		loadProfile(profileName).setLocalPasswordHash(uuid, hash);
 		kickProfileLocally(profileName);
 		

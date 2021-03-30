@@ -106,3 +106,13 @@ commands:
     description: (ADMIN) Rename the current server you're connected to.
   tickperformance:
     description: (ADMIN) Analyze tick-related performance data over the specified time interval.
+  getstacktrace:
+    description: (ADMIN) Get the stack trace of the current thread, or of the thread with the specified ID.
+  getactivethreads:
+    description: (ADMIN) List all currently running threads and their groups.
+  getglobalaccessiontoken:
+    description: (ADMIN) Displays the server instance's global variable accession token.
+  setglobalaccessiontoken:
+    description: (ADMIN) Changes the server instance's global variable accession token.
+  getglobalvariables:
+    description: (ADMIN) Displays all global variables.

@@ -8,6 +8,12 @@ commands:
     description: Create a build trial for the specified player.
   task:
     description: Create a task.
+  taskloc:
+    description: Change the location of a task.
+  tasknote:
+    description: Add a note to a task.
+  gototask:
+    description: Teleport to a task.
   tasks:
     description: List active tasks.
   taskinfo:

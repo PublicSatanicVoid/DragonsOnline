@@ -31,6 +31,7 @@ public class MongoConfig {
 
 	private String user;
 	private String host;
+	private String accessionToken;
 	private int port;
 	
 	public MongoConfig(Dragons instance) {
@@ -42,6 +43,7 @@ public class MongoConfig {
 		port = dbConfig.getInt("port");
 		String authDB = dbConfig.getString("auth_db");
 		String database = dbConfig.getString("database");
+		accessionToken = dbConfig.getString("global-var-accession-token");
 		
 		ConnectionString connectionString = new ConnectionString("mongodb://" + user + ":" + password + "@" + host + ":" + port + "/?authSource=" + authDB);
 		MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connectionString).uuidRepresentation(UuidRepresentation.STANDARD).build();
@@ -66,6 +68,10 @@ public class MongoConfig {
 	
 	public String getHost() {
 		return host;
+	}
+
+	public String getAccessionToken() {
+		return accessionToken;
 	}
 	
 	public int getPort() {

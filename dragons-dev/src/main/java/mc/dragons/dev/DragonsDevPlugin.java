@@ -38,6 +38,9 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 		getCommand("approve").setExecutor(taskCommands);
 		getCommand("reject").setExecutor(taskCommands);
 		getCommand("close").setExecutor(taskCommands);
+		getCommand("taskloc").setExecutor(taskCommands);
+		getCommand("tasknote").setExecutor(taskCommands);
+		getCommand("gototask").setExecutor(taskCommands);
 		getCommand("backup").setExecutor(new BackupCommand());
 		getCommand("starttrial").setExecutor(new StartTrialCommand());
 		

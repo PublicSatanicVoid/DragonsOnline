@@ -20,6 +20,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.impl.BridgeSpigot112R1;
+import mc.dragons.core.commands.AutoRankCommand;
 import mc.dragons.core.commands.ChangeLogCommands;
 import mc.dragons.core.commands.FeedbackCommand;
 import mc.dragons.core.commands.HealCommand;
@@ -65,6 +66,7 @@ import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
 import mc.dragons.core.storage.loader.FeedbackLoader;
+import mc.dragons.core.storage.loader.GlobalVarLoader;
 import mc.dragons.core.storage.loader.LightweightLoaderRegistry;
 import mc.dragons.core.storage.loader.WarpLoader;
 import mc.dragons.core.storage.local.LocalStorageManager;
@@ -229,7 +231,10 @@ public class Dragons extends JavaPlugin {
 		lightweightLoaderRegistry.register(new WarpLoader(mongoConfig));
 		lightweightLoaderRegistry.register(new CorrelationLogger(mongoConfig));
 		lightweightLoaderRegistry.register(new SystemProfileLoader(this));
-
+		lightweightLoaderRegistry.register(new GlobalVarLoader(mongoConfig));
+		
+		UserLoader.lazyLoadGlobalVarLoader();
+		
 		getLogger().info("Registering events...");
 		PluginManager pluginManager = getServer().getPluginManager();
 		pluginManager.registerEvents(new EntityDeathListener(this), this);
@@ -246,6 +251,7 @@ public class Dragons extends JavaPlugin {
 		
 		getLogger().info("Registering commands...");
 		getCommand("rank").setExecutor(new RankCommand());
+		getCommand("autorank").setExecutor(new AutoRankCommand());
 		getCommand("syslogon").setExecutor(new SystemLogonCommand());
 		getCommand("respawn").setExecutor(new RespawnCommand());
 		getCommand("heal").setExecutor(new HealCommand());

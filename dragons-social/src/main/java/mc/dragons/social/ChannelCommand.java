@@ -32,8 +32,20 @@ public class ChannelCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		ChatChannel channel = StringUtil.parseEnum(sender, ChatChannel.class, args[1]);
-		if(channel == null) return true;
+		
+		ChatChannel channel = null;
+		for(ChatChannel ch : ChatChannel.values()) {
+			if(ch.getAbbreviation().equalsIgnoreCase(args[1]) || ch.toString().equalsIgnoreCase(args[1])) {
+				channel = ch;
+				break;
+			}
+		}
+		
+		if(channel == null) {
+			sender.sendMessage(ChatColor.RED + "Invalid chat channel!");
+			player(sender).performCommand("channel");
+			return true;
+		}
 		
 		if (channel == ChatChannel.STAFF && !staff) {
 			sender.sendMessage(ChatColor.RED + "That is a staff-only channel!");

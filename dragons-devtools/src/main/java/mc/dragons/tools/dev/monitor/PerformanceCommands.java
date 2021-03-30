@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -144,6 +147,39 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("getprocessid")) {
 			sender.sendMessage(ChatColor.GREEN + "Process ID: " + ChatColor.GRAY + ProcessHandle.current().pid());
+		}
+		
+		else if(label.equalsIgnoreCase("getstacktrace")) {
+			UUID cid = CORRELATION.registerNewCorrelationID();
+			Thread thread = Thread.currentThread();
+			if(args.length > 0) {
+				Integer id = parseIntType(sender, args[0]);
+				for(Thread test : Thread.getAllStackTraces().keySet()) {
+					if(test.getId() == id) {
+						thread = test;
+						break;
+					}
+				}
+			}
+			CORRELATION.log(cid, Level.INFO, "Stack trace requested for thread " + thread.getId() + " (" + thread.getState() + ")");
+			sender.sendMessage(ChatColor.GREEN + "Stack trace for thread " + thread.getId() + " (" + thread.getState() + ")");
+			for(StackTraceElement elem : thread.getStackTrace()) {
+				sender.sendMessage(ChatColor.GRAY + elem.toString());
+				CORRELATION.log(cid, Level.INFO, elem.toString());
+			}
+			sender.sendMessage(ChatColor.YELLOW + "Stack trace logged with correlation ID " + StringUtil.toHdFont(cid.toString()));
+		}
+		
+		else if(label.equalsIgnoreCase("getactivethreads")) {
+			sender.sendMessage(ChatColor.DARK_GREEN + "" + Thread.getAllStackTraces().size() + " active threads:");
+			// adapted from https://stackoverflow.com/a/46979843/8463670
+			Thread.getAllStackTraces().keySet().stream().collect(Collectors.groupingBy(Thread::getThreadGroup)).forEach((group, threads) -> {
+				sender.sendMessage(ChatColor.YELLOW + "GROUP " + group.getName() + " - " + group.activeCount() + " thr, " + group.activeGroupCount() + " sub" 
+						+ ", par=" + (group.getParent() == null ? "none" : group.getParent().getName()) + ", maxpriority=" + group.getMaxPriority() + ", daemon=" + group.isDaemon());
+				for(Thread thread : threads) {
+					sender.sendMessage(ChatColor.GREEN + " #" + thread.getId() + ChatColor.GRAY + " - " + thread.getName() + " - state=" + thread.getState() + ", priority=" + thread.getPriority() + ", daemon=" + thread.isDaemon());
+				}
+			});
 		}
 		
 		else if(label.equalsIgnoreCase("requestgc")) {

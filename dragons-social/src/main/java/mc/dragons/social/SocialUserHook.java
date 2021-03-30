@@ -11,6 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.GuildLoader.Guild;
 
@@ -36,6 +38,22 @@ public class SocialUserHook implements UserHook {
 			}
 		}, 20L);
 
+		boolean anyCanHear = false;
+		for(User test : UserLoader.allUsers()) {
+			if(test.equals(user)) continue;
+			for(ChatChannel ch : test.getActiveChatChannels()) {
+				if(ch.canHear(test, user)) {
+					anyCanHear = true;
+					break;
+				}
+			}
+		}
+		if(!anyCanHear && Bukkit.getOnlinePlayers().size() > 1) {
+			Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+				user.getPlayer().sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Warning: " + ChatColor.RED + "Nobody else can hear you in the channel you're speaking in.");
+				user.getPlayer().sendMessage(ChatColor.GRAY + "Do " + ChatColor.RESET + "/channel " + ChatColor.GRAY + "to manage channels.");
+			}, 20L * 2);
+		}
 	}
 	
 	@Override

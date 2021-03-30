@@ -1,5 +1,7 @@
 package mc.dragons.tools.dev.monitor;
 
+import java.util.ArrayList;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -22,12 +24,11 @@ public class MongoCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "No MongoDB instance connected!");
 			return true;
 		}
-		sender.sendMessage(ChatColor.GREEN + "Connected to MongoDB instance " + config.getHost() + "/" + config.getPort());
-		sender.sendMessage(ChatColor.GREEN + "Database name: " + db.getName());
-		sender.sendMessage(ChatColor.GREEN + "Collections: ");
-		for(String collection : db.listCollectionNames()) {
-			sender.sendMessage(ChatColor.GRAY + "- " + collection);
-		}
+		sender.sendMessage(ChatColor.DARK_GREEN + "Connected to MongoDB");
+		sender.sendMessage(ChatColor.GREEN + "IP: " + ChatColor.GRAY + config.getHost() + ":" + config.getPort());
+		sender.sendMessage(ChatColor.GREEN + "Database name: " + ChatColor.GRAY + db.getName());
+		sender.sendMessage(ChatColor.GREEN + "Collections: " + ChatColor.GRAY + db.listCollectionNames().into(new ArrayList<>()).stream()
+				.map(coll -> coll + " (" + db.getCollection(coll).estimatedDocumentCount() + ")").reduce((a,b) -> a + ", " + b).get());
 		
 		return true;
 	}

@@ -5,88 +5,100 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.bukkit.Location;
 
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.dev.TaskLoader.Task;
 
 public class TaskLoader extends AbstractLightweightLoader<Task> {
 	private static final String TASK_COLLECTION = "tasks";
+	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	
 	public static class Task {
 		private static TaskLoader taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
 		
-		private int id;
-		private String name;
-		private String date;
-		private String by;
-		private boolean approved;
-		private String reviewedBy;
-		private List<String> assignees;
-		private boolean done;
-		private boolean closed;
+		private Document data;
 		
-		public Task(int id, String name, String date, String by, boolean approved, String reviewedBy, List<String> assignees, boolean done, boolean closed) {
-			this.id = id;
-			this.name = name;
-			this.date = date;
-			this.by = by;
-			this.approved = approved;
-			this.reviewedBy = reviewedBy;
-			this.assignees = assignees;
-			this.done = done;
-			this.closed = closed;
+		public Task(Document data) {
+			this.data = data;
 		}
 		
-		public int getId() { return id; }
-		public String getName() { return name; }
-		public String getDate() { return date; }
-		public String getBy() { return by; }
-		public boolean isApproved() { return approved; }
-		public String getReviewedBy() { return reviewedBy; }
-		public List<String> getAssignees() { return assignees; }
-		public boolean isDone() { return done; }
-		public boolean isClosed() { return closed; }
+		public int getId() { return data.getInteger("_id"); }
+		public String getName() { return data.getString("name"); }
+		public String getDate() { return data.getString("date"); }
+		public User getBy() { return userLoader.loadObject(UUID.fromString(data.getString("by"))); }
+		public boolean isApproved() { return data.getBoolean("approved"); }
+		public User getReviewedBy() { return userLoader.loadObject(UUID.fromString(data.getString("reviewedBy"))); }
+		public List<User> getAssignees() { return data.getList("assignees", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList()); }
+		public boolean isDone() { return data.getBoolean("done"); }
+		public boolean isClosed() { return data.getBoolean("closed"); }
+		public List<String> getNotes() { return data.getList("notes", String.class); }
+		public Location getLocation() { return StorageUtil.docToLoc(data.get("location", Document.class)); }
 		
 		public void save() { taskLoader.updateTask(this); }
 		
-		public void setApproved(boolean approved, String reviewedBy) {
-			this.approved = approved;
-			this.reviewedBy = reviewedBy;
+		public void setApproved(boolean approved, User reviewedBy) {
+			data.append("approved", approved);
+			data.append("reviewedBy", reviewedBy.getUUID().toString());
 			save();
 		}
 		
-		public void addAssignee(String assignee) {
-			assignees.add(assignee);
+		public void addAssignee(User assignee) {
+			data.getList("assignees", String.class).add(assignee.getUUID().toString());
 			save();
 		}
 		
 		public void setDone(boolean done) {
-			this.done = done;
+			data.append("done", done);
 			save();
 		}
 		
 		public void setClosed(boolean closed) {
-			this.closed = closed;
+			data.append("closed", closed);
+			save();
+		}
+		
+		public void addNote(String note) {
+			data.getList("notes", String.class).add(note);
+			save();
+		}
+		
+		public void setLocation(Location loc) {
+			data.append("location", StorageUtil.locToDoc(loc));
 			save();
 		}
 		
 		public Document toDocument() {
-			return new Document("_id", id).append("name", name).append("date", date)
-					.append("by", by).append("approved", approved).append("reviewedBy", reviewedBy)
-					.append("assignees", assignees).append("done", done).append("closed", closed);
+			return data;
 		}
 		
 		public static Task fromDocument(Document document) {
 			if(document == null) return null;
-			return new Task(document.getInteger("_id"), document.getString("name"), document.getString("date"), 
-					document.getString("by"), document.getBoolean("approved"), document.getString("reviewedBy"),
-					document.getList("assignees", String.class), document.getBoolean("done"), document.getBoolean("closed"));
+			return new Task(document);
+		}
+		
+		public static Task newTask(String name, User by) {
+			return new Task(new Document("_id", taskLoader.reserveNextId())
+					.append("name", name)
+					.append("date", Date.from(Instant.now()).toString())
+					.append("by", by.getUUID().toString())
+					.append("approved", false)
+					.append("assignees", new ArrayList<>())
+					.append("done", false)
+					.append("closed", false)
+					.append("notes", new ArrayList<>())
+					.append("location", StorageUtil.locToDoc(by.getPlayer().getLocation())));
 		}
 	}
 	
@@ -151,10 +163,8 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		collection.updateOne(new Document("_id", update.getId()), new Document("$set", update.toDocument()));
 	}
 	
-	public Task addTask(String by, String name) {
-		String date = Date.from(Instant.now()).toString();
-		int id = Dragons.getInstance().getMongoConfig().getCounter().reserveNextId("tasks");
-		Task task = new Task(id, name, date, by, false, null, new ArrayList<>(), false, false);
+	public Task addTask(User by, String name) {
+		Task task = Task.newTask(name, by);
 		collection.insertOne(task.toDocument());
 		return task;
 	}

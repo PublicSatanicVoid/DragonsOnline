@@ -12,6 +12,11 @@ db:
     auth_db: admin
     database: dragons
     password-salt-string: 'replace this with your unique salt string'
+    
+    # Global variables are configuration data shared between servers.
+    # You can specify different, independent clusters of global variables
+    # by giving them unique accession tokens.
+    global-var-accession-token: 'replace this with a string identifying the global variable document to use'
 
 # The name of this server instance.
 serverName: dragons-1

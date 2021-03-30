@@ -3,6 +3,7 @@ package mc.dragons.core.util;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
@@ -191,6 +192,14 @@ public class StringUtil {
 		return standardDateFormat.format(Date.from(Instant.now()));
 	}
 
+	public static String encodeBase64(String str) {
+		return Base64.getEncoder().encodeToString(str.getBytes());
+	}
+	
+	public static String decodeBase64(String str) {
+		return new String(Base64.getDecoder().decode(str));
+	}
+	
 	// Decompiled from HDFont plugin.
 	public static String toHdFont(String input) {
 		String returnString = "";

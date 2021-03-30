@@ -66,6 +66,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\Enti
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\permission\SystemProfileLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\channel_handlers\AlvadorChannelHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SkillType.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\AutoRankCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\HiddenStringUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityMoveListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\Dragons.java
@@ -97,6 +98,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\logging\CustomLayout.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\exception\DragonsInternalException.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\ChangeLogLoader.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\GlobalVarLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\item\ItemLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\ChangeLogCommands.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\ProgressBarUtil.java

@@ -65,7 +65,7 @@ public class StateCommands extends DragonsCommandExecutor {
 					.append("originalUser", targetUser.getUUID().toString())
 					.append("originalTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(Date.from(Instant.now())));
 			UUID stateToken = stateLoader.registerStateToken(state);
-			TextComponent clickable = new TextComponent(ChatColor.GREEN + "Your current state token is " + ChatColor.AQUA + stateToken);
+			TextComponent clickable = new TextComponent(ChatColor.GREEN + "Your current state token is " + ChatColor.GRAY + stateToken);
 			clickable.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to get copy-able state token").create()));
 			clickable.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/setstate " + stateToken));
 			player.spigot().sendMessage(clickable);
@@ -120,7 +120,7 @@ public class StateCommands extends DragonsCommandExecutor {
 			Bukkit.getScheduler().runTaskLater(instance, () -> {
 				fTargetUser.sendActionBar(ChatColor.GRAY + "Your state was updated (" + args[0] + ")");
 			}, 5L);
-			sender.sendMessage(ChatColor.GRAY + "State data applied successfully.");
+			sender.sendMessage(ChatColor.GREEN + "State data applied successfully. New token: " + UUID.fromString(args[0]));
 		}
 		
 		return true;

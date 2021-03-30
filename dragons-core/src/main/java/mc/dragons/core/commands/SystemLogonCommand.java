@@ -1,6 +1,7 @@
 package mc.dragons.core.commands;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -17,11 +18,12 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.util.StringUtil;
 
 public class SystemLogonCommand extends DragonsCommandExecutor {
-	private SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);;
+	private SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 	
 	private Map<User, Long> rateLimiting;
 	private Map<User, Integer> rateLimitingCounter;
@@ -43,22 +45,25 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "System Logon Service");
 		if (isPlayer(sender)) {
 			sender.sendMessage(ChatColor.YELLOW + "/syslogon <profile> <password>");
-			sender.sendMessage(ChatColor.YELLOW + "/syslogon -password <current password> <new password>");
-			sender.sendMessage(ChatColor.YELLOW + "/syslogon -level <new permission level>");
-			sender.sendMessage(ChatColor.YELLOW + "/syslogon -alt <alt username> <alt password>");
-			sender.sendMessage(ChatColor.YELLOW + "/syslogon -rmalt <alt username>");
-			sender.sendMessage(ChatColor.YELLOW + "/syslogon -logout [-clean]");
+			sender.sendMessage(ChatColor.YELLOW + "/syslogon password <current password> <new password>");
+			sender.sendMessage(ChatColor.YELLOW + "/syslogon level <new permission level>");
+			sender.sendMessage(ChatColor.YELLOW + "/syslogon alt <alt username> <alt password>");
+			sender.sendMessage(ChatColor.YELLOW + "/syslogon rmalt <alt username>");
+			sender.sendMessage(ChatColor.YELLOW + "/syslogon logout [-clean]");
 		}
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -create <profile> <username> <password> <max. permission level>");
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -update <profile> <new max. permission level>");
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -flag <profile> <" + StringUtil.parseList(SystemProfile.SystemProfileFlags.SystemProfileFlag.values(), "|") + "> <true|false>");
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -info <profile>");
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -migrate <profile> <owner>");
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -[de]activate <profile>");
-		sender.sendMessage(ChatColor.YELLOW + "/syslogon -[de]opfloor <profile> <floor>");
+		String adminReq = ChatColor.RED + " (Admin+)";
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon create <profile> <username> <password> <max. permission level>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon update <profile> <new max. permission level>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon flag <profile> <" + StringUtil.parseList(SystemProfileFlag.values(), "|") + "> <true|false>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon info <profile>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon list" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon migrate <profile> <owner>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon resetpassword <profile>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon [de]activate <profile>" + adminReq);
+		sender.sendMessage(ChatColor.YELLOW + "/syslogon [de]opfloor <profile> <floor>" + adminReq);
 		sender.sendMessage(ChatColor.DARK_GRAY + "Note: Profiles and passwords cannot contain spaces.");
 	}
-
+	
 	private void createProfile(CommandSender sender, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
 		
@@ -102,6 +107,19 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Updated system profile successfully.");
 	}
 	
+	private void resetProfilePassword(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
+		
+		String pwd = StringUtil.encodeBase64(UUID.randomUUID().toString()).substring(0, 5);
+		
+		SystemProfile systemProfile = systemProfileLoader.loadProfile(args[1]);
+		for(UUID uuid : systemProfile.getAllowedUUIDs()) {
+			systemProfileLoader.setProfilePassword(systemProfile.getProfileName(), uuid, pwd);
+		}
+		
+		sender.sendMessage(ChatColor.GREEN + "Reset the password for all accounts on this profile. The temporary password is " + pwd);
+	}
+	
 	private void showProfileInfo(CommandSender sender, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
 		
@@ -121,6 +139,17 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 			}
 		}
 		sender.sendMessage(ChatColor.YELLOW + "Current User: " + ChatColor.RESET + (systemProfile.getCurrentUser() == null ? "(None)" : systemProfile.getCurrentUser().getName()));
+	}
+	
+	private void listProfiles(CommandSender sender) {
+		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
+		
+		List<SystemProfile> profiles = systemProfileLoader.getAllProfiles();
+		sender.sendMessage(ChatColor.GOLD + "" + profiles.size() + " profiles:");
+		for(SystemProfile profile : profiles) {
+			sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.YELLOW + profile.getProfileName()
+				+ ChatColor.GRAY + " (" + profile.getMaxPermissionLevel() + ", " + profile.getAllowedUUIDs().size() + " authorized)");
+		}
 	}
 	
 	private void migrateProfile(CommandSender sender, String[] args) {
@@ -286,48 +315,53 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		if (args.length == 0) {
 			showHelp(sender);
 		}
-		else if (args[0].equalsIgnoreCase("-create")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-create", "-c", "create", "c")) {
 			createProfile(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-update")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-update", "-c", "update", "u")) {
 			updateProfilePermissionLevel(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-flag")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-flag", "-f", "flag", "f")) {
 			updateProfilePermissionFlag(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-info")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-info", "-i", "info", "i")) {
 			showProfileInfo(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-migrate")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-migrate", "migrate")) {
 			migrateProfile(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-activate")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-activate", "activate")) {
 			activateProfile(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-deactivate")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-deactivate", "deactivate")) {
 			deactivateProfile(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-opfloor")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-opfloor", "opfloor")) {
 			opFloor(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-deopfloor")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-deopfloor", "deopfloor")) {
 			deopFloor(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-level")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-level", "level")) {
 			changeActiveLevel(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-password")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-password", "password", "-pwd", "pwd", "-p", "p", "-changepassword", "changepassword", "-pass", "pass")) {
 			changePassword(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-alt")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-alt", "alt")) {
 			registerAlt(sender, args);
-			return true;
 		}
-		else if (args[0].equalsIgnoreCase("-rmalt")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-resetpassword", "resetpassword")) {
+			resetProfilePassword(sender, args);
+		}
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-rmalt", "rmalt")) {
 			unregisterAlt(sender, args);
 		}
-		else if (args[0].equalsIgnoreCase("-logout")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-logout", "logout", "-exit", "exit", "-x", "x")) {
 			logout(sender, args);
+		}
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-list", "-l", "list", "l")) {
+			listProfiles(sender);
 		}
 		else {
 			login(sender, args);

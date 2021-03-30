@@ -1,6 +1,7 @@
 package mc.dragons.dev;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
+import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
@@ -38,11 +40,11 @@ public class TaskCommands extends DragonsCommandExecutor {
 	
 	private void taskCommand(CommandSender sender, String[] args) {
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.GOLD + "Create a new task.");
-			sender.sendMessage(ChatColor.YELLOW + "/task <new task name>");
+			sender.sendMessage(ChatColor.GOLD + "Create a new task at your current location.");
+			sender.sendMessage(ChatColor.YELLOW + "/task <new task description>");
 			return;
 		}
-		Task task = taskLoader.addTask(user(sender).getName(), StringUtil.concatArgs(args, 0));
+		Task task = taskLoader.addTask(user(sender), StringUtil.concatArgs(args, 0));
 		sender.sendMessage(ChatColor.GREEN + "Created task " + ChatColor.UNDERLINE + "#" + task.getId() + ChatColor.GREEN + " successfully!"
 				+ ChatColor.ITALIC + " /taskinfo " + task.getId() + ChatColor.GREEN + " to track it.");
 		alertTaskManagers(ChatColor.GREEN + "A new task is awaiting approval: #" + task.getId() + ", " + task.getName() + " (by " + task.getBy() + ")");
@@ -96,10 +98,15 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		sender.sendMessage(ChatColor.DARK_GREEN + "=== Task #" + task.getId() + " ===");
 		sender.sendMessage(ChatColor.GRAY + "Name: " + ChatColor.GREEN + task.getName());
-		sender.sendMessage(ChatColor.GRAY + "By: " + ChatColor.GREEN + task.getBy());
+		sender.sendMessage(ChatColor.GRAY + "By: " + ChatColor.GREEN + task.getBy().getName());
+		sender.sendMessage(ChatColor.GRAY + "Loc: " + ChatColor.GREEN + StringUtil.locToString(task.getLocation()) + " [" + task.getLocation().getWorld().getName() + "]");
 		sender.sendMessage(ChatColor.GRAY + "Status: " + ChatColor.GREEN + status(task));
-		sender.sendMessage(ChatColor.GRAY + "Reviewed By: " + ChatColor.GREEN + (task.getReviewedBy() == null ? "(None)" : task.getReviewedBy()));
-		sender.sendMessage(ChatColor.GRAY + "Assignees: " + ChatColor.GREEN + StringUtil.parseList(task.getAssignees()));
+		sender.sendMessage(ChatColor.GRAY + "Reviewed By: " + ChatColor.GREEN + (task.getReviewedBy() == null ? "(None)" : task.getReviewedBy().getName()));
+		sender.sendMessage(ChatColor.GRAY + "Assignees: " + ChatColor.GREEN + StringUtil.parseList(task.getAssignees().stream().map(u -> u.getName()).collect(Collectors.toList())));
+		sender.sendMessage(ChatColor.GRAY + "Notes: ");
+		for(String note : task.getNotes()) {
+			sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + note);
+		}
 	}
 	
 	private void markDone(CommandSender sender, String[] args) {
@@ -124,9 +131,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		Task task = lookupTask(sender, args[0]);
 		if(task == null) return;
-		task.setApproved(true, user(sender).getName());
+		task.setApproved(true, user(sender));
 		sender.sendMessage(ChatColor.GREEN + "Approved task #" + args[0] + " successfully.");
-		Player target = Bukkit.getPlayerExact(task.getBy());
+		Player target = Bukkit.getPlayerExact(task.getBy().getName());
 		if(target != null) {
 			target.sendMessage(ChatColor.GREEN + "Your task #" + args[0] + " (" + task.getName() + ") was accepted!");
 		}
@@ -141,9 +148,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		Task task = lookupTask(sender, args[0]);
 		if(task == null) return;
-		task.setApproved(false, user(sender).getName());
+		task.setApproved(false, user(sender));
 		sender.sendMessage(ChatColor.GREEN + "Rejected task #" + args[0] + " successfully.");
-		Player target = Bukkit.getPlayerExact(task.getBy());
+		Player target = Bukkit.getPlayerExact(task.getBy().getName());
 		if(target != null) {
 			target.sendMessage(ChatColor.RED + "Your task #" + args[0] + " (" + task.getName() + ") was rejected.");
 		}
@@ -156,9 +163,11 @@ public class TaskCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/assign <player> <task#>");
 			return;
 		}
-		Task task = lookupTask(sender, args[0]);
+		Task task = lookupTask(sender, args[1]);
 		if(task == null) return;
-		task.addAssignee(args[0]);
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return;
+		task.addAssignee(target);
 		sender.sendMessage(ChatColor.GREEN + "Assigned " + args[0] + " to task #" + args[1] + " successfully.");
 	}
 	
@@ -173,6 +182,43 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setClosed(true);
 		sender.sendMessage(ChatColor.GREEN + "Marked task #" + args[0] + " as closed.");
+	}
+	
+	private void taskLocCommand(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.GOLD + "Move the location of a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/taskloc <task#>");
+			return;
+		}
+		Task task = lookupTask(sender, args[0]);
+		if(task == null) return;
+		task.setLocation(player(sender).getLocation());
+		sender.sendMessage(ChatColor.GREEN + "Moved location of task #" + args[0] + " to your current location.");
+	}
+	
+	private void taskNoteCommand(CommandSender sender, String[] args) {
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.GOLD + "Add a note to a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/tasknote <task#> <note>");
+			return;
+		}
+		Task task = lookupTask(sender, args[0]);
+		if(task == null) return;
+		task.addNote(sender.getName() + ": " + StringUtil.concatArgs(args, 1));
+		sender.sendMessage(ChatColor.GREEN + "Added note to task #" + args[0]);
+	}
+	
+	private void gotoTaskCommand(CommandSender sender, String[] args) {
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.GOLD + "Teleport to a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/gototask <task#>");
+			return;
+		}
+		Task task = lookupTask(sender, args[0]);
+		if(task == null) return;
+		player(sender).teleport(task.getLocation());
+		sender.sendMessage(ChatColor.GREEN + "Teleported to task #" + args[0]);
 	}
 	
 	@Override
@@ -202,6 +248,15 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		else if(label.equalsIgnoreCase("close")) {
 			close(sender, args);
+		}
+		else if(label.equalsIgnoreCase("taskloc")) {
+			taskLocCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("tasknote")) {
+			taskNoteCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("gototask")) {
+			gotoTaskCommand(sender, args);
 		}
 		
 		return true;

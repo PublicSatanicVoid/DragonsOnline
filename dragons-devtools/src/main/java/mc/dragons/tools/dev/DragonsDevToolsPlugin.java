@@ -13,6 +13,7 @@ import mc.dragons.tools.dev.gameobject.ReloadObjectsCommands;
 import mc.dragons.tools.dev.management.PluginManagementCommands;
 import mc.dragons.tools.dev.management.ServerOptionsCommands;
 import mc.dragons.tools.dev.management.TerminateCommands;
+import mc.dragons.tools.dev.management.VariableCommands;
 import mc.dragons.tools.dev.monitor.CorrelationCommand;
 import mc.dragons.tools.dev.monitor.LagCommand;
 import mc.dragons.tools.dev.monitor.LogLevelCommand;
@@ -57,6 +58,11 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("localizetype").setExecutor(objectCommands);
 		getCommand("localizeuser").setExecutor(objectCommands);
 		
+		CommandExecutor variableCommands = new VariableCommands();
+		getCommand("getglobalaccessiontoken").setExecutor(variableCommands);
+		getCommand("setglobalaccessiontoken").setExecutor(variableCommands);
+		getCommand("getglobalvariables").setExecutor(variableCommands);
+		
 		CommandExecutor terminateCommands = new TerminateCommands();
 		getCommand("killtask").setExecutor(terminateCommands);
 		getCommand("killtasks").setExecutor(terminateCommands);
@@ -71,6 +77,8 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("requestgc").setExecutor(performanceCommands);
 		getCommand("generatedump").setExecutor(performanceCommands);
 		getCommand("tickperformance").setExecutor(performanceCommands);
+		getCommand("getstacktrace").setExecutor(performanceCommands);
+		getCommand("getactivethreads").setExecutor(performanceCommands);
 		
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);

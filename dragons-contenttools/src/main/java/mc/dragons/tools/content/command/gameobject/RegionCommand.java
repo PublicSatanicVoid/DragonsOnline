@@ -1,12 +1,18 @@
 package mc.dragons.tools.content.command.gameobject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
@@ -16,6 +22,7 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.util.BlockUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.content.util.MetadataConstants;
 
@@ -26,6 +33,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/region delete <RegionName>" + ChatColor.GRAY + " delete a region");
 		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName>" + ChatColor.GRAY + " view region info");
 		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName> corner <Corner#|go>" + ChatColor.GRAY + " set region boundary");
+		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName> border [BorderMaterial=WOOL]" + ChatColor.GRAY + " generate border around region");
 		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName> spawnrate [NpcClass] [SpawnRate]" + ChatColor.GRAY + " modify spawn rate");
 		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName> flag <FlagName> <Value>" + ChatColor.GRAY + " modify region flags");
 		sender.sendMessage(ChatColor.DARK_GRAY + "  Flags: " + ChatColor.GRAY + "fullname(string), desc(string), lvmin(int), lvrec(int), showtitle(boolean), "
@@ -98,6 +106,81 @@ public class RegionCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GRAY + "Max: " + ChatColor.GREEN + StringUtil.locToString(region.getMax()));
 		sender.sendMessage(ChatColor.GRAY + "Flags: " + ChatColor.GREEN + StringUtil.docToString(region.getFlags()));
 		MetadataConstants.displayMetadata(sender, region);
+	}
+	
+	private void borderRegion(CommandSender sender, String[] args) {
+		Region region = lookupRegion(sender, args[0]);
+		if(region == null) return;
+		
+		if(args.length == 1) {
+			sender.sendMessage(ChatColor.RED + "/region <RegionName> border [MaterialType=WOOL]");
+		}
+		
+		Material material = Material.WOOL;
+		if(args.length > 2) {
+			material = StringUtil.parseEnum(sender, Material.class, args[2]);
+			if(material == null) return;
+		}
+		
+		Location a = region.getMin();
+		Location b = region.getMax();
+		
+		List<Block> changes = new ArrayList<>();
+		
+		//
+		// STAGE 1: Define border in xz-plane
+		//
+		
+		// minX constant, Z from minZ to maxZ
+		Block buf = a.getBlock();
+		for(int z = a.getBlockZ(); z <= b.getBlockZ(); z++) {
+			changes.add(buf);
+			buf = buf.getRelative(0, 0, 1);
+		}
+		
+		// minZ constant, X from minX to maxX
+		buf = a.getBlock();
+		for(int x = a.getBlockX(); x <= b.getBlockX(); x++) {
+			changes.add(buf);
+			buf = buf.getRelative(1, 0, 0);
+		}
+		
+		// maxX constant, Z from minZ to maxZ
+		buf = a.getBlock().getRelative(b.getBlockX() - a.getBlockX(), 0, 0);
+		for(int z = a.getBlockZ(); z <= b.getBlockZ(); z++) {
+			changes.add(buf);
+			buf = buf.getRelative(0, 0, 1);
+		}
+		
+		// maxZ constant, X from minX to maxX
+		buf = a.getBlock().getRelative(0, 0, b.getBlockZ() - a.getBlockZ());
+		for(int x = a.getBlockX(); x <= b.getBlockX(); x++) {
+			changes.add(buf);
+			buf = buf.getRelative(1, 0, 0);
+		}
+		
+		//
+		// STAGE 2: Deform border around blocks
+		//
+		List<Block> changesDeformed = changes.stream().map(block -> BlockUtil.getAirAboveXZ(block.getLocation()).getBlock()).collect(Collectors.toList());
+		
+		//
+		// STAGE 3: Update in batches
+		//
+		final Material fMaterial = material;
+		int batchSize = 50;
+		for(int i = 0; i < changesDeformed.size(); i += batchSize) {
+			int start = i;
+			new BukkitRunnable() {
+				public void run() {
+					for(int j = start; j < Math.min(changesDeformed.size(), start + batchSize); j++) {
+						changesDeformed.get(j).setType(fMaterial);
+					}
+				}
+			}.runTaskLater(instance, 2 * i / 50);
+		}
+		
+		sender.sendMessage(ChatColor.GREEN + "Generated border successfully.");
 	}
 	
 	private void updateCorners(CommandSender sender, String[] args) {
@@ -207,6 +290,9 @@ public class RegionCommand extends DragonsCommandExecutor {
 		}
 		else if(args[1].equalsIgnoreCase("corner")) {
 			updateCorners(sender, args);
+		}
+		else if(args[1].equalsIgnoreCase("border")) {
+			borderRegion(sender, args);
 		}
 		else if(args[1].equalsIgnoreCase("spawnrate")) {
 			updateSpawnRate(sender, args);
