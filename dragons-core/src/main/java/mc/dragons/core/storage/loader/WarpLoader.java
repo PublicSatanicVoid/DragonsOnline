@@ -8,9 +8,19 @@ import org.bson.Document;
 import org.bukkit.Location;
 
 import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.storage.loader.WarpLoader.WarpEntry;
 import mc.dragons.core.storage.mongo.MongoConfig;
 
-public class WarpLoader extends AbstractLightweightLoader<WarpLoader.WarpEntry> {
+/**
+ * Load warps from MongoDB.
+ * 
+ * <p>Warps are named locations which staff members
+ * can use to jump quickly from place to place.
+ * 
+ * @author Adam
+ *
+ */
+public class WarpLoader extends AbstractLightweightLoader<WarpEntry> {
 	private Map<String, WarpEntry> warps;
 
 	public static class WarpEntry {

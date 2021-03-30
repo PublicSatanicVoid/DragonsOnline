@@ -70,7 +70,7 @@ public class MongoConfig {
 		return host;
 	}
 
-	public String getAccessionToken() {
+	public String getDefaultAccessionToken() {
 		return accessionToken;
 	}
 	

@@ -8,6 +8,24 @@ import com.mongodb.client.MongoDatabase;
 
 import mc.dragons.core.storage.Counter;
 
+/**
+ * Provides sequential IDs to various data components.
+ * 
+ * <p>Each counter is associated with a name and its current
+ * highest sequential number. This can be incremented safely
+ * (with reasonable guarantees of avoiding double-counting)
+ * through this class.
+ * 
+ * <p>Note that if an object with a sequential ID provided by
+ * this class is deleted, this will not affect the numbering
+ * going forward; e.g. if object #3, the highest ID for counter
+ * "foo", is deleted, the next ID for counter "foo" will be 4
+ * and not 3. This class has no awareness of what sequential
+ * IDs are used for downstream.
+ * 
+ * @author Adam
+ *
+ */
 public class MongoCounter implements Counter {
 	private MongoDatabase database;
 	private MongoCollection<Document> counters;

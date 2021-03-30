@@ -5,6 +5,20 @@ import org.bson.Document;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.storage.mongo.MongoConfig;
 
+/**
+ * Load global variables from MongoDB.
+ * 
+ * <p>Global variables are (possibly nested) key-value pairs
+ * which are accessible from multiple servers.
+ * 
+ * <p>Servers can use the same global variable storage by
+ * specifying the same <i>accession token</i> in their
+ * configuration files. This can also be temporarily changed 
+ * at runtime.
+ * 
+ * @author Adam
+ *
+ */
 public class GlobalVarLoader extends AbstractLightweightLoader<Rank> {
 	
 	private String accessionToken;
@@ -19,9 +33,11 @@ public class GlobalVarLoader extends AbstractLightweightLoader<Rank> {
 	
 	public GlobalVarLoader(MongoConfig config) {
 		super(config, "#unused#", "globalvars");
-		accessionToken = config.getAccessionToken();
+		accessionToken = config.getDefaultAccessionToken();
 		setup();
 	}
+	
+	/* Shortcut methods modeled off of Document */
 	
 	public Object get(String key) {
 		return get(key, Object.class);
@@ -47,6 +63,9 @@ public class GlobalVarLoader extends AbstractLightweightLoader<Rank> {
 		return get(key, Document.class);
 	}
 	
+	
+	/* CRUD */
+	
 	public <T> T get(String key, Class<T> clazz) {
 		return collection.find(cachedLookup).first().get(key, clazz);
 	}
@@ -59,6 +78,14 @@ public class GlobalVarLoader extends AbstractLightweightLoader<Rank> {
 		collection.updateOne(cachedLookup, new Document("$unset", new Document(key, null)));
 	}
 	
+	public Document getFullDocument() {
+		return collection.find(cachedLookup).first();
+	}
+
+	
+	
+	/* Management */
+	
 	public void changeAccessionToken(String token) {
 		accessionToken = token;
 		setup();
@@ -67,9 +94,4 @@ public class GlobalVarLoader extends AbstractLightweightLoader<Rank> {
 	public String getAccessionToken() {
 		return accessionToken;
 	}
-	
-	public Document getDocument() {
-		return collection.find(cachedLookup).first();
-	}
-
 }

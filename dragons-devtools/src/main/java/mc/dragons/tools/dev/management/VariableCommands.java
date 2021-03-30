@@ -27,7 +27,7 @@ public class VariableCommands extends DragonsCommandExecutor {
 		}
 		else if(label.equalsIgnoreCase("getglobalvariables")) {
 			sender.sendMessage(ChatColor.GREEN + "Displaying raw global variable document.");
-			sender.sendMessage(ChatColor.GRAY + VAR.getDocument().toJson());
+			sender.sendMessage(ChatColor.GRAY + VAR.getFullDocument().toJson());
 		}
 		
 		return true;

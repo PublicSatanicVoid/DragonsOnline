@@ -14,7 +14,7 @@ import mc.dragons.core.storage.mongo.MongoConfig;
  * lightweight objects, and theoretically have dedicated
  * collections within the database.
  * 
- * Lightweight objects may have a unique integral ID
+ * <p>Lightweight objects may have a unique integral ID
  * associated with them, provided through a Counter.
  * However, individual loaders may or may not choose to
  * use these.
