@@ -37,7 +37,12 @@ public class RankCommand extends DragonsCommandExecutor {
 			targetPlayer.sendTitle(ChatColor.DARK_GRAY + "Rank Update", rank.getNameColor() + rank.getRankName(), 20, 40, 20);
 			targetPlayer.sendMessage(ChatColor.GRAY + "Your rank was updated to " + rank.getNameColor() + rank.getRankName());
 		}
-		sender.sendMessage(ChatColor.GREEN + "Rank updated successfully.");
+		boolean verified = false;
+		if(rank.isStaff() && !targetUser.isVerified()) {
+			targetUser.setVerified(true);
+			verified = true;
+		}
+		sender.sendMessage(ChatColor.GREEN + "Rank updated successfully." + (verified ? " User was automatically verified." : ""));
 		return true;
 	}
 }

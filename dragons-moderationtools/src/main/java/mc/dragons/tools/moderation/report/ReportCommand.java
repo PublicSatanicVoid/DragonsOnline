@@ -98,7 +98,8 @@ public class ReportCommand extends DragonsCommandExecutor {
 		reason = reason.replaceAll(Pattern.quote(CONFIRMATION_FLAG), "");
 		
 		reportLoader.fileUserReport(target, reporter, reason);
-		sender.sendMessage(ChatColor.GREEN + "Your report against " + target.getName() + " was filed successfully. We will review it as soon as possible.");
+		sender.sendMessage(ChatColor.GREEN + "Your report against " + target.getName() + " was filed successfully. We will review it as soon as possible." + 
+				(reporter.isVerified() ? " As a verified user, your reports are prioritized for review." : ""));
 		
 		return true;
 	}

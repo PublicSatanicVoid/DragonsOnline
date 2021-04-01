@@ -61,6 +61,7 @@ import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
+import mc.dragons.core.storage.loader.ChangeLogLoader.ChangeLogEntry;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
@@ -1057,7 +1058,7 @@ public class User extends GameObject {
 		return (int) getData("lastReadChangeLog");
 	}
 
-	public List<ChangeLogLoader.ChangeLogEntry> getUnreadChangeLogs() {
+	public List<ChangeLogEntry> getUnreadChangeLogs() {
 		return changeLogLoader.getUnreadChangelogs(getLastReadChangeLogId());
 	}
 
@@ -1596,7 +1597,7 @@ public class User extends GameObject {
 		punish(punishmentType, reason, -1L);
 	}
 
-	public void punish(PunishmentType punishmentType, String reason, long durationSeconds) {
+	public void savePunishment(PunishmentType punishmentType, String reason, long durationSeconds) {
 		long now = Instant.now().getEpochSecond();
 		Document punishment = new Document("type", punishmentType.toString()).append("reason", reason).append("duration", durationSeconds).append("banDate", now);
 		setData(punishmentType.getDataHeader(), punishment);
@@ -1605,8 +1606,12 @@ public class User extends GameObject {
 		List<Document> punishmentHistory = (List<Document>) getData("punishmentHistory");
 		punishmentHistory.add(punishment);
 		setData("punishmentHistory", punishmentHistory);
-		
+	}
+	
+	public void applyPunishmentLocally(PunishmentType punishmentType, String reason, long durationSeconds) {
+		long now = Instant.now().getEpochSecond();
 		String expiry = durationSeconds == -1L ? "Never" : new Date(1000L * (now + durationSeconds)).toString();
+		
 		if (player != null) {
 			if (punishmentType == PunishmentType.BAN) {
 				player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n"
@@ -1620,7 +1625,7 @@ public class User extends GameObject {
 				if (!reason.equals(" ")) {
 					player.sendMessage(ChatColor.RED + "Reason: " + reason);
 				}
-				player.sendMessage(ChatColor.GRAY + "Repeated warnings may result in a ban.");
+				player.sendMessage(ChatColor.GRAY + "Repeated warnings may result in a mute or ban.");
 				player.sendMessage("");
 			} else if (punishmentType == PunishmentType.MUTE) {
 				player.sendMessage(" ");
@@ -1633,14 +1638,27 @@ public class User extends GameObject {
 			}
 		}
 	}
+	
+	public void punish(PunishmentType punishmentType, String reason, long durationSeconds) {
+		savePunishment(punishmentType, reason, durationSeconds);
+		applyPunishmentLocally(punishmentType, reason, durationSeconds);
+	}
 
-	public void unpunish(PunishmentType punishmentType) {
+	public void saveUnpunishment(PunishmentType punishmentType) {
 		setData(punishmentType.getDataHeader(), null);
+	}
+	
+	public void applyUnpunishmentLocally(PunishmentType punishmentType) {
 		if (player != null && punishmentType == PunishmentType.MUTE) {
 			player.sendMessage("");
 			player.sendMessage(ChatColor.DARK_GREEN + "Your mute has been revoked.");
 			player.sendMessage("");
 		}
+	}
+	
+	public void unpunish(PunishmentType punishmentType) {
+		saveUnpunishment(punishmentType);
+		applyUnpunishmentLocally(punishmentType);
 	}
 
 	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {

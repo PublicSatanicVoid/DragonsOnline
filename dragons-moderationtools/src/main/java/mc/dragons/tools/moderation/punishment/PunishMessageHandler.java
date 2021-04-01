@@ -42,10 +42,10 @@ public class PunishMessageHandler extends MessageHandler {
 				if(action.equals("punish")) {
 					String reason = data.getString("reason");
 					long duration = data.getLong("duration");
-					user.punish(type, reason, duration);
+					user.applyPunishmentLocally(type, reason, duration);
 				}
 				else if(action.equals("unpunish")) {
-					user.unpunish(type);
+					user.applyUnpunishmentLocally(type);
 				}
 			}
 		}.runTask(Dragons.getInstance());

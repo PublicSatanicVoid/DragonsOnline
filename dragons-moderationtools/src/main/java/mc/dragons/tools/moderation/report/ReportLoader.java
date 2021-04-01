@@ -143,7 +143,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	
 	private PaginatedResult<Report> parseResults(FindIterable<Document> results, int page) {
 		int total = Iterables.size(results);
-		return new PaginatedResult<>(PaginationUtil.sortAndPaginate(results, page, PAGE_SIZE)
+		return new PaginatedResult<>(PaginationUtil.sortAndPaginate(results, page, PAGE_SIZE, "priority", false)
 				.map(data -> fromDocument(data))
 				.into(new ArrayList<>()), total, page, PAGE_SIZE);
 	}
@@ -200,6 +200,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		Document data = new Document()
 				.append("type", ReportType.CHAT.toString())
 				.append("target", target.getUUID().toString())
+				.append("priority", by.isVerified() ? 1 : 0)
 				.append("filedBy", by.getUUID().toString())
 				.append("data", new Document("message", message.getMessage()));
 		Report report = fileReport(data);
@@ -210,6 +211,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		Document data = new Document()
 				.append("type", ReportType.STAFF_ESCALATION.toString())
 				.append("target", target.getUUID().toString())
+				.append("priority", 1)
 				.append("filedBy", staff.getUUID().toString())
 				.append("data", new Document("message", message));
 		Report report = fileReport(data);
@@ -220,6 +222,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		Document data = new Document()
 				.append("type", ReportType.AUTOMATED.toString())
 				.append("target", target.getUUID().toString())
+				.append("priority", 0)
 				.append("data", reportData);
 		Report report = fileReport(data);
 		reportNotify("[" + report.getId() + "] " + target.getName() + " was reported internally. ");
@@ -229,6 +232,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		Document data = new Document()
 				.append("type", ReportType.REGULAR.toString())
 				.append("target", target.getUUID().toString())
+				.append("priority", by.isVerified() ? 1 : 0)
 				.append("filedBy", by.getUUID().toString())
 				.append("data", new Document("reason", reason));
 		Report report = fileReport(data);

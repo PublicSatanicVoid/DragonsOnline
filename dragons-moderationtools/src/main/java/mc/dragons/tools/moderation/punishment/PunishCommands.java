@@ -34,14 +34,13 @@ public class PunishCommands extends DragonsCommandExecutor {
 		String reason = StringUtil.concatArgs(args, 1, durationIndex == -1 ? args.length : durationIndex);
 		long durationSeconds = StringUtil.parseTimespanToSeconds(duration);
 		
+
+		targetUser.punish(type, reason, durationSeconds);
 		
 		// Check if we need to tell a different server to immediately apply the punishment
 		if(targetUser.getServer() != null && !targetUser.getServer().equals(instance.getServerName())) {
 			LOGGER.finer("forwarding punishment to " + targetUser.getServer());
 			handler.forwardPunishment(targetUser, type, reason, durationSeconds);
-		}
-		else {
-			targetUser.punish(type, reason, durationSeconds);
 		}
 		
 		sender.sendMessage(ChatColor.GREEN + "Punishment applied successfully.");
