@@ -42,6 +42,8 @@ A full listing of current plugins:
  
 The two 'flavors' of storage are `Mongo` and `Local`, implemented as `MongoStorageManager`/`MongoStorageAccess` and `LocalStorageManager`/`LocalStorageAccess`. Local storage does not persist past the game server instance and may often last only for a few seconds or minutes. This is the flavor used for transient objects such as mobs. Mongo storage access does persist past game server instances and is backed by a MongoDB database. This is used for permanent NPCs (e.g. quest givers), items, regions, etc.
 
+**A MongoDB instance is required for Dragons Online to load. It _must_ be configured as a replica set, due to extensive use of change streams throughout the codebase.**
+
 All game objects have a unique identifier, which consists of the game object's type and a UUID. Combined with the flavor of storage for the game object, this can be used to retrieve any game object subject to scope constraints (e.g. the `LocalStorageAccess` of a transient object can only be accessed on the server on which it resides and only while it is live).
 
 The current game object types are:
