@@ -1,15 +1,11 @@
 package mc.dragons.tools.dev;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -41,11 +37,20 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class ExperimentalCommands extends DragonsCommandExecutor {
+	
+	private MessageHandler debugHandler = new MessageHandler(Dragons.getInstance(), "debug") {
+		@Override
+		public void receive(String from, Document data) {
+			Bukkit.getLogger().info("DEBUG MESSAGE RECEIVED FROM " + from + ": " + data.toJson());
+		}
+	};
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
@@ -289,23 +294,8 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("decoded: " + decoded);
 		}
 		
-		else if(label.equalsIgnoreCase("testdiscordintegration")) {
-			try {
-				HttpClient client = HttpClient.newHttpClient();
-				HttpRequest request = HttpRequest.newBuilder()
-						.uri(URI.create("https://discord.com/api/webhooks/826465944171315230/ygJL1q8j0QLuFV1LSPAEw7t6-FERZfeNUX26eTuTBETs_EzWKCLGpTRUmnOmqkJfiBsd"))
-						.POST(HttpRequest.BodyPublishers.ofString("content="+StringUtil.concatArgs(args, 0)))
-						.setHeader("Content-Type", "application/x-www-form-urlencoded")
-						.build();
-				sender.sendMessage("client="+client+",req="+request);
-				HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-				sender.sendMessage("response: " + response.body());
-				
-			} catch (IOException | InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
+		else if(label.equalsIgnoreCase("testnetworkmessage")) {
+			debugHandler.send(new Document("payload", new Document("babey", "babey")), args[0]);
 		}
 		
 		return true;

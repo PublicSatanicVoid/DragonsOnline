@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
@@ -20,15 +21,18 @@ import mc.dragons.dev.TaskLoader.Task;
 public class TaskCommands extends DragonsCommandExecutor {
 
 	private TaskLoader taskLoader;
+	private DiscordNotifier buildNotifier;
 	
 	public TaskCommands() {
 		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
+		buildNotifier = JavaPlugin.getPlugin(DragonsDevPlugin.class).getBuildNotifier();
 	}
 	
 	private void alertTaskManagers(String message) {
 		UserLoader.allUsers().stream().filter(u -> hasPermission(u, SystemProfileFlag.TASK_MANAGER))
 			.map(u -> u.getPlayer())
 			.forEach(p -> p.sendMessage(message));
+		buildNotifier.sendNotification("[Task Manager] " + ChatColor.stripColor(message));
 	}
 	
 	private Task lookupTask(CommandSender sender, String idString) {
@@ -47,7 +51,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		Task task = taskLoader.addTask(user(sender), StringUtil.concatArgs(args, 0));
 		sender.sendMessage(ChatColor.GREEN + "Created task " + ChatColor.UNDERLINE + "#" + task.getId() + ChatColor.GREEN + " successfully!"
 				+ ChatColor.ITALIC + " /taskinfo " + task.getId() + ChatColor.GREEN + " to track it.");
-		alertTaskManagers(ChatColor.GREEN + "A new task is awaiting approval: #" + task.getId() + ", " + task.getName() + " (by " + task.getBy() + ")");
+		alertTaskManagers(ChatColor.GREEN + "A new task is awaiting approval: #" + task.getId() + ", " + task.getName() + " (by " + task.getBy().getName() + ")");
 	}
 	
 	private void taskListCommand(CommandSender sender, String[] args) {
@@ -61,7 +65,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 			tasks = taskLoader.getAllTasks();
 		}
 		else if(args[0].equalsIgnoreCase("my")) {
-			tasks = taskLoader.getAllTasksWith(user(sender).getName());
+			tasks = taskLoader.getAllTasksWith(user(sender));
 		}
 		else if(args[0].equalsIgnoreCase("waiting")) {
 			tasks = taskLoader.getAllWaitingTasks();
@@ -137,6 +141,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(target != null) {
 			target.sendMessage(ChatColor.GREEN + "Your task #" + args[0] + " (" + task.getName() + ") was accepted!");
 		}
+		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was accepted.");
 	}
 	
 	private void reject(CommandSender sender, String[] args) {
@@ -154,6 +159,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(target != null) {
 			target.sendMessage(ChatColor.RED + "Your task #" + args[0] + " (" + task.getName() + ") was rejected.");
 		}
+		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was rejected.");
 	}
 	
 	private void assign(CommandSender sender, String[] args) {
@@ -163,12 +169,12 @@ public class TaskCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/assign <player> <task#>");
 			return;
 		}
-		Task task = lookupTask(sender, args[1]);
-		if(task == null) return;
 		User target = lookupUser(sender, args[0]);
-		if(target == null) return;
+		Task task = lookupTask(sender, args[1]);
+		if(task == null || target == null) return;
 		task.addAssignee(target);
 		sender.sendMessage(ChatColor.GREEN + "Assigned " + args[0] + " to task #" + args[1] + " successfully.");
+		alertTaskManagers(ChatColor.GREEN + args[0] + " was assigned to task #" + args[1] + " " + task.getName());
 	}
 	
 	private void close(CommandSender sender, String[] args) {
@@ -182,6 +188,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setClosed(true);
 		sender.sendMessage(ChatColor.GREEN + "Marked task #" + args[0] + " as closed.");
+		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was marked as closed");
 	}
 	
 	private void taskLocCommand(CommandSender sender, String[] args) {
@@ -195,6 +202,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setLocation(player(sender).getLocation());
 		sender.sendMessage(ChatColor.GREEN + "Moved location of task #" + args[0] + " to your current location.");
+		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was moved to " + StringUtil.locToString(task.getLocation()) + " in world " + task.getLocation().getWorld().getName());
 	}
 	
 	private void taskNoteCommand(CommandSender sender, String[] args) {

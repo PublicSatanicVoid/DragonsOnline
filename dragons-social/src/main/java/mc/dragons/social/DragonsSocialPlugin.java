@@ -5,18 +5,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
+import mc.dragons.social.duel.DuelCommands;
+import mc.dragons.social.guild.GuildAdminCommand;
+import mc.dragons.social.guild.GuildChannelHandler;
+import mc.dragons.social.guild.GuildCommand;
+import mc.dragons.social.guild.GuildLoader;
+import mc.dragons.social.messaging.PrivateMessageCommands;
+import mc.dragons.social.shout.ShoutCommand;
 
 public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 	
 	private SocialUserHook socialHook;
-	private DiscordNotifier buildNotifier;
 	
 	public void onEnable() {
-		saveDefaultConfig();
-		
-		buildNotifier = new DiscordNotifier(getConfig().getString("discord-notifier-webhook-url"));
-		buildNotifier.setEnabled(getConfig().getBoolean("discord-notifier-enabled"));
-		
 		Dragons instance = Dragons.getInstance();
 		instance.getLightweightLoaderRegistry().register(new GuildLoader(instance.getMongoConfig()));
 		socialHook = new SocialUserHook();
@@ -37,15 +38,13 @@ public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
 		getCommand("msg").setExecutor(privateMessageCommands);
 		getCommand("reply").setExecutor(privateMessageCommands);
 		getCommand("chatspy").setExecutor(privateMessageCommands);
+		getCommand("toggleselfmessage").setExecutor(privateMessageCommands);
+		
 		getCommand("shout").setExecutor(new ShoutCommand());
 		getCommand("channel").setExecutor(new ChannelCommand());
 	}
 	
 	public SocialUserHook getSocialHook() {
 		return socialHook;
-	}
-	
-	public DiscordNotifier getBuildNotifier() {
-		return buildNotifier;
 	}
 }

@@ -25,7 +25,14 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 	private static String BACKUP_FOLDER = "C:\\Users\\User\\DragonsBackups\\";
 	private static int BACKUP_PERIOD_MINUTES = 30;
 	
+	private DiscordNotifier buildNotifier;
+	
 	public void onEnable() {
+		saveDefaultConfig();
+		
+		buildNotifier = new DiscordNotifier(getConfig().getString("discord-notifier-webhook-url"));
+		buildNotifier.setEnabled(getConfig().getBoolean("discord-notifier-enabled"));
+		
 		Dragons.getInstance().getLightweightLoaderRegistry().register(new TaskLoader());
 		Dragons.getInstance().getUserHookRegistry().registerHook(new DevUserHook());
 		
@@ -75,5 +82,10 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 					} catch (IOException ignored) {}
 				});
 		} catch(IOException ignored) {}
+	}
+
+	
+	public DiscordNotifier getBuildNotifier() {
+		return buildNotifier;
 	}
 }

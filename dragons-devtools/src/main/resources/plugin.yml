@@ -90,7 +90,7 @@ commands:
   testleveling:
   testlogging:
   testuuidlookup:
-  testdiscordintegration:
+  testnetworkmessage:
   mongo:
     description: (ADMIN) View data about the active MongoDB connection.
   panic:
@@ -103,8 +103,6 @@ commands:
     description: (MOD) Set your state to the specified state token.
   getservername:
     description: (ADMIN) View the name of the current server you're connected to.
-  setservername:
-    description: (ADMIN) Rename the current server you're connected to.
   tickperformance:
     description: (ADMIN) Analyze tick-related performance data over the specified time interval.
   getstacktrace:
@@ -117,3 +115,10 @@ commands:
     description: (ADMIN) Changes the server instance's global variable accession token.
   getglobalvariables:
     description: (ADMIN) Displays all global variables.
+  spoofserver:
+    description: (ADMIN) Change your cached server.
+  clearnetworkmessagecache:
+    description: (ADMIN) Clear all network messaging data, optionally older than the specified time.
+    aliases: /clearnmc
+  printnetworkmessages:
+    description: (ADMIN) Toggle debug logging of network messages to console.

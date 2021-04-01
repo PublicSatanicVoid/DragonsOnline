@@ -21,12 +21,14 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Server Name: " + ChatColor.GRAY + instance.getServerName());
 		}
 		
-		else if(label.equalsIgnoreCase("setservername")) {
+		else if(label.equalsIgnoreCase("spoofserver")) {
 			if(args.length == 0) {
-				sender.sendMessage(ChatColor.RED + "/setservername <NewServerName>");
+				sender.sendMessage(ChatColor.RED + "/spoofserver <servername>");
 				return true;
 			}
-			instance.setServerName(args[0]);
+			
+			user(sender).getStorageAccess().set("currentServer", args[0]);
+			sender.sendMessage(ChatColor.GREEN + "Spoofed your connected server.");
 		}
 		
 		else if(label.equalsIgnoreCase("serveroptions")) {

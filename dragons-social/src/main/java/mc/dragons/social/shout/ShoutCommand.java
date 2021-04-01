@@ -1,6 +1,5 @@
-package mc.dragons.social;
+package mc.dragons.social.shout;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -10,6 +9,8 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.StringUtil;
 
 public class ShoutCommand extends DragonsCommandExecutor {
+	private ShoutMessageHandler handler = new ShoutMessageHandler();
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.MODERATOR)) return true;
@@ -22,7 +23,7 @@ public class ShoutCommand extends DragonsCommandExecutor {
 		}
 		
 		String message = StringUtil.concatArgs(args, 0);
-		Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + sender.getName() + " " + ChatColor.AQUA + message);
+		handler.send(sender.getName(), message);
 		return true;
 	}
 }

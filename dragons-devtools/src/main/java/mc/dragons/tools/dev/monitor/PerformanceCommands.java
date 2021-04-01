@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -19,6 +20,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.ThreadMXBean;
 
@@ -26,6 +29,8 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.networking.MessageConstants;
+import mc.dragons.core.networking.MessageDispatcher;
 import mc.dragons.core.tasks.LagMeter;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.StringUtil;
@@ -226,8 +231,27 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			instance.getLogger().info("==== END FULL SERVER DATA DUMP ====");
 			instance.getLogger().info("");
 			instance.getLogger().info("");
-			instance.getLogger().info("");
-			
+			instance.getLogger().info("");	
+		}
+		
+		else if(label.equalsIgnoreCase("clearnetworkmessagecache") || label.equalsIgnoreCase("clearnmc")) {
+			MongoCollection<Document> messages = instance.getMongoConfig().getDatabase().getCollection(MessageConstants.MESSAGE_COLLECTION);
+			if(args.length == 0) {
+				DeleteResult result = messages.deleteMany(new Document());
+				sender.sendMessage(ChatColor.GREEN + "Successfully cleared the network-wide message cache (n=" + result.getDeletedCount() + ")");
+			}
+			else {
+				Integer seconds = parseIntType(sender, args[0]);
+				if(seconds == null) return true;
+				DeleteResult result = messages.deleteMany(new Document("timestamp", new Document("$lt", System.currentTimeMillis() - seconds * 1000)));
+				sender.sendMessage(ChatColor.GREEN + "Successfully removed " + result.getDeletedCount() + " messages from the cache");
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("printnetworkmessages")) {
+			MessageDispatcher dispatcher = instance.getMessageDispatcher();
+			dispatcher.setDebug(!dispatcher.isDebug());
+			sender.sendMessage(ChatColor.GREEN + (dispatcher.isDebug() ? "Enabled" : "Disabled") + " network message logging.");
 		}
 		
 		return true;

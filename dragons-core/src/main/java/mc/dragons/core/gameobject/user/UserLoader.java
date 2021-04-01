@@ -176,6 +176,7 @@ public class UserLoader extends GameObjectLoader<User> {
 				.append("ip", player.getAddress().getAddress().getHostAddress())
 				.append("ipHistory", List.of(player.getAddress().getAddress().getHostAddress()))
 				.append("totalOnlineTime", 0L)
+				.append("currentServer", Dragons.getInstance().getServerName())
 				.append("verified", false);
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
 		User user = new User(player, storageManager, storageAccess);

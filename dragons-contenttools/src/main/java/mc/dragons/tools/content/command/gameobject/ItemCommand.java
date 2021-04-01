@@ -222,7 +222,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 		ItemClass itemClass = lookupItemClass(sender, args[0]);
 		if(itemClass == null) return;
 		
-		ChatColor nameColor = StringUtil.parseEnum(sender, ChatColor.class, args[1]);
+		ChatColor nameColor = StringUtil.parseChatColor(sender, args[2]);
 		if(nameColor == null) return;
 		
 		itemClass.setNameColor(nameColor);

@@ -1,4 +1,4 @@
-package mc.dragons.social;
+package mc.dragons.social.guild;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +15,10 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.social.GuildLoader.Guild;
-import mc.dragons.social.GuildLoader.GuildAccessLevel;
-import mc.dragons.social.GuildLoader.GuildEvent;
-import mc.dragons.social.GuildLoader.GuildThemeColor;
+import mc.dragons.social.guild.GuildLoader.Guild;
+import mc.dragons.social.guild.GuildLoader.GuildAccessLevel;
+import mc.dragons.social.guild.GuildLoader.GuildEvent;
+import mc.dragons.social.guild.GuildLoader.GuildThemeColor;
 
 public class GuildCommand extends DragonsCommandExecutor {
 
@@ -366,7 +366,7 @@ public class GuildCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "You must be the owner of the guild to perform this action!");
 				return true; // TODO more fine-grained permissions checking with internal ranks, etc.
 			}
-			if(args[0].equalsIgnoreCase("accept")) {
+			else if(args[0].equalsIgnoreCase("accept")) {
 				guild.getPending().remove(target.getUUID());
 				guild.getMembers().add(target.getUUID());
 				guild.save();
@@ -376,18 +376,16 @@ public class GuildCommand extends DragonsCommandExecutor {
 				}
 				guild.update(GuildEvent.JOIN, target);
 				target.updateListName();
-				return true;
 			}
-			if(args[0].equalsIgnoreCase("reject")) {
+			else if(args[0].equalsIgnoreCase("reject")) {
 				guild.getPending().remove(target.getUUID());
 				guild.save();
 				sender.sendMessage(ChatColor.GREEN + "Rejected " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " from " + ChatColor.AQUA + guild.getName());
 				if(target.getPlayer() != null) {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were rejected from the guild " + ChatColor.YELLOW + guild.getName());
 				}
-				return true;
 			}
-			if(args[0].equalsIgnoreCase("kick")) {
+			else if(args[0].equalsIgnoreCase("kick")) {
 				if(guild.getOwner().equals(target.getUUID())) {
 					sender.sendMessage(ChatColor.RED + "You can't kick the guild owner!");
 					return true;
@@ -400,9 +398,8 @@ public class GuildCommand extends DragonsCommandExecutor {
 				}
 				guild.update(GuildEvent.KICK, target);
 				target.updateListName();
-				return true;
 			}
-			if(args[0].equalsIgnoreCase("ban")) {
+			else if(args[0].equalsIgnoreCase("ban")) {
 				if(guild.getOwner().equals(target.getUUID())) {
 					sender.sendMessage(ChatColor.RED + "You can't ban the guild owner!");
 					return true;
@@ -416,9 +413,8 @@ public class GuildCommand extends DragonsCommandExecutor {
 				}
 				guild.update(GuildEvent.BAN, target);
 				target.updateListName();
-				return true;
 			}
-			if(args[0].equalsIgnoreCase("unban")) {
+			else if(args[0].equalsIgnoreCase("unban")) {
 				guild.getBlacklist().remove(target.getUUID());
 				guild.save();
 				sender.sendMessage(ChatColor.GREEN + "Unbanned " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " from " + ChatColor.AQUA + guild.getName());
@@ -426,7 +422,6 @@ public class GuildCommand extends DragonsCommandExecutor {
 					target.getPlayer().sendMessage(ChatColor.GREEN + "You were unbanned from the guild " + ChatColor.AQUA + guild.getName());
 				}
 				guild.update(GuildEvent.UNBAN, target);
-				return true;
 			}
 		}
 		
@@ -460,13 +455,7 @@ public class GuildCommand extends DragonsCommandExecutor {
 			String formatted = ChatColor.GRAY + "@" + guild.getName() + " " 
 					+ guild.getThemeColor().primary() + "" + ChatColor.BOLD + user.getName() + " "
 					+ guild.getThemeColor().secondary() + message;
-			for(UUID uuid : guild.getMembers()) {
-				User member = userLoader.loadObject(uuid);
-				if(member.getPlayer() != null) {
-					member.getPlayer().sendMessage(formatted);
-				}
-			}
-			sender.sendMessage(formatted);
+			GuildLoader.getGuildMessageHandler().send(guild.getName(), formatted);
 		}
 		
 		else if(args[0].equalsIgnoreCase("setowner")) {

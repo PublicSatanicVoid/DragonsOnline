@@ -148,23 +148,21 @@ public class StringUtil {
 	}
 
 	public static Material parseMaterialType(CommandSender sender, String str) {
-		Material type = null;
 		try {
-			type = Material.valueOf(str.toUpperCase());
+			return Material.valueOf(str.toUpperCase());
 		} catch (Exception e) {
 			sender.sendMessage(ChatColor.RED + "Invalid material type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.12/org/bukkit/Material.html");
 		}
-		return type;
+		return null;
 	}
 
 	public static EntityType parseEntityType(CommandSender sender, String str) {
-		EntityType type = null;
 		try {
-			type = EntityType.valueOf(str.toUpperCase());
+			return EntityType.valueOf(str.toUpperCase());
 		} catch (Exception e) {
 			sender.sendMessage(ChatColor.RED + "Invalid entity type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.12/org/bukkit/entity/EntityType.html");
 		}
-		return type;
+		return null;
 	}
 	
 	public static <T extends Enum<T>> T parseEnum(CommandSender sender, Class<T> enumClass, String str) {
@@ -175,6 +173,21 @@ public class StringUtil {
 			sender.sendMessage(ChatColor.RED + "Invalid entry! Valid types are " + parseList(enumClass.getEnumConstants()));
 		}
 		
+		return null;
+	}
+	
+	public static ChatColor parseChatColor(CommandSender sender, String str) {
+		try {
+			return ChatColor.valueOf(str.toUpperCase());
+		}
+		catch (Exception e) {
+			sender.sendMessage(ChatColor.RED + "Invalid chat color! Valid colors are " + 
+				Arrays.stream(ChatColor.values())
+					.filter(c -> c.isColor())
+					.map(c -> c + c.name())
+					.reduce((a,b) -> a + ChatColor.GRAY + ", " + b)
+					.get());
+		}
 		return null;
 	}
 	

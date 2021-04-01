@@ -53,3 +53,5 @@ commands:
     description: (ADMIN) Toggle your ability to report yourself. Does not affect other players.
   deletereport:
     description: (ADMIN) Permanently delete a report from the database.
+  locate:
+    description: (HELPER) Find the server a player is connected to.

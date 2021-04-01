@@ -1,4 +1,4 @@
-package mc.dragons.social;
+package mc.dragons.social.duel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +24,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.loader.WarpLoader;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.EntityHider.Policy;
+import mc.dragons.social.DragonsSocialPlugin;
 
 public class DuelCommands extends DragonsCommandExecutor {
 

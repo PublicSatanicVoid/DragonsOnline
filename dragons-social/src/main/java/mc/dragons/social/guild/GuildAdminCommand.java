@@ -1,4 +1,4 @@
-package mc.dragons.social;
+package mc.dragons.social.guild;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,7 +13,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.social.GuildLoader.Guild;
+import mc.dragons.social.guild.GuildLoader.Guild;
 
 public class GuildAdminCommand extends DragonsCommandExecutor {
 

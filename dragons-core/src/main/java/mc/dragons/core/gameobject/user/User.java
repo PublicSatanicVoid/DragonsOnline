@@ -118,7 +118,7 @@ public class User extends GameObject {
 	private long whenBeganDialogue;
 	private List<Consumer<User>> currentDialogueCompletionHandlers;
 	private boolean isOverridingWalkSpeed;
-	private CommandSender lastReceivedMessageFrom;
+	private String lastReceivedMessageFrom;
 	private boolean chatSpy; // Whether the user can see others' private messages.
 	private GUI currentGUI;
 	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level inventory bug.
@@ -661,7 +661,9 @@ public class User extends GameObject {
 		PunishmentData muteData = getActivePunishmentData(PunishmentType.MUTE);
 		if (muteData != null) {
 			player.sendMessage(ChatColor.RED + "You are muted!" + (muteData.getReason().equals("") ? "" : " (" + muteData.getReason() + ")"));
-			player.sendMessage(ChatColor.RED + "Expires " + muteData.getExpiry().toString());
+			if(!muteData.isPermanent()) {
+				player.sendMessage(ChatColor.RED + "Expires " + muteData.getExpiry().toString());
+			}
 			return;
 		}
 		LOGGER.finer("-Creating message text component");
@@ -720,11 +722,11 @@ public class User extends GameObject {
 		LOGGER.info("[" + channel.getAbbreviation() + "/" + player.getWorld().getName() + "] [" + getName() + "] " + message);
 	}
 
-	public CommandSender getLastReceivedMessageFrom() {
+	public String getLastReceivedMessageFrom() {
 		return lastReceivedMessageFrom;
 	}
 
-	public void setLastReceivedMessageFrom(CommandSender lastReceivedMessageFrom) {
+	public void setLastReceivedMessageFrom(String lastReceivedMessageFrom) {
 		this.lastReceivedMessageFrom = lastReceivedMessageFrom;
 	}
 
@@ -957,6 +959,7 @@ public class User extends GameObject {
 		joined = true;
 		setData("username", getPlayer().getName());
 		setData("lastJoined", System.currentTimeMillis());
+		setData("currentServer", instance.getServerName());
 		if (PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false)) {
 			player.setGameMode(getSavedGameMode());
 		} else {
@@ -1016,6 +1019,7 @@ public class User extends GameObject {
 	public void handleQuit() {
 		autoSave();
 		setData("totalOnlineTime", getTotalOnlineTime() + getLocalOnlineTime());
+		setData("currentServer", null);
 		if (!isVanished() && joined) {
 			Bukkit.broadcastMessage(ChatColor.GRAY + player.getName() + " left!");
 		}
@@ -1120,6 +1124,10 @@ public class User extends GameObject {
 
 	public Location getSavedLocation() {
 		return StorageUtil.docToLoc((Document) getData("lastLocation"));
+	}
+	
+	public String getServer() {
+		return (String) getData("currentServer");
 	}
 
 	/**

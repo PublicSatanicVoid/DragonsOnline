@@ -36,3 +36,5 @@ commands:
   listallduelstatus:
     description: (ADMIN) List all pending or in-progress duels.
   testduelwin:
+  toggleselfmessage:
+    description: (ADMIN) Toggle your ability to message yourself. No other players are affected.

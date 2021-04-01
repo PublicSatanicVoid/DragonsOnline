@@ -122,8 +122,8 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		return asTasks(collection.find());
 	}
 	
-	public List<Task> getAllTasksBy(String by) {
-		return asTasks(collection.find(new Document("by", by)));
+	public List<Task> getAllTasksBy(User by) {
+		return asTasks(collection.find(new Document("by", by.getUUID().toString())));
 	}
 	
 	public List<Task> getAllReviewedTasks(boolean reviewed) {
@@ -142,8 +142,8 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		return asTasks(collection.find(new Document("approved", false).append("reviewedBy", new Document("$ne", null))));
 	}
 	
-	public List<Task> getAllTasksWith(String assigned) {
-		return asTasks(collection.find(new Document("$or", Arrays.asList(new Document("assignees", assigned), new Document("by", assigned)))
+	public List<Task> getAllTasksWith(User assigned) {
+		return asTasks(collection.find(new Document("$or", Arrays.asList(new Document("assignees", assigned.getUUID().toString()), new Document("by", assigned.getUUID().toString())))
 				.append("approved", true).append("done", false).append("closed", false))); // Apparently this is how we see if a list contains a value in Mongo
 	}
 	

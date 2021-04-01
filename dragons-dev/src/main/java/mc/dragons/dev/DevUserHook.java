@@ -2,10 +2,10 @@ package mc.dragons.dev;
 
 import java.util.List;
 
-import org.bson.Document;
-import org.bukkit.Location;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
@@ -14,22 +14,18 @@ import mc.dragons.dev.TaskLoader.Task;
 import net.md_5.bungee.api.ChatColor;
 
 public class DevUserHook implements UserHook {
-	
 	private TaskLoader taskLoader;
+	private DiscordNotifier buildNotifier;
 	
 	public DevUserHook() {
 		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
-	}
-	
-	@Override
-	public void onInitialize(User user) {
-		// TODO Auto-generated method stub
-		
+		buildNotifier = JavaPlugin.getPlugin(DragonsDevPlugin.class).getBuildNotifier();
 	}
 
 	@Override
 	public void onVerifiedJoin(User user) {
-		List<Task> myTasks = taskLoader.getAllTasksWith(user.getName());
+		/* Remind of any outstanding tasks */
+		List<Task> myTasks = taskLoader.getAllTasksWith(user);
 		user.getPlayer().sendMessage(ChatColor.GOLD + "You have " + myTasks.size() + " tasks! " + ChatColor.YELLOW + "/tasks my");
 		if(PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.TASK_MANAGER, false)) {
 			List<Task> myTasksToReview = taskLoader.getAllWaitingTasks();
@@ -37,24 +33,12 @@ public class DevUserHook implements UserHook {
 			List<Task> doneTasks = taskLoader.getAllCompletedTasks(true);
 			user.getPlayer().sendMessage(ChatColor.GOLD + "There are " + doneTasks.size() + " completed tasks that need to be closed. " + ChatColor.YELLOW + "/tasks done");
 		}
-	}
-
-	@Override
-	public void onUpdateState(User user, Location cachedLocation) {
-		// TODO Auto-generated method stub
 		
+		/* Notify Discord when builders join the server */
+		Rank rank = user.getRank();
+		if(rank == Rank.BUILDER || rank == Rank.BUILDER_CMD || rank == Rank.BUILD_MANAGER
+				|| rank == Rank.HEAD_BUILDER || rank == Rank.NEW_BUILDER) {
+			buildNotifier.sendNotification("[Builder Join] " + rank.getRankName() + " " + user.getName() + " joined the server!");
+		}
 	}
-
-	@Override
-	public void onAutoSave(User user, Document autoSaveData) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onQuit(User user) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

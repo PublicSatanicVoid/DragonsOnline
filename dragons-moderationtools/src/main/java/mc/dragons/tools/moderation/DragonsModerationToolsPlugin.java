@@ -10,7 +10,9 @@ import mc.dragons.tools.moderation.abilities.VanishCommands;
 import mc.dragons.tools.moderation.analysis.IPHistoryCommand;
 import mc.dragons.tools.moderation.analysis.IPScanCommand;
 import mc.dragons.tools.moderation.analysis.InfoCommand;
+import mc.dragons.tools.moderation.analysis.LocateCommand;
 import mc.dragons.tools.moderation.punishment.PunishCommands;
+import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
 import mc.dragons.tools.moderation.punishment.RemovePunishmentCommand;
 import mc.dragons.tools.moderation.punishment.UnPunishCommands;
 import mc.dragons.tools.moderation.punishment.ViewPunishmentsCommand;
@@ -24,8 +26,12 @@ import mc.dragons.tools.moderation.report.ViewReportCommand;
 
 public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandExecutor {
 	
+	private PunishMessageHandler punishMessageHandler;
+	
 	public void onEnable() {
 		Dragons.getInstance().getLightweightLoaderRegistry().register(new ReportLoader(Dragons.getInstance().getMongoConfig()));
+		
+		punishMessageHandler = new PunishMessageHandler();
 		
 		getCommand("info").setExecutor(new InfoCommand());
 		getCommand("iphistory").setExecutor(new IPHistoryCommand());
@@ -33,6 +39,7 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		getCommand("godmode").setExecutor(new GodModeCommand());
 		getCommand("fly").setExecutor(new FlyCommand());
 		getCommand("setverification").setExecutor(new SetVerificationCommand());
+		getCommand("locate").setExecutor(new LocateCommand());
 		
 		getCommand("report").setExecutor(new ReportCommand());
 		getCommand("escalate").setExecutor(new EscalateCommand());
@@ -59,7 +66,10 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		
 		CommandExecutor vanishCommands = new VanishCommands();
 		getCommand("vanish").setExecutor(vanishCommands);
-		getCommand("unvanish").setExecutor(vanishCommands);
-		
+		getCommand("unvanish").setExecutor(vanishCommands);	
+	}
+	
+	public PunishMessageHandler getPunishMessageHandler() {
+		return punishMessageHandler;
 	}
 }

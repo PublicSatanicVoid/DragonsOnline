@@ -1,4 +1,4 @@
-package mc.dragons.social;
+package mc.dragons.social.guild;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
@@ -24,7 +23,7 @@ import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
-import mc.dragons.social.GuildLoader.Guild;
+import mc.dragons.social.guild.GuildLoader.Guild;
 
 /**
  * Loads guilds from MongoDB. Guilds are pooled locally to reduce network usage.
@@ -34,8 +33,14 @@ import mc.dragons.social.GuildLoader.Guild;
  */
 public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	public static final int PAGE_SIZE = 10;
-	
 	private static final String GUILD_COLLECTION = "guilds";
+	private static GuildMessageHandler guildMessageHandler;
+	
+	private static synchronized void lazyLoadMessageHandler() {
+		if(guildMessageHandler == null) {
+			guildMessageHandler = new GuildMessageHandler();
+		}
+	}
 	
 	private Map<Integer, Guild> guildPool = new HashMap<>();
 	
@@ -153,18 +158,19 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 				message = ChatColor.RED + "An error occurred sending a guild notification: " + event + "{" + getName() + "," + target.getName() + "}";
 				break;
 			}
-			for(UUID uuid : getMembers()) {
-				Player recipient = Bukkit.getPlayer(uuid);
-				if(recipient == null) continue;
-				recipient.sendMessage(message);
-			}
-			Player owner = Bukkit.getPlayer(getOwner());
-			if(owner != null) {
-				owner.sendMessage(message);
-			}
+			guildMessageHandler.send(getName(), message);
 		}
 		
-		public void save() { guildLoader.updateGuild(this); }
+		public void save() { 
+			Dragons.getInstance().getLogger().finest("saving guild #" + getId() + ". data: " + data.toJson());
+			guildLoader.updateGuild(this); 
+		}
+		
+		public void resync() {
+			Dragons.getInstance().getLogger().finest("resyncing guild #" + getId() + ". before sync: " + data.toJson());
+			data = guildLoader.getGuildData(getName()); 
+			Dragons.getInstance().getLogger().finest("resynced. after sync: " + data.toJson());
+		}
 		
 		public void setDescription(String description) {
 			data.append("description", description);
@@ -242,6 +248,7 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	
 	public GuildLoader(MongoConfig config) {
 		super(config, "guilds", GUILD_COLLECTION);
+		Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> lazyLoadMessageHandler(), 1L);
 	}
 
 	public PaginatedResult<Guild> asGuilds(FindIterable<Document> guilds, int page) {
@@ -287,6 +294,11 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		return Guild.fromDocument(result.first());
 	}
 	
+	private Document getGuildData(String name) {
+		FindIterable<Document> result = collection.find(new Document("name", name));
+		return result.first();
+	}
+	
 	public Guild getGuildById(int id) {
 		return guildPool.computeIfAbsent(id, guildId -> Guild.fromDocument(collection.find(new Document("_id", guildId)).first()));
 	}
@@ -306,6 +318,10 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	
 	public int getLatestGuildId() {
 		return getCurrentMaxId();
+	}
+	
+	public static GuildMessageHandler getGuildMessageHandler() {
+		return guildMessageHandler;
 	}
 
 }

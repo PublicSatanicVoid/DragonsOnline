@@ -45,7 +45,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		CommandExecutor serverOptionsCommands = new ServerOptionsCommands();
 		getCommand("serveroptions").setExecutor(serverOptionsCommands);
 		getCommand("getservername").setExecutor(serverOptionsCommands);
-		getCommand("setservername").setExecutor(serverOptionsCommands);
+		getCommand("spoofserver").setExecutor(serverOptionsCommands);
 		
 		CommandExecutor objectCommands = new ObjectCommands();
 		getCommand("autosave").setExecutor(objectCommands);
@@ -79,6 +79,8 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("tickperformance").setExecutor(performanceCommands);
 		getCommand("getstacktrace").setExecutor(performanceCommands);
 		getCommand("getactivethreads").setExecutor(performanceCommands);
+		getCommand("clearnetworkmessagecache").setExecutor(performanceCommands);
+		getCommand("printnetworkmessages").setExecutor(performanceCommands);
 		
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);
@@ -106,6 +108,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("testuuidlookup").setExecutor(experimentalCommands);
 		getCommand("testcorrelationlogging").setExecutor(experimentalCommands);
 		getCommand("testbase64encoding").setExecutor(experimentalCommands);
-		getCommand("testdiscordintegration").setExecutor(experimentalCommands);
+		getCommand("testnetworkmessage").setExecutor(experimentalCommands);
 	}
 }

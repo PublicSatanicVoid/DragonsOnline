@@ -63,6 +63,7 @@ import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.networking.MessageDispatcher;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
 import mc.dragons.core.storage.loader.FeedbackLoader;
@@ -101,6 +102,7 @@ public class Dragons extends JavaPlugin {
 	private SidebarManager sidebarManager;
 	private EntityHider entityHider;
 	private ChatMessageRegistry chatMessageRegistry;
+	private MessageDispatcher messageDispatcher;
 
 	private BukkitRunnable autoSaveRunnable;
 	private BukkitRunnable spawnEntityRunnable;
@@ -148,6 +150,7 @@ public class Dragons extends JavaPlugin {
 			lightweightLoaderRegistry = new LightweightLoaderRegistry();
 			sidebarManager = new SidebarManager(this);
 			chatMessageRegistry = new ChatMessageRegistry();
+			messageDispatcher = new MessageDispatcher(this);
 			
 			autoSaveRunnable = new AutoSaveTask(this);
 			spawnEntityRunnable = new SpawnEntityTask(this);
@@ -355,6 +358,10 @@ public class Dragons extends JavaPlugin {
 		return chatMessageRegistry;
 	}
 	
+	public MessageDispatcher getMessageDispatcher() {
+		return messageDispatcher;
+	}
+	
 	public ServerOptions getServerOptions() {
 		return serverOptions;
 	}
@@ -393,13 +400,6 @@ public class Dragons extends JavaPlugin {
 
 	public String getServerName() {
 		return serverName;
-	}
-	
-	public void setServerName(String serverName) {
-		this.serverName = serverName;
-		UserLoader.allUsers().stream()
-			.filter(u -> PermissionUtil.verifyActivePermissionLevel(u, PermissionLevel.ADMIN, false))
-			.forEach(u -> u.getPlayer().sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Server instance renamed to " + serverName));
 	}
 
 	public long getUptime() {

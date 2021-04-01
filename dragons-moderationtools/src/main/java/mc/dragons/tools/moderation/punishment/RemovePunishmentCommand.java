@@ -8,14 +8,17 @@ import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
+import mc.dragons.tools.moderation.DragonsModerationToolsPlugin;
 
 public class RemovePunishmentCommand extends DragonsCommandExecutor {
+	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationToolsPlugin.class).getPunishMessageHandler();
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
@@ -46,6 +49,10 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Removed punishment #" + args[1] + " from " + targetUser.getName());
 		if(record.getExpiry().after(Date.from(Instant.now())) || record.isPermanent()) {
 			targetUser.unpunish(record.getType());
+			// Check if we need to tell a different server to immediately apply the punishment
+			if(targetUser.getServer() != null && !targetUser.getServer().equals(instance.getServerName())) {
+				handler.forwardUnpunishment(targetUser, record.getType());
+			}
 		}
 		
 		if(targetUser.getPlayer() == null) {

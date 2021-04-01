@@ -24,6 +24,7 @@ public class MongoCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "No MongoDB instance connected!");
 			return true;
 		}
+		
 		sender.sendMessage(ChatColor.DARK_GREEN + "Connected to MongoDB");
 		sender.sendMessage(ChatColor.GREEN + "IP: " + ChatColor.GRAY + config.getHost() + ":" + config.getPort());
 		sender.sendMessage(ChatColor.GREEN + "Database name: " + ChatColor.GRAY + db.getName());

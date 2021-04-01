@@ -9,24 +9,24 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.social.GuildLoader.Guild;
+import mc.dragons.social.duel.DuelCommands;
+import mc.dragons.social.guild.GuildLoader;
+import mc.dragons.social.guild.GuildLoader.Guild;
 
 public class SocialUserHook implements UserHook {
 	private GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
 	private DragonsSocialPlugin instance = JavaPlugin.getPlugin(DragonsSocialPlugin.class);
-	private DiscordNotifier buildNotifier = instance.getBuildNotifier();
 	
 	@Override
 	public void onVerifiedJoin(User user) {
 		
 		/* Send guild welcome(s) */
-		Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {		
+		Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {		
 			List<Guild> guilds = guildLoader.getAllGuildsWithRaw(user.getUUID());
 			boolean shown = false;
 			for(Guild guild : guilds) {
@@ -55,17 +55,10 @@ public class SocialUserHook implements UserHook {
 			}
 		}
 		if(!anyCanHear && Bukkit.getOnlinePlayers().size() > 1) {
-			Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+			Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
 				user.getPlayer().sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Warning: " + ChatColor.RED + "Nobody else can hear you in the channel you're speaking in.");
 				user.getPlayer().sendMessage(ChatColor.GRAY + "Do " + ChatColor.RESET + "/channel " + ChatColor.GRAY + "to manage channels.");
 			}, 20L * 2);
-		}
-		
-		/* Notify Discord when builders join the server */
-		Rank rank = user.getRank();
-		if(rank == Rank.BUILDER || rank == Rank.BUILDER_CMD || rank == Rank.BUILD_MANAGER
-				|| rank == Rank.HEAD_BUILDER || rank == Rank.NEW_BUILDER) {
-			buildNotifier.sendNotification(rank.getRankName() + " " + user.getName() + " joined the server!");
 		}
 	}
 	
@@ -103,7 +96,7 @@ public class SocialUserHook implements UserHook {
 				
 				final User fWinner = winner;
 				
-				Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+				Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
 					DuelCommands.restore(fWinner);
 					DuelCommands.restore(loser);
 					
@@ -127,7 +120,7 @@ public class SocialUserHook implements UserHook {
 				User other = (User) dueling.toArray()[0];
 				other.getPlayer().sendMessage(ChatColor.RED + user.getName() + " left while the duel was in progress!");
 
-				Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+				Bukkit.getScheduler().scheduleSyncDelayedTask(instance, () -> {
 					DuelCommands.restore(other);
 					DuelCommands.getActive().remove(dueling);
 				}, 20L);

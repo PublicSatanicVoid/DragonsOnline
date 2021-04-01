@@ -1,4 +1,4 @@
-package mc.dragons.social;
+package mc.dragons.dev;
 
 import mc.dragons.core.util.HttpUtil;
 

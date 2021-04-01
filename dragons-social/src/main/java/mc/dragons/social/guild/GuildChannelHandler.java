@@ -1,4 +1,4 @@
-package mc.dragons.social;
+package mc.dragons.social.guild;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;

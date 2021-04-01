@@ -68,7 +68,7 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
 		
 		if(args.length < 5) {
-			sender.sendMessage(ChatColor.RED + "/syslogon -create <profile> <username> <password> <max. permission level>");
+			sender.sendMessage(ChatColor.RED + "/syslogon create <profile> <username> <password> <max. permission level>");
 			return;
 		}
 		
@@ -85,7 +85,7 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
 		
 		if(args.length < 3) {
-			sender.sendMessage(ChatColor.RED + "/syslogon -update <profile> <new max. permission level>");
+			sender.sendMessage(ChatColor.RED + "/syslogon update <profile> <new max. permission level>");
 		}
 		
 		PermissionLevel level = StringUtil.parseEnum(sender, PermissionLevel.class, args[2]);
