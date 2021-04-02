@@ -17,6 +17,6 @@ import mc.dragons.core.gameobject.user.User;
  *
  */
 public interface ChannelHandler {
-	boolean canHear(User paramUser1, User paramUser2);
+	boolean canHear(User receiver, User sender);
 	ChatChannel getChannel();
 }

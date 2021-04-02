@@ -192,7 +192,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	private void reportNotify(String message) {
 		for(User user : UserLoader.allUsers()) {
 			if(!PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.MODERATION, false)) continue;
-			user.sendMessage(ChatChannel.STAFF, ChatColor.DARK_AQUA + "[Report] " + ChatColor.GRAY + message);
+			user.sendMessage(ChatChannel.STAFF, null, ChatColor.DARK_AQUA + "[Report] " + ChatColor.GRAY + message);
 		}
 	}
 	

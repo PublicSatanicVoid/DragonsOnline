@@ -49,6 +49,7 @@ public abstract class MessageHandler {
 	 */
 	public void sendAll(Document data) {
 		send(data, MessageConstants.DEST_ALL);
+		receive(instance.getServerName(), data);
 	}
 	
 	/**

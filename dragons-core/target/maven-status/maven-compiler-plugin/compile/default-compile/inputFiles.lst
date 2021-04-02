@@ -18,6 +18,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loa
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\local\LocalStorageManager.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\logging\correlation\CorrelationLogger.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\quest\QuestTrigger.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\ChatMessageHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\LightweightLoaderRegistry.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\QuestDialogueCommands.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\channel_handlers\LocalChannelHandler.java

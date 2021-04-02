@@ -21,21 +21,24 @@ import net.md_5.bungee.api.chat.TextComponent;
  *
  */
 public enum ChatChannel {
-	ALVADOR("A", "Global chat for all of Alvador", new AlvadorChannelHandler()), 
-	LOCAL("L", "Local chat for your current floor", new LocalChannelHandler()),
-	GUILD("G", "Channel for your guild only", null), 
-	PARTY("P", "Channel for your party only", null), 
-	TRADE("T", "Global chat for trade discussion", new TradeChannelHandler()),
-	HELP("H", "Global chat to ask for help", new HelpChannelHandler()), STAFF("S", "Staff-only channel", new StaffChannelHandler());
+	ALVADOR("A", "Global chat for all of Alvador", true, new AlvadorChannelHandler()), 
+	LOCAL("L", "Local chat for your current floor", true, new LocalChannelHandler()),
+	GUILD("G", "Channel for your guild only", true, null), 
+	PARTY("P", "Channel for your party only", true, null), 
+	TRADE("T", "Global chat for trade discussion", true, new TradeChannelHandler()),
+	HELP("H", "Global chat to ask for help", true, new HelpChannelHandler()), 
+	STAFF("S", "Staff-only channel", true, new StaffChannelHandler());
 
 	private String abbreviation;
 	private String description;
+	private boolean networked;
 	private ChannelHandler handler;
 
-	ChatChannel(String abbreviation, String description, ChannelHandler handler) {
+	ChatChannel(String abbreviation, String description, boolean networked, ChannelHandler handler) {
 		this.abbreviation = abbreviation;
 		this.description = description;
 		this.handler = handler;
+		this.networked = networked;
 	}
 
 	public String getAbbreviation() {
@@ -50,6 +53,10 @@ public enum ChatChannel {
 		return format(ChatColor.GRAY + "[" + getAbbreviation() + "]");
 	}
 
+	public boolean isNetworked() {
+		return networked;
+	}
+	
 	public ChannelHandler getHandler() {
 		return handler;
 	}
@@ -74,6 +81,9 @@ public enum ChatChannel {
 	public boolean canHear(User to, User from) {
 		if (to.hasActiveDialogue() || !to.hasJoined()) {
 			return false;
+		}
+		if(from == null) {
+			return true;
 		}
 		if (handler == null) {
 			Dragons.getInstance().getLogger().warning("Channel " + toString() + " does not have an associated handler! This channel will be unusable until a handler is registrered to it.");

@@ -34,7 +34,7 @@ public enum Rank {
 	NEW_GM("New GM", "New GM", ChatColor.GOLD + "[New GM]", ChatColor.GOLD, ChatColor.WHITE, true), 
 	GM("Game Master", "Game Master", ChatColor.GOLD + "[GM]", ChatColor.GOLD, ChatColor.WHITE, true),
 	HEAD_GM("Head GM", "Head GM", ChatColor.GOLD + "[Head GM]", ChatColor.GOLD, ChatColor.WHITE, true),
-	DEVELOPER("Developer", "Developer", ChatColor.DARK_RED + "[Developer]", ChatColor.RED, ChatColor.WHITE, true),
+	DEVELOPER("Developer", "Developer", ChatColor.DARK_RED + "[Dev]", ChatColor.RED, ChatColor.WHITE, true),
 	LEAD_DEVELOPER("Lead Developer", "Lead Developer", ChatColor.DARK_RED + "[Lead Dev]", ChatColor.RED, ChatColor.WHITE, true),
 	ADMIN("Administrator", "Admin", ChatColor.DARK_RED + "[Admin]", ChatColor.RED, ChatColor.WHITE, true);
 

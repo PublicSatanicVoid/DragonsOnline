@@ -58,7 +58,7 @@ public abstract class GameObject {
 
 	protected void removeData(String key) {
 		storageAccess.delete(key);
-		LOGGER.finest("Removed data on " + this + ": " + key);
+		LOGGER.finest("Remove data on " + this + ": " + key);
 	}
 	
 	protected void update(Document document) {

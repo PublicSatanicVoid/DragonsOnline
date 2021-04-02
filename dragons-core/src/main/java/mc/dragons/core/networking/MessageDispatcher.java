@@ -51,9 +51,12 @@ public class MessageDispatcher {
 		new BukkitRunnable() {
 			@Override public void run() {
 				ChangeStreamIterable<Document> watcher = messages.watch(List.of(Aggregates.match(
+						
+						// type=what we're looking for, AND ( dest=this server OR (dest=all AND origin =/= this server ) )
 						Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.TYPE_FIELD, handler.getMessageType()), 
 								Filters.or(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, instance.getServerName()), 
-										Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, MessageConstants.DEST_ALL))))));
+										Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, MessageConstants.DEST_ALL),
+												Filters.ne(MessageConstants.STREAM_PREFIX + MessageConstants.ORIG_FIELD, instance.getServerName())))))));
 				watcher.forEach((Consumer<ChangeStreamDocument<Document>>) d -> {
 					if(debug) {
 						long latency = System.currentTimeMillis() - d.getFullDocument().getLong("timestamp");

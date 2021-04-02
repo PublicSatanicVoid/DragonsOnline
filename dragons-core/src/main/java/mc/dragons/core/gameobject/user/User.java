@@ -46,8 +46,6 @@ import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
-import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
-import mc.dragons.core.gameobject.user.chat.MessageData;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
@@ -98,7 +96,7 @@ public class User extends GameObject {
 	private static CorrelationLogger CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
-	private static ChatMessageRegistry chatMessageRegistry = instance.getChatMessageRegistry();
+	private static ChatMessageHandler chatMessageHandler = new ChatMessageHandler();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 
@@ -606,52 +604,24 @@ public class User extends GameObject {
 	 * @param channel
 	 * @param message
 	 */
-	public void sendMessage(ChatChannel channel, String message) {
-		sendMessage(channel, TextComponent.fromLegacyText(message));
-	}
-
-	/**
-	 * Send the user a message if they are listening on the specified channel.
-	 * 
-	 * @param channel
-	 * @param source
-	 * @param message
-	 */
-	public void sendMessage(ChatChannel channel, Location source, String message) {
+	public void sendMessage(ChatChannel channel, User source, String message) {
 		sendMessage(channel, source, TextComponent.fromLegacyText(message));
 	}
 
 	/**
 	 * Send the user a message if they are listening on the specified channel.
 	 * 
-	 * TODO Refactor this to account for other channel constraints.
-	 * 
-	 * @param channel
-	 * @param source
-	 * @param message
-	 */
-	public void sendMessage(ChatChannel channel, Location source, BaseComponent... message) {
-		if (channel == ChatChannel.LOCAL && !hasChatSpy() && !FloorLoader.fromWorld(source.getWorld()).equals(FloorLoader.fromWorld(player.getWorld()))) {
-			return;
-		}
-		sendMessage(channel, message);
-	}
-
-	/**
-	 * Send the user a message if they are listening on the specified channel.
-	 * 
 	 * @param channel
 	 * @param message
 	 */
-	public void sendMessage(ChatChannel channel, BaseComponent... message) {
-		if (getActiveChatChannels().contains(channel)) {
+	public void sendMessage(ChatChannel channel, User source, BaseComponent... message) {
+		if (getActiveChatChannels().contains(channel) && channel.canHear(this, source)) {
 			player.spigot().sendMessage(new ComponentBuilder(channel.getPrefix()).append(" ").append(message).create());
 		}
 	}
 
 	public void chat(String message) {
-		LOGGER.finer("Chat message from " + getName());
-		if (!joined) {
+		if (!hasJoined()) {
 			player.sendMessage(ChatColor.RED + "You are not joined yet!");
 			return;
 		}
@@ -667,60 +637,12 @@ public class User extends GameObject {
 			}
 			return;
 		}
-		LOGGER.finer("-Creating message text component");
-		String messageSenderInfo = "";
-		boolean offDuty = false;
-		if(isVerified()) {
-			messageSenderInfo = ChatColor.GREEN + "✓ " + ChatColor.GRAY;
+		if (!getSpeakingChannel().canHear(this, this)) {
+			player.sendMessage(ChatColor.RED + "Could not deliver message: You must be listening to the channel you're speaking on. (/c l " + getSpeakingChannel().getAbbreviation().toLowerCase() + ")");
+			return;
 		}
-		if(getRank().isStaff() && getSystemProfile() == null) {
-			messageSenderInfo += getRank().getNameColor() + Rank.OFF_DUTY_STAFF_PREFIX + " ";
-			offDuty = true;
-		}
-		else if (getRank().hasChatPrefix()) {
-			messageSenderInfo += getRank().getChatPrefix() + " ";
-		}
-		MessageData messageData = new MessageData(this, message);
-		messageSenderInfo += getRank().getNameColor() + getName();
-		TextComponent messageInfoComponent = new TextComponent(messageSenderInfo);
-		messageInfoComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + getName() + "\n")
-						.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + getRank().getNameColor() + getRank().getRankName() + "\n")
-						.append(!offDuty ? "" : ChatColor.DARK_RED + "" + ChatColor.UNDERLINE + "/!\\" + ChatColor.RED + " " + ChatColor.ITALIC + "This staff member is currently off-duty and cannot access staff privileges.\n")
-						.append(ChatColor.GRAY + "Level: " + getLevelColor() + getLevel() + "\n").append(ChatColor.GRAY + "XP: " + ChatColor.RESET + getXP() + "\n")
-						.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + getGold() + "\n")
-						.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(player.getLocation()) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
-						.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(player.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
-								+ " (when message sent)\n")
-						.append(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + getFirstJoined().toString()).create()));
-		messageInfoComponent.addExtra(ChatColor.GRAY + " » ");
-		TextComponent messageComponent = new TextComponent(getRank().getChatColor() + message);
-		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				new ComponentBuilder(ChatColor.YELLOW + "Click to report this message").create()));
-		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId()));
-		ChatChannel channel = getSpeakingChannel();
-		if (!channel.canHear(this, this)) {
-			player.sendMessage(
-					ChatColor.RED + "It looks like you can't hear yourself! Make sure you are listening to the channel you're speaking on. (/c l " + channel.getAbbreviation().toLowerCase() + ")");
-		}
-		Location location = player.getLocation();
-		int rec = 0;
-		int tot = 0;
-		for (User user : UserLoader.allUsers()) {
-			tot++;
-			LOGGER.finer("-Checking if " + user.getName() + " can receive");
-			if (!channel.canHear(user, this) && !user.hasChatSpy()) {
-				continue;
-			}
-			LOGGER.finer("  -Yes!");
-			user.sendMessage(channel, location, new BaseComponent[] { messageInfoComponent, messageComponent });
-			rec++;
-		}
-		if (rec <= 1 && tot > 1) {
-			player.sendMessage(ChatColor.RED + "There's currently nobody else online in that channel!");
-		}
-		chatMessageRegistry.register(messageData);
-		LOGGER.info("[" + channel.getAbbreviation() + "/" + player.getWorld().getName() + "] [" + getName() + "] " + message);
+		
+		chatMessageHandler.send(this, getSpeakingChannel(), message);
 	}
 
 	public String getLastReceivedMessageFrom() {
