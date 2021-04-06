@@ -24,7 +24,7 @@ import mc.dragons.tools.content.command.testing.TestQuestCommand;
 import mc.dragons.tools.content.event.PlayerChangedWorldListener;
 
 public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExecutor {
-	
+
 	public void onEnable() {
 		getCommand("region").setExecutor(new RegionCommand());
 		getCommand("npc").setExecutor(new NPCCommand());
@@ -47,7 +47,10 @@ public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExec
 		
 		getCommand("gotofloor").setExecutor(new GoToFloorCommand());
 		getCommand("updatestats").setExecutor(new UpdateStatsCommand());
-		getCommand("speed").setExecutor(new SpeedCommand());
+		CommandExecutor speedCommand = new SpeedCommand();
+		getCommand("speed").setExecutor(speedCommand);
+		getCommand("flyspeed").setExecutor(speedCommand);
+		getCommand("walkspeed").setExecutor(speedCommand);
 		
 		WarpCommands warpCommandsExecutor = new WarpCommands();
 		getCommand("delwarp").setExecutor(warpCommandsExecutor);

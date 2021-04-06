@@ -3,6 +3,8 @@ package mc.dragons.core.gameobject.user;
 import org.bson.Document;
 import org.bukkit.Location;
 
+import mc.dragons.core.gameobject.user.chat.ChatChannel;
+
 /**
  * Event handlers that can be added from other plugins or modules
  * to hook into the default user functionality.
@@ -35,6 +37,14 @@ public interface UserHook {
 	 * @return
 	 */
 	default String getListNameSuffix(User user) { return ""; }
+	
+	/**
+	 * Called when the user sends a chat message.
+	 * 
+	 * @param speaking
+	 * @param message
+	 */
+	default void onChat(ChatChannel speaking, String message) { /* default */ }
 	
 	/**
 	 * Called whenever the user's state is updated.

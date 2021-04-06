@@ -25,14 +25,14 @@ import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import net.md_5.bungee.api.ChatColor;
 
 public class DebugCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
 		User user = user(sender);
 		

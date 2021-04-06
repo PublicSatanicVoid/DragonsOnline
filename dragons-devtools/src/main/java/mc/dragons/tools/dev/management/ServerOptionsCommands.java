@@ -15,7 +15,7 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 		
 		if(label.equalsIgnoreCase("getservername")) {
 			sender.sendMessage(ChatColor.GREEN + "Server Name: " + ChatColor.GRAY + instance.getServerName());

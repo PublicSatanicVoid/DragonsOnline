@@ -100,9 +100,10 @@ public class ResCommands extends DragonsCommandExecutor {
 		}
 		
 		
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 	
 		if(label.equalsIgnoreCase("resadmin")) {
+			if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
 			// Res commands for admins
 			if(args.length == 0) {
 				sender.sendMessage(ChatColor.YELLOW + "/resadmin linkpoint <Name> <Price> <Display Name...>");

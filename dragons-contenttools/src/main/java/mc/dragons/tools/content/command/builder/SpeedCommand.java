@@ -27,27 +27,28 @@ public class SpeedCommand extends DragonsCommandExecutor {
 		}
 		
 
-		if(args.length == 1) {
+		boolean shortcut = !label.equalsIgnoreCase("speed");
+		
+		if(!shortcut && args.length == 1 || shortcut && args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /speed <walk|fly> <value>");
 			return true;
 		}
 		
-		
-		if(args[0].equalsIgnoreCase("walk")) {
-			if(args[1].equalsIgnoreCase("default")) {
+		if(args[0].equalsIgnoreCase("walk") || label.equalsIgnoreCase("walkspeed") || label.equalsIgnoreCase("ws")) {
+			if((shortcut ? args[0] : args[1]).equalsIgnoreCase("default")) {
 				user.removeWalkSpeedOverride();
 				sender.sendMessage(ChatColor.GREEN + "Removed walk speed override.");
 				return true;
 			}
-			Float speed = parseFloatType(sender, args[1]);
+			Float speed = parseFloatType(sender, shortcut ? args[0] : args[1]);
 			if(speed == null) return true;
 			user.overrideWalkSpeed(speed);
 			sender.sendMessage(ChatColor.GREEN + "Set your walk speed to " + speed);
 			return true;
 		}
 		
-		if(args[0].equalsIgnoreCase("fly")) {
-			Float speed = parseFloatType(sender, args[1]);
+		if(args[0].equalsIgnoreCase("fly") || label.equalsIgnoreCase("flyspeed") || label.equalsIgnoreCase("fs")) {
+			Float speed = parseFloatType(sender, shortcut ? args[0] : args[1]);
 			if(speed == null) return true;
 			player.setFlySpeed(speed);
 			sender.sendMessage(ChatColor.GREEN + "Set your fly speed to " + speed);
@@ -57,5 +58,4 @@ public class SpeedCommand extends DragonsCommandExecutor {
 		
 		return true;
 	}
-
 }

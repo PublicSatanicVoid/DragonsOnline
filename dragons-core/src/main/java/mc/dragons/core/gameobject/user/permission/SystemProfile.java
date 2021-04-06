@@ -39,7 +39,20 @@ public class SystemProfile {
 		private Map<SystemProfileFlag, Boolean> flags;
 
 		public enum SystemProfileFlag {
-			BUILD, TRIAL_BUILD_ONLY, WORLDEDIT, CMD, HELPER, MODERATION, TASK_MANAGER, GM_ITEM, GM_NPC, GM_QUEST, GM_REGION, GM_FLOOR, GM_DELETE;
+			BUILD, 
+			TRIAL_BUILD_ONLY, 
+			WORLDEDIT, 
+			CMD, 
+			HELPER, 
+			MODERATION, 
+			TASK_MANAGER, 
+			GM_ITEM, 
+			GM_NPC, 
+			GM_QUEST, 
+			GM_REGION, 
+			GM_FLOOR, 
+			GM_DELETE,
+			DEVELOPMENT;
 
 			public String getName() {
 				return toString().toLowerCase();

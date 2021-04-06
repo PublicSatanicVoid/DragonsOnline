@@ -2,9 +2,10 @@ package mc.dragons.dev;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,9 @@ import mc.dragons.dev.TaskLoader.Task;
 
 public class TaskLoader extends AbstractLightweightLoader<Task> {
 	private static final String TASK_COLLECTION = "tasks";
+	
 	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private static Map<Integer, Task> taskPool = new HashMap<>();
 	
 	public static class Task {
 		private static TaskLoader taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
@@ -39,7 +42,10 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		public String getDate() { return data.getString("date"); }
 		public User getBy() { return userLoader.loadObject(UUID.fromString(data.getString("by"))); }
 		public boolean isApproved() { return data.getBoolean("approved"); }
-		public User getReviewedBy() { return userLoader.loadObject(UUID.fromString(data.getString("reviewedBy"))); }
+		public User getReviewedBy() { 
+			String reviewedBy = data.getString("reviewedBy");
+			if(reviewedBy == null) return null;
+			return userLoader.loadObject(UUID.fromString(reviewedBy)); }
 		public List<User> getAssignees() { return data.getList("assignees", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList()); }
 		public boolean isDone() { return data.getBoolean("done"); }
 		public boolean isClosed() { return data.getBoolean("closed"); }
@@ -85,27 +91,31 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		
 		public static Task fromDocument(Document document) {
 			if(document == null) return null;
+			if(taskPool.containsKey(document.getInteger("_id"))) return taskPool.get(document.getInteger("_id"));
 			return new Task(document);
 		}
 		
 		public static Task newTask(String name, User by) {
-			return new Task(new Document("_id", taskLoader.reserveNextId())
+			Task task = new Task(new Document("_id", taskLoader.reserveNextId())
 					.append("name", name)
 					.append("date", Date.from(Instant.now()).toString())
 					.append("by", by.getUUID().toString())
+					.append("reviewedBy", null)
 					.append("approved", false)
 					.append("assignees", new ArrayList<>())
 					.append("done", false)
 					.append("closed", false)
 					.append("notes", new ArrayList<>())
 					.append("location", StorageUtil.locToDoc(by.getPlayer().getLocation())));
+			taskPool.put(task.getId(), task);
+			return task;
 		}
 	}
 	
 	public TaskLoader() {
 		super(Dragons.getInstance().getMongoConfig(), "tasks", TASK_COLLECTION);
 	}
-
+	
 	public List<Task> asTasks(FindIterable<Document> tasks) {
 		List<Document> result = new ArrayList<>();
 		for(Document task : tasks) {
@@ -143,8 +153,8 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	}
 	
 	public List<Task> getAllTasksWith(User assigned) {
-		return asTasks(collection.find(new Document("$or", Arrays.asList(new Document("assignees", assigned.getUUID().toString()), new Document("by", assigned.getUUID().toString())))
-				.append("approved", true).append("done", false).append("closed", false))); // Apparently this is how we see if a list contains a value in Mongo
+		return asTasks(collection.find(new Document("assignees", assigned.getUUID().toString())
+				.append("approved", true).append("done", false).append("closed", false)));
 	}
 	
 	public List<Task> getAllCompletedTasks(boolean complete) {
@@ -161,6 +171,11 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	
 	public void updateTask(Task update) {
 		collection.updateOne(new Document("_id", update.getId()), new Document("$set", update.toDocument()));
+	}
+	
+	public void deleteTask(Task delete) {
+		collection.deleteOne(new Document("_id", delete.getId()));
+		
 	}
 	
 	public Task addTask(User by, String name) {

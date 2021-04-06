@@ -33,6 +33,7 @@ import com.sk89q.worldedit.world.registry.WorldData;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
+import mc.dragons.core.gameobject.floor.Floor.FloorStatus;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
@@ -100,7 +101,8 @@ public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
 				.append("floorName", "RES")
 				.append("displayName", "Residence")
 				.append("levelMin", 0)
-				.append("volatile", true));
+				.append("volatile", true)
+				.append("status", FloorStatus.LIVE.toString()));
 		Floor resFloor = new Floor(lsm, lsa, true);
 		FloorLoader.link(Bukkit.getWorld("res_temp"), resFloor);
 		Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects().add(resFloor);

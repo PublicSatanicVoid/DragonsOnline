@@ -64,7 +64,7 @@ public class CorrelationCommand extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 		
 		if(args.length == 0) {
 			showHelp(sender);

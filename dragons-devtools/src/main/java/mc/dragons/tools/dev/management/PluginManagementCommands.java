@@ -7,13 +7,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 
 public class PluginManagementCommands extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
 		if(label.equalsIgnoreCase("ilikevanilla")) {
 			Bukkit.getPluginManager().disablePlugins();

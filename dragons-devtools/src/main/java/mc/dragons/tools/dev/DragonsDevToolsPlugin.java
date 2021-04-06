@@ -81,6 +81,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("getactivethreads").setExecutor(performanceCommands);
 		getCommand("clearnetworkmessagecache").setExecutor(performanceCommands);
 		getCommand("printnetworkmessages").setExecutor(performanceCommands);
+		getCommand("manifest").setExecutor(performanceCommands);
 		
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);
@@ -109,5 +110,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("testcorrelationlogging").setExecutor(experimentalCommands);
 		getCommand("testbase64encoding").setExecutor(experimentalCommands);
 		getCommand("testnetworkmessage").setExecutor(experimentalCommands);
+		getCommand("testdocumentdelta").setExecutor(experimentalCommands);
 	}
 }

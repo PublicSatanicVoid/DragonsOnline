@@ -13,9 +13,11 @@ import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.npcs.CompanionAddon;
 
 public class TestCompanionCommand extends DragonsCommandExecutor {
-
+	CompanionAddon addon = (CompanionAddon) instance.getAddonRegistry().getAddonByName("Companion");
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.GM)) return true;
@@ -57,7 +59,8 @@ public class TestCompanionCommand extends DragonsCommandExecutor {
 		
 		else if(args[0].equalsIgnoreCase("remove")) {
 			user.getStorageAccess().set("companion", null);
-			companion.getEntity().remove();
+			companion.remove();
+			addon.getCompanions().remove(companion);
 		}
 		
 		else {

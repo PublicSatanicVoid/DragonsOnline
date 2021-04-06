@@ -28,5 +28,15 @@ commands:
     description: Approve a task.
   reject:
     description: Reject a task.
+  deletetask:
+    description: Delete a task.
   backup:
     description: (BUILDER) Force a backup of the server floor worlds.
+  togglediscordnotifier:
+    description: (ADMIN) Toggle discord notifications for tasks.
+  discordnotifyraw:
+    description: (ADMIN) Send a message directly through the discord notifier.
+  tips:
+    description: Toggle staff tips on or off.
+  taskhelp:
+    description: View commands for tasks.

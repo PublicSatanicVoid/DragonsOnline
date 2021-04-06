@@ -24,6 +24,38 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public class Floor extends GameObject {
+	public enum FloorStatus {
+		FROZEN(true, true),
+		DISABLED(false, true),
+		DEVELOPMENT(false, true),
+		CONFIGURING(false, false),
+		TERRAFORMING(false, false),
+		TERRAIN(false, false),
+		BUILDING(false, false),
+		CONTENT(false, false),
+		TESTING(false, false),
+		REVIEWING(true, false),
+		LIVE(false, false);
+		
+		private boolean gmLock;
+		private boolean playerLock;
+		
+		FloorStatus(boolean gmLock, boolean playerLock) {
+			this.gmLock = gmLock;
+			this.playerLock = playerLock;
+		}
+		
+		public boolean isGMLocked() {
+			return gmLock;
+		}
+		
+		public boolean isPlayerLocked() {
+			return playerLock;
+		}
+	}
+	
+	public static FloorStatus DEFAULT_STATUS = FloorStatus.CONFIGURING;
+	
 	public Floor(StorageManager storageManager, StorageAccess storageAccess, boolean superflat) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing floor (" + storageManager + ", " + storageAccess + ", superflat=" + superflat + ")");
@@ -61,6 +93,23 @@ public class Floor extends GameObject {
 	public void setFloorName(String floorName) {
 		FloorLoader.updateFloorName(getFloorName(), floorName);
 		setData("floorName", floorName);
+	}
+	
+	public FloorStatus getFloorStatus() {
+		return FloorStatus.valueOf((String) getData("status"));
+	}
+	
+	public void setFloorStatus(FloorStatus status) {
+		setData("status", status.toString());
+	}
+	
+	// Coupled to floor status, for now.
+	public boolean isGMLocked() {
+		return getFloorStatus().isGMLocked();
+	}
+	
+	public boolean isPlayerLocked() {
+		return getFloorStatus().isPlayerLocked();
 	}
 
 	public String getDisplayName() {

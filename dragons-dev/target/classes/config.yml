@@ -1,5 +1,17 @@
 # The URL of the webhook used to send Discord notifications.
 discord-notifier-webhook-url: 'https://discord.com/api/webhooks/webhook-id-goes-here'
 
+# The role ID for builders.
+roleid-builder: '&1234567890'
+
+# The role ID for task managers.
+roleid-tm: '&1234567890'
+
+# The role ID for developers.
+roleid-dev: '&1234567890'
+
+# The role ID for game masters.
+roleid-gm: '&1234567890'
+
 # Whether to enable sending Discord notifications.
 discord-notifier-enabled: true

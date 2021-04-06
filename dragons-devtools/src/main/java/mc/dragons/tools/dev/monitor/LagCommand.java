@@ -37,7 +37,7 @@ public class LagCommand extends DragonsCommandExecutor {
 		if(sender instanceof Player) {
 			player = (Player) sender;
 			user = UserLoader.fromPlayer(player);
-			if(!hasPermission(sender, PermissionLevel.ADMIN)) {
+			if(!hasPermission(sender, PermissionLevel.DEVELOPER)) {
 				if(cooldown.containsKey(user) && System.currentTimeMillis() - cooldown.get(user) < 1000 * 2) {
 					sender.sendMessage(ChatColor.RED + "Please don't spam this command!");
 					return true;

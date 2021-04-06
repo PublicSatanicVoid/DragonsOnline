@@ -49,15 +49,15 @@ public class ChatMessageHandler extends MessageHandler {
 		}
 		messageInfoComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 				new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + user.getName() + "\n")
-				.append(ChatColor.GRAY + "Server: " + ChatColor.RESET + user.getServer() + "\n")
-						.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + user.getRank().getNameColor() + user.getRank().getRankName() + "\n")
-						.append(ChatColor.GRAY + "Level: " + user.getLevelColor() + user.getLevel() + "\n")
-						.append(ChatColor.GRAY + "XP: " + ChatColor.RESET + user.getXP() + "\n")
-						.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + user.getGold() + "\n")
-						.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(loc) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
-						.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(loc.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
-								+ " (when message sent)\n")
-						.append(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + user.getFirstJoined().toString()).create()));
+					.append(ChatColor.GRAY + "Server: " + ChatColor.RESET + user.getServer() + "\n")
+					.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + user.getRank().getNameColor() + user.getRank().getRankName() + "\n")
+					.append(ChatColor.GRAY + "Level: " + user.getLevelColor() + user.getLevel() + "\n")
+					.append(ChatColor.GRAY + "XP: " + ChatColor.RESET + user.getXP() + "\n")
+					.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + user.getGold() + "\n")
+					.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(loc) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
+					.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(loc.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
+							+ " (when message sent)\n")
+					.append(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + user.getFirstJoined().toString()).create()));
 		messageInfoComponent.addExtra(ChatColor.GRAY + " » ");
 		TextComponent messageComponent = new TextComponent(user.getRank().getChatColor() + message);
 		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,

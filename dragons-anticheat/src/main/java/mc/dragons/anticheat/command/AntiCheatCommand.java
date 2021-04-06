@@ -22,7 +22,7 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 	}
 	
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 		Player player = player(sender);
 		
 		if(label.equalsIgnoreCase("acdebug")) {

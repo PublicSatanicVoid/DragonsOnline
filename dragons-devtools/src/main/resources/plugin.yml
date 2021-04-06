@@ -122,3 +122,6 @@ commands:
     aliases: /clearnmc
   printnetworkmessages:
     description: (ADMIN) Toggle debug logging of network messages to console.
+  manifest:
+    description: (ADMIN) Display a manifest of all users connected to all servers.
+  testdocumentdelta:

@@ -12,7 +12,7 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.StringUtil;
 
@@ -20,7 +20,7 @@ public class ObjectCommands extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
 		GameObjectRegistry registry = instance.getGameObjectRegistry();
 		StorageManager localStorageManager = instance.getLocalStorageManager();

@@ -21,6 +21,7 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.loader.WarpLoader;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.EntityHider.Policy;
@@ -57,7 +58,7 @@ public class DuelCommands extends DragonsCommandExecutor {
 			duelCommand(sender, args);
 		}
 		else if(label.equalsIgnoreCase("listallduelstatus")) {
-			if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+			if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 			World duelWorld = warpLoader.getWarp(DUEL_ARENA_WARP).getWorld();
 			sender.sendMessage(ChatColor.DARK_GREEN + "Outstanding Duel Requests:");
 			requests.forEach((a, b) -> {
@@ -74,7 +75,7 @@ public class DuelCommands extends DragonsCommandExecutor {
 			});
 		}
 		else if(label.equalsIgnoreCase("testduelwin")) {
-			if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 			JavaPlugin.getPlugin(DragonsSocialPlugin.class).getSocialHook().onDeath(user(sender));
 		}
 		

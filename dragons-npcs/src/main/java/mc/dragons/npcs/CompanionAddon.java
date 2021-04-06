@@ -23,9 +23,12 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.util.BlockUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.npcs.commands.ToggleCompanionLaunch;
 
 public class CompanionAddon extends NPCAddon {
 	private Set<NPC> companions = new HashSet<>();
+	
+	public Set<NPC> getCompanions() { return companions; }
 	
 	public User getCompanionOwner(NPC npc) {
 		UUID owner = npc.getStorageAccess().getDocument().get("companionOwner", UUID.class);
@@ -34,6 +37,12 @@ public class CompanionAddon extends NPCAddon {
 	}
 
 	private void fixCompanion(NPC companion, Player owner) {
+		User user = UserLoader.fromPlayer(owner);
+		if(user.getData().get("companion") == null) {
+			user.debug("Companion was removed from userdata, removing ingame");
+			companion.remove(); 
+			companions.remove(companion);
+		}
 		if(companion.getEntity().getWorld() != owner.getWorld()) companion.getEntity().teleport(owner);
 		if(companion.getEntity().isDead()) companion.regenerate(owner.getLocation());
 	}
@@ -91,7 +100,7 @@ public class CompanionAddon extends NPCAddon {
 
 	@Override
 	public void onTakeDamage(NPC on, GameObject from, double amount) {
-		if(from instanceof User && getCompanionOwner(on) == from) {
+		if(from instanceof User && getCompanionOwner(on) == from && ((User) from).getLocalData().getBoolean(ToggleCompanionLaunch.DISABLE_COMPANION_LAUNCH, false)) {
 			User user = (User) from;
 			Player player = user.getPlayer();
 			player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Your companion is more powerful than you thought. " + on.getName() + " takes revenge on you.");

@@ -1,6 +1,8 @@
 package mc.dragons.core.events;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -33,6 +35,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.floor.Floor;
+import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
@@ -289,6 +293,13 @@ public class PlayerEventListeners implements Listener {
 					+ (banData.getReason().equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + banData.getReason() + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE
 					+ (banData.isPermanent() ? "Never" : banData.getExpiry().toString()));
 			return;
+		}
+		Floor floor = FloorLoader.fromLocation(player.getLocation());
+		if(floor.isPlayerLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
+			player.kickPlayer(ChatColor.RED + "This floor (#" + floor.getLevelMin() + " " + floor.getDisplayName() + ") is currently locked for maintenance.\n\n"
+					+ "You will be allowed to re-join once the maintenance completes.\n"
+					+ "This is not a punishment-related kick.\n\n"
+					+ new SimpleDateFormat("yyyy MM dd HH:mm z").format(new Date()));
 		}
 		if (user.getRank().ordinal() >= Rank.TRIAL_BUILDER.ordinal()) {
 			GameMode restoreTo = user.getSavedGameMode();

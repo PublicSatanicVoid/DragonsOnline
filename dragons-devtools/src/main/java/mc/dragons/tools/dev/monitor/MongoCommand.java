@@ -9,14 +9,14 @@ import org.bukkit.command.CommandSender;
 import com.mongodb.client.MongoDatabase;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.mongo.MongoConfig;
 
 public class MongoCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
 		MongoConfig config = instance.getMongoConfig();
 		MongoDatabase db = config.getDatabase();

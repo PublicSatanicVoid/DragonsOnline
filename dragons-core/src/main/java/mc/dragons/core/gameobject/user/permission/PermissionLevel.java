@@ -10,5 +10,13 @@ package mc.dragons.core.gameobject.user.permission;
  *
  */
 public enum PermissionLevel {
-	USER, TESTER, BUILDER, HELPER, MODERATOR, GM, ADMIN, SYSOP;
+	USER,
+	TESTER,
+	BUILDER,
+	HELPER,
+	MODERATOR,
+	GM,
+	DEVELOPER,
+	ADMIN,
+	SYSOP;
 }

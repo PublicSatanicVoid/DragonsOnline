@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -210,13 +211,14 @@ public class RegionCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Changes will not take effect until you set both corners and run /region " + args[0] + " corner go");
 			break;
 		case "go":
+			Document base = Document.parse(region.getData().toJson());
 			Vector corner1 = user.getLocalData().get("regionSelCorner1", Location.class).toVector();
 			Vector corner2 = user.getLocalData().get("regionSelCorner2", Location.class).toVector();
 			Vector newMin = Vector.getMinimum(corner1, corner2);
 			Vector newMax = Vector.getMaximum(corner1, corner2);
 			region.updateCorners(newMin.toLocation(player.getWorld()), newMax.toLocation(player.getWorld()));
 			sender.sendMessage(ChatColor.GREEN + "Updated region corners successfully. Min=(" + StringUtil.vecToString(newMin) + "), Max=" + StringUtil.vecToString(newMax) + ")");
-			MetadataConstants.incrementRevisionCount(region, user);
+			MetadataConstants.logRevision(region, user, base, "Updated region corners");
 			break;
 		default:
 			sender.sendMessage(ChatColor.RED + "Invalid usage! /region <RegionName> corner <1|2|go>");
@@ -239,10 +241,11 @@ public class RegionCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Entity class " + args[3] + " has a spawn rate of " + region.getSpawnRate(args[3]));
 		}
 		else {
+			Document base = Document.parse(region.getData().toJson());
 			double spawnRate = parseDoubleType(sender, args[3]);
 			region.setSpawnRate(args[2], spawnRate);
 			sender.sendMessage(ChatColor.GREEN + "Set spawn rate of entity class " + args[2] + " to " + spawnRate);
-			MetadataConstants.incrementRevisionCount(region, user(sender));
+			MetadataConstants.logRevision(region, user(sender), base, "Set spawn rate of class " + args[2] + " to " + spawnRate);
 		}
 	}
 	
@@ -263,10 +266,11 @@ public class RegionCommand extends DragonsCommandExecutor {
 			}
 		}
 		else {
+			Document base = Document.parse(region.getData().toJson());
 			String value = StringUtil.concatArgs(args, 3);
 			region.setFlag(args[2], value);
 			sender.sendMessage(ChatColor.GREEN + "Set flag " + args[2] + " to " + value);
-			MetadataConstants.incrementRevisionCount(region, user(sender));
+			MetadataConstants.logRevision(region, user(sender), base, "Set flag " + args[2] + " to " + value);
 		}
 	}
 	

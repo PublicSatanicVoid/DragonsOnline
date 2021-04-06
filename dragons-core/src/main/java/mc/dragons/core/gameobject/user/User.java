@@ -97,6 +97,7 @@ public class User extends GameObject {
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
 	private static ChatMessageHandler chatMessageHandler = new ChatMessageHandler();
+	private static ConnectionMessageHandler connectionMessageHandler = new ConnectionMessageHandler();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 
@@ -122,6 +123,10 @@ public class User extends GameObject {
 	private GUI currentGUI;
 	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level inventory bug.
 	private boolean joined; // If the user has joined and authenticated yet.
+	
+	public static ConnectionMessageHandler getConnectionMessageHandler() {
+		return connectionMessageHandler;
+	}
 	
 	/**
 	 * Calculates the user's global level based on their current XP.
@@ -643,6 +648,7 @@ public class User extends GameObject {
 		}
 		
 		chatMessageHandler.send(this, getSpeakingChannel(), message);
+		userHookRegistry.getHooks().forEach(hook -> hook.onChat(getSpeakingChannel(), message));
 	}
 
 	public String getLastReceivedMessageFrom() {
@@ -935,6 +941,7 @@ public class User extends GameObject {
 			ipHistory.add(ip);
 		}
 		setData("ipHistory", ipHistory);
+		connectionMessageHandler.logConnect(this);
 		
 		LOGGER.exiting("User", "handleJoin");
 	}
@@ -955,6 +962,7 @@ public class User extends GameObject {
 		player.getInventory().setArmorContents(new ItemStack[4]);
 		userHookRegistry.getHooks().forEach(h -> h.onQuit(this));
 		userLoader.removeStalePlayer(player);
+		connectionMessageHandler.logDisconnect(this);
 	}
 
 	public void handleMove() {
@@ -1247,8 +1255,8 @@ public class User extends GameObject {
 	}
 
 	public String getListName() {
-		return getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
-				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ").trim();
+		return (getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
+				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ")).trim();
 	}
 	
 	public void updateListName() {

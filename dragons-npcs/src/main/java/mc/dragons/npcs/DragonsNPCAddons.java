@@ -8,6 +8,7 @@ import mc.dragons.npcs.commands.CompanionCommand;
 import mc.dragons.npcs.commands.IWannaCompanionCommand;
 import mc.dragons.npcs.commands.SlayCommand;
 import mc.dragons.npcs.commands.TestCompanionCommand;
+import mc.dragons.npcs.commands.ToggleCompanionLaunch;
 import mc.dragons.npcs.model.BoneCrusherAddon;
 import mc.dragons.npcs.model.PossessedWoodChipsAddon;
 import mc.dragons.npcs.model.SoulStealerAddon;
@@ -37,6 +38,7 @@ public class DragonsNPCAddons extends JavaPlugin {
 		getCommand("companion").setExecutor(new CompanionCommand());
 		getCommand("testcompanion").setExecutor(new TestCompanionCommand());
 		getCommand("iwannacompanion").setExecutor(new IWannaCompanionCommand());
+		getCommand("togglecompanionlaunch").setExecutor(new ToggleCompanionLaunch());
 		getCommand("/slay").setExecutor(new SlayCommand());
 	}
 }

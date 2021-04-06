@@ -37,6 +37,12 @@ commands:
     description: (GM) Edit the statistics of your held item.
   speed:
     description: (BUILDER) Set your walk or fly speed.
+  flyspeed:
+    description: (BUILDER) Alias for /speed fly.
+    aliases: fs
+  walkspeed:
+    description: (BUILDER) Alias for /speed walk.
+    aliases: ws
   testquest:
     description: (TESTER) Start any quest or jump to a specific stage.
   updatestats:
@@ -53,3 +59,4 @@ commands:
     description: (TESTER) Reset your game statistics. Punishment and IP history is not affected.
   placeholder:
     description: (GM) Set a placeholder which can be used in lengthy content commands.
+    aliases: ph

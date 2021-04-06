@@ -5,6 +5,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import mc.dragons.core.gameobject.user.UserLoader;
+
 public class AdviceBroadcaster extends BukkitRunnable {
 
 	private int adviceNo = 0;
@@ -23,9 +25,9 @@ public class AdviceBroadcaster extends BukkitRunnable {
 	public void run() {
 		String msg = ChatColor.GRAY + "" + ChatColor.BOLD + " * " + advice[adviceNo++];
 		for(Player p : Bukkit.getOnlinePlayers()) {
+			if(UserLoader.fromPlayer(p).getData().getBoolean(TipsCommand.DISABLE_TIPS, false)) continue;
 			p.sendMessage(msg);
 		}
 		if(adviceNo == advice.length) adviceNo = 0;
 	}
-	
 }

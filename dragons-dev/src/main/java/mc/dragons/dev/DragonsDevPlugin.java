@@ -48,8 +48,13 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 		getCommand("taskloc").setExecutor(taskCommands);
 		getCommand("tasknote").setExecutor(taskCommands);
 		getCommand("gototask").setExecutor(taskCommands);
+		getCommand("togglediscordnotifier").setExecutor(taskCommands);
+		getCommand("discordnotifyraw").setExecutor(taskCommands);
+		getCommand("deletetask").setExecutor(taskCommands);
+		getCommand("taskhelp").setExecutor(taskCommands);
 		getCommand("backup").setExecutor(new BackupCommand());
 		getCommand("starttrial").setExecutor(new StartTrialCommand());
+		getCommand("tips").setExecutor(new TipsCommand());
 		
 		new AdviceBroadcaster().runTaskTimer(this, 20L * ADVICE_BROADCASTER_PERIOD_SECONDS, 20L * ADVICE_BROADCASTER_PERIOD_SECONDS);
 		new BukkitRunnable() {

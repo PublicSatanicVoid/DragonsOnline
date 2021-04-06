@@ -17,7 +17,12 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.dev.DiscordNotifier.DiscordRole;
 import mc.dragons.dev.TaskLoader.Task;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 public class TaskCommands extends DragonsCommandExecutor {
 
 	private TaskLoader taskLoader;
@@ -28,11 +33,13 @@ public class TaskCommands extends DragonsCommandExecutor {
 		buildNotifier = JavaPlugin.getPlugin(DragonsDevPlugin.class).getBuildNotifier();
 	}
 	
-	private void alertTaskManagers(String message) {
+	private void taskAlert(String message, DiscordRole... roles) {
 		UserLoader.allUsers().stream().filter(u -> hasPermission(u, SystemProfileFlag.TASK_MANAGER))
 			.map(u -> u.getPlayer())
 			.forEach(p -> p.sendMessage(message));
-		buildNotifier.sendNotification("[Task Manager] " + ChatColor.stripColor(message));
+		String notification = "[Task Manager] " + ChatColor.stripColor(message) + " " + buildNotifier.mentionRoles(roles);
+		LOGGER.finer("Sending discord notification: content=" + notification);
+		buildNotifier.sendNotification(notification);
 	}
 	
 	private Task lookupTask(CommandSender sender, String idString) {
@@ -48,10 +55,39 @@ public class TaskCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/task <new task description>");
 			return;
 		}
-		Task task = taskLoader.addTask(user(sender), StringUtil.concatArgs(args, 0));
+		String desc = StringUtil.concatArgs(args, 0);
+		long words = desc.chars().filter(i -> ((char) i) == ' ').count();
+		if(words < 4) {
+			sender.sendMessage(ChatColor.YELLOW + "That's a short task name! Please be more detailed.");
+			sender.sendMessage(ChatColor.RESET + "/taskhelp" + ChatColor.GRAY + " for help.");
+			return;
+		}
+		boolean mgr = hasPermission(sender, SystemProfileFlag.TASK_MANAGER);
+		boolean dev = desc.contains("[Dev]");
+		boolean gm = desc.contains("[GM]");
+		Task task = taskLoader.addTask(user(sender), desc);
+		if(mgr) {
+			task.setApproved(true, user(sender));
+		}
+		String data = "#" + task.getId() + ", " + task.getName() + " (by " + task.getBy().getName() + ")";
 		sender.sendMessage(ChatColor.GREEN + "Created task " + ChatColor.UNDERLINE + "#" + task.getId() + ChatColor.GREEN + " successfully!"
-				+ ChatColor.ITALIC + " /taskinfo " + task.getId() + ChatColor.GREEN + " to track it.");
-		alertTaskManagers(ChatColor.GREEN + "A new task is awaiting approval: #" + task.getId() + ", " + task.getName() + " (by " + task.getBy().getName() + ")");
+				+ ChatColor.ITALIC + " /taskinfo " + task.getId() + ChatColor.GREEN + " to track it." + (mgr ? "As a task manager, your task was automatically approved." : ""));
+		TextComponent selfAssign = new TextComponent(ChatColor.GRAY + "[Click to Self-Assign]");
+		selfAssign.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Assign yourself to this task").create()));
+		selfAssign.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/assign " + sender.getName() + " " + task.getId()));
+		sender.spigot().sendMessage(selfAssign);
+		if(!mgr) {
+			taskAlert(ChatColor.GREEN + "A new task is awaiting approval: " + data, DiscordRole.TASK_MANAGER);
+		}
+		else if(dev) {
+			taskAlert(ChatColor.GREEN + "A new development task has been created and auto-approved: " + data, DiscordRole.DEVELOPER);
+		}
+		else if(gm) {
+			taskAlert(ChatColor.GREEN + "A new GM task has been created and auto-approved: " + data, DiscordRole.GAME_MASTER);
+		}
+		else {
+			taskAlert(ChatColor.GREEN + "A new task has been created and auto-approved: " + data, DiscordRole.BUILDER);
+		}
 	}
 	
 	private void taskListCommand(CommandSender sender, String[] args) {
@@ -123,7 +159,20 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setDone(true);
 		sender.sendMessage(ChatColor.GREEN + "Marked task #" + args[0] + " as done. It will be reviewed shortly.");
-		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + ", " + task.getName() + " was marked as done and is awaiting review.");
+		taskAlert(ChatColor.GREEN + "Task #" + task.getId() + ", " + task.getName() + " was marked as done and is awaiting review.", DiscordRole.TASK_MANAGER);
+	}
+	
+	private void deleteTaskCommand(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.GOLD + "Permanently delete a task. " + ChatColor.ITALIC + "Do not use this for only closing tasks! This is meant for test or mistaken tasks.");
+			sender.sendMessage(ChatColor.YELLOW + "/deletetask <task#>");
+			return;
+		}
+		Task task = lookupTask(sender, args[0]);
+		if(task == null) return;
+		taskLoader.deleteTask(task);
+		sender.sendMessage(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was deleted.");
 	}
 	
 	private void approve(CommandSender sender, String[] args) {
@@ -141,7 +190,15 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(target != null) {
 			target.sendMessage(ChatColor.GREEN + "Your task #" + args[0] + " (" + task.getName() + ") was accepted!");
 		}
-		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was accepted.");
+		if(task.getName().contains("[Dev]")) {
+			taskAlert(ChatColor.GREEN + "Development task #" + task.getId() + " " + task.getName() + " was accepted.", DiscordRole.DEVELOPER);
+		}
+		else if(task.getName().contains("[GM]")) {
+			taskAlert(ChatColor.GREEN + "GM task #" + task.getId() + " " + task.getName() + " was accepted.", DiscordRole.GAME_MASTER);
+		}
+		else {
+			taskAlert(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was accepted.", DiscordRole.BUILDER);
+		}
 	}
 	
 	private void reject(CommandSender sender, String[] args) {
@@ -159,7 +216,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(target != null) {
 			target.sendMessage(ChatColor.RED + "Your task #" + args[0] + " (" + task.getName() + ") was rejected.");
 		}
-		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was rejected.");
+		taskAlert(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was rejected.", DiscordRole.BUILDER);
 	}
 	
 	private void assign(CommandSender sender, String[] args) {
@@ -174,7 +231,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null || target == null) return;
 		task.addAssignee(target);
 		sender.sendMessage(ChatColor.GREEN + "Assigned " + args[0] + " to task #" + args[1] + " successfully.");
-		alertTaskManagers(ChatColor.GREEN + args[0] + " was assigned to task #" + args[1] + " " + task.getName());
+		taskAlert(ChatColor.GREEN + args[0] + " was assigned to task #" + args[1] + " " + task.getName(), DiscordRole.BUILDER);
 	}
 	
 	private void close(CommandSender sender, String[] args) {
@@ -188,7 +245,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setClosed(true);
 		sender.sendMessage(ChatColor.GREEN + "Marked task #" + args[0] + " as closed.");
-		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was marked as closed");
+		taskAlert(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was marked as closed", DiscordRole.BUILDER);
 	}
 	
 	private void taskLocCommand(CommandSender sender, String[] args) {
@@ -202,7 +259,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setLocation(player(sender).getLocation());
 		sender.sendMessage(ChatColor.GREEN + "Moved location of task #" + args[0] + " to your current location.");
-		alertTaskManagers(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was moved to " + StringUtil.locToString(task.getLocation()) + " in world " + task.getLocation().getWorld().getName());
+		taskAlert(ChatColor.GREEN + "Task #" + task.getId() + " " + task.getName() + " was moved to " + StringUtil.locToString(task.getLocation()) + " in world " + task.getLocation().getWorld().getName(), DiscordRole.BUILDER);
 	}
 	
 	private void taskNoteCommand(CommandSender sender, String[] args) {
@@ -227,6 +284,19 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		player(sender).teleport(task.getLocation());
 		sender.sendMessage(ChatColor.GREEN + "Teleported to task #" + args[0]);
+	}
+	
+	private void toggleDiscordNotifierCommand(CommandSender sender, String[] args) {
+		unusedParameter(args);
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return;
+		buildNotifier.setEnabled(!buildNotifier.isEnabled());
+		sender.sendMessage(ChatColor.GREEN + "Discord build notifier has been " + (buildNotifier.isEnabled() ? "enabled" : "disabled"));
+	}
+	
+	private void discordNotifyRawCommand(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return;
+		buildNotifier.sendNotification(StringUtil.concatArgs(args, 0));
+		sender.sendMessage(ChatColor.GREEN + "Sent notification successfully.");
 	}
 	
 	@Override
@@ -266,15 +336,41 @@ public class TaskCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("gototask")) {
 			gotoTaskCommand(sender, args);
 		}
+		else if(label.equalsIgnoreCase("deletetask")) {
+			deleteTaskCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("togglediscordnotifier")) {
+			toggleDiscordNotifierCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("discordnotifyraw")) {
+			discordNotifyRawCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("taskhelp")) {
+			sender.sendMessage(ChatColor.YELLOW + "/task <task description>" + ChatColor.GRAY + " creates a new task at your location.");
+			sender.sendMessage(ChatColor.YELLOW + "/gototask <task#>" + ChatColor.GRAY + " teleports you to a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/taskinfo <task#>" + ChatColor.GRAY + " views details about a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/tasknote <task#> <note about task>" + ChatColor.GRAY + " adds a note to a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/tasks my" + ChatColor.GRAY + " lists all tasks assigned to you.");
+			sender.sendMessage(ChatColor.YELLOW + "/done <task#>" + ChatColor.GRAY + " marks a task as done.");
+			if(hasPermission(sender, SystemProfileFlag.TASK_MANAGER)) {
+				sender.sendMessage(ChatColor.YELLOW + "/approve <task#>" + ChatColor.GRAY + " approves a task.");
+				sender.sendMessage(ChatColor.YELLOW + "/reject <task#>" + ChatColor.GRAY + " rejects a task.");
+				sender.sendMessage(ChatColor.YELLOW + "/assign <player> <task#>" + ChatColor.GRAY + " assigns a player to a task.");
+				sender.sendMessage(ChatColor.YELLOW + "/taskloc <task#>" + ChatColor.GRAY + " moves a task to your location.");
+				sender.sendMessage(ChatColor.YELLOW + "/close <task#>" + ChatColor.GRAY + " closes a task.");
+				sender.sendMessage(ChatColor.YELLOW + "/deletetask <task#>" + ChatColor.GRAY + " permanently delets a task.");
+			}
+		}
 		
 		return true;
 	}
 
 	private String status(Task task) {
-		return task.getReviewedBy() == null ? "Waiting" :
-			(!task.isApproved() ? "Rejected" :
-				(!task.isDone() ? "Accepted" :
-					(task.isClosed() ? "Closed" : "Done")));
+		if(task.isClosed()) return "Closed";
+		if(task.isDone()) return "Done";
+		if(task.isApproved()) return "Approved";
+		if(task.getReviewedBy() == null) return "Waiting";
+		return "Rejected";
 	}
 	
 	private String format(Task task) {

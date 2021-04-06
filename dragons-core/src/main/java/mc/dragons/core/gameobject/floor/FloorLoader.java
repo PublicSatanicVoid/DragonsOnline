@@ -61,6 +61,7 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 				.append("worldName", worldName)
 				.append("displayName", displayName)
 				.append("levelMin", levelMin)
+				.append("status", Floor.DEFAULT_STATUS.toString())
 				.append("volatile", false));
 		Floor floor = new Floor(storageManager, storageAccess, superflat);
 		masterRegistry.getRegisteredObjects().add(floor);

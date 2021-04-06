@@ -28,6 +28,10 @@ import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class ReportLoader extends AbstractLightweightLoader<Report> {
 
@@ -189,11 +193,15 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return report;
 	}
 	
-	private void reportNotify(String message) {
-		for(User user : UserLoader.allUsers()) {
-			if(!PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.MODERATION, false)) continue;
-			user.sendMessage(ChatChannel.STAFF, null, ChatColor.DARK_AQUA + "[Report] " + ChatColor.GRAY + message);
-		}
+	private void reportNotify(int id, String message) {
+		TextComponent text = new TextComponent(ChatColor.DARK_RED + "" + ChatColor.BOLD + "!! " + ChatColor.RED + "[Report] " + ChatColor.GRAY + message);
+		text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.YELLOW + "Click to view").create()));
+		text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id));
+		UserLoader.allUsers().stream()
+			.filter(u -> PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false))
+			.filter(u -> u.getPlayer() != null)
+			.filter(u -> u.getActiveChatChannels().contains(ChatChannel.STAFF))
+			.forEach(u -> u.getPlayer().spigot().sendMessage(text));
 	}
 	
 	public void fileChatReport(User target, User by, MessageData message) {
@@ -204,7 +212,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("filedBy", by.getUUID().toString())
 				.append("data", new Document("message", message.getMessage()));
 		Report report = fileReport(data);
-		reportNotify("[" + report.getId() + "] " + target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
+		reportNotify(report.getId(), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
 	}
 	
 	public void fileStaffReport(User target, User staff, String message) {
@@ -215,7 +223,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("filedBy", staff.getUUID().toString())
 				.append("data", new Document("message", message));
 		Report report = fileReport(data);
-		reportNotify("[" + report.getId() + "] " + staff.getName() + " escalated an issue with " + target.getName() + ": " + message);
+		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + target.getName() + ": " + message);
 	}
 	
 	public void fileInternalReport(User target, Document reportData) {
@@ -225,7 +233,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("priority", 0)
 				.append("data", reportData);
 		Report report = fileReport(data);
-		reportNotify("[" + report.getId() + "] " + target.getName() + " was reported internally. ");
+		reportNotify(report.getId(), target.getName() + " was reported internally. ");
 	}
 	
 	public void fileUserReport(User target, User by, String reason) {
@@ -236,7 +244,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("filedBy", by.getUUID().toString())
 				.append("data", new Document("reason", reason));
 		Report report = fileReport(data);
-		reportNotify("[" + report.getId() + "] " + target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
+		reportNotify(report.getId(), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
 	}
 	
 	public boolean deleteReport(int id) {

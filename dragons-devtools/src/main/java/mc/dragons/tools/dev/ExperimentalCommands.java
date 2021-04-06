@@ -33,11 +33,12 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.networking.MessageHandler;
+import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
@@ -53,7 +54,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
 		Player player = player(sender);
 		User user = user(sender);
@@ -296,6 +297,18 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("testnetworkmessage")) {
 			debugHandler.send(new Document("payload", new Document("babey", "babey")), args[0]);
+		}
+		
+		else if(label.equalsIgnoreCase("testdocumentdelta")) {
+			Document a = new Document("a", 1).append("b", 2).append("c", new Document("x", 3).append("y", 4));
+			Document b = new Document("a", 2).append("b", 2).append("d", 3).append("c", new Document("x", 3).append("y", 2));
+			Document delta = StorageUtil.getDelta(a, b);
+			Document result = StorageUtil.applyDelta(b, delta);
+			
+			sender.sendMessage("a=" + a.toJson());
+			sender.sendMessage("b=" + b.toJson());
+			sender.sendMessage("delta=" + delta.toJson());
+			sender.sendMessage("result=" + result.toJson());
 		}
 		
 		return true;

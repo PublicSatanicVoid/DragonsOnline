@@ -167,6 +167,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 		storageManager.push(GameObjectType.ITEM, new Document("className", itemClass.getClassName()), update);
 		sender.sendMessage(ChatColor.GREEN + "Updated all items matching class " + itemClass.getClassName() + " in database.");
 		sender.sendMessage(ChatColor.GREEN + "Players must rejoin to receive the updated items.");
+		MetadataConstants.logPush(itemClass);
 	}
 	
 	private void manageAddons(CommandSender sender, String[] args) {
@@ -193,14 +194,16 @@ public class ItemCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Invalid addon type! Only Item Addons can be applied to items.");
 			}
 			else if(args[2].equalsIgnoreCase("add")) {
+				Document base = Document.parse(itemClass.getData().toJson());
 				itemClass.addAddon((ItemAddon) addon);
 				sender.sendMessage(ChatColor.GREEN + "Added addon " + addon.getName() + " to item class " + itemClass.getClassName() + ".");
-				MetadataConstants.incrementRevisionCount(itemClass, user);
+				MetadataConstants.logRevision(itemClass, user, base, "Added addon " + addon.getName());
 			}
 			else if(args[2].equalsIgnoreCase("remove")) {
+				Document base = Document.parse(itemClass.getData().toJson());
 				itemClass.removeAddon((ItemAddon) addon);
 				sender.sendMessage(ChatColor.GREEN + "Removed addon " + addon.getName() + " from item class " + itemClass.getClassName() + ".");
-				MetadataConstants.incrementRevisionCount(itemClass, user);
+				MetadataConstants.logRevision(itemClass, user, base, "Removed addon " + addon.getName());
 			}
 			else {
 				sender.sendMessage(ChatColor.RED + "Invalid arguments! /item <ClassName> addon [<add|remove> <AddonName>]");
@@ -212,10 +215,12 @@ public class ItemCommand extends DragonsCommandExecutor {
 		ItemClass itemClass = lookupItemClass(sender, args[0]);
 		if(itemClass == null) return;
 
-		String name = StringUtil.concatArgs(args, 1);
-		itemClass.setName(ChatColor.translateAlternateColorCodes('&', name));
+		Document base = Document.parse(itemClass.getData().toJson());
+		String name = StringUtil.concatArgs(args, 2);
+		String displayName = ChatColor.translateAlternateColorCodes('&', name);
+		itemClass.setName(displayName);
 		sender.sendMessage(ChatColor.GREEN + "Updated item display name successfully.");
-		MetadataConstants.incrementRevisionCount(itemClass, user(sender));
+		MetadataConstants.logRevision(itemClass, user(sender), base, "Set display name to " + displayName);
 	}
 	
 	private void setNameColor(CommandSender sender, String[] args) {
@@ -224,10 +229,11 @@ public class ItemCommand extends DragonsCommandExecutor {
 		
 		ChatColor nameColor = StringUtil.parseChatColor(sender, args[2]);
 		if(nameColor == null) return;
-		
+
+		Document base = Document.parse(itemClass.getData().toJson());
 		itemClass.setNameColor(nameColor);
 		sender.sendMessage(ChatColor.GREEN + "Updated item display name color successfully.");
-		MetadataConstants.incrementRevisionCount(itemClass, user(sender));
+		MetadataConstants.logRevision(itemClass, user(sender), base, "Set display name color to " + nameColor);
 	}
 	
 	private void manageLore(CommandSender sender, String[] args) {
@@ -248,19 +254,21 @@ public class ItemCommand extends DragonsCommandExecutor {
 			}
 		}
 		if(args[2].equalsIgnoreCase("add")) {
+			Document base = Document.parse(itemClass.getData().toJson());
 			String loreLine = StringUtil.concatArgs(args, 3);
 			List<String> lore = itemClass.getLore();
 			lore.add(loreLine);
 			itemClass.setLore(lore);
 			sender.sendMessage(ChatColor.GREEN + "Updated item lore successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Added lore line " + loreLine);
 		}
 		else if(args[2].equalsIgnoreCase("remove")) {
+			Document base = Document.parse(itemClass.getData().toJson());
 			List<String> lore = itemClass.getLore();
 			lore.remove(Integer.valueOf(args[3]) - 1);
 			itemClass.setLore(lore);
 			sender.sendMessage(ChatColor.GREEN + "Updated item lore successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Removed lore line #" + args[3]);
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! /item <ClassName> lore [add <Lore>|remove <LineNo>]");
@@ -279,82 +287,92 @@ public class ItemCommand extends DragonsCommandExecutor {
 		else if(args[1].equalsIgnoreCase("type")) {
 			Material type = StringUtil.parseEnum(sender, Material.class, args[2]);
 			if(type == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setMaterial(type);
 			sender.sendMessage(ChatColor.GREEN + "Updated item type successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item type to " + type);
 		}
 		else if(args[1].equalsIgnoreCase("lvmin")) {
 			Integer lvMin = parseIntType(sender, args[2]);
 			if(lvMin == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setLevelMin(lvMin);
 			sender.sendMessage(ChatColor.GREEN + "Updated level min successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item level min to " + lvMin);
 		}
 		else if(args[1].equalsIgnoreCase("cooldown")) {
 			Double cooldown = parseDoubleType(sender, args[2]);
 			if(cooldown == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setCooldown(cooldown);
 			sender.sendMessage(ChatColor.GREEN + "Updated cooldown successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item cooldown to " + cooldown);
 		}
 		else if(args[1].equalsIgnoreCase("unbreakable")) {
 			Boolean unbreakable = parseBooleanType(sender, args[2]);
 			if(unbreakable == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setUnbreakable(unbreakable);
 			sender.sendMessage(ChatColor.GREEN + "Updated unbreakable status successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item unbreakability to " + unbreakable);
 		}
 		else if(args[1].equalsIgnoreCase("undroppable")) {
 			Boolean undroppable = parseBooleanType(sender, args[2]);
 			if(undroppable == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setUndroppable(undroppable);
 			sender.sendMessage(ChatColor.GREEN + "Updated undroppable status successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item undroppability to " + undroppable);
 		}
 		else if(args[1].equalsIgnoreCase("gmlock")) {
 			Boolean gmLock = parseBooleanType(sender, args[2]);
 			if(gmLock == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setGMLocked(gmLock);
 			sender.sendMessage(ChatColor.GREEN + "Updated GM Lock status successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item GM lock to " + gmLock);
 		}
 		else if(args[1].equalsIgnoreCase("damage")) {
 			Double damage = parseDoubleType(sender, args[2]);
 			if(damage == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setDamage(damage);
 			sender.sendMessage(ChatColor.GREEN + "Updated damage successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item damage to " + damage);
 		}
 		else if(args[1].equalsIgnoreCase("speedboost")) {
 			Double speedBoost = parseDoubleType(sender, args[2]);
 			if(speedBoost == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setSpeedBoost(speedBoost);
 			sender.sendMessage(ChatColor.GREEN + "Updated speed boost successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item speed boost to " + speedBoost);
 		}
 		else if(args[1].equalsIgnoreCase("armor")) {
 			Double armor = parseDoubleType(sender, args[2]);
 			if(armor == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setArmor(armor);
 			sender.sendMessage(ChatColor.GREEN + "Updated armor successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item armor to " + armor);
 		}
 		else if(args[1].equalsIgnoreCase("stacksize")) {
 			Integer stackSize = parseIntType(sender, args[2]);
 			if(stackSize == null) return;
-			
+
+			Document base = Document.parse(itemClass.getData().toJson());
 			itemClass.setMaxStackSize(stackSize);
 			sender.sendMessage(ChatColor.GREEN + "Updated max. stack size successfully.");
-			MetadataConstants.incrementRevisionCount(itemClass, user);
+			MetadataConstants.logRevision(itemClass, user, base, "Set item max stack size to " + stackSize);
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid attribute! For usage info, do /item");

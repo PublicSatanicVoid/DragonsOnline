@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.networking.MessageConstants;
 import mc.dragons.core.networking.MessageDispatcher;
 import mc.dragons.core.tasks.LagMeter;
@@ -44,7 +46,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 
 		OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 		ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(ThreadMXBean.class);
@@ -151,10 +153,12 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("getprocessid")) {
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			sender.sendMessage(ChatColor.GREEN + "Process ID: " + ChatColor.GRAY + ProcessHandle.current().pid());
 		}
 		
 		else if(label.equalsIgnoreCase("getstacktrace")) {
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			UUID cid = CORRELATION.registerNewCorrelationID();
 			Thread thread = Thread.currentThread();
 			if(args.length > 0) {
@@ -176,6 +180,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("getactivethreads")) {
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			sender.sendMessage(ChatColor.DARK_GREEN + "" + Thread.getAllStackTraces().size() + " active threads:");
 			// adapted from https://stackoverflow.com/a/46979843/8463670
 			Thread.getAllStackTraces().keySet().stream().collect(Collectors.groupingBy(Thread::getThreadGroup)).forEach((group, threads) -> {
@@ -188,6 +193,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("requestgc")) {
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			long before = System.currentTimeMillis();
 			System.gc();
 			sender.sendMessage(ChatColor.GREEN + "Ran garbage collector in " + (System.currentTimeMillis() - before) + "ms");
@@ -235,6 +241,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("clearnetworkmessagecache") || label.equalsIgnoreCase("clearnmc")) {
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			MongoCollection<Document> messages = instance.getMongoConfig().getDatabase().getCollection(MessageConstants.MESSAGE_COLLECTION);
 			if(args.length == 0) {
 				DeleteResult result = messages.deleteMany(new Document());
@@ -249,9 +256,19 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("printnetworkmessages")) {
+			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			MessageDispatcher dispatcher = instance.getMessageDispatcher();
 			dispatcher.setDebug(!dispatcher.isDebug());
 			sender.sendMessage(ChatColor.GREEN + (dispatcher.isDebug() ? "Enabled" : "Disabled") + " network message logging.");
+		}
+		
+		else if(label.equalsIgnoreCase("manifest")) {
+			Map<String, List<UUID>> manifest = User.getConnectionMessageHandler().getManifest();
+			sender.sendMessage(ChatColor.DARK_GREEN + "Displaying network-wide user manifest.");
+			manifest.forEach((server, users) -> {
+				sender.sendMessage(ChatColor.YELLOW + "Server " + server + " - " + users.size() + " online");
+				sender.sendMessage(ChatColor.GRAY + "  " + StringUtil.parseList(users.stream().map(uuid -> userLoader.loadObject(uuid).getName()).collect(Collectors.toList())));
+			});
 		}
 		
 		return true;

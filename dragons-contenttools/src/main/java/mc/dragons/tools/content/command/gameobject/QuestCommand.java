@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -121,62 +122,68 @@ public class QuestCommand extends DragonsCommandExecutor {
 	private void updateQuestName(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
 		if(quest == null) return;
-		quest.setQuestName(StringUtil.concatArgs(args, 3));
+		Document base = Document.parse(quest.getData().toJson());
+		quest.setQuestName(StringUtil.concatArgs(args, 2));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest name successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Set quest name to " + StringUtil.concatArgs(args, 2));
 	}
 	
 	private void updateLevelMin(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
 		if(quest == null) return;
-		quest.setLevelMin(Integer.valueOf(args[3]));
+		Document base = Document.parse(quest.getData().toJson());
+		quest.setLevelMin(Integer.valueOf(args[2]));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest level min successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Set level min to " + args[2]);
 	}
 	
 	private void addStage(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
 		if(quest == null) return;
-		if(args.length == 4) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest -s <QuestName> stage add <TriggerType> [TriggerParams...]");
+		if(args.length < 4) {
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage add <TriggerType> [TriggerParams...]");
 			return;
 		}
-		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[4]);
-		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 5 ? Arrays.copyOfRange(args, 5, args.length) : null), new ArrayList<>(), quest);
+		Document base = Document.parse(quest.getData().toJson());
+		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[3]);
+		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 4 ? Arrays.copyOfRange(args, 4, args.length) : null), new ArrayList<>(), quest);
 		quest.addStep(step);
 		sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Added new quest stage");
 	}
 	
 	private void manageStage(CommandSender sender, String[] args) {
-		if(args.length == 3) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <Stage#> [name|trigger|action|del] [...]");
+		if(args.length <= 2) {
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <<Stage#> [name|trigger|action|del] [...]|add <trigger> [params...]");
 		}
-		else if(args[3].equalsIgnoreCase("add")) {
+		else if(args[2].equalsIgnoreCase("add")) {
 			addStage(sender, args);
 		}
-		else if(args.length == 4) {
+		else if(args.length == 3) {
 			displayStage(sender, args);
 		}
-		else if(args[4].equalsIgnoreCase("action")) {
-			if(args.length == 5) {
+		else if(args[3].equalsIgnoreCase("action")) {
+			if(args.length == 4) {
 				displayActionHelp(sender);
 			}
-			else if(args[5].equalsIgnoreCase("add")) {
+			else if(args[4].equalsIgnoreCase("add")) {
 				addAction(sender, args);
 			}
-			else if(args[5].equalsIgnoreCase("dialogue")) {
+			else if(args[4].equalsIgnoreCase("dialogue")) {
 				editDialogue(sender, args);
 			}
-			else if(args[5].equalsIgnoreCase("branch")) {
+			else if(args[4].equalsIgnoreCase("branch")) {
 				addBranch(sender, args);
 			}
-			else if(args[5].equalsIgnoreCase("choice")) {
+			else if(args[4].equalsIgnoreCase("choice")) {
 				addChoice(sender, args);
 			}
-			else if(args[5].equalsIgnoreCase("del")) {
+			else if(args[4].equalsIgnoreCase("del")) {
 				deleteAction(sender, args);
 			}
+		}
+		else if(args[3].equalsIgnoreCase("del")) {
+			deleteStep(sender, args);
 		}
 		else if(args.length == 4) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <Stage#> <Attribute> <Value|Arguments...>");
@@ -186,9 +193,6 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 		else if(args[3].equalsIgnoreCase("trigger")) {
 			updateStepTrigger(sender, args);
-		}
-		else if(args[4].equalsIgnoreCase("del")) {
-			deleteStep(sender, args);
 		}
 	}
 	
@@ -237,6 +241,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		if(quest == null || stepNo == null) return;
 		QuestStep step = quest.getSteps().get(stepNo);
 		User user = user(sender);
+		Document base = Document.parse(quest.getData().toJson());
 		if(StringUtil.equalsAnyIgnoreCase(args[5], "TELEPORT_PLAYER", "TeleportPlayer")) {
 			if(!requirePlayer(sender)) return;
 			step.addAction(QuestAction.teleportPlayerAction(quest, user.getPlayer().getLocation()));
@@ -287,7 +292,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return;
 		}
 		sender.sendMessage(ChatColor.GREEN + "Added new action to quest stage successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user);
+		MetadataConstants.logRevision(quest, user(sender), base, "Added action to stage " + args[2]);
 	}
 	
 	private void editDialogue(CommandSender sender, String[] args) {
@@ -317,15 +322,17 @@ public class QuestCommand extends DragonsCommandExecutor {
 			if(isPlayer(sender)) {
 				dialogue = dialogue.replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)"));
 			}
+			Document base = Document.parse(quest.getData().toJson());
 			step.addDialogue(Integer.valueOf(args[6]), dialogue);
 			sender.sendMessage(ChatColor.GREEN + "Added dialogue to quest stage action successfully.");
-			MetadataConstants.incrementRevisionCount(quest, user);
+			MetadataConstants.logRevision(quest, user(sender), base, "Added dialogue to action " + args[6] + " of stage " + args[2]);
 		}
 		else if(args[5].equalsIgnoreCase("remove")) {
+			Document base = Document.parse(quest.getData().toJson());
 			step.removeDialogue(Integer.valueOf(args[6]), Integer.valueOf(args[7]));
 			sender.sendMessage(ChatColor.GREEN + "Removed dialogue line from quest stage action successfully.");
+			MetadataConstants.logRevision(quest, user(sender), base, "Removed dialogue line " + args[7] + " from action " + args[6] + " of stage " + args[2]);
 		}
-		
 	}
 	
 	private void addBranch(CommandSender sender, String[] args) {
@@ -336,13 +343,14 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseIntType(sender, args[2]);
 		if(quest == null || stepNo == null) return;
+		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
 		if(args[5].equalsIgnoreCase("add")) {
 			QuestTrigger trigger = makeTrigger(TriggerType.valueOf(args[7]), Arrays.copyOfRange(args, 8, args.length));
 			QuestAction action = QuestAction.goToStageAction(quest, Integer.valueOf(args[6]), false);
 			step.addBranchPoint(trigger, action);
 			sender.sendMessage(ChatColor.GREEN + "Added branch point successfully.");
-			MetadataConstants.incrementRevisionCount(quest, user(sender));
+			MetadataConstants.logRevision(quest, user(sender), base, "Added branch point to stage " + args[2]);
 		}
 	}
 	
@@ -354,6 +362,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseIntType(sender, args[2]);
 		if(quest == null || stepNo == null) return;
+		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
 		if(args[5].equalsIgnoreCase("add")) {
 			String choice = StringUtil.concatArgs(args, 8);
@@ -363,7 +372,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			}
 			step.addChoice(Integer.valueOf(args[6]), choice, Integer.valueOf(args[8]));
 			sender.sendMessage(ChatColor.GREEN + "Added choice to quest stage action successfully.");
-			MetadataConstants.incrementRevisionCount(quest, user);
+			MetadataConstants.logRevision(quest, user(sender), base, "Added quest choice to action " + args[6] + " of stage " + args[2]);
 		}
 	}
 	
@@ -376,44 +385,48 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseIntType(sender, args[2]);
 		if(quest == null || stepNo == null) return;
+		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
 		
-		step.deleteAction(Integer.valueOf(args[6]));
+		step.deleteAction(Integer.valueOf(args[5]));
 		sender.sendMessage(ChatColor.GREEN + "Removed action from quest stage successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Removed action " + args[4] + " from stage " + args[2]);
 	}
 	
 	private void updateStepName(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseIntType(sender, args[2]);
 		if(quest == null || stepNo == null) return;
+		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
 		
 		step.setStepName(StringUtil.concatArgs(args, 4));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest step name successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Set name of stage " + args[2] + " to " + StringUtil.concatArgs(args, 4));
 	}
 	
 	private void updateStepTrigger(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseIntType(sender, args[2]);
 		if(quest == null || stepNo == null) return;
+		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
 		
 		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[4]);
-		step.setTrigger(makeTrigger(type, args.length > 5 ? null : args[5]));
+		step.setTrigger(makeTrigger(type, args.length > 5 ? args[5] : null));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest stage trigger successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Set trigger of stage " + args[2] + " to " + type);
 	}
 	
 	private void deleteStep(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseIntType(sender, args[2]);
 		if(quest == null || stepNo == null) return;
+		Document base = Document.parse(quest.getData().toJson());
 		
 		quest.delStep(stepNo);
 		sender.sendMessage(ChatColor.GREEN + "Deleted quest stage successfully.");
-		MetadataConstants.incrementRevisionCount(quest, user(sender));
+		MetadataConstants.logRevision(quest, user(sender), base, "Deleted step " + args[2]);
 	}
 	
 	@Override
@@ -441,7 +454,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		else if(args[1].equalsIgnoreCase("stage")) {
 			manageStage(sender, args);
 		}
-		else if(args.length < 4) {
+		else if(args.length < 3) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> <Attribute> <Value|Arguments...>");
 		}
 		else if(args[1].equalsIgnoreCase("questname")) {
