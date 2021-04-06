@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
@@ -199,7 +200,8 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 		Map<String, String> hashes = new HashMap<>();
 		hashes.put(owner.toString(), passwordHash(profilePassword));
 		collection.insertOne(new Document("profileName", profileName).append("profilePasswordHashes", hashes).append("maxPermissionLevel", permissionLevel.toString())
-				.append("flags", SystemProfileFlags.emptyFlagsDocument()).append("currentUser", "").append("adminFloors", new ArrayList<>()).append("active", true));
+				.append("flags", SystemProfileFlags.emptyFlagsDocument()).append("currentUser", "").append("adminFloors", new ArrayList<>()).append("active", true)
+				.append("rank", Rank.UNSPECIFIED_STAFF.toString()));
 		LOGGER.info("Created new system profile " + profileName + " with max permission level " + permissionLevel);
 	}
 	

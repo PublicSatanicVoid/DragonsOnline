@@ -1,5 +1,6 @@
 package mc.dragons.core.gameobject.user;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +26,13 @@ public class ConnectionMessageHandler extends MessageHandler {
 	
 	public ConnectionMessageHandler() {
 		super(Dragons.getInstance(), "conn");
-		manifest.deleteOne(new Document("server", Dragons.getInstance().getServerName()));
+		manifest.updateOne(new Document("server", Dragons.getInstance().getServerName()), new Document("$set", new Document("online", new ArrayList<>())));
 	}
 
+	public void clearServerEntries() {
+		manifest.deleteOne(new Document("server", Dragons.getInstance().getServerName()));
+	}
+	
 	public void logConnect(User user) {
 		sendAll(new Document("user", user.getUUID()).append("vanished", user.isVanished()).append("action", "connect"));
 		String server = Dragons.getInstance().getServerName();

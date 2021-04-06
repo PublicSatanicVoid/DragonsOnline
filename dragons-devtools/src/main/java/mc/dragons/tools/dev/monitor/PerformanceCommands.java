@@ -91,7 +91,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			}.runTaskAsynchronously(instance);
 		}
 		
-		else if(label.equalsIgnoreCase("tickperformance")) {
+		else if(label.equalsIgnoreCase("tickperformance") || label.equalsIgnoreCase("tickperf")) {
 			if(args.length == 0) {
 				sender.sendMessage(ChatColor.RED + "/tickperformance start <recPeriodInSeconds>");
 				sender.sendMessage(ChatColor.RED + "/tickperformance clear");
@@ -113,7 +113,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					@Override public void run() {
 						long now = System.currentTimeMillis();
 						tickTimings.add(now);
-						if((now - start) / 1000 > seconds) {
+						if((now - start) / 1000 >= seconds) {
 							sender.sendMessage(ChatColor.GREEN + "Tick timings data collection has completed. Do /tickperformance view to view the data.");
 							cancel();
 						}
@@ -123,6 +123,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			}
 			else if(args[0].equalsIgnoreCase("clear")) {
 				tickTimings.clear();
+				sender.sendMessage(ChatColor.GREEN + "Cleared tick timings data.");
 			}
 			else if(args[0].equalsIgnoreCase("view")) {
 				if(tickTimings.size() == 0) {
@@ -134,18 +135,21 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 				long longest = 0;
 				long shortest = -1;
 				long sum = 0;
+				int nLong = 0;
 				boolean verbose = args.length > 1 && args[1].equalsIgnoreCase("-verbose");
 				for(int i = 1; i < tickTimings.size(); i++) {
 					long ms = tickTimings.get(i) - prev;
 					sum += ms;
 					if(ms > longest) longest = ms;
 					if(shortest == -1 || ms < shortest) shortest = ms;
+					if(ms > 5 + 1000 / 20) nLong++;
 					if(verbose)
 						sender.sendMessage(ChatColor.GRAY + "#" + i + ": " + (ms <= 5 + 1000 / 20 ? ChatColor.GREEN : ChatColor.RED) + ms + "ms");
 					prev = tickTimings.get(i);
 				}
 				double avg = (double) sum / (tickTimings.size() - 1);
 				sender.sendMessage(ChatColor.GREEN + "Ticks Recorded: " + ChatColor.GRAY + (tickTimings.size() - 1));
+				sender.sendMessage(ChatColor.GREEN + "Long Ticks: " + ChatColor.GRAY + nLong);
 				sender.sendMessage(ChatColor.GREEN + "Shortest Tick: " + ChatColor.GRAY + shortest + "ms");
 				sender.sendMessage(ChatColor.GREEN + "Longest Tick: " + ChatColor.GRAY + longest + "ms");
 				sender.sendMessage(ChatColor.GREEN + "Average Tick: " + ChatColor.GRAY + MathUtil.round(avg) + "ms");

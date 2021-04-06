@@ -284,6 +284,7 @@ public class Dragons extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		((AutoSaveTask) autoSaveRunnable).run(true);
+		User.getConnectionMessageHandler().clearServerEntries();
 		for (User user : UserLoader.allUsers()) {
 			if (user.getPlayer() == null || !user.getPlayer().isOnline()) {
 				continue;

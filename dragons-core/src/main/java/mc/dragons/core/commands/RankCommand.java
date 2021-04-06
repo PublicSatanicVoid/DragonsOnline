@@ -30,6 +30,10 @@ public class RankCommand extends DragonsCommandExecutor {
 		if (rank == null) {
 			return true;
 		}
+		if(rank.isStaff() && !hasPermission(sender, PermissionLevel.SYSOP)) {
+			sender.sendMessage(ChatColor.RED + "Staff ranks are only available through system profiles.");
+			return true;
+		}
 		targetUser.setRank(rank);
 		if (targetPlayer == null) {
 			sender.sendMessage(ChatColor.YELLOW + "Player is not online on this server! They will have to rejoin for the rank update to be fully applied.");

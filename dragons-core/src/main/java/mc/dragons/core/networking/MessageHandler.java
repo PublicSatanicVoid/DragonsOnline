@@ -1,5 +1,7 @@
 package mc.dragons.core.networking;
 
+import java.util.Date;
+
 import org.bson.Document;
 
 import com.mongodb.client.MongoCollection;
@@ -31,10 +33,15 @@ public abstract class MessageHandler {
 	 * @param destServer The server to send it to, or <code>MessageConstants.DEST_ALL</code> for all servers
 	 */
 	public void send(Document data, String destServer) {
+		if(destServer.equals(instance.getServerName())) {
+			receive(instance.getServerName(), data);
+			return;
+		}
+		if(!instance.getMessageDispatcher().isActive()) return;
 		Document message = new Document(MessageConstants.TYPE_FIELD, type.toString())
 				.append(MessageConstants.ORIG_FIELD, instance.getServerName())
 				.append(MessageConstants.DEST_FIELD, destServer)
-				.append(MessageConstants.TIME_FIELD, System.currentTimeMillis())
+				.append(MessageConstants.TIME_FIELD, new Date().getTime())
 				.append(MessageConstants.DATA_FIELD, data);
 		if(instance.getMessageDispatcher().isDebug()) {
 			instance.getLogger().info("Message Sending to " + destServer + ": " + data);

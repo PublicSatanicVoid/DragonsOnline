@@ -942,7 +942,6 @@ public class User extends GameObject {
 		}
 		setData("ipHistory", ipHistory);
 		connectionMessageHandler.logConnect(this);
-		
 		LOGGER.exiting("User", "handleJoin");
 	}
 

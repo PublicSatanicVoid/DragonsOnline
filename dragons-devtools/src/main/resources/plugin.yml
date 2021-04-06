@@ -105,6 +105,7 @@ commands:
     description: (ADMIN) View the name of the current server you're connected to.
   tickperformance:
     description: (ADMIN) Analyze tick-related performance data over the specified time interval.
+    aliases: tickperf
   getstacktrace:
     description: (ADMIN) Get the stack trace of the current thread, or of the thread with the specified ID.
   getactivethreads:
@@ -119,7 +120,7 @@ commands:
     description: (ADMIN) Change your cached server.
   clearnetworkmessagecache:
     description: (ADMIN) Clear all network messaging data, optionally older than the specified time.
-    aliases: /clearnmc
+    aliases: clearnmc
   printnetworkmessages:
     description: (ADMIN) Toggle debug logging of network messages to console.
   manifest:

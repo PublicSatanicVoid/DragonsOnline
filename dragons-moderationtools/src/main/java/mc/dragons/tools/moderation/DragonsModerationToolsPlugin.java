@@ -30,6 +30,7 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 	
 	public void onEnable() {
 		Dragons.getInstance().getLightweightLoaderRegistry().register(new ReportLoader(Dragons.getInstance().getMongoConfig()));
+		Dragons.getInstance().getUserHookRegistry().registerHook(new ModUserHook());
 		
 		punishMessageHandler = new PunishMessageHandler();
 		

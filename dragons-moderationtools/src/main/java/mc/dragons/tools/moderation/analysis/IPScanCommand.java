@@ -3,15 +3,12 @@ package mc.dragons.tools.moderation.analysis;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
-import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
@@ -34,11 +31,7 @@ public class IPScanCommand extends DragonsCommandExecutor {
 		User target = lookupUser(sender, args[0]);
 		if(target == null) return true;
 		
-		Set<User> alts = storageManager.getAllStorageAccess(GameObjectType.USER, new Document("ipHistory", new Document("$in", target.getIPHistory())))
-				.stream().map(storageAccess -> userLoader.loadObject(storageAccess))
-				.sorted((u, v) -> u.getPunishmentHistory().size() - v.getPunishmentHistory().size())
-				.collect(Collectors.toSet());
-		alts.remove(target);
+		Set<User> alts = IPAnalysisUtil.scanAlts(storageManager, target);
 		
 		if(alts.size() == 0) {
 			sender.sendMessage(ChatColor.GREEN + "No possible alt accounts found for user " + target.getName());
