@@ -351,7 +351,7 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-alt", "alt")) {
 			registerAlt(sender, args);
 		}
-		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-resetpassword", "resetpassword")) {
+		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-resetpassword", "resetpassword", "-rp", "rp")) {
 			resetProfilePassword(sender, args);
 		}
 		else if (StringUtil.equalsAnyIgnoreCase(args[0], "-rmalt", "rmalt")) {
