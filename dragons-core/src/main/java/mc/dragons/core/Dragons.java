@@ -29,6 +29,7 @@ import mc.dragons.core.commands.MyQuestsCommand;
 import mc.dragons.core.commands.QuestDialogueCommands;
 import mc.dragons.core.commands.RankCommand;
 import mc.dragons.core.commands.RespawnCommand;
+import mc.dragons.core.commands.RestartInstanceCommand;
 import mc.dragons.core.commands.StuckQuestCommand;
 import mc.dragons.core.commands.SystemLogonCommand;
 import mc.dragons.core.events.EntityCombustListener;
@@ -64,6 +65,8 @@ import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.networking.MessageDispatcher;
+import mc.dragons.core.networking.RemoteAdminMessageHandler;
+import mc.dragons.core.networking.StaffAlertMessageHandler;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
 import mc.dragons.core.storage.loader.FeedbackLoader;
@@ -104,6 +107,9 @@ public class Dragons extends JavaPlugin {
 	private ChatMessageRegistry chatMessageRegistry;
 	private MessageDispatcher messageDispatcher;
 
+	private RemoteAdminMessageHandler remoteAdminHandler;
+	private StaffAlertMessageHandler staffAlertHandler;
+	
 	private BukkitRunnable autoSaveRunnable;
 	private BukkitRunnable spawnEntityRunnable;
 	private VerifyGameIntegrityTask verifyGameIntegrityRunnable;
@@ -176,6 +182,7 @@ public class Dragons extends JavaPlugin {
 			serverName = getConfig().getString("serverName");
 			getLogger().info("Server instance name is " + serverName);
 			CustomLoggingProvider.enableCustomLogging();
+			getLogger().info("Log token is " + CustomLoggingProvider.LOG_FILTER.getLogEntryUUID());
 		}
 	}
 
@@ -262,6 +269,7 @@ public class Dragons extends JavaPlugin {
 		getCommand("myquests").setExecutor(new MyQuestsCommand());
 		getCommand("help").setExecutor(new HelpCommand());
 		getCommand("stuckquest").setExecutor(new StuckQuestCommand());
+		getCommand("restartinstance").setExecutor(new RestartInstanceCommand());
 		QuestDialogueCommands questDialogueCommands = new QuestDialogueCommands();
 		getCommand("fastforwarddialogue").setExecutor(questDialogueCommands);
 		getCommand("questchoice").setExecutor(questDialogueCommands);
@@ -277,6 +285,10 @@ public class Dragons extends JavaPlugin {
 		lagMonitorTask.runTaskAsynchronously(this);
 		updateScoreboardTask.runTaskTimer(this, 100L, 20L);
 
+		getLogger().info("Registering message handlers...");
+		remoteAdminHandler = new RemoteAdminMessageHandler();
+		staffAlertHandler = new StaffAlertMessageHandler();
+		
 		getLogger().info("Enabling addons...");
 		addonRegistry.enableAll();
 	}
@@ -361,6 +373,14 @@ public class Dragons extends JavaPlugin {
 	
 	public MessageDispatcher getMessageDispatcher() {
 		return messageDispatcher;
+	}
+	
+	public RemoteAdminMessageHandler getRemoteAdminHandler() {
+		return remoteAdminHandler;
+	}
+	
+	public StaffAlertMessageHandler getStaffAlertHandler() {
+		return staffAlertHandler;
 	}
 	
 	public ServerOptions getServerOptions() {

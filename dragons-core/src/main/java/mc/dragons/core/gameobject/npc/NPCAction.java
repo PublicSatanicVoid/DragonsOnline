@@ -184,6 +184,10 @@ public class NPCAction {
 	public void execute(final User user, NPC npc) {
 		switch (type) {
 		case BEGIN_QUEST:
+			if(quest.isLocked()) {
+				user.getPlayer().sendMessage(ChatColor.RED + "This quest is currently locked! Try again later.");
+				return;
+			}
 			GUI confirmation = new GUI(1, "Accept quest?");
 			confirmation.add(new GUIElement(1, Material.EMERALD_BLOCK, ChatColor.GREEN + "✓ " + ChatColor.DARK_GREEN + ChatColor.BOLD + "Accept",
 					ChatColor.GRAY + "You will be unable to interact with\n" + ChatColor.GRAY + "other players, mobs, or NPCs during\n" + ChatColor.GRAY + "quest dialogue.", u -> {

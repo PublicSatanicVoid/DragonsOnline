@@ -49,7 +49,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 				+ "branch add <Action#> <GoToStage#> <TriggerType> [TriggerParams...]|"
 				+ "del <Action#>>" + ChatColor.GRAY + " manage quest stage actions");
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <Stage#> del" + ChatColor.GRAY + " delete quest stage");
-		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName>" + ChatColor.GRAY + " delete quest");
+		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> delete" + ChatColor.GRAY + " delete quest");
+		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> [un]lock" + ChatColor.GRAY + " lock or unlock quest");
 		sender.sendMessage(ChatColor.YELLOW + "/testquest <ShortName>" + ChatColor.GRAY + " test quest");
 		sender.sendMessage(ChatColor.DARK_GRAY + "" +  ChatColor.BOLD + "Note:" + ChatColor.DARK_GRAY + " Quest ShortNames must not contain spaces.");
 		sender.sendMessage(ChatColor.DARK_GRAY + "" +  ChatColor.BOLD + "Note:" + ChatColor.DARK_GRAY + " All quests MUST end with a stage named \"Complete\" with trigger INSTANT and no actions.");
@@ -99,6 +100,9 @@ public class QuestCommand extends DragonsCommandExecutor {
 		if(quest == null) return;
 		sender.sendMessage(ChatColor.GREEN + "=== Quest: " + quest.getName() + " ===");
 		sender.sendMessage(ChatColor.GRAY + "Database identifier: " + ChatColor.GREEN + quest.getIdentifier().toString());
+		if(quest.isLocked()) {
+			sender.sendMessage(ChatColor.RED + "Currently locked to players");
+		}
 		sender.sendMessage(ChatColor.GRAY + "Full name: " + ChatColor.GREEN + quest.getQuestName());
 		sender.sendMessage(ChatColor.GRAY + "Level min: " + ChatColor.GREEN + quest.getLevelMin());
 		sender.sendMessage(ChatColor.GRAY + "# Stages: " + ChatColor.GREEN + quest.getSteps().size());
@@ -429,6 +433,24 @@ public class QuestCommand extends DragonsCommandExecutor {
 		MetadataConstants.logRevision(quest, user(sender), base, "Deleted step " + args[2]);
 	}
 	
+	private void lockQuest(CommandSender sender, String[] args) {
+		Quest quest = lookupQuest(sender, args[1]);
+		if(quest == null) return;
+		Document base = Document.parse(quest.getData().toJson());
+		quest.setLocked(true);
+		sender.sendMessage(ChatColor.GREEN + "Locked quest successfully.");
+		MetadataConstants.logRevision(quest, user(sender), base, "Locked quest");
+	}
+	
+	private void unlockQuest(CommandSender sender, String[] args) {
+		Quest quest = lookupQuest(sender, args[1]);
+		if(quest == null) return;
+		Document base = Document.parse(quest.getData().toJson());
+		quest.setLocked(false);
+		sender.sendMessage(ChatColor.GREEN + "Unlocked quest successfully.");
+		MetadataConstants.logRevision(quest, user(sender), base, "Unlocked quest");
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.GM_QUEST)) return true;
@@ -444,6 +466,12 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[0], "delete", "del", "-d", "-delete", "--delete")) {
 			deleteQuest(sender, args);
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "lock", "-lock", "--lock")) {
+			lockQuest(sender, args);
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "unlock", "-unlock", "--unlock")) {
+			unlockQuest(sender, args);
 		}
 		else if(args.length == 1) {
 			displayQuest(sender, args);

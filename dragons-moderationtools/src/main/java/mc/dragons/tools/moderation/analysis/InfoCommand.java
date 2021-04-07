@@ -26,7 +26,7 @@ public class InfoCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.MODERATOR)) return true;
 		
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.RED + "Specify a player! /info <player>");
+			sender.sendMessage(ChatColor.RED + "Specify a player! /userinfo <player>");
 			return true;
 		}
 		

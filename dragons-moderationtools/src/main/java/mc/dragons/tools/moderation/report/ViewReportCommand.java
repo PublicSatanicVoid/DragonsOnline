@@ -19,7 +19,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ViewReportCommand extends DragonsCommandExecutor {
-
 	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 
 	@Override
@@ -27,9 +26,8 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 		
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.RED + "/vr <ID>");
-			sender.sendMessage(ChatColor.RED + "/vr <ID> addnote <Note>");
-			sender.sendMessage(ChatColor.RED + "/vr <ID> status <OPEN|NO_ACTION|ACTION_TAKEN>");
+			sender.sendMessage(ChatColor.RED + "/viewreport <ID>");
+			sender.sendMessage(ChatColor.RED + "/viewreport <ID> addnote <Note>");
 			return true;
 		}
 		

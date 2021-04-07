@@ -12,6 +12,10 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ReportsCommand extends DragonsCommandExecutor {
 	
@@ -82,9 +86,13 @@ public class ReportsCommand extends DragonsCommandExecutor {
 		
 		sender.sendMessage(ChatColor.GREEN + "Page " + page + " of " + results.getPages() + " (" + results.getTotal() + " results)");
 		for(Report report : results.getPage()) {
-			sender.sendMessage(ChatColor.GRAY + "- #" + report.getId() + ": On " + report.getTarget().getName() + ", By " + report.getFiledBy().getName() + ", " 
-					+ report.getType() + "/" + report.getStatus());
+			TextComponent entry = new TextComponent(ChatColor.DARK_GRAY + "#" + ChatColor.DARK_AQUA + ChatColor.BOLD + report.getId() + ChatColor.DARK_GRAY + " | " + ChatColor.GRAY + report.getType() + "/" + report.getStatus()
+					+ ChatColor.AQUA + " " + report.getTarget().getName() + " (by " + report.getFiledBy().getName() + ")");
+			entry.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to view report")));
+			entry.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vr " + report.getId()));
+			sender.spigot().sendMessage(entry);
 		}
+		
 		
 		return true;
 	}

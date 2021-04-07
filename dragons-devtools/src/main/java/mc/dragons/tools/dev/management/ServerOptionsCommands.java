@@ -10,6 +10,11 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.ServerOptions;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.logging.CustomLoggingProvider;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ServerOptionsCommands extends DragonsCommandExecutor {	
 	
@@ -29,6 +34,18 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 			
 			user(sender).getStorageAccess().set("currentServer", args[0]);
 			sender.sendMessage(ChatColor.GREEN + "Spoofed your connected server.");
+		}
+		
+		else if(label.equalsIgnoreCase("ignoreremoterestarts")) {
+			instance.getRemoteAdminHandler().setIgnoresRemoteRestarts(true);
+			sender.sendMessage(ChatColor.GREEN + "Server will now ignore all remote restart commands.");
+		}
+		
+		else if(label.equalsIgnoreCase("getlogtoken")) {
+			TextComponent token = new TextComponent(ChatColor.GREEN + "Log Token: " + ChatColor.GRAY + CustomLoggingProvider.LOG_FILTER.getLogEntryUUID());
+			token.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click for copy-able text")));
+			token.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, CustomLoggingProvider.LOG_FILTER.getLogEntryUUID().toString()));
+			sender.spigot().sendMessage(token);
 		}
 		
 		else if(label.equalsIgnoreCase("serveroptions")) {

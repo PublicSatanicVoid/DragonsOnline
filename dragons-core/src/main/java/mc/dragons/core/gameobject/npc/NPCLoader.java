@@ -22,6 +22,7 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.npc.NPC.NPCType;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
@@ -168,7 +169,7 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		masterRegistry.removeFromRegistry(GameObjectType.NPC);
 		List<BukkitRunnable> asyncSpawnerRunnables = new ArrayList<>();
 		storageManager
-				.getAllStorageAccess(GameObjectType.NPC, new Document("$or", Arrays.<NPC.NPCType>asList(NPC.NPCType.values()).stream()
+				.getAllStorageAccess(GameObjectType.NPC, new Document("$or", Arrays.<NPCType>asList(NPCType.values()).stream()
 						.filter(type -> (type.isPersistent() && type.isLoadedImmediately())).map(type -> new Document("npcType", type.toString())).collect(Collectors.toList())))
 				.stream().forEach(storageAccess -> {
 					Dragons.getInstance().getLogger().finer("Loading permanent NPC: " + storageAccess.getIdentifier());
@@ -176,25 +177,26 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 					Dragons.getInstance().getLogger().fine("Loaded permanent NPC: " + npc.getIdentifier() + " of class " + npc.getNPCClass().getClassName());
 					masterRegistry.getRegisteredObjects().add(npc);
 				});
-		Bukkit.getScheduler().runTaskAsynchronously(Dragons.getInstance(), () -> {
+		Bukkit.getScheduler().runTaskLaterAsynchronously(Dragons.getInstance(), () -> {
 			int batchSize = 5;
-			for(int i = 0; i < (int) Math.ceil(asyncSpawnerRunnables.size() / batchSize); i++) {
+			Dragons.getInstance().getLogger().info("We have " + asyncSpawnerRunnables.size() + " persistent NPCs to spawn");
+			for(int i = 0; i < (int) Math.ceil((double) asyncSpawnerRunnables.size() / batchSize); i++) {
 				final int fi = i;
 				Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
 					long start = System.currentTimeMillis();
-					Bukkit.getLogger().finer("==SPAWNING BATCH #" + fi + "===");
-					for(int j = fi * batchSize; j < (fi + 1) * batchSize; j++) {
+					Dragons.getInstance().getLogger().finer("==SPAWNING BATCH #" + fi + "==");
+					for(int j = fi * batchSize; j < Math.min(asyncSpawnerRunnables.size(), (fi + 1) * batchSize); j++) {
+						Dragons.getInstance().getLogger().finer("===Spawning #" + j);
 						asyncSpawnerRunnables.get(j).run();
 					}
 					long duration = System.currentTimeMillis() - start;
-					Bukkit.getLogger().finer("===Finished batch #" + fi + " in " + duration + "ms");
+					Dragons.getInstance().getLogger().finer("===Finished batch #" + fi + " in " + duration + "ms");
 					if(duration > 1000) {
-						Bukkit.getLogger().warning("Spawn of batch #" + fi + " took " + duration + "ms (batch size: " + batchSize + ")");
+						Dragons.getInstance().getLogger().warning("Spawn of batch #" + fi + " took " + duration + "ms (batch size: " + batchSize + ")");
 					}
 				}, i * 2);
 			}
-			
-		});
+		}, 1L);
 		Dragons.getInstance().getLogger().info("Initial entity count: " + Dragons.getInstance().getEntities().size());
 	}
 

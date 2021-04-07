@@ -40,6 +40,10 @@ public class TestQuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[0]);
 		if(quest == null) return true;
 		
+		if(quest.isLocked() && !hasPermission(sender, PermissionLevel.GM)) {
+			sender.sendMessage(ChatColor.RED + "That quest is currently locked! Try again later.");
+		}
+		
 		if(args.length >= 2) {
 			if(args[1].equalsIgnoreCase("-reset")) {
 				user.updateQuestProgress(quest, null);

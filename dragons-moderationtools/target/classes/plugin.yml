@@ -14,12 +14,13 @@ commands:
   reports:
     description: (MODERATOR) List reports by a variety of search criteria.
   viewreport:
-    aliases: vr
+    aliases: [vr, vrep]
     description: (MODERATOR) View and manage a report.
   godmode:
     description: (MODERATOR) Activate or deactivate invincibility status.
   info:
     description: (MODERATOR) View a summary of a player's data.
+    aliases: userinfo
   iphistory:
     description: (ADMIN) View all IP addresses a player has used.
   ipscan:
@@ -43,11 +44,11 @@ commands:
   viewpunishments:
     description: (MODERATOR) View a player's punishment records.
   vanish:
-    aliases: v
     description: (HELPER) Become invisible.
+    aliases: [v, van]
   unvanish:
-    aliases: uv
     description: (HELPER) Become visible.
+    aliases: [uv, unvan]
   fly:
     description: (HELPER) Toggle survival-mode flying capability.
   toggleselfreport:
@@ -56,3 +57,10 @@ commands:
     description: (ADMIN) Permanently delete a report from the database.
   locate:
     description: (HELPER) Find the server a player is connected to.
+  modqueue:
+    description: (MODERATOR) Get the next report to review.
+    aliases: [modq, mq, nextreport, nr]
+  modnotifications:
+    description: (MODERATOR) Manage your moderation-related notification settings.
+    aliases: [modnotifs, modn, mn]
+

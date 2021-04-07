@@ -110,6 +110,14 @@ public class Quest extends GameObject {
 	public void setLevelMin(int lvMin) {
 		setData("lvMin", Integer.valueOf(lvMin));
 	}
+	
+	public boolean isLocked() {
+		return (boolean) getData("locked");
+	}
+	
+	public void setLocked(boolean locked) {
+		setData("locked", locked);
+	}
 
 	public boolean isValid() {
 		if (steps.size() == 0) {

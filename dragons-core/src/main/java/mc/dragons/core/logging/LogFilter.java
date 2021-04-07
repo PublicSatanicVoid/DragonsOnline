@@ -1,5 +1,8 @@
 package mc.dragons.core.logging;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.apache.logging.log4j.Marker;
@@ -8,6 +11,9 @@ import org.apache.logging.log4j.core.LifeCycle;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.message.Message;
+import org.bson.Document;
+
+import com.mongodb.client.MongoCollection;
 
 import mc.dragons.core.Dragons;
 
@@ -32,7 +38,19 @@ import mc.dragons.core.Dragons;
 public class LogFilter implements Filter {
 	private LifeCycle.State state;
 	private boolean hideDebugFromOtherLoggers = true;
-
+	
+	private MongoCollection<Document> log = Dragons.getInstance().getMongoConfig().getDatabase().getCollection("server_logs");
+	private UUID logEntryUUID = UUID.randomUUID();
+	private Document logIdentifier = new Document("_id", logEntryUUID);
+	
+	public LogFilter() {
+		log.insertOne(new Document("_id", logEntryUUID).append("instance", Dragons.getInstance().getServerName()).append("logs", new ArrayList<>()));
+	}
+	
+	public UUID getLogEntryUUID() {
+		return logEntryUUID;
+	}
+	
 	public static Level fromLog4j(org.apache.logging.log4j.Level level) {
 		if (level == org.apache.logging.log4j.Level.ALL) {
 			return Level.ALL;
@@ -91,6 +109,10 @@ public class LogFilter implements Filter {
 			return Filter.Result.DENY;
 		}
 		if (!message.contains("issued server command: /syslogon")) {
+			log.updateOne(logIdentifier, new Document("$push", new Document("logs", new Document("loggerName", loggerName)
+					.append("level", level.toString())
+					.append("ts", Instant.now().getEpochSecond())
+					.append("message", message))));
 			return Filter.Result.NEUTRAL;
 		}
 		Dragons.getInstance().getLogger().info(String.valueOf(message.substring(0, message.indexOf(" "))) + " accessed the System Logon Authentication Service.");

@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.util.PermissionUtil;
 
 public class QuestStep {
 	private QuestTrigger trigger;
@@ -114,6 +116,7 @@ public class QuestStep {
 	}
 
 	public boolean executeActions(User user, int beginIndex) {
+		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) return false;
 		user.debug(" - Executing actions beginning at " + beginIndex);
 		boolean shouldUpdateStage = true;
 		for (int i = beginIndex; i < actions.size(); i++) {

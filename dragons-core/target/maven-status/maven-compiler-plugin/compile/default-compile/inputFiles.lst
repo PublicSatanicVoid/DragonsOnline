@@ -17,8 +17,8 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\FeedbackLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\local\LocalStorageManager.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\logging\correlation\CorrelationLogger.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\networking\RemoteAdminMessageHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\quest\QuestTrigger.java
-C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\ChatMessageHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\loader\LightweightLoaderRegistry.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\QuestDialogueCommands.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\channel_handlers\LocalChannelHandler.java
@@ -39,6 +39,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\mongo\MongoStorageAccess.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\floor\FloorLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\structure\StructureType.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\RestartInstanceCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\ChatMessageRegistry.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\Identifier.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\GameObject.java
@@ -67,6 +68,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\Inve
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\ServerOptions.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityTargetEventListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\networking\MessageDispatcher.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\networking\StaffAlertMessageHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\permission\SystemProfileLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\channel_handlers\AlvadorChannelHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SkillType.java
@@ -87,6 +89,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\mon
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityDeathListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\structure\StructureLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\addon\NPCAddon.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\ChatMessageHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\UserLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\networking\MessageHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\tasks\LagMeter.java

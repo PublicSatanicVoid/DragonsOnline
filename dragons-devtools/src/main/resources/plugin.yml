@@ -127,3 +127,7 @@ commands:
   manifest:
     description: (ADMIN) Display a manifest of all users connected to all servers.
   testdocumentdelta:
+  getlogtoken:
+    description: (ADMIN) Display the token to view this server's remote log entries.
+  ignoreremoterestarts:
+    description: (ADMIN) Ignore incoming remote restarts.

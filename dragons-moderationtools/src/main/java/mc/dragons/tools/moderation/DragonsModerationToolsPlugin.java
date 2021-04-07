@@ -6,7 +6,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import mc.dragons.core.Dragons;
 import mc.dragons.tools.moderation.abilities.FlyCommand;
 import mc.dragons.tools.moderation.abilities.GodModeCommand;
-import mc.dragons.tools.moderation.abilities.VanishCommands;
+import mc.dragons.tools.moderation.abilities.UnVanishCommand;
+import mc.dragons.tools.moderation.abilities.VanishCommand;
 import mc.dragons.tools.moderation.analysis.IPHistoryCommand;
 import mc.dragons.tools.moderation.analysis.IPScanCommand;
 import mc.dragons.tools.moderation.analysis.InfoCommand;
@@ -18,6 +19,7 @@ import mc.dragons.tools.moderation.punishment.UnPunishCommands;
 import mc.dragons.tools.moderation.punishment.ViewPunishmentsCommand;
 import mc.dragons.tools.moderation.report.ChatReportCommand;
 import mc.dragons.tools.moderation.report.EscalateCommand;
+import mc.dragons.tools.moderation.report.ModQueueCommand;
 import mc.dragons.tools.moderation.report.ReportAdminCommands;
 import mc.dragons.tools.moderation.report.ReportCommand;
 import mc.dragons.tools.moderation.report.ReportLoader;
@@ -41,12 +43,15 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		getCommand("fly").setExecutor(new FlyCommand());
 		getCommand("setverification").setExecutor(new SetVerificationCommand());
 		getCommand("locate").setExecutor(new LocateCommand());
+		getCommand("modnotifications").setExecutor(new ModNotificationsCommand());
 		
 		getCommand("report").setExecutor(new ReportCommand());
 		getCommand("escalate").setExecutor(new EscalateCommand());
 		getCommand("chatreport").setExecutor(new ChatReportCommand());
 		getCommand("reports").setExecutor(new ReportsCommand());
+
 		getCommand("viewreport").setExecutor(new ViewReportCommand());
+		getCommand("modqueue").setExecutor(new ModQueueCommand());
 		
 		CommandExecutor reportAdminCommands = new ReportAdminCommands();
 		getCommand("toggleselfreport").setExecutor(reportAdminCommands);
@@ -65,9 +70,8 @@ public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandE
 		getCommand("viewpunishments").setExecutor(new ViewPunishmentsCommand());
 		getCommand("removepunishment").setExecutor(new RemovePunishmentCommand());
 		
-		CommandExecutor vanishCommands = new VanishCommands();
-		getCommand("vanish").setExecutor(vanishCommands);
-		getCommand("unvanish").setExecutor(vanishCommands);	
+		getCommand("vanish").setExecutor(new VanishCommand());
+		getCommand("unvanish").setExecutor(new UnVanishCommand());	
 	}
 	
 	public PunishMessageHandler getPunishMessageHandler() {

@@ -16,6 +16,8 @@ import net.minecrell.terminalconsole.TerminalConsoleAppender;
  *
  */
 public class CustomLoggingProvider {
+	public static final LogFilter LOG_FILTER = new LogFilter();
+	
 	public static void enableCustomLogging() {
 		Dragons.getInstance().getLogger().info("Switching to custom logging system...");
 		Logger logger = (Logger) LogManager.getRootLogger();
@@ -24,7 +26,7 @@ public class CustomLoggingProvider {
 				logger.removeAppender(appender);
 			}
 		}
-		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", new LogFilter(), new CustomLayout(Charset.defaultCharset()), false);
+		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", LOG_FILTER, new CustomLayout(Charset.defaultCharset()), false);
 		appender.initialize();
 		appender.start();
 		logger.addAppender(appender);

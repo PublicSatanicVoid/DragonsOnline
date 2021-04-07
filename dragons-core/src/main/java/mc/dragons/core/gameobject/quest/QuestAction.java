@@ -29,8 +29,10 @@ import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
+import mc.dragons.core.util.PermissionUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -394,6 +396,7 @@ public class QuestAction {
 	}
 
 	public QuestActionResult execute(final User user) {
+		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) return new QuestActionResult(false, false);
 		if (action == QuestActionType.TELEPORT_PLAYER) {
 			user.getPlayer().teleport(to);
 		} else if (action == QuestActionType.SPAWN_NPC) {

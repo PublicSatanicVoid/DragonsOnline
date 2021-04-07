@@ -1,4 +1,4 @@
-package mc.dragons.core.gameobject.user;
+package mc.dragons.core.gameobject.user.chat;
 
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -10,9 +10,8 @@ import org.bukkit.Location;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.FloorLoader;
-import mc.dragons.core.gameobject.user.chat.ChatChannel;
-import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
-import mc.dragons.core.gameobject.user.chat.MessageData;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.BaseComponent;

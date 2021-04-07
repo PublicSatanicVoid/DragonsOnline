@@ -110,7 +110,6 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 	}
 
 	public void lazyLoadAll() {
-		Bukkit.getLogger().info("===LAZY LOADING ALL FLOORS");
 		loadAll(false);
 	}
 }

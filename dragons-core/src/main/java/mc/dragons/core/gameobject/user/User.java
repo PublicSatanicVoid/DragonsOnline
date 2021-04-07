@@ -46,6 +46,7 @@ import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
+import mc.dragons.core.gameobject.user.chat.ChatMessageHandler;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
@@ -478,6 +479,9 @@ public class User extends GameObject {
 	}
 
 	public void updateQuestProgress(Quest quest, QuestStep questStep, boolean notify) {
+		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.GM, false)) {
+			sendActionBar(ChatColor.RED + "Quest \"" + quest.getQuestName() + "\" is currently locked! Try again later.");
+		}
 		Document updatedQuestProgress = (Document) getData("quests");
 		if (questStep == null) {
 			questProgress.remove(quest);
@@ -493,7 +497,7 @@ public class User extends GameObject {
 		storageAccess.update(new Document("quests", updatedQuestProgress));
 		if (notify) {
 			if (questStep.getStepName().equals("Complete")) {
-				logQuestEvent(quest, Level.INFO, "completed quest");
+				logQuestEvent(quest, Level.FINE, "completed quest");
 				player.sendMessage(ChatColor.GRAY + "Completed quest " + quest.getQuestName());
 			} else {
 				player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
@@ -508,7 +512,7 @@ public class User extends GameObject {
 	}
 
 	public void updateQuestAction(Quest quest, int actionIndex) {
-		logQuestEvent(quest, Level.INFO, "set action index to " + actionIndex);
+		logQuestEvent(quest, Level.FINE, "set action index to " + actionIndex);
 		questActionIndices.put(quest, actionIndex);
 	}
 
@@ -1410,6 +1414,7 @@ public class User extends GameObject {
 		player.addAttachment(instance, "voxelsniper.ignorelimitations", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "voxelsniper.goto", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "voxelsniper.brush.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "minecraft.command.teleport",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
 		player.addAttachment(instance, "minecraft.command.tp",

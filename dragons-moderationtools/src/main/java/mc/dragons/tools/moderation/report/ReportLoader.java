@@ -10,28 +10,21 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bson.Document;
-import org.bukkit.ChatColor;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.result.DeleteResult;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.gameobject.user.chat.MessageData;
-import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
-import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ReportLoader extends AbstractLightweightLoader<Report> {
 
@@ -181,6 +174,10 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return parseResults(collection.find(new Document("target", target.getUUID().toString())), page);
 	}
 	
+	public PaginatedResult<Report> getUnreviewedReports(int page) {
+		return parseResults(collection.find(new Document("reviewedBy", null)), page);
+	}
+	
 	private Report fileReport(Document data) {
 		Document fullData = new Document(data);
 		fullData.append("_id", reserveNextId())
@@ -194,14 +191,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	}
 	
 	private void reportNotify(int id, String message) {
-		TextComponent text = new TextComponent(ChatColor.DARK_RED + "" + ChatColor.BOLD + "!! " + ChatColor.RED + "[Report] " + ChatColor.GRAY + message);
-		text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "Click to view")));
-		text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id));
-		UserLoader.allUsers().stream()
-			.filter(u -> PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false))
-			.filter(u -> u.getPlayer() != null)
-			.filter(u -> u.getActiveChatChannels().contains(ChatChannel.STAFF))
-			.forEach(u -> u.getPlayer().spigot().sendMessage(text));
+		Dragons.getInstance().getStaffAlertHandler().sendReportMessage(id, message);
 	}
 	
 	public void fileChatReport(User target, User by, MessageData message) {

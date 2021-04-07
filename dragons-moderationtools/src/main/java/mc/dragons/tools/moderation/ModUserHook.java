@@ -1,5 +1,6 @@
 package mc.dragons.tools.moderation;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ public class ModUserHook implements UserHook {
 			UserLoader.allUsers()
 				.stream()
 				.filter(u -> PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.MODERATION, false))
+				.filter(u -> u.getData().getEmbedded(Arrays.asList("modnotifs", "susjoin"), true))
 				.forEach(u -> {
 					u.getPlayer().sendMessage(ChatColor.GRAY + "[" + ChatColor.RED + "Join Alert" + ChatColor.GRAY + "] User " 
 						+ user.getName() + " shares an IP address with " + alts.size() + " currently banned user" + (alts.size() > 1 ? "s" : ""));

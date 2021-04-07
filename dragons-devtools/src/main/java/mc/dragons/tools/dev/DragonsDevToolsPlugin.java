@@ -46,6 +46,8 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("serveroptions").setExecutor(serverOptionsCommands);
 		getCommand("getservername").setExecutor(serverOptionsCommands);
 		getCommand("spoofserver").setExecutor(serverOptionsCommands);
+		getCommand("ignoreremoterestarts").setExecutor(serverOptionsCommands);
+		getCommand("getlogtoken").setExecutor(serverOptionsCommands);
 		
 		CommandExecutor objectCommands = new ObjectCommands();
 		getCommand("autosave").setExecutor(objectCommands);
