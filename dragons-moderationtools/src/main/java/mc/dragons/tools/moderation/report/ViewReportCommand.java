@@ -14,9 +14,9 @@ import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ViewReportCommand extends DragonsCommandExecutor {
 
@@ -45,16 +45,16 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		if(args.length == 1) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "Report #" + report.getId() + ": " + report.getType() + "/" + report.getStatus());
 			TextComponent confirm = new TextComponent(ChatColor.GREEN + "[Confirm] ");
-			confirm.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Confirm report and apply punishment").create()));
+			confirm.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Confirm report and apply punishment")));
 			confirm.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " confirm"));
 			TextComponent insufficient = new TextComponent(ChatColor.YELLOW + " [Insufficient] ");
-			insufficient.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Insufficient evidence to confirm or reject report").create()));
+			insufficient.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Insufficient evidence to confirm or reject report")));
 			insufficient.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " insufficient"));
 			TextComponent escalate = new TextComponent(ChatColor.GOLD + " [Escalate] ");
-			escalate.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Escalate report for review by a senior staff member").create()));
+			escalate.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Escalate report for review by a senior staff member")));
 			escalate.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " escalate"));
 			TextComponent noAction = new TextComponent(ChatColor.GRAY + " [No Action]");
-			noAction.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Take no action on this report").create()));
+			noAction.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Take no action on this report")));
 			noAction.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " status NO_ACTION"));
 			sender.spigot().sendMessage(confirm, insufficient, escalate, noAction);
 			sender.sendMessage(ChatColor.GRAY + "Filed Against: " + ChatColor.RESET + report.getTarget().getName());
@@ -83,34 +83,34 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		else if(args[1].equalsIgnoreCase("confirm")) {
 			if(report.getType() == ReportType.CHAT) {
 				TextComponent language = new TextComponent(ChatColor.RED + "[Language] ");
-				language.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Language violation").create()));
+				language.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Language violation")));
 				language.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Chat Violation: Language"));
 				TextComponent spam = new TextComponent(ChatColor.RED + " [Spam] ");
-				spam.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Spamming").create()));
+				spam.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Spamming")));
 				spam.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Chat Violation: Spam"));
 				TextComponent scam = new TextComponent(ChatColor.RED + " [Scamming] ");
-				scam.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Scamming").create()));
+				scam.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Scamming")));
 				scam.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Chat Violation: Scamming"));
 				TextComponent advert = new TextComponent(ChatColor.RED + " [Advertising] ");
-				advert.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Advertising").create()));
+				advert.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Advertising")));
 				advert.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Chat Violation: Advertising"));
 				TextComponent unspecified = new TextComponent(ChatColor.GRAY + " [Unspecified]");
-				unspecified.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Unspecified / Other").create()));
+				unspecified.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Unspecified / Other")));
 				unspecified.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Chat Violation"));
 				sender.spigot().sendMessage(language, spam, scam, advert, unspecified);
 			}
 			else {
 				TextComponent cheating = new TextComponent(ChatColor.RED + "[Cheating] ");
-				cheating.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Cheating").create()));
+				cheating.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Cheating")));
 				cheating.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Rule Violation: Cheating or Related"));
 				TextComponent trolling = new TextComponent(ChatColor.RED + " [Trolling] ");
-				trolling.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Trolling").create()));
+				trolling.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Trolling")));
 				trolling.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Rule Violation: Trolling"));
 				TextComponent comp = new TextComponent(ChatColor.RED + " [Compromised] ");
-				comp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Compromised Account").create()));
+				comp.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Compromised Account")));
 				comp.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Compromised Account"));
 				TextComponent unspecified = new TextComponent(ChatColor.GRAY + " [Unspecified] ");
-				unspecified.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Unspecified / Other").create()));
+				unspecified.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Unspecified / Other")));
 				unspecified.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " punish Rule Violation"));
 				sender.spigot().sendMessage(cheating, trolling,  comp, unspecified);
 			}
@@ -128,41 +128,41 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		else if(args[1].equalsIgnoreCase("punish")) {
 			String reason = StringUtil.concatArgs(args, 2);
 			TextComponent warn = new TextComponent(ChatColor.WHITE + "[Warn] ");
-			warn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Warn " + report.getTarget().getName()).create()));
+			warn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Warn " + report.getTarget().getName())));
 			warn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply WARNING " + reason));
 			TextComponent kick = new TextComponent(ChatColor.YELLOW + " [Kick] ");
-			kick.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Kick " + report.getTarget().getName()).create()));
+			kick.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Kick " + report.getTarget().getName())));
 			kick.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply KICK " + reason));
 			TextComponent mute = new TextComponent(ChatColor.GOLD + " [Mute] ");
-			mute.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Mute " + report.getTarget().getName()).create()));
+			mute.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Mute " + report.getTarget().getName())));
 			mute.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " duration MUTE " + reason));
 			TextComponent ban = new TextComponent(ChatColor.RED + " [Ban]");
-			ban.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "Ban " + report.getTarget().getName()).create()));
+			ban.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "Ban " + report.getTarget().getName())));
 			ban.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " duration BAN " + reason));
 			sender.spigot().sendMessage(warn, kick, mute, ban);
 		}
 		else if(args[1].equalsIgnoreCase("duration")) {
 			String reason = StringUtil.concatArgs(args, 3);
 			TextComponent hr1 = new TextComponent(ChatColor.YELLOW + "[1 Hour] ");
-			hr1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "1 Hour").create()));
+			hr1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "1 Hour")));
 			hr1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " 1h " + reason));
 			TextComponent hr6 = new TextComponent(ChatColor.YELLOW + " [6 Hours] ");
-			hr6.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "6 Hours").create()));
+			hr6.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "6 Hours")));
 			hr6.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " 6h " + reason));
 			TextComponent day1 = new TextComponent(ChatColor.YELLOW + " [1 Day] ");
-			day1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "1 Day").create()));
+			day1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "1 Day")));
 			day1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " 1d " + reason));
 			TextComponent day7 = new TextComponent(ChatColor.YELLOW + " [7 Days] ");
-			day7.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "7 Days").create()));
+			day7.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "7 Days")));
 			day7.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " 7d " + reason));
 			TextComponent month1 = new TextComponent(ChatColor.GOLD + " [1 Month] ");
-			month1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "1 Month").create()));
+			month1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "1 Month")));
 			month1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " 30d " + reason));
 			TextComponent month3 = new TextComponent(ChatColor.GOLD + " [3 Months] ");
-			month3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GRAY + "3 Months").create()));
+			month3.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.GRAY + "3 Months")));
 			month3.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " 90d " + reason));
 			TextComponent permanent = new TextComponent(ChatColor.RED + " [Permanent]");
-			permanent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Permanent").create()));
+			permanent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.RED + "Permanent")));
 			permanent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id + " apply " + args[2] + " permanent " + reason));
 			sender.spigot().sendMessage(hr1, hr6, day1, day7, month1, month3, permanent);
 		}

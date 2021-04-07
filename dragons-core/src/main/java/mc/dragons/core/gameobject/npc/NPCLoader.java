@@ -1,17 +1,21 @@
 package mc.dragons.core.gameobject.npc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
@@ -50,17 +54,22 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		}
 		return INSTANCE;
 	}
-
+	
 	@Override
 	public NPC loadObject(StorageAccess storageAccess) {
+		List<BukkitRunnable> spawner = new ArrayList<>();
+		NPC npc = loadObject(storageAccess, spawner);
+		spawner.get(0).runTask(Dragons.getInstance());
+		return npc;
+	}
+	
+	public NPC loadObject(StorageAccess storageAccess, List<BukkitRunnable> spawnRunnables) {
 		lazyLoadAllPermanent();
 		LOGGER.fine("Loading NPC " + storageAccess.getIdentifier());
 		NPC.NPCType npcType = NPC.NPCType.valueOf((String) storageAccess.get("npcType"));
 		Location loc = StorageUtil.docToLoc((Document) storageAccess.get("lastLocation"));
-		Entity e = loc.getWorld().spawnEntity(loc, EntityType.valueOf((String) storageAccess.get("entityType")));
-		NPC npc = new NPC(e, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager,
+		NPC npc = new NPC(loc, spawnRunnables, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager,
 				npcType.isPersistent() ? storageAccess : (StorageAccess) localStorageManager.downgrade(storageAccess));
-		e.setMetadata("handle", new FixedMetadataValue(plugin, npc));
 		masterRegistry.getRegisteredObjects().add(npc);
 		return npc;
 	}
@@ -157,14 +166,35 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		LOGGER.fine("Loading all permanent NPCs...");
 		allPermanentLoaded = true;
 		masterRegistry.removeFromRegistry(GameObjectType.NPC);
+		List<BukkitRunnable> asyncSpawnerRunnables = new ArrayList<>();
 		storageManager
 				.getAllStorageAccess(GameObjectType.NPC, new Document("$or", Arrays.<NPC.NPCType>asList(NPC.NPCType.values()).stream()
 						.filter(type -> (type.isPersistent() && type.isLoadedImmediately())).map(type -> new Document("npcType", type.toString())).collect(Collectors.toList())))
 				.stream().forEach(storageAccess -> {
-					NPC npc = loadObject(storageAccess);
+					Dragons.getInstance().getLogger().finer("Loading permanent NPC: " + storageAccess.getIdentifier());
+					NPC npc = loadObject(storageAccess, asyncSpawnerRunnables);
 					Dragons.getInstance().getLogger().fine("Loaded permanent NPC: " + npc.getIdentifier() + " of class " + npc.getNPCClass().getClassName());
 					masterRegistry.getRegisteredObjects().add(npc);
 				});
+		Bukkit.getScheduler().runTaskAsynchronously(Dragons.getInstance(), () -> {
+			int batchSize = 5;
+			for(int i = 0; i < (int) Math.ceil(asyncSpawnerRunnables.size() / batchSize); i++) {
+				final int fi = i;
+				Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
+					long start = System.currentTimeMillis();
+					Bukkit.getLogger().finer("==SPAWNING BATCH #" + fi + "===");
+					for(int j = fi * batchSize; j < (fi + 1) * batchSize; j++) {
+						asyncSpawnerRunnables.get(j).run();
+					}
+					long duration = System.currentTimeMillis() - start;
+					Bukkit.getLogger().finer("===Finished batch #" + fi + " in " + duration + "ms");
+					if(duration > 1000) {
+						Bukkit.getLogger().warning("Spawn of batch #" + fi + " took " + duration + "ms (batch size: " + batchSize + ")");
+					}
+				}, i * 2);
+			}
+			
+		});
 		Dragons.getInstance().getLogger().info("Initial entity count: " + Dragons.getInstance().getEntities().size());
 	}
 

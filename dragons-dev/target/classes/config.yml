@@ -15,3 +15,12 @@ roleid-gm: '&1234567890'
 
 # Whether to enable sending Discord notifications.
 discord-notifier-enabled: true
+
+# Staff advice settings
+staff-advice:
+  period-seconds: 120
+  
+# World backup settings
+backup:
+  folder: 'C:\\DragonsBackups\\'
+  period-minutes: 30

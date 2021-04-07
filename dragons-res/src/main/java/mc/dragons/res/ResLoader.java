@@ -35,13 +35,13 @@ public class ResLoader extends AbstractLightweightLoader<Residence> {
 	private static final String RES_COLLECTION = "res";
 
 	private static int RES_SPACING = 5;
-	private static Vector RES_SPAWN_OFFSET = new Vector(0, 1, -12);
+	private static Vector RES_SPAWN_OFFSET = new Vector(-1, -5, -13);
 	
 	private static int resNextIndex = 0;
 	private static Map<Integer, Integer> resIdToLocalIndex = new HashMap<>();
 	
 	private static BukkitWorld resWorld = new BukkitWorld(Bukkit.getWorld("res_temp"));
-	private static Clipboard residenceSchematic = DragonsResPlugin.loadSchematic("Residence_1", resWorld);
+	private static Clipboard residenceSchematic = DragonsResPlugin.loadSchematic("Residence_1a");
 	private static EditSession worldEditSession = DragonsResPlugin.getEditSession(resWorld);
 	
 	private static List<Integer> generated = new ArrayList<>();

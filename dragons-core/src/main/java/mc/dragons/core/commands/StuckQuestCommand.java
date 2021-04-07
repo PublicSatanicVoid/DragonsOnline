@@ -14,9 +14,9 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.loader.FeedbackLoader;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 /**
  * Command for users to report a problem with a quest,
@@ -43,7 +43,7 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 			if(entry.getValue().getStepName().equalsIgnoreCase("Complete")) continue;
 			TextComponent questOption = new TextComponent(ChatColor.GRAY + " • " + ChatColor.GREEN + entry.getKey().getQuestName());
 			questOption.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new ComponentBuilder(ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName()).create()));
+					new Text(ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName())));
 			questOption.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stuckquest " + entry.getKey().getName()));
 			player(sender).spigot().sendMessage(questOption);
 			
@@ -60,7 +60,7 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 		for(String[] issue : POSSIBLE_ISSUES) {
 			TextComponent issueOption = new TextComponent(ChatColor.GRAY + " • " + ChatColor.GREEN + issue[0]);
 			issueOption.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new ComponentBuilder(ChatColor.GRAY + issue[1]).create()));
+					new Text(ChatColor.GRAY + issue[1])));
 			issueOption.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stuckquest " + args[0] + " " + issue[2]));
 			player(sender).spigot().sendMessage(issueOption);
 		}

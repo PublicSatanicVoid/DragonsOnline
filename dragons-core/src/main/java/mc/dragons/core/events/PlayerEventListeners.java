@@ -97,7 +97,7 @@ public class PlayerEventListeners implements Listener {
 		Player player = event.getPlayer();
 		User user = UserLoader.fromPlayer(player);
 		Action action = event.getAction();
-		if ((action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.EMPTY_MAP) {
+		if ((action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.MAP) { // TODO do we need this? (changing from EMPTY_MAP [1.12] to MAP [1.16]
 			user.debug("Right click with map, denying");
 			event.setUseItemInHand(Event.Result.DENY);
 			event.setCancelled(true);
@@ -105,7 +105,7 @@ public class PlayerEventListeners implements Listener {
 		if (action == Action.RIGHT_CLICK_BLOCK) {
 			user.debug("Right click block");
 			Block clicked = event.getClickedBlock();
-			if (clicked.getType() == Material.WALL_SIGN || clicked.getType() == Material.SIGN) {
+			if (clicked.getType().toString().toUpperCase().contains("SIGN")) {
 				Sign sign = (Sign) clicked.getState();
 				if (sign.getLine(0).equals("[RIGHT CLICK]")) {
 					if (sign.getLine(2).equals("Join as player")) {
@@ -361,7 +361,7 @@ public class PlayerEventListeners implements Listener {
 							});
 				}
 			}.runTaskLater(plugin, 1L);
-			player.playSound(player.getLocation(), Sound.BLOCK_NOTE_HARP, 1.0F, 1.3F);
+			player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0F, 1.3F);
 			return;
 		}
 		item.setQuantity(pickup.getAmount());

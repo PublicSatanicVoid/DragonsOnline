@@ -70,7 +70,7 @@ public class SidebarManager {
 		};
 		Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		player.setScoreboard(scoreboard);
-		Objective objective = scoreboard.registerNewObjective("CustomObjective", "dummy");
+		Objective objective = scoreboard.registerNewObjective("CustomObjective", "dummy", "dummyDisplayName");
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		objective.setDisplayName(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Dragons" + ChatColor.LIGHT_PURPLE + " " + ChatColor.BOLD + "Online");
 		for (int i = scoreboardLayout.length; i > 0; i--) {

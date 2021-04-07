@@ -3,6 +3,7 @@ main: mc.dragons.dev.DragonsDevPlugin
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
+api-version: 1.16
 commands:
   starttrial:
     description: Create a build trial for the specified player.

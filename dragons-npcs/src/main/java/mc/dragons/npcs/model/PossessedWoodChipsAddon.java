@@ -20,11 +20,11 @@ public class PossessedWoodChipsAddon extends WalkingArmorStandAddon {
 	@Override
 	public void initializeParts(NPC npc) {
 		super.initializeParts(npc);
-		getBody(npc).setHelmet(new ItemStack(Material.WOOD));
+		getBody(npc).getEquipment().setHelmet(new ItemStack(Material.OAK_WOOD));
 		//getBody(npc).setHeadPose(NPCUtil.randomRotation());
 		for(int i = 0; i < 10; i++) {
 			ArmorStand woodChip = newPart(npc);
-			woodChip.setHelmet(new ItemStack(Material.WOOD_BUTTON));
+			woodChip.getEquipment().setHelmet(new ItemStack(Material.OAK_BUTTON));
 			woodChip.setHeadPose(NPCUtil.randomRotation());
 			woodChip.setMetadata("woodChip", new FixedMetadataValue(Dragons.getInstance(), true));
 		}

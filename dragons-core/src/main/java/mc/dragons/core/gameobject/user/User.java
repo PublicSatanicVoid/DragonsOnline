@@ -68,6 +68,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 /**
  * Represents a player in the RPG.
@@ -412,7 +413,7 @@ public class User extends GameObject {
 				TextComponent.fromLegacyText(ChatColor.GRAY + "[" + (currentDialogueIndex + 1) + "/" + currentDialogueBatch.size() + "] " + ChatColor.DARK_GREEN + currentDialogueSpeaker
 						+ ": " + ChatColor.GREEN + currentDialogueBatch.get(currentDialogueIndex++).replaceAll(Pattern.quote("%PLAYER%"), getName())));
 		message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/fastforwarddialogue"));
-		message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.YELLOW + "Click to fast-forward through the dialogue").create()));
+		message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "Click to fast-forward through the dialogue")));
 		player.spigot().sendMessage(message);
 		if (currentDialogueIndex >= currentDialogueBatch.size()) {
 			resetDialogueAndHandleCompletion();
@@ -808,21 +809,6 @@ public class User extends GameObject {
 				player.getInventory().setItem(slot, itemStack);
 				continue;
 			}
-			else if (part.equals("Helmet")) {
-				player.getInventory().setHelmet(itemStack);
-				continue;
-			}
-			else if (part.equals("Chestplate")) {
-				player.getInventory().setChestplate(itemStack);
-				continue;
-			}
-			else if (part.equals("Leggings")) {
-				player.getInventory().setLeggings(itemStack);
-				continue;
-			}
-			else if (part.equals("Boots")) {
-				player.getInventory().setBoots(itemStack);
-			}
 		}
 		boolean error = false;
 		if (broken > 0) {
@@ -855,26 +841,6 @@ public class User extends GameObject {
 					inventory.append("I-" + i, item.getUUID());
 				}
 			}
-		}
-		ItemStack helmetStack = player.getInventory().getHelmet();
-		Item helmet = ItemLoader.fromBukkit(helmetStack);
-		if (helmet != null) {
-			inventory.append("Helmet-0", helmet.getUUID());
-		}
-		ItemStack chestplateStack = player.getInventory().getChestplate();
-		Item chestplate = ItemLoader.fromBukkit(chestplateStack);
-		if (chestplate != null) {
-			inventory.append("Chestplate-0", chestplate.getUUID());
-		}
-		ItemStack leggingsStack = player.getInventory().getLeggings();
-		Item leggings = ItemLoader.fromBukkit(leggingsStack);
-		if (leggings != null) {
-			inventory.append("Leggings-0", leggings.getUUID());
-		}
-		ItemStack bootsStack = player.getInventory().getBoots();
-		Item boots = ItemLoader.fromBukkit(bootsStack);
-		if (boots != null) {
-			inventory.append("Boots-0", boots.getUUID());
 		}
 		return inventory;
 	}
@@ -1195,10 +1161,10 @@ public class User extends GameObject {
 	public void setDeathCountdown(int seconds) {
 		setData("deathCountdown", Integer.valueOf(seconds));
 		setData("deathTime", Long.valueOf(System.currentTimeMillis()));
-		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * seconds, 10, false, false), true);
-		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * seconds, 10, false, false), true);
-		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20 * seconds, 10, false, false), true);
-		player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 20 * seconds, 0, false, false), true);
+		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * seconds, 10, false, false));
+		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * seconds, 10, false, false));
+		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20 * seconds, 10, false, false));
+		player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 20 * seconds, 0, false, false));
 		new BukkitRunnable() {
 			int counter = seconds;
 
@@ -1439,6 +1405,11 @@ public class User extends GameObject {
 		
 		// Permissions for non-RPG plugins need to be added separately.
 		player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "fawe.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "voxelsniper.sniper", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "voxelsniper.ignorelimitations", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "voxelsniper.goto", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "voxelsniper.brush.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "minecraft.command.teleport",
 				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
 		player.addAttachment(instance, "minecraft.command.tp",

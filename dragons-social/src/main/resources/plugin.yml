@@ -3,6 +3,7 @@ main: mc.dragons.social.DragonsSocialPlugin
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
+api-version: 1.16
 commands:
   guild:
     description: Create, join, and manage guilds.

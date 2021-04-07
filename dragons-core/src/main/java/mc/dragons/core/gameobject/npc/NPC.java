@@ -1,5 +1,6 @@
 package mc.dragons.core.gameobject.npc;
 
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -12,11 +13,12 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
@@ -54,17 +56,11 @@ public class NPC extends GameObject {
 		COMPANION(ChatColor.GOLD, ChatColor.GOLD + "[COMPANION] ", true, false, true, false, true);
 
 		private ChatColor nameColor;
-
 		private String prefix;
-
 		private boolean persistent;
-
 		private boolean immortalByDefault;
-
 		private boolean aiByDefault;
-
 		private boolean loadImmediately;
-
 		private boolean respawnOnDeath;
 
 		NPCType(ChatColor nameColor, String prefix, boolean persistent, boolean immortalByDefault, boolean aiByDefault, boolean loadImmediately, boolean respawnOnDeath) {
@@ -114,12 +110,27 @@ public class NPC extends GameObject {
 	protected static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 	protected static EntityHider entityHider = Dragons.getInstance().getEntityHider();
 
+	public NPC(Location loc, List<BukkitRunnable> asyncSpawnHandler, StorageManager storageManager, StorageAccess storageAccess) {
+		super(storageManager, storageAccess);
+		asyncSpawnHandler.add(new BukkitRunnable() {
+			@Override public void run() {
+				long start = System.currentTimeMillis();
+				entity = loc.getWorld().spawnEntity(loc, EntityType.valueOf((String) storageAccess.get("entityType")));
+				entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
+				initializeEntity();
+				initializeAddons();
+				long duration = System.currentTimeMillis() - start;
+				Bukkit.getLogger().finer("Spawned " + getUUID() + " - " + getNPCClass().getClassName() + " in " + duration + "ms");
+			}
+		});
+	}
+	
 	public NPC(Entity entity, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.fine("Constructing NPC (" + StringUtil.entityToString(entity) + ", " + storageManager + ", " + storageAccess + ")");
 		this.entity = entity;
 		initializeEntity();
-		getNPCClass().getAddons().forEach(addon -> addon.initialize(this));
+		initializeAddons();
 	}
 
 	public void initializeEntity() {
@@ -128,9 +139,7 @@ public class NPC extends GameObject {
 		healthIndicator = entity;
 		Dragons.getInstance().getBridge().setEntityAI(entity, getNPCClass().hasAI());
 		Dragons.getInstance().getBridge().setEntityInvulnerable(entity, isImmortal());
-		if (entity instanceof Zombie) {
-			((Zombie) entity).setBaby(false);
-		}
+		// TODO configurable baby status if ageable
 		if (entity.isInsideVehicle()) {
 			entity.getVehicle().eject();
 		}
@@ -145,6 +154,10 @@ public class NPC extends GameObject {
 			setHeldItem(new ItemStack(heldItemType));
 		}
 		entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
+	}
+	
+	public void initializeAddons() {
+		getNPCClass().getAddons().forEach(addon -> addon.initialize(this));
 	}
 
 	public boolean isDamageExternalized() {

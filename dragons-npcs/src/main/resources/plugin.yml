@@ -3,6 +3,7 @@ main: mc.dragons.npcs.DragonsNPCAddons
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore, DragonsSpells]
+api-version: 1.16
 commands:
   companion:
     description: Manage your companion.

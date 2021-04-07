@@ -33,7 +33,7 @@ public class InventoryEventListeners implements Listener {
 	public void onInventoryClose(InventoryCloseEvent e) {
 		Player player = (Player) e.getPlayer();
 		User user = UserLoader.fromPlayer(player);
-		user.debug("inventory close event. invTitle=" + e.getInventory().getTitle() + ", viewtype=" + e.getView().getType());
+		user.debug("inventory close event. invTitle=" + e.getView().getTitle() + ", viewtype=" + e.getView().getType());
 		if (user.hasOpenGUI()) {
 			user.debug("- has open gui");
 			if (!user.hasHotfixedGUI(user.getCurrentGUI())) {
@@ -41,7 +41,7 @@ public class InventoryEventListeners implements Listener {
 				user.hotfixGUI();
 				return;
 			}
-			if (e.getInventory().getTitle().equals(user.getCurrentGUI().getMenuName())) {
+			if (e.getView().getTitle().equals(user.getCurrentGUI().getMenuName())) {
 				user.debug("- matches gui name " + user.getCurrentGUI().getMenuName() + ", marking closed");
 				user.closeGUI(false);
 			}
@@ -60,8 +60,8 @@ public class InventoryEventListeners implements Listener {
 				return;
 			}
 			GUI gui = user.getCurrentGUI();
-			user.debug("gui name=" + gui.getMenuName() + ", clicked name=" + clickedInventory.getName());
-			if (clickedInventory.getName().equals(gui.getMenuName())) {
+			user.debug("gui name=" + gui.getMenuName() + ", clicked name=" + e.getView().getTitle());
+			if (e.getView().getTitle().equals(gui.getMenuName())) {
 				gui.click(user, e.getSlot());
 				e.setCancelled(true);
 				user.debug("cancelling click event since it's a gui");

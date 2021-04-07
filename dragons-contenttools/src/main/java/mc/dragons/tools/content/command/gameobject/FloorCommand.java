@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -27,11 +25,12 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.local.LocalStorageAccess;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.DragonsContentToolsPlugin;
 import mc.dragons.tools.content.util.MetadataConstants;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 /**
  * GM command to manage floors.
@@ -42,16 +41,15 @@ import net.md_5.bungee.api.chat.TextComponent;
  */
 public class FloorCommand extends DragonsCommandExecutor {
 	private static final String LOCAL_FLOOR_WARNING = ChatColor.RED + " (Warning: Dynamically injected floor!)";
-	private static final String PRODUCTION_FOLDER = "C:\\Users\\User\\DragonsProductionFloors\\";
 	
 	private static void pushFloor(Floor floor) {
 		Bukkit.getLogger().info("Pushing floor " + floor.getDisplayName());
-		String backupRoot = PRODUCTION_FOLDER + Dragons.getInstance().getServerName() + " " + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + "\\";
-		File backupFolder = new File(backupRoot + floor.getWorldName());
-		backupFolder.mkdirs();
+		String pushRoot = DragonsContentToolsPlugin.PUSH_FOLDER + Dragons.getInstance().getServerName() + "\\";
+		File pushFolder = new File(pushRoot + floor.getWorldName());
+		pushFolder.mkdirs();
 		World world = floor.getWorld();
 		File sourceFolder = world.getWorldFolder();
-		copy(sourceFolder, backupFolder);
+		copy(sourceFolder, pushFolder);
  	}
 	
 	private static void copy(File source, File dest) {
@@ -105,7 +103,8 @@ public class FloorCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.UNDERLINE + "/!\\" + ChatColor.RED + " Pushing this floor will copy it into the PRODUCTION STAGING folder. "
 					+ "This is an indication that it is ready to be moved to the live production environment. It may be picked up by Apollo Sync at any time. " + ChatColor.BOLD + "Confirm?");
 			TextComponent confirm = new TextComponent(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[CONFIRM]");
-			confirm.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GREEN + "Click to confirm push of floor #" + floor.getLevelMin() + " " + floor.getDisplayName()).create()));
+			confirm.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+				new Text(ChatColor.GREEN + "Click to confirm push of floor #" + floor.getLevelMin() + " " + floor.getDisplayName())));
 			confirm.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/floor push " + args[1] + " --confirm"));
 			sender.spigot().sendMessage(confirm);
 			return;

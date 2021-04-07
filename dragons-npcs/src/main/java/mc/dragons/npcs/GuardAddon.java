@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.IronGolem;
@@ -84,7 +84,7 @@ public class GuardAddon extends NPCAddon {
 			@Override public void run() {
 				obcGuard.getHandle().setInvisible(true);
 				LivingEntity leGuard = (LivingEntity) guard;
-				leGuard.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 100, false, false), true);
+				leGuard.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 100, false, false));
 			}
 		}.runTaskLater(Dragons.getInstance(), 1L);
 		LOGGER.fine("Initialized Guard addon on entity " + StringUtil.entityToString(e) + " with golem " + StringUtil.entityToString(guard));

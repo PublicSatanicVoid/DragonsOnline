@@ -2,12 +2,14 @@ C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\analysis\IPHistoryCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\ChatReportCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\abilities\GodModeCommand.java
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\analysis\IPAnalysisUtil.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\PunishMessageHandler.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\RemovePunishmentCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\ReportCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\ReportLoader.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\abilities\VanishCommands.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\analysis\IPScanCommand.java
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\ModUserHook.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\analysis\LocateCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\EscalateCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\abilities\FlyCommand.java

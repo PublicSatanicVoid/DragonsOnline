@@ -21,9 +21,9 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 
 public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 	
-	private static int ADVICE_BROADCASTER_PERIOD_SECONDS = 60 * 2;
-	private static String BACKUP_FOLDER = "C:\\Users\\User\\DragonsBackups\\";
-	private static int BACKUP_PERIOD_MINUTES = 30;
+	private static int ADVICE_BROADCASTER_PERIOD_SECONDS;
+	private static String BACKUP_FOLDER;
+	private static int BACKUP_PERIOD_MINUTES;
 	
 	private DiscordNotifier buildNotifier;
 	
@@ -32,6 +32,10 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 		
 		buildNotifier = new DiscordNotifier(getConfig().getString("discord-notifier-webhook-url"));
 		buildNotifier.setEnabled(getConfig().getBoolean("discord-notifier-enabled"));
+		
+		ADVICE_BROADCASTER_PERIOD_SECONDS = getConfig().getInt("staff-advice.period-seconds", 60 * 2);
+		BACKUP_FOLDER = getConfig().getString("backup.folder", "C:\\DragonsBackups\\");
+		BACKUP_PERIOD_MINUTES = getConfig().getInt("backup.period-minutes", 30);
 		
 		Dragons.getInstance().getLightweightLoaderRegistry().register(new TaskLoader());
 		Dragons.getInstance().getUserHookRegistry().registerHook(new DevUserHook());

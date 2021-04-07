@@ -16,13 +16,14 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.dev.DiscordNotifier.DiscordRole;
 import mc.dragons.dev.TaskLoader.Task;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 public class TaskCommands extends DragonsCommandExecutor {
 
 	private TaskLoader taskLoader;
@@ -73,7 +74,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Created task " + ChatColor.UNDERLINE + "#" + task.getId() + ChatColor.GREEN + " successfully!"
 				+ ChatColor.ITALIC + " /taskinfo " + task.getId() + ChatColor.GREEN + " to track it." + (mgr ? "As a task manager, your task was automatically approved." : ""));
 		TextComponent selfAssign = new TextComponent(ChatColor.GRAY + "[Click to Self-Assign]");
-		selfAssign.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Assign yourself to this task").create()));
+		selfAssign.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Assign yourself to this task")));
 		selfAssign.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/assign " + sender.getName() + " " + task.getId()));
 		sender.spigot().sendMessage(selfAssign);
 		if(!mgr) {
@@ -93,9 +94,11 @@ public class TaskCommands extends DragonsCommandExecutor {
 	private void taskListCommand(CommandSender sender, String[] args) {
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.GOLD + "List all tasks.");
-			sender.sendMessage(ChatColor.YELLOW + "/tasks <all|my|waiting|approved|rejected|done|closed>");
+			sender.sendMessage(ChatColor.YELLOW + "/tasks <all|my|waiting|approved|rejected|done|closed> [page#]");
+			sender.sendMessage(ChatColor.YELLOW + "/tasks <of|by> <player> [page#]");
 			return;
 		}
+		int pageIndex = 1;
 		List<Task> tasks = null;
 		if(args[0].equalsIgnoreCase("all")) {
 			tasks = taskLoader.getAllTasks();
@@ -118,12 +121,32 @@ public class TaskCommands extends DragonsCommandExecutor {
 		else if(args[0].equalsIgnoreCase("closed")) {
 			tasks = taskLoader.getAllClosedTasks(true);
 		}
+		else if(args[0].equalsIgnoreCase("of")) {
+			User target = lookupUser(sender, args[1]);
+			if(target == null) return;
+			tasks = taskLoader.getAllTasksWith(target);
+			pageIndex = 2;
+		}
+		else if(args[0].equalsIgnoreCase("by")) {
+			User target = lookupUser(sender, args[1]);
+			if(target == null) return;
+			tasks = taskLoader.getAllTasksBy(target);
+			pageIndex = 2;
+		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid query! /tasks <all|my|waiting|approved|rejected|done|closed>");
 			return;
 		}
-		sender.sendMessage(ChatColor.GREEN + "Found " + tasks.size() + " tasks matching your query:");
-		for(Task task : tasks) {
+		Integer page = 1;
+		if(args.length > pageIndex) {
+			page = parseIntType(sender, args[pageIndex]);
+			if(page == null) return;
+		}
+		int pageSize = 5;
+		List<Task> results = PaginationUtil.paginateList(tasks, page, pageSize);
+		int pages = (int) Math.ceil((double) tasks.size() / pageSize);
+		sender.sendMessage(ChatColor.GREEN + "Found " + tasks.size() + " tasks matching your query." + ChatColor.GRAY + " [Page " + page + "/" + pages + ". Showing " + results.size() + " Results]");
+		for(Task task : results) {
 			sender.sendMessage(format(task));
 		}
 	}
@@ -374,7 +397,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 	}
 	
 	private String format(Task task) {
-		return ChatColor.GRAY + "- #" + task.getId() + ": " + task.getName() + " (" + status(task) + ")";
+		return ChatColor.DARK_GRAY + "#" + ChatColor.GOLD + ChatColor.BOLD + task.getId() + ChatColor.DARK_GRAY + " | " 
+			+ ChatColor.YELLOW + (task.isClosed() ? ChatColor.STRIKETHROUGH : "") + task.getName() 
+			+ ChatColor.GRAY + " (" + status(task).toUpperCase() + ")";
 	}
 	
 }

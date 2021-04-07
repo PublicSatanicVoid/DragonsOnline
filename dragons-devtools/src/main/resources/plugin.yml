@@ -3,6 +3,7 @@ main: mc.dragons.tools.dev.DragonsDevToolsPlugin
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
+api-version: 1.16
 commands:
   addon:
     description: (ADMIN) Manage item and NPC addons.

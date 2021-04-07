@@ -17,9 +17,9 @@ import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ChatMessageHandler extends MessageHandler {
 	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
@@ -48,20 +48,20 @@ public class ChatMessageHandler extends MessageHandler {
 			loc = user.getPlayer().getLocation();
 		}
 		messageInfoComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				new ComponentBuilder(ChatColor.YELLOW + "" + ChatColor.BOLD + user.getName() + "\n")
-					.append(ChatColor.GRAY + "Server: " + ChatColor.RESET + user.getServer() + "\n")
-					.append(ChatColor.GRAY + "Rank: " + ChatColor.RESET + user.getRank().getNameColor() + user.getRank().getRankName() + "\n")
-					.append(ChatColor.GRAY + "Level: " + user.getLevelColor() + user.getLevel() + "\n")
-					.append(ChatColor.GRAY + "XP: " + ChatColor.RESET + user.getXP() + "\n")
-					.append(ChatColor.GRAY + "Gold: " + ChatColor.RESET + user.getGold() + "\n")
-					.append(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(loc) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n")
-					.append(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(loc.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
-							+ " (when message sent)\n")
-					.append(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + user.getFirstJoined().toString()).create()));
+				new Text(ChatColor.YELLOW + "" + ChatColor.BOLD + user.getName() + "\n"),
+				new Text(ChatColor.GRAY + "Server: " + ChatColor.RESET + user.getServer() + "\n"),
+				new Text(ChatColor.GRAY + "Rank: " + ChatColor.RESET + user.getRank().getNameColor() + user.getRank().getRankName() + "\n"),
+				new Text(ChatColor.GRAY + "Level: " + user.getLevelColor() + user.getLevel() + "\n"),
+				new Text(ChatColor.GRAY + "XP: " + ChatColor.RESET + user.getXP() + "\n"),
+				new Text(ChatColor.GRAY + "Gold: " + ChatColor.RESET + user.getGold() + "\n"),
+				new Text(ChatColor.GRAY + "Location: " + ChatColor.RESET + StringUtil.locToString(loc) + ChatColor.DARK_GRAY + ChatColor.ITALIC + " (when message sent)\n"),
+				new Text(ChatColor.GRAY + "Floor: " + ChatColor.RESET + FloorLoader.fromWorld(loc.getWorld()).getDisplayName() + ChatColor.DARK_GRAY + ChatColor.ITALIC
+						+ " (when message sent)\n"),
+				new Text(ChatColor.GRAY + "First Joined: " + ChatColor.RESET + user.getFirstJoined().toString())));
 		messageInfoComponent.addExtra(ChatColor.GRAY + " » ");
 		TextComponent messageComponent = new TextComponent(user.getRank().getChatColor() + message);
 		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				new ComponentBuilder(ChatColor.YELLOW + "Click to report this message").create()));
+				new Text(ChatColor.YELLOW + "Click to report this message")));
 		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId()));
 		registry.register(messageData);
 		for (User test: UserLoader.allUsers()) {

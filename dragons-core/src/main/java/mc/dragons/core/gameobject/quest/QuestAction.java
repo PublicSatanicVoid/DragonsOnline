@@ -32,9 +32,9 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class QuestAction {
 	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
@@ -466,7 +466,7 @@ public class QuestAction {
 			item.setQuantity(quantity);
 			user.giveItem(item);
 		} else if (action == QuestActionType.ADD_POTION_EFFECT) {
-			user.getPlayer().addPotionEffect(new PotionEffect(effectType, duration, amplifier), true);
+			user.getPlayer().addPotionEffect(new PotionEffect(effectType, duration, amplifier));
 		} else if (action == QuestActionType.REMOVE_POTION_EFFECT) {
 			user.getPlayer().removePotionEffect(effectType);
 		} else if (action == QuestActionType.COMPLETION_HEADER) {
@@ -474,7 +474,7 @@ public class QuestAction {
 				private float pitch = 1.0F;
 				@Override
 				public void run() {
-					user.getPlayer().playSound(user.getPlayer().getLocation(), Sound.BLOCK_NOTE_BASS, 1.0F, pitch);
+					user.getPlayer().playSound(user.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, pitch);
 					pitch = (float) (pitch + 0.05D);
 					if (pitch > 2.0F) {
 						cancel();
@@ -502,8 +502,9 @@ public class QuestAction {
 			for (Entry<String, Integer> choice : choices.entrySet()) {
 				TextComponent choiceMessage = new TextComponent(ChatColor.YELLOW + " • " + ChatColor.GRAY + choice.getKey());
 				choiceMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-						new ComponentBuilder(ChatColor.YELLOW + "Click to respond\n").append(ChatColor.GRAY + "Quest: " + ChatColor.RESET + quest.getQuestName() + "\n")
-								.append(ChatColor.GRAY + "Response: " + ChatColor.RESET + choice.getKey()).create()));
+					new Text(ChatColor.YELLOW + "Click to respond\n"), 
+					new Text(ChatColor.GRAY + "Quest: " + ChatColor.RESET + quest.getQuestName() + "\n"),
+					new Text(ChatColor.GRAY + "Response: " + ChatColor.RESET + choice.getKey())));
 				choiceMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/questchoice " + quest.getName() + " " + choice.getKey()));
 				user.getPlayer().spigot().sendMessage(choiceMessage);
 			}

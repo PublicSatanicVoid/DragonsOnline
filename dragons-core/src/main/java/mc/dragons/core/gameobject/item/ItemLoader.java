@@ -10,6 +10,9 @@ import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectLoader;
@@ -17,7 +20,6 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import mc.dragons.core.util.HiddenStringUtil;
 
 public class ItemLoader extends GameObjectLoader<Item> {
 	private static ItemLoader INSTANCE;
@@ -109,18 +111,13 @@ public class ItemLoader extends GameObjectLoader<Item> {
 	}
 
 	public static Item fromBukkit(ItemStack itemStack) {
-		if (itemStack == null) {
-			return null;
-		}
-		if (itemStack.getItemMeta() == null) {
-			return null;
-		}
-		if (itemStack.getItemMeta().getLore() == null) {
-			return null;
-		}
-		if (itemStack.getItemMeta().getLore().size() < 1) {
-			return null;
-		}
-		return uuidToItem.get(HiddenStringUtil.extractHiddenString(itemStack.getItemMeta().getLore().get(0)));
+		if(itemStack == null) return null;
+		ItemMeta meta = itemStack.getItemMeta();
+		if(meta == null) return null;
+		PersistentDataContainer pdc = meta.getPersistentDataContainer();
+		if(pdc == null) return null;
+		String uuid = pdc.get(Item.ITEM_UUID_KEY, PersistentDataType.STRING);
+		if(uuid == null) return null;
+		return uuidToItem.get(uuid);
 	}
 }

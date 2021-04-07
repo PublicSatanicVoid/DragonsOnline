@@ -3,13 +3,13 @@ package mc.dragons.res;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Bisected.Half;
+import org.bukkit.block.data.type.Door;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Door;
 
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 
@@ -128,12 +128,12 @@ public class ResCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Please look at the door you want to link!");
 					return true;
 				}
-				if(!(target.getState().getData() instanceof Door)) {
+				if(!(target.getBlockData() instanceof Door)) {
 					sender.sendMessage(ChatColor.RED + "Please look at the " + ChatColor.ITALIC + "door " + ChatColor.RED + "you want to link!");
 					return true;
 				}
-				Door door = (Door) target.getState().getData();
-				if(door.isTopHalf()) {
+				Door door = (Door) target.getBlockData();
+				if(door.getHalf() == Half.TOP) {
 					target = target.getRelative(BlockFace.DOWN);
 				}
 				resPointLoader.addResPoint(args[1], StringUtil.concatArgs(args, 3), Double.valueOf(args[2]), target.getLocation());
@@ -179,7 +179,7 @@ public class ResCommands extends DragonsCommandExecutor {
 				for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
 					sender.sendMessage(ChatColor.GRAY + "- " + resPoint.getName() + " - " + resPoint.getPrice() + " gold"
 							+ " (" + StringUtil.locToString(resPoint.getDoorLocation()) + ")");
-					if(!(resPoint.getDoorLocation().getBlock().getState().getData() instanceof Door)) {
+					if(!(resPoint.getDoorLocation().getBlock().getBlockData() instanceof Door)) {
 						sender.sendMessage(ChatColor.RED + "   (Invalid: No door at that location!)");
 					}
 				}
@@ -272,47 +272,15 @@ public class ResCommands extends DragonsCommandExecutor {
 			}
 		}
 		
-		else if(label.equalsIgnoreCase("testdoorplacement")) {
-			Location loc = player.getLocation().add(1, 1, 0);
-			
-			if(args[0].equalsIgnoreCase("a")) {
-				loc.getBlock().getRelative(BlockFace.DOWN).setType(Material.BIRCH_DOOR, false);
-				loc.getBlock().setType(Material.BIRCH_DOOR, false);
-				Door data = (Door) loc.getBlock().getState().getData();
-				data.setTopHalf(true);
-				loc.getBlock().getState().setData(data);
-				boolean result = loc.getBlock().getState().update(true);
-				player.sendMessage("result=" + result);
-			}
-			
-			else if(args[0].equalsIgnoreCase("b")) {
-				loc.getBlock().getRelative(BlockFace.DOWN).setType(Material.BIRCH_DOOR, false);
-				loc.getBlock().setType(Material.BIRCH_DOOR, false);
-				((Door) loc.getBlock().getState().getData()).setTopHalf(true);
-				boolean result = loc.getBlock().getState().update(true);
-				boolean result0 = loc.getBlock().getRelative(BlockFace.DOWN).getState().update(true);
-				player.sendMessage("result=" + result + ", " + result0);
-			}
-			
-			else if(args[0].equalsIgnoreCase("c")) {
-				loc.getBlock().setType(Material.BIRCH_DOOR);
-				loc.getBlock().getRelative(BlockFace.DOWN).setType(Material.BIRCH_DOOR);
-				((Door) loc.getBlock().getState().getData()).setTopHalf(true);
-			}
-			
-			else if(args[0].equalsIgnoreCase("d")) {
-				loc.getBlock().setType(Material.BIRCH_DOOR);
-				((Door) loc.getBlock().getState().getData()).setTopHalf(true);
-			}
-		}
-		
 		else if(label.equalsIgnoreCase("testschematic")) {
 			if(args[1].equalsIgnoreCase("good")) {
-				DragonsResPlugin.pasteSchematic(DragonsResPlugin.loadSchematic(args[0], new BukkitWorld(player.getWorld())), 
+				DragonsResPlugin.pasteSchematic(DragonsResPlugin.loadSchematic(args[0]), 
 						DragonsResPlugin.getEditSession(new BukkitWorld(player.getWorld())), player.getLocation());
 			}
 			else if(args[1].equalsIgnoreCase("bad")) {
-				DragonsResPlugin.pasteSchematic(args[0], DragonsResPlugin.getEditSession(new BukkitWorld(player.getWorld())), player.getLocation());
+				//DragonsResPlugin.pasteSchematic(args[0], DragonsResPlugin.getEditSession(new BukkitWorld(player.getWorld())), player.getLocation());
+				sender.sendMessage(ChatColor.RED + "No! Don't be bad");
+				sender.sendMessage(ChatColor.GREEN + "Be good instead ;)");
 			}
 		}
 		

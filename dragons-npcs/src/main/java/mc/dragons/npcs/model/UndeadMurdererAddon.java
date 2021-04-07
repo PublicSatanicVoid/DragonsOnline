@@ -18,11 +18,11 @@ public class UndeadMurdererAddon extends ComplexAddon {
 	@Override
 	public void initializeParts(NPC npc) {
 		ArmorStand body = (ArmorStand) npc.getEntity().getWorld().spawnEntity(npc.getEntity().getLocation(), EntityType.ARMOR_STAND);
-		body.setHelmet(new ItemStack(Material.STAINED_CLAY));
-		body.setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-		body.setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
-		body.setBoots(new ItemStack(Material.LEATHER_BOOTS));
-		body.setItemInHand(new ItemStack(Material.STONE_AXE));
+		body.getEquipment().setHelmet(new ItemStack(Material.CLAY));
+		body.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+		body.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
+		body.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+		body.getEquipment().setItemInMainHand(new ItemStack(Material.STONE_AXE));
 		body.setBasePlate(false);
 		body.setCustomNameVisible(true);
 		body.setGravity(false);

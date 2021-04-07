@@ -29,9 +29,9 @@ import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ReportLoader extends AbstractLightweightLoader<Report> {
 
@@ -195,7 +195,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	
 	private void reportNotify(int id, String message) {
 		TextComponent text = new TextComponent(ChatColor.DARK_RED + "" + ChatColor.BOLD + "!! " + ChatColor.RED + "[Report] " + ChatColor.GRAY + message);
-		text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.YELLOW + "Click to view").create()));
+		text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "Click to view")));
 		text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + id));
 		UserLoader.allUsers().stream()
 			.filter(u -> PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false))

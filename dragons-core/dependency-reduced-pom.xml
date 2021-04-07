@@ -34,6 +34,10 @@
       <url>https://repo.dmulloy2.net/nexus/repository/public/</url>
     </repository>
     <repository>
+      <id>nms</id>
+      <url>https://repo.codemc.io/repository/nms/</url>
+    </repository>
+    <repository>
       <id>CodeMC</id>
       <url>https://repo.codemc.org/repository/maven-public</url>
     </repository>
@@ -42,13 +46,13 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.12.2-R0.1-SNAPSHOT</version>
+      <version>1.16.5-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>craftbukkit</artifactId>
-      <version>1.12.2-R0.1-SNAPSHOT</version>
+      <version>1.16.5-R0.1-20210405.222457-11</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

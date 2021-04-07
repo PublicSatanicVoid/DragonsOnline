@@ -7,9 +7,9 @@ import java.util.Map;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.material.Door;
-import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.mongodb.client.FindIterable;
@@ -148,15 +148,15 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 	
 	public void createResPointHologram(ResPoint resPoint) {
 		Location doorLoc = resPoint.getDoorLocation();
-		MaterialData materialData = doorLoc.getBlock().getState().getData();
-		if(!(materialData instanceof Door)) {
+		BlockData blockData = doorLoc.getBlock().getBlockData();
+		if(!doorLoc.getBlock().getType().toString().toUpperCase().contains("DOOR") || !(blockData instanceof Directional)) {
 			JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().warning("Could not load res point at " + StringUtil.locToString(doorLoc));
 			HologramUtil.makeHologram(ChatColor.RED + "Invalid res point!", doorLoc.add(0, 1, 0));
 			return;
 		}
-		Door door = (Door) materialData;
-		Location holoLoc = doorLoc.add((door.getFacing().getModX() - door.getFacing().getModZ()) * 0.5, 0.5, (door.getFacing().getModZ() - door.getFacing().getModX()) * 0.5);
-		JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().info("Door at " + StringUtil.locToString(holoLoc) + " has direction " + door.getFacing().getModX() + ", " + door.getFacing().getModZ());
+		Directional dir = (Directional) blockData;
+		Location holoLoc = doorLoc.add(-dir.getFacing().getModX(), 0.5, -dir.getFacing().getModZ());
+		JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().info("Door at " + StringUtil.locToString(holoLoc) + " has direction " + dir.getFacing().getModX() + ", " + dir.getFacing().getModZ());
 		ArmorStand[] notOwnedHologram = {
 				HologramUtil.makeHologram(ChatColor.GRAY + "Price: " + ChatColor.YELLOW + resPoint.getPrice() + "g", holoLoc),
 				HologramUtil.makeHologram(ChatColor.GOLD + resPoint.getDisplayName(), holoLoc.clone().add(0, 0.3, 0)) 

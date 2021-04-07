@@ -25,7 +25,13 @@ import mc.dragons.tools.content.event.PlayerChangedWorldListener;
 
 public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExecutor {
 
+	public static String PUSH_FOLDER;
+	
 	public void onEnable() {
+		saveDefaultConfig();
+		
+		PUSH_FOLDER = getConfig().getString("push-folder", "C:\\DragonsPush\\");
+		
 		getCommand("region").setExecutor(new RegionCommand());
 		getCommand("npc").setExecutor(new NPCCommand());
 		getCommand("item").setExecutor(new ItemCommand());
