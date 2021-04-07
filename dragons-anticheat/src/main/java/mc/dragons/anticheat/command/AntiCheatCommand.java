@@ -3,15 +3,15 @@ package mc.dragons.anticheat.command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 
 import mc.dragons.anticheat.DragonsAntiCheatPlugin;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import net.minecraft.server.v1_12_R1.Block;
-import net.minecraft.server.v1_12_R1.BlockPosition;
-import net.minecraft.server.v1_12_R1.IBlockData;
+import net.minecraft.server.v1_16_R3.Block;
+import net.minecraft.server.v1_16_R3.BlockPosition;
+import net.minecraft.server.v1_16_R3.IBlockData;
 
 public class AntiCheatCommand extends DragonsCommandExecutor {
 
@@ -53,7 +53,7 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			IBlockData blockData = ((CraftWorld) player.getWorld()).getHandle().getType(new BlockPosition(player.getLocation().getBlockX(), player.getLocation().getBlockY() - 1, player.getLocation().getBlockZ()));
 			Block nmsBlock = blockData.getBlock();
 			sender.sendMessage("nmsBlock="+nmsBlock);
-			float ff = nmsBlock.frictionFactor;
+			float ff = nmsBlock.getFrictionFactor();
 			sender.sendMessage("frictionFactor="+ff);
 			ff *= 0.91; // ?
 			sender.sendMessage("*multiplier="+ 0.1 * (0.1627714 / (ff * ff * ff)));

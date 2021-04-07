@@ -24,6 +24,10 @@
  			<id>enginehub-maven</id>
 			<url>http://maven.enginehub.org/repo/</url>
 		</repository>
+        <repository>
+            <id>IntellectualSites</id>
+            <url>https://mvn.intellectualsites.com/content/repositories/releases/</url>
+        </repository>
    </repositories>
    
 
@@ -31,7 +35,7 @@
      <dependency>
      	<groupId>org.spigotmc</groupId>
      	<artifactId>spigot-api</artifactId>
-     	<version>1.12.2-R0.1-SNAPSHOT</version>
+     	<version>1.16.5-R0.1-SNAPSHOT</version>
     	<type>jar</type>
      	<scope>provided</scope>
      </dependency>
@@ -40,10 +44,16 @@
       	<artifactId>dragons-core</artifactId>
       	<version>0.0.1-SNAPSHOT</version>
       </dependency>
-      <dependency>
+      <!--<dependency>
 		<groupId>com.sk89q.worldedit</groupId>
 		<artifactId>worldedit-bukkit</artifactId>
-		<version>6.0.0-SNAPSHOT</version>
-	  </dependency>
+		<version>LATEST</version>
+	  </dependency>-->
+        <dependency>
+            <groupId>com.intellectualsites.fawe</groupId>
+            <artifactId>FAWE-Bukkit</artifactId>
+            <version>1.16-637</version>
+            <scope>provided</scope>
+        </dependency>
   </dependencies>
 </project>

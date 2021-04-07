@@ -44,7 +44,7 @@ public class TestSpell extends Spell {
 				if(n > 10) {
 					this.cancel();
 					p.teleport(lbuf);
-					p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 5, 1, false, false), true);
+					p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 5, 1, false, false));
 					p.getWorld().spigot().strikeLightningEffect(lbuf, false);
 					for(Entity e : p.getNearbyEntities(5, 5, 5)) {
 						NPC npc = NPCLoader.fromBukkit(e);

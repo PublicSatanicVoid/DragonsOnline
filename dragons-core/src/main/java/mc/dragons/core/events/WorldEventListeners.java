@@ -36,7 +36,7 @@ public class WorldEventListeners implements Listener {
 	@EventHandler
 	public void onCropTrample(PlayerInteractEvent e) {
 		LOGGER.finest("Player interact event in world " + e.getPlayer().getWorld().getName());
-		if (e.getAction() == Action.PHYSICAL && e.getClickedBlock().getType() == Material.SOIL) {
+		if (e.getAction() == Action.PHYSICAL && e.getClickedBlock().getType() == Material.WHEAT) {
 			LOGGER.finest(" - It's a crop trample event! Cancelling.");
 			e.setCancelled(true);
 		}
@@ -45,7 +45,7 @@ public class WorldEventListeners implements Listener {
 	@EventHandler
 	public void onEntityCropTrample(EntityInteractEvent event) {
 		LOGGER.finest("Entity interact event in world " + event.getEntity().getWorld());
-		if (event.getBlock().getType() == Material.CROPS || event.getBlock().getType() == Material.SOIL) {
+		if (event.getBlock().getType() == Material.WHEAT) {
 			event.setCancelled(true);
 		}
 	}

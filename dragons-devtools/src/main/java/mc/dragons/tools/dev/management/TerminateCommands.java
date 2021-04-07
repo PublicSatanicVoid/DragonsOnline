@@ -29,7 +29,9 @@ public class TerminateCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("killtasks")) {
-			Bukkit.getScheduler().cancelAllTasks();
+			for(Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+				Bukkit.getScheduler().cancelTasks(plugin);
+			}
 			sender.sendMessage(ChatColor.GREEN + "Killed all tasks.");
 		}
 		
@@ -64,8 +66,9 @@ public class TerminateCommands extends DragonsCommandExecutor {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "generatedump");
 			Bukkit.getLogger().setLevel(Level.SEVERE);
 			Bukkit.getLogger().severe("=== SHUTTING DOWN ===");
-			Bukkit.getScheduler().cancelAllTasks();
-			Bukkit.getPluginManager().disablePlugins();
+			for(Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+				Bukkit.getScheduler().cancelTasks(plugin);
+			}
 			Bukkit.getLogger().severe(" ");
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "stop");
 			System.exit(-1);

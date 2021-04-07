@@ -7,11 +7,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Bisected.Half;
+import org.bukkit.block.data.type.Door;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.material.Door;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
@@ -36,12 +37,12 @@ public class ResEvents implements Listener {
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event) {
 		if(event.getClickedBlock() == null) return;
-		if(!(event.getClickedBlock().getState().getData() instanceof Door)) {
+		if(!(event.getClickedBlock().getBlockData() instanceof Door)) {
 			return;
 		}
 		Player player = event.getPlayer();
 		User user = UserLoader.fromPlayer(player);
-		Door door = (Door) event.getClickedBlock().getState().getData();
+		Door door = (Door) event.getClickedBlock().getBlockData();
 		if(player.getWorld().getName().equals("res_temp")) {
 			player.performCommand("res exit");
 			event.setCancelled(true);
@@ -49,7 +50,7 @@ public class ResEvents implements Listener {
 		}
 		if(!door.isOpen()) {
 			user.debug("R.Click on door (opening it)");
-			Location realLocation = door.isTopHalf() ? event.getClickedBlock().getRelative(BlockFace.DOWN).getLocation() 
+			Location realLocation = door.getHalf() == Half.TOP ? event.getClickedBlock().getRelative(BlockFace.DOWN).getLocation() 
 					: event.getClickedBlock().getLocation();
 			user.debug("-Door base=" + StringUtil.locToString(realLocation));
 			ResPoint resPoint = resPointLoader.getResPointByDoorLocation(realLocation);

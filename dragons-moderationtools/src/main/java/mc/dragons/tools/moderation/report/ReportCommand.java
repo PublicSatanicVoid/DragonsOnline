@@ -10,9 +10,9 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ReportCommand extends DragonsCommandExecutor {
 
@@ -55,7 +55,7 @@ public class ReportCommand extends DragonsCommandExecutor {
 			for(String[] reason : GENERIC_REASONS) {
 				TextComponent option = new TextComponent(ChatColor.GRAY + " • " + ChatColor.AQUA + reason[0]);
 				option.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-						new ComponentBuilder(ChatColor.GRAY + reason[1]).create()));
+						new Text(ChatColor.GRAY + reason[1])));
 				option.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report " + args[0] + " " + reason[0]));
 				reporter.getPlayer().spigot().sendMessage(option);
 			}
@@ -85,11 +85,11 @@ public class ReportCommand extends DragonsCommandExecutor {
 			sender.sendMessage(" ");
 			TextComponent submit = new TextComponent(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]");
 			submit.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new ComponentBuilder(ChatColor.GRAY + "By submitting, you confirm that this report is accurate to the best of your knowledge.").create()));
+					new Text(ChatColor.GRAY + "By submitting, you confirm that this report is accurate to the best of your knowledge.")));
 			submit.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report " + args[0] + " " + reason + CONFIRMATION_FLAG));
 			TextComponent cancel = new TextComponent(ChatColor.GRAY + "   " + ChatColor.BOLD + "[Cancel]");
 			cancel.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new ComponentBuilder(ChatColor.GRAY + "You can always create a new report with " + ChatColor.YELLOW + "/report" + ChatColor.GRAY + ".").create()));
+					new Text(ChatColor.GRAY + "You can always create a new report with " + ChatColor.YELLOW + "/report" + ChatColor.GRAY + ".")));
 			sender.spigot().sendMessage(submit, cancel);
 			sender.sendMessage(" ");
 			return true;

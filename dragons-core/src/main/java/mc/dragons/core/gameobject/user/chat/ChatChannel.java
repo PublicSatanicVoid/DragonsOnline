@@ -10,9 +10,9 @@ import mc.dragons.core.gameobject.user.chat.channel_handlers.HelpChannelHandler;
 import mc.dragons.core.gameobject.user.chat.channel_handlers.LocalChannelHandler;
 import mc.dragons.core.gameobject.user.chat.channel_handlers.StaffChannelHandler;
 import mc.dragons.core.gameobject.user.chat.channel_handlers.TradeChannelHandler;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 /**
  * Named channels of text-based communication in the game.
@@ -69,8 +69,10 @@ public enum ChatChannel {
 		long listening = UserLoader.allUsers().stream().filter(u -> u.getActiveChatChannels().contains(this)).count();
 		TextComponent component = new TextComponent(str);
 		component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				new ComponentBuilder(ChatColor.YELLOW + "Channel: " + ChatColor.RESET + toString() + "\n").append(ChatColor.YELLOW + "Listening: " + ChatColor.RESET + listening + "\n")
-						.append(ChatColor.ITALIC + getDescription() + "\n").append(ChatColor.GRAY + "Do " + ChatColor.RESET + "/channel " + ChatColor.GRAY + "to manage channels").create()));
+				new Text(ChatColor.YELLOW + "Channel: " + ChatColor.RESET + toString() + "\n"),
+				new Text(ChatColor.YELLOW + "Listening: " + ChatColor.RESET + listening + "\n"),
+				new Text(ChatColor.ITALIC + getDescription() + "\n"),
+				new Text(ChatColor.GRAY + "Do " + ChatColor.RESET + "/channel " + ChatColor.GRAY + "to manage channels")));
 		return component;
 	}
 

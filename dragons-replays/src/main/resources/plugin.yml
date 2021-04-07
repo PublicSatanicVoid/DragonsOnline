@@ -3,6 +3,7 @@ main: mc.dragons.anticheat.DragonsAntiCheatPlugin
 version: 1.0.0
 author: DragonRider747
 depend: [DragonsCore]
+api-version: 1.16
 commands:
   ac:
   acdebug:

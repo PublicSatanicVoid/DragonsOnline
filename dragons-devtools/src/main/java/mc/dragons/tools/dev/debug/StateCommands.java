@@ -23,9 +23,9 @@ import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.StorageUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class StateCommands extends DragonsCommandExecutor {
 
@@ -66,7 +66,7 @@ public class StateCommands extends DragonsCommandExecutor {
 					.append("originalTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(Date.from(Instant.now())));
 			UUID stateToken = stateLoader.registerStateToken(state);
 			TextComponent clickable = new TextComponent(ChatColor.GREEN + "Your current state token is " + ChatColor.GRAY + stateToken);
-			clickable.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to get copy-able state token").create()));
+			clickable.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to get copy-able state token")));
 			clickable.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/setstate " + stateToken));
 			player.spigot().sendMessage(clickable);
 		}

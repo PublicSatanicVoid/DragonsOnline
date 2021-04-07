@@ -21,7 +21,7 @@ public class BoneCrusherAddon extends ComplexAddon {
 				spineXoffset < 2.0;
 				count++, spineXoffset += 0.4, spineYoffset += 0.25 * Math.cos(spineXoffset*Math.PI/4), spineZoffset += 0.0, spineYrot += Math.acos(spineXoffset*Math.PI/4)) {
 			ArmorStand spinePart = newPart(npc, spineXoffset, spineYoffset, spineZoffset);
-			spinePart.setHelmet(new ItemStack(Material.BONE_BLOCK));
+			spinePart.getEquipment().setHelmet(new ItemStack(Material.BONE_BLOCK));
 			spinePart.setHeadPose(new EulerAngle(spineXrot, spineYrot, spineZrot));
 			spineBuf = spinePart;
 			if(count % 8.0 == 0.0) {
@@ -29,7 +29,7 @@ public class BoneCrusherAddon extends ComplexAddon {
 						ribZoffset <= spineZoffset + 2.0;
 						ribXoffset -= 0.0, ribYoffset += 0.0, ribZoffset += 0.4) {
 					ArmorStand ribPart = newPart(npc, ribXoffset, ribYoffset, ribZoffset);
-					ribPart.setHelmet(new ItemStack(Material.BONE_BLOCK));
+					ribPart.getEquipment().setHelmet(new ItemStack(Material.BONE_BLOCK));
 					ribPart.setHeadPose(new EulerAngle(Math.PI / 4, 0.0, 0.0));
 				}
 			}

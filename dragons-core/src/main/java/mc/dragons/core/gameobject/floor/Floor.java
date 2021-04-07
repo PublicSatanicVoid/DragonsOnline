@@ -1,10 +1,12 @@
 package mc.dragons.core.gameobject.floor;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
@@ -65,17 +67,20 @@ public class Floor extends GameObject {
 			creator.type(WorldType.FLAT);
 		}
 		World world = Bukkit.createWorld(creator);
-		world.setGameRuleValue("announceAdvancements", "false");
-		world.setGameRuleValue("commandBlockFeedback", "false");
-		world.setGameRuleValue("commandBlockOutput", "false");
-		world.setGameRuleValue("doMobLoot", "false");
-		world.setGameRuleValue("doMobSpawning", "false");
-		world.setGameRuleValue("doEntityDrops", "false");
-		world.setGameRuleValue("doFireTick", "false");
-		world.setGameRuleValue("keepInventory", "true");
-		world.setGameRuleValue("mobGriefing", "false");
-		world.setGameRuleValue("reducedDebugInfo", "false");
-		world.setGameRuleValue("showDeathMessages", "false");
+		world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+		world.setGameRule(GameRule.COMMAND_BLOCK_OUTPUT, false);
+		world.setGameRule(GameRule.DO_MOB_LOOT, false);
+		world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+		world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+		world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
+		world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
+		world.setGameRule(GameRule.DO_ENTITY_DROPS, false);
+		world.setGameRule(GameRule.DO_TILE_DROPS, false);
+		world.setGameRule(GameRule.DO_FIRE_TICK, false);
+		world.setGameRule(GameRule.KEEP_INVENTORY, true);
+		world.setGameRule(GameRule.MOB_GRIEFING, false);
+		world.setGameRule(GameRule.REDUCED_DEBUG_INFO, !Dragons.getInstance().isDebug());
+		world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
 	}
 
 	public String getWorldName() {

@@ -3,6 +3,7 @@ main: mc.dragons.tools.moderation.DragonsModerationToolsPlugin
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
+api-version: 1.16
 commands:
   escalate:
     description: (HELPER) Escalate an issue with a player for action by senior staff.

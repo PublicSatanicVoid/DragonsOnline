@@ -19,7 +19,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
-import mc.dragons.core.bridge.impl.BridgeSpigot112R1;
+import mc.dragons.core.bridge.impl.BridgeSpigot116R3;
 import mc.dragons.core.commands.AutoRankCommand;
 import mc.dragons.core.commands.ChangeLogCommands;
 import mc.dragons.core.commands.FeedbackCommand;
@@ -130,8 +130,8 @@ public class Dragons extends JavaPlugin {
 			started = System.currentTimeMillis();
 			getLogger().info("Searching for compatible version...");
 			switch (BUKKIT_API_VERSION) {
-			case "1_12_R1":
-				bridge = new BridgeSpigot112R1();
+			case "1_16_R3":
+				bridge = new BridgeSpigot116R3();
 				break;
 			default:
 				getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");

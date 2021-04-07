@@ -52,7 +52,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\addon\Addon
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\local\LocalStorageAccess.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\tasks\VerifyGameIntegrityTask.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\Counter.java
-C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\bridge\impl\BridgeSpigot112R1.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\bridge\impl\BridgeSpigot116R3.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\npc\NPCClass.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\HttpUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\item\Item.java
@@ -71,7 +71,6 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\channel_handlers\AlvadorChannelHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SkillType.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\AutoRankCommand.java
-C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\HiddenStringUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityMoveListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\Dragons.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\ConnectionMessageHandler.java

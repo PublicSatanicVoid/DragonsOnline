@@ -1,6 +1,7 @@
 package mc.dragons.res;
 
 import org.bson.Document;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import mc.dragons.core.Dragons;
@@ -19,9 +20,6 @@ public class ResUserHook implements UserHook {
 	
 	@Override
 	public void onVerifiedJoin(User user) {
-		for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
-			resPointLoader.updateResHologramOn(user, resPoint);
-		}
 		Document saved = user.getData().get("resExitTo", Document.class);
 		if(saved == null) {
 			return;
@@ -29,6 +27,11 @@ public class ResUserHook implements UserHook {
 		Location to = StorageUtil.docToLoc(saved);
 		user.getPlayer().teleport(to);
 		user.getStorageAccess().set("resExitTo", null);
-
+		Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
+				for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
+				resPointLoader.updateResHologramOn(user, resPoint);
+			}
+		}, 20L);
+		
 	}
 }

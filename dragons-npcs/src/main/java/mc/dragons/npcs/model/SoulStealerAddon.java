@@ -42,7 +42,7 @@ public class SoulStealerAddon extends ComplexAddon {
 		List<ArmorStand> souls = new ArrayList<>();
 		for(int i = 0; i < N_SOULS; i++) {
 			ArmorStand soul = newPart(npc);
-			soul.setHelmet(new ItemStack(Material.MAGMA_CREAM));
+			soul.getEquipment().setHelmet(new ItemStack(Material.MAGMA_CREAM));
 			soul.setHeadPose(NPCUtil.randomRotation());
 			souls.add(soul);
 		}
@@ -65,7 +65,7 @@ public class SoulStealerAddon extends ComplexAddon {
 					return;
 				}
 				soul.setMetadata("allow", new FixedMetadataValue(JavaPlugin.getPlugin(DragonsNPCAddons.class), true));
-				soul.setHelmet(new ItemStack(Material.MAGMA_CREAM));
+				soul.getEquipment().setHelmet(new ItemStack(Material.MAGMA_CREAM));
 				soul.setHeadPose(NPCUtil.randomRotation());
 				soul.setVisible(false);
 				Vector move = target.getPlayer().getLocation().subtract(soul.getLocation()).toVector().normalize().multiply(0.7);

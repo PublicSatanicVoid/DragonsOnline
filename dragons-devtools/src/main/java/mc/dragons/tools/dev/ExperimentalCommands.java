@@ -20,6 +20,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 
@@ -39,7 +40,6 @@ import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.storage.StorageUtil;
-import mc.dragons.core.util.HiddenStringUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -128,15 +128,10 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
 			ItemStack itemStack = player.getInventory().getItemInMainHand();
 			sender.sendMessage("meta=" + itemStack.getItemMeta());
-			sender.sendMessage("lore=" + itemStack.getItemMeta().getLore());
-			sender.sendMessage("lore sz=" + itemStack.getItemMeta().getLore().size());
-			sender.sendMessage("lore 0=" + itemStack.getItemMeta().getLore().get(0));
-			sender.sendMessage("converted lore 0=" + HiddenStringUtil.extractHiddenString(itemStack.getItemMeta().getLore().get(0)));
+			sender.sendMessage("pdc=" + itemStack.getItemMeta().getPersistentDataContainer());
+			sender.sendMessage("uuid=" + itemStack.getItemMeta().getPersistentDataContainer().get(Item.ITEM_UUID_KEY, PersistentDataType.STRING));
 			Item item = ItemLoader.fromBukkit(itemStack);
-			sender.sendMessage(item.getIdentifier().toString());
-			sender.sendMessage("class=" + item.getClassName());
-			sender.sendMessage("quantity=" + item.getQuantity());
-			sender.sendMessage("bukkit amt=" + itemStack.getAmount());
+			sender.sendMessage("item=" + item);
 		}
 		
 		else if(label.equalsIgnoreCase("testlocaluserstorage")) {

@@ -9,9 +9,9 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
 import mc.dragons.core.gameobject.user.chat.MessageData;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ChatReportCommand extends DragonsCommandExecutor {
 	private static String CONFIRMATION_FLAG = " --internal-confirm-and-submit";
@@ -51,11 +51,11 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 			sender.sendMessage(" ");
 			TextComponent submit = new TextComponent(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]");
 			submit.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new ComponentBuilder(ChatColor.GRAY + "By submitting, you confirm that this report is accurate to the best of your knowledge.").create()));
+					new Text(ChatColor.GRAY + "By submitting, you confirm that this report is accurate to the best of your knowledge.")));
 			submit.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + args[0] + " " + CONFIRMATION_FLAG));
 			TextComponent cancel = new TextComponent(ChatColor.GRAY + "   " + ChatColor.BOLD + "[Cancel]");
 			cancel.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new ComponentBuilder(ChatColor.GRAY + "You can always create a new chat report by clicking on a different message.").create()));
+					new Text(ChatColor.GRAY + "You can always create a new chat report by clicking on a different message.")));
 			sender.spigot().sendMessage(submit, cancel);
 			sender.sendMessage(" ");
 			return true;

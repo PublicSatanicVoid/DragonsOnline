@@ -125,7 +125,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	}
 	
 	public List<Task> asTasks(List<Document> tasks) {
-		return tasks.stream().map(doc -> Task.fromDocument(doc)).sorted((a, b) -> a.getId() - b.getId()).collect(Collectors.toList());
+		return tasks.stream().map(doc -> Task.fromDocument(doc)).sorted((a, b) -> b.getId() - a.getId()).collect(Collectors.toList());
 	}
 	
 	public List<Task> getAllTasks() {

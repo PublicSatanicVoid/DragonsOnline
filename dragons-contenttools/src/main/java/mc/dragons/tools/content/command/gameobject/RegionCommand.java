@@ -117,7 +117,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "/region <RegionName> border [MaterialType=WOOL]");
 		}
 		
-		Material material = Material.WOOL;
+		Material material = Material.LIME_WOOL;
 		if(args.length > 2) {
 			material = StringUtil.parseEnum(sender, Material.class, args[2]);
 			if(material == null) return;

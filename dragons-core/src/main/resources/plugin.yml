@@ -5,6 +5,7 @@ author: DragonRider747
 depend: [ProtocolLib]
 loadbefore: [WorldEdit]
 load: POSTWORLD
+api-version: 1.16
 commands:
   fastforwarddialogue:
     description: Fast-forward through active quest dialogue.

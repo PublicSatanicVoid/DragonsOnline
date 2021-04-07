@@ -77,7 +77,7 @@ public abstract class ComplexAddon extends NPCAddon {
 		LivingEntity le = (LivingEntity) npc.getEntity();
 		le.setMetadata("complex", new FixedMetadataValue(Dragons.getInstance(), true));
 		if(hideEntity) {
-			le.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 100, false, false), true);
+			le.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 100, false, false));
 			le.setSilent(true);
 		}
 		parts.put(npc, new ArrayList<>());

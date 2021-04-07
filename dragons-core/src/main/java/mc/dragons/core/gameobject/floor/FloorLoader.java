@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.bson.Document;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -30,6 +31,9 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 
 	private FloorLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
+		Bukkit.getLogger().info("===INITIALIZING FLOOR LOADER===");
+		Bukkit.getLogger().info("===instance=" + instance);
+		Bukkit.getLogger().info("===instance.registry=" + instance.getGameObjectRegistry());
 		masterRegistry = instance.getGameObjectRegistry();
 	}
 
@@ -106,6 +110,7 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 	}
 
 	public void lazyLoadAll() {
+		Bukkit.getLogger().info("===LAZY LOADING ALL FLOORS");
 		loadAll(false);
 	}
 }

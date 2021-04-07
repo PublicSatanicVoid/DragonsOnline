@@ -3,6 +3,7 @@ main: mc.dragons.spells.DragonsSpellAddons
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
+api-version: 1.16
 commands:
   bindspell:
     description: (GM) Bind a spell to your held item.

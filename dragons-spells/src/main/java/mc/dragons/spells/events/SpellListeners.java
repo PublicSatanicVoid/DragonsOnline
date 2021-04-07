@@ -2,8 +2,8 @@ package mc.dragons.spells.events;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventory;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftInventoryCustom;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -42,7 +42,7 @@ public class SpellListeners implements Listener {
 			}
 			
 		}
-		if(e.getInventory().getName().equals(SpellConstants.ENCHANTER_MENU_TITLE)) {
+		if(e.getView().getTitle().equals(SpellConstants.ENCHANTER_MENU_TITLE)) {
 			user.debug("Interacted with the Enchanter menu. SlotType="+e.getSlotType());
 			CraftInventoryCustom cc = (CraftInventoryCustom) e.getInventory();
 			if(e.getSlotType() == SlotType.RESULT) {

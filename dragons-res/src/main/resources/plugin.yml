@@ -2,13 +2,13 @@ name: DragonsRes
 main: mc.dragons.res.DragonsResPlugin
 version: 1.0.0
 author: UniverseCraft
-depend: [DragonsCore, WorldEdit]
+depend: [DragonsCore, FastAsyncWorldEdit]
+api-version: 1.16
 commands:
   res:
     description: Manage your residence.
   resadmin:
     description: (ADMIN) Manage residences.
   restest:
-  testdoorplacement:
   testschematic:
   testcontextualholograms:

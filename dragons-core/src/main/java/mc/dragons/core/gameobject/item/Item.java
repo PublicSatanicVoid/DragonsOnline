@@ -9,16 +9,17 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
-import mc.dragons.core.util.HiddenStringUtil;
 
 /**
  * Represents a general item in the RPG.
@@ -34,6 +35,8 @@ import mc.dragons.core.util.HiddenStringUtil;
  *
  */
 public class Item extends GameObject {
+	public static NamespacedKey ITEM_UUID_KEY = new NamespacedKey(Dragons.getInstance(), "dragons-uuid");
+	
 	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 
 	private ItemStack itemStack;
@@ -41,13 +44,13 @@ public class Item extends GameObject {
 
 
 	public static boolean isWeapon(Material type) {
-		return type == Material.BOW || type == Material.DIAMOND_SWORD || type == Material.GOLD_SWORD || type == Material.IRON_SWORD || type == Material.STONE_SWORD 
-				|| type == Material.WOOD_SWORD || type == Material.STICK;
+		return type == Material.BOW || type == Material.DIAMOND_SWORD || type == Material.GOLDEN_SWORD || type == Material.IRON_SWORD || type == Material.STONE_SWORD 
+				|| type == Material.WOODEN_SWORD || type == Material.STICK;
 	}
 	
 	public static List<String> getCompleteLore(Document data, String[] customLore, UUID uuid, boolean custom, ItemClass itemClass) {
-		String dataTag = uuid == null ? "" : HiddenStringUtil.encodeString(uuid.toString());
-		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + data.getInteger("lvMin") + dataTag }));
+		//String dataTag = uuid == null ? "" : HiddenStringUtil.encodeString(uuid.toString());
+		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + data.getInteger("lvMin") }));
 		if (customLore.length > 0) {
 			lore.add("");
 		}
@@ -111,6 +114,7 @@ public class Item extends GameObject {
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());
 		meta.setLore(getCompleteLore());
 		meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE });
+		meta.getPersistentDataContainer().set(ITEM_UUID_KEY, PersistentDataType.STRING, getUUID().toString());
 		itemStack.setItemMeta(meta);
 		itemStack.setAmount(getQuantity());
 		if (isUnbreakable()) {
@@ -125,6 +129,7 @@ public class Item extends GameObject {
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());
 		meta.setLore(getCompleteLore());
 		meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE });
+		meta.getPersistentDataContainer().set(ITEM_UUID_KEY, PersistentDataType.STRING, getUUID().toString());
 		itemStack.setItemMeta(meta);
 		itemStack.setAmount(getQuantity());
 	}
