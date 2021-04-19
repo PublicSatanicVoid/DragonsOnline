@@ -143,7 +143,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 					double zOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);
 					double yOffset = 0.0D;
 					Location loc = user.getPlayer().getLocation().add(xOffset, yOffset, zOffset);
-					loc = BlockUtil.getClosestGroundXZ(loc).add(0.0D, 1.0D, 0.0D);
+					loc = BlockUtil.getClosestAirXZ(loc).add(0.0D, 1.0D, 0.0D);
 					npcLoader.registerNew(world, loc, spawnRate.getKey());
 				}
 				entityCount++;

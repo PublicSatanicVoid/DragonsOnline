@@ -65,6 +65,11 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 			save();
 		}
 		
+		public void removeAssignee(User assignee) {
+			data.getList("assignees", String.class).remove(assignee.getUUID().toString());
+			save();
+		}
+		
 		public void setDone(boolean done) {
 			data.append("done", done);
 			save();
@@ -142,6 +147,14 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	
 	public List<Task> getAllApprovedTasks() {
 		return asTasks(collection.find(new Document("approved", true).append("done", false)));
+	}
+	
+	public List<Task> getAllApprovedUnassignedTasks() {
+		return asTasks(collection.find(new Document("approved", true).append("done", false).append("assignees", new Document("$size", 0))));
+	}
+	
+	public List<Task> getAllAssignedInProgressTasks() {
+		return asTasks(collection.find(new Document("approved", true).append("done", false).append("assignees", new Document("$not", new Document("$size", 0)))));
 	}
 	
 	public List<Task> getAllWaitingTasks() {

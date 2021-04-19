@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.bson.Document;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -19,7 +18,6 @@ import mc.dragons.core.storage.StorageManager;
 
 public class FloorLoader extends GameObjectLoader<Floor> {
 	private static FloorLoader INSTANCE;
-	
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 	
 	private static Map<String, Floor> worldNameToFloor;
@@ -31,9 +29,6 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 
 	private FloorLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
-		Bukkit.getLogger().info("===INITIALIZING FLOOR LOADER===");
-		Bukkit.getLogger().info("===instance=" + instance);
-		Bukkit.getLogger().info("===instance.registry=" + instance.getGameObjectRegistry());
 		masterRegistry = instance.getGameObjectRegistry();
 	}
 

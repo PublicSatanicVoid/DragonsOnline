@@ -11,6 +11,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
@@ -115,6 +116,7 @@ public class VerifyGameIntegrityCommand extends DragonsCommandExecutor {
 		sendMessageIfNotSilent(sender, silent, ChatColor.GRAY + "- Validating entities:");
 		for(World world : Bukkit.getWorlds()) {
 			for(Entity entity : world.getEntities()) {
+				if(entity.getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.INTEGER)) continue;
 				if(entity instanceof Player) continue;
 				if(entity instanceof ItemFrame) continue;
 				if(entity instanceof Item) {

@@ -48,6 +48,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("spoofserver").setExecutor(serverOptionsCommands);
 		getCommand("ignoreremoterestarts").setExecutor(serverOptionsCommands);
 		getCommand("getlogtoken").setExecutor(serverOptionsCommands);
+		getCommand("vgir").setExecutor(serverOptionsCommands);
 		
 		CommandExecutor objectCommands = new ObjectCommands();
 		getCommand("autosave").setExecutor(objectCommands);
@@ -113,5 +114,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("testbase64encoding").setExecutor(experimentalCommands);
 		getCommand("testnetworkmessage").setExecutor(experimentalCommands);
 		getCommand("testdocumentdelta").setExecutor(experimentalCommands);
+		getCommand("testnewfonts").setExecutor(experimentalCommands);
 	}
 }

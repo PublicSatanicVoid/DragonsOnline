@@ -188,10 +188,12 @@ public class NPCCommand extends DragonsCommandExecutor {
 		}
 		else if(args.length < 4) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> attribute <Attribute> <Value|DEL>");
+			sender.sendMessage(ChatColor.RED + "Valid attributes are: " + StringUtil.parseList(Attribute.values()));
 			return;
 		}
 		Document base = Document.parse(npcClass.getData().toJson());
 		Attribute att = StringUtil.parseEnum(sender, Attribute.class, args[2]);
+		if(att == null) return;
 		if(args[3].equalsIgnoreCase("DEL")) {
 			npcClass.removeCustomAttribute(att);
 		}
@@ -530,7 +532,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 	
 	private void setType(CommandSender sender, String[] args) {
 		NPCClass npcClass = lookupNPCClass(sender, args[0]);
-		EntityType type = StringUtil.parseEnum(sender, EntityType.class, args[2]);
+		EntityType type = StringUtil.parseEntityType(sender, args[2]);
 		if(npcClass == null || type == null) return;
 
 		Document base = Document.parse(npcClass.getData().toJson());

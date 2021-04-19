@@ -83,14 +83,11 @@ public class ReportCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Reporting: " + ChatColor.GRAY + target.getName());
 			sender.sendMessage(ChatColor.GREEN + "Reason: " + ChatColor.GRAY + reason);
 			sender.sendMessage(" ");
-			TextComponent submit = new TextComponent(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]");
-			submit.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new Text(ChatColor.GRAY + "By submitting, you confirm that this report is accurate to the best of your knowledge.")));
-			submit.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report " + args[0] + " " + reason + CONFIRMATION_FLAG));
-			TextComponent cancel = new TextComponent(ChatColor.GRAY + "   " + ChatColor.BOLD + "[Cancel]");
-			cancel.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new Text(ChatColor.GRAY + "You can always create a new report with " + ChatColor.YELLOW + "/report" + ChatColor.GRAY + ".")));
-			sender.spigot().sendMessage(submit, cancel);
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]", "/report " + args[0] + " " + reason + CONFIRMATION_FLAG, 
+					"By submitting, you confirm that this report is accurate to the best of your knowledge.\n" +
+					"You will not be able to modify this report once it has been submitted."),
+				new TextComponent(" "),
+				StringUtil.hoverableText(ChatColor.GRAY + "" + ChatColor.BOLD + "[Cancel]", "You can always create a new report with " + ChatColor.YELLOW + "/report <player>" + ChatColor.GRAY + "."));
 			sender.sendMessage(" ");
 			return true;
 		}

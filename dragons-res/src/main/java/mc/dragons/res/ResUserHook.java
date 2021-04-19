@@ -20,6 +20,14 @@ public class ResUserHook implements UserHook {
 	
 	@Override
 	public void onVerifiedJoin(User user) {
+		// Update residence holograms
+		Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
+			for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
+				resPointLoader.updateResHologramOn(user, resPoint);
+			}
+		}, 20L);
+		
+		// Exit residence if re-joining, to avoid phasing issues
 		Document saved = user.getData().get("resExitTo", Document.class);
 		if(saved == null) {
 			return;
@@ -27,11 +35,6 @@ public class ResUserHook implements UserHook {
 		Location to = StorageUtil.docToLoc(saved);
 		user.getPlayer().teleport(to);
 		user.getStorageAccess().set("resExitTo", null);
-		Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
-				for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
-				resPointLoader.updateResHologramOn(user, resPoint);
-			}
-		}, 20L);
 		
 	}
 }

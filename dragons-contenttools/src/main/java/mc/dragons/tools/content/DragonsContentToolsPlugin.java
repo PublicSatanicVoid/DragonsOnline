@@ -6,6 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.tools.content.command.PlaceholderCommand;
 import mc.dragons.tools.content.command.builder.ClearInventoryCommand;
+import mc.dragons.tools.content.command.builder.FixedCommand;
 import mc.dragons.tools.content.command.builder.GamemodeCommand;
 import mc.dragons.tools.content.command.builder.GoToFloorCommand;
 import mc.dragons.tools.content.command.builder.SpeedCommand;
@@ -44,6 +45,7 @@ public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExec
 		getCommand("restat").setExecutor(new RestatCommand());
 		getCommand("resetprofile").setExecutor(new ResetProfileCommand());
 		getCommand("placeholder").setExecutor(new PlaceholderCommand());
+		getCommand("fixed").setExecutor(new FixedCommand());
 		
 		CommandExecutor gamemodeCommandExecutor = new GamemodeCommand();
 		getCommand("gamemode").setExecutor(gamemodeCommandExecutor);

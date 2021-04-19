@@ -131,3 +131,7 @@ commands:
     description: (ADMIN) Display the token to view this server's remote log entries.
   ignoreremoterestarts:
     description: (ADMIN) Ignore incoming remote restarts.
+  vgir:
+    description: (ADMIN) Shortcut for /verifygameintegrity -resolve
+    aliases: vrgit
+  testnewfonts:

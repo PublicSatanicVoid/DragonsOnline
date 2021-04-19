@@ -45,6 +45,7 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 		getCommand("tasks").setExecutor(taskCommands);
 		getCommand("taskinfo").setExecutor(taskCommands);
 		getCommand("assign").setExecutor(taskCommands);
+		getCommand("unassign").setExecutor(taskCommands);
 		getCommand("done").setExecutor(taskCommands);
 		getCommand("approve").setExecutor(taskCommands);
 		getCommand("reject").setExecutor(taskCommands);
@@ -56,6 +57,7 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 		getCommand("discordnotifyraw").setExecutor(taskCommands);
 		getCommand("deletetask").setExecutor(taskCommands);
 		getCommand("taskhelp").setExecutor(taskCommands);
+		getCommand("reopen").setExecutor(taskCommands);
 		getCommand("backup").setExecutor(new BackupCommand());
 		getCommand("starttrial").setExecutor(new StartTrialCommand());
 		getCommand("tips").setExecutor(new TipsCommand());

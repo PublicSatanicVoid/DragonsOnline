@@ -19,6 +19,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
+
 /**
  * Utilities related to string manipulation and object representation.
  * 
@@ -123,12 +128,15 @@ public class StringUtil {
 	public static String parseSecondsToTimespan(long seconds) {
 		long remaining = seconds;
 		int days = (int) Math.floor(remaining / 86400L);
+		String sDays = days == 0 ? "" : days + "d ";
 		remaining %= 86400L;
 		int hours = (int) Math.floor(remaining / 3600L);
+		String sHours = hours == 0 ? "" : hours + "h ";
 		remaining %= 3600L;
 		int minutes = (int) Math.floor(remaining / 60L);
+		String sMinutes = minutes == 0 ? "" : minutes + "m ";
 		remaining %= 60L;
-		return String.valueOf(days) + "d " + hours + "h " + minutes + "m " + remaining + "s";
+		return sDays + sHours + sMinutes + remaining + "s";
 	}
 
 	public static <T> String parseList(List<T> list) {
@@ -151,7 +159,7 @@ public class StringUtil {
 		try {
 			return Material.valueOf(str.toUpperCase());
 		} catch (Exception e) {
-			sender.sendMessage(ChatColor.RED + "Invalid material type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.12/org/bukkit/Material.html");
+			sender.sendMessage(ChatColor.RED + "Invalid material type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.16/org/bukkit/Material.html");
 		}
 		return null;
 	}
@@ -160,7 +168,7 @@ public class StringUtil {
 		try {
 			return EntityType.valueOf(str.toUpperCase());
 		} catch (Exception e) {
-			sender.sendMessage(ChatColor.RED + "Invalid entity type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.12/org/bukkit/entity/EntityType.html");
+			sender.sendMessage(ChatColor.RED + "Invalid entity type! For a full list, see " + ChatColor.UNDERLINE + "https://papermc.io/javadocs/paper/1.16/org/bukkit/entity/EntityType.html");
 		}
 		return null;
 	}
@@ -213,7 +221,7 @@ public class StringUtil {
 		return new String(Base64.getDecoder().decode(str));
 	}
 	
-	// Decompiled from HDFont plugin.
+	// Decompiled from the public HDFont plugin.
 	public static String toHdFont(String input) {
 		String returnString = "";
 		boolean skip = false;
@@ -256,5 +264,28 @@ public class StringUtil {
 			if(input.equalsIgnoreCase(test)) return true;
 		}
 		return false;
+	}
+	
+	public static TextComponent clickableHoverableText(String text, String command, String...hover ) {
+		return clickableHoverableText(text, command, false, hover);
+	}
+	
+	public static TextComponent clickableHoverableText(String text, String command, boolean suggestCommandOnly, String... hover) {
+		TextComponent tc = new TextComponent(text);
+		Text hoverText = new Text(StringUtil.parseList(hover, "\n"));
+		tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
+		if(suggestCommandOnly) {
+			tc.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command));
+		}
+		else {
+			tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
+		}
+		return tc;
+	}
+	
+	public static TextComponent hoverableText(String text, String... hover) {
+		TextComponent tc = new TextComponent(text);
+		tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(StringUtil.parseList(hover, "\n"))));
+		return tc;
 	}
 }

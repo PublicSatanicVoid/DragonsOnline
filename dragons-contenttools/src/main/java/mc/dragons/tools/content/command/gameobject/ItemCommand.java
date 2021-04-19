@@ -253,7 +253,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 				}
 			}
 		}
-		if(args[2].equalsIgnoreCase("add")) {
+		else if(args[2].equalsIgnoreCase("add")) {
 			Document base = Document.parse(itemClass.getData().toJson());
 			String loreLine = StringUtil.concatArgs(args, 3);
 			List<String> lore = itemClass.getLore();
@@ -285,7 +285,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! /item <ClassName> <Attribute> <Value>");
 		}
 		else if(args[1].equalsIgnoreCase("type")) {
-			Material type = StringUtil.parseEnum(sender, Material.class, args[2]);
+			Material type = StringUtil.parseMaterialType(sender, args[2]);
 			if(type == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());

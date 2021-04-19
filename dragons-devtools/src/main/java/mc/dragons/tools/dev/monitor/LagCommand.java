@@ -135,11 +135,11 @@ public class LagCommand extends DragonsCommandExecutor {
 		
 		if (lastSpikeAgo != -1) {
 			if(advanced) {
-				sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + "" + lastSpikeTPS + "TPS, " + lastSpikeAgo
-					+ "s ago");
+				sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + "" + lastSpikeTPS + "TPS, " + StringUtil.parseSecondsToTimespan(lastSpikeAgo)
+					+ " ago");
 			}
 		} else if(advanced) {
-			sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + ">" + (tpsRecord.size() / 60) + " minutes ago");
+			sender.sendMessage(ChatColor.GREEN + "Last Spike: " + ChatColor.GRAY + "None");
 		}		
 		
 		double avgTPS = MathUtil.round(totalTPS / count, 2);
@@ -169,7 +169,7 @@ public class LagCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "     " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
 		else {
-			sender.sendMessage(ChatColor.GREEN + "No issues detected with recent server performance.");
+			sender.sendMessage(ChatColor.GREEN + "No issues detected with recent server performance." + (advanced ? "" : " Approx TPS: " + LagMeter.getRoundedTPS()));
 		}
 
 		if(advanced) {

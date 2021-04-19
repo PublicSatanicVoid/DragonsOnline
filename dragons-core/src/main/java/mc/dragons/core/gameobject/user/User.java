@@ -1401,30 +1401,63 @@ public class User extends GameObject {
 
 	public boolean setActivePermissionLevel(PermissionLevel permissionLevel) {
 		if (permissionLevel.ordinal() > getSystemProfile().getMaxPermissionLevel().ordinal()) {
+			LOGGER.warning("ACCESS ERROR: Blocked attempt to raise active permission level of " + getName() + " above profile maximum ("
+				+ getSystemProfile().getProfileName() + "=" + getSystemProfile().getMaxPermissionLevel() + "<" + permissionLevel);
 			return false;
 		}
+		
 		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
 		activePermissionLevel = permissionLevel;
 		SystemProfileFlags flags = getSystemProfile().getFlags();
 		
 		// Permissions for non-RPG plugins need to be added separately.
+		
+		// WorldEdit/FAWE
 		player.addAttachment(instance, "worldedit.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "fawe.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "fawe.voxelbrush", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		
+		// VoxelSniper/FAVS
 		player.addAttachment(instance, "voxelsniper.sniper", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "voxelsniper.ignorelimitations", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "voxelsniper.goto", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
 		player.addAttachment(instance, "voxelsniper.brush.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
-		player.addAttachment(instance, "builders.util.*", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
-		player.addAttachment(instance, "minecraft.command.teleport",
-				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		player.addAttachment(instance, "minecraft.command.tp",
-				!(permissionLevel.ordinal() < PermissionLevel.BUILDER.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		player.addAttachment(instance, "minecraft.command.give",
-				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
-		player.addAttachment(instance, "minecraft.command.summon",
-				!(permissionLevel.ordinal() < PermissionLevel.GM.ordinal() && !flags.hasFlag(SystemProfileFlag.CMD)));
+		
+		// Builders-Utilities
+		player.addAttachment(instance, "builders.util.trapdoor", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.secretblocks", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.banner", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.color", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.tpgm3", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.slabs", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.terracotta", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.nightvision", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.noclip", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.advancedfly", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.gui", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "builders.util.aliases", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		
+		// goBrush and goPaint
+		player.addAttachment(instance, "gobrush.use", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		player.addAttachment(instance, "gopaint.use", flags.hasFlag(SystemProfileFlag.WORLDEDIT));
+		
+		// Native Commands
+		player.addAttachment(instance, "minecraft.command.teleport", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
+		player.addAttachment(instance, "minecraft.command.tp", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
+		player.addAttachment(instance, "minecraft.command.give", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
+		player.addAttachment(instance, "minecraft.command.summon", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
 		player.addAttachment(instance, "minecraft.command.setworldspawn", permissionLevel.ordinal() >= PermissionLevel.GM.ordinal());
+		
+		boolean wasOp = player.isOp();
 		player.setOp(flags.hasFlag(SystemProfileFlag.CMD));
+		boolean isOp = player.isOp();
+		if(isOp && !wasOp) {
+			player.sendMessage(ChatColor.GOLD + "Operator status is now ACTIVE.");
+		}
+		if(!isOp && wasOp) {
+			player.sendMessage(ChatColor.GOLD + "Operator status is now INACTIVE.");
+		}
+		
 		sendActionBar(ChatColor.GRAY + "Active permission level changed to " + permissionLevel.toString());
 		updateVanishStatesOnSelf();
 		return true;

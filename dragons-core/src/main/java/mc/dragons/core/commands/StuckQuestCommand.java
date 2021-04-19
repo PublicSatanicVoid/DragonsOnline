@@ -13,10 +13,6 @@ import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.loader.FeedbackLoader;
 import mc.dragons.core.util.StringUtil;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 /**
  * Command for users to report a problem with a quest,
@@ -41,12 +37,9 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 		
 		for(Entry<Quest, QuestStep> entry : user(sender).getQuestProgress().entrySet()) {
 			if(entry.getValue().getStepName().equalsIgnoreCase("Complete")) continue;
-			TextComponent questOption = new TextComponent(ChatColor.GRAY + " • " + ChatColor.GREEN + entry.getKey().getQuestName());
-			questOption.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new Text(ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName())));
-			questOption.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stuckquest " + entry.getKey().getName()));
-			player(sender).spigot().sendMessage(questOption);
-			
+			player(sender).spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " • " + ChatColor.GREEN + entry.getKey().getQuestName(),
+					"/stuckquest " + entry.getKey().getName(), 
+					ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName()));
 		}
 		
 		sender.sendMessage(" ");
@@ -58,11 +51,9 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(" ");
 		sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Please select the issue with this quest:");
 		for(String[] issue : POSSIBLE_ISSUES) {
-			TextComponent issueOption = new TextComponent(ChatColor.GRAY + " • " + ChatColor.GREEN + issue[0]);
-			issueOption.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new Text(ChatColor.GRAY + issue[1])));
-			issueOption.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stuckquest " + args[0] + " " + issue[2]));
-			player(sender).spigot().sendMessage(issueOption);
+			player(sender).spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " • " + ChatColor.GREEN + issue[0], 
+					"/stuckquest " + args[0] + " " + issue[2], 
+					ChatColor.GRAY + issue[1]));
 		}
 		sender.sendMessage(" ");
 		sender.sendMessage(ChatColor.GRAY + "Click on one of the issues above to submit the report.");

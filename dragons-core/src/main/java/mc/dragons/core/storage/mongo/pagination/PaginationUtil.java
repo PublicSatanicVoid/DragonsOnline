@@ -6,8 +6,6 @@ import org.bson.Document;
 
 import com.mongodb.client.FindIterable;
 
-import mc.dragons.core.Dragons;
-
 /**
  * Utilities to help with multi-page results parsing.
  * Some of these are specific to MongoDB implementation.
@@ -22,7 +20,6 @@ public class PaginationUtil {
 	
 	public static <E> List<E> paginateList(List<E> results, int page, int pageSize) {
 		int skip = pageSkip(page, pageSize);
-		Dragons.getInstance().getLogger().fine("PAGINATION: N="+results.size()+",page="+page+",pageSize="+pageSize+",skip="+skip+",skip+pageSize="+(skip+pageSize));
 		return results.subList(Math.min(skip, results.size() - 1), Math.min(skip + pageSize, results.size()));
 	}
 	

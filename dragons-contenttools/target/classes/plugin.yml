@@ -61,3 +61,5 @@ commands:
   placeholder:
     description: (GM) Set a placeholder which can be used in lengthy content commands.
     aliases: ph
+  fixed:
+    description: (BUILDER) Sets the targeted entity to stay in place and persist past server restarts.

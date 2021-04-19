@@ -27,20 +27,11 @@ public class BridgeSpigot116R3 implements Bridge {
 
 	@Override
 	public void sendActionBar(Player player, String message) {
-		if (player == null) {
-			LOGGER.warning("Attempted to send action bar to null player");
-			return;
-		}
-		if (message == null) {
-			LOGGER.warning("Attempted to send null message to player " + player.getName());
-		}
-		if (player.spigot() == null) {
-			LOGGER.warning("Player#spigot() returned null for player " + player.getName() + " in sendActionBar()");
-		}
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
 	}
 
 	@Override
+	@Deprecated
 	public void sendTitle(Player player, ChatColor titleColor, String title, ChatColor subtitleColor, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
 		player.sendTitle(titleColor + title, subtitleColor + subtitle, 20 * fadeInTime, 20 * showTime, 20 * fadeOutTime);
 	}

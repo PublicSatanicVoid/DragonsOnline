@@ -113,7 +113,11 @@ public class MetadataConstants {
 		Document metadata = storageAccess.getDocument().get(METADATA_NAMESPACE, new Document());
 		List<Document> auditLog = metadata.getList(AUDITLOG_TAG, Document.class);
 		if(auditLog == null) auditLog = new ArrayList<>();
-		auditLog.add(StorageUtil.getDelta(obj.getData(), base).append("by", user == null ? null : user.getUUID().toString()).append("on", getDateFormatNow()).append("desc", line));
+		Document baseSafe = Document.parse(base.toJson());
+		baseSafe.remove(METADATA_NAMESPACE);
+		Document newSafe = Document.parse(obj.getData().toJson());
+		newSafe.remove(METADATA_NAMESPACE);
+		auditLog.add(StorageUtil.getDelta(newSafe, baseSafe).append("by", user == null ? null : user.getUUID().toString()).append("on", getDateFormatNow()).append("desc", line));
 		storageAccess.set(METADATA_NAMESPACE, metadata);
 	}
 	

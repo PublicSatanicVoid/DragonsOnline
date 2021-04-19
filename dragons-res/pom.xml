@@ -1,59 +1,56 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>mc.dragons</groupId>
-  <artifactId>dragons-res</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+	<groupId>mc.dragons</groupId>
+	<artifactId>dragons-res</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
-  <name>dragons-res</name>
-  <description>Residence system</description>
-  <url>http://maven.apache.org</url>
+	<name>dragons-res</name>
+	<description>Residence system</description>
+	<url>http://maven.apache.org</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>  
-  
-  <repositories>    
-        <repository>
-        	<id>spigot-repo</id>
-        	<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
- 			<id>enginehub-maven</id>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>spigot-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>enginehub-maven</id>
 			<url>http://maven.enginehub.org/repo/</url>
 		</repository>
-        <repository>
-            <id>IntellectualSites</id>
-            <url>https://mvn.intellectualsites.com/content/repositories/releases/</url>
-        </repository>
-   </repositories>
-   
+		<repository>
+			<id>IntellectualSites</id>
+			<url>https://mvn.intellectualsites.com/content/repositories/releases/</url>
+		</repository>
+	</repositories>
 
-  <dependencies>
-     <dependency>
-     	<groupId>org.spigotmc</groupId>
-     	<artifactId>spigot-api</artifactId>
-     	<version>1.16.5-R0.1-SNAPSHOT</version>
-    	<type>jar</type>
-     	<scope>provided</scope>
-     </dependency>
-      <dependency>
-      	<groupId>mc.dragons</groupId>
-      	<artifactId>dragons-core</artifactId>
-      	<version>0.0.1-SNAPSHOT</version>
-      </dependency>
-      <!--<dependency>
-		<groupId>com.sk89q.worldedit</groupId>
-		<artifactId>worldedit-bukkit</artifactId>
-		<version>LATEST</version>
-	  </dependency>-->
-        <dependency>
-            <groupId>com.intellectualsites.fawe</groupId>
-            <artifactId>FAWE-Bukkit</artifactId>
-            <version>1.16-637</version>
-            <scope>provided</scope>
-        </dependency>
-  </dependencies>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
+			<version>1.16.5-R0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>mc.dragons</groupId>
+			<artifactId>dragons-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.intellectualsites.fawe</groupId>
+			<artifactId>FAWE-Bukkit</artifactId>
+			<version>1.16-637</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 </project>

@@ -42,6 +42,7 @@ import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class ExperimentalCommands extends DragonsCommandExecutor {
 	
@@ -304,6 +305,16 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("b=" + b.toJson());
 			sender.sendMessage("delta=" + delta.toJson());
 			sender.sendMessage("result=" + result.toJson());
+		}
+		
+		else if(label.equalsIgnoreCase("testnewfonts")) {
+			String[] fonts = { "minecraft:default", "minecraft:uniform", "minecraft:alt" };
+			String text = StringUtil.concatArgs(args, 0);
+			for(String font : fonts) {
+				TextComponent tc = new TextComponent(text);
+				tc.setFont(font);
+				sender.spigot().sendMessage(new TextComponent(font + " "), tc);
+			}
 		}
 		
 		return true;

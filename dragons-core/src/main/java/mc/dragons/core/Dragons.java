@@ -8,9 +8,11 @@ import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -59,7 +61,6 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
@@ -83,7 +84,6 @@ import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
-import mc.dragons.core.util.PermissionUtil;
 
 /**
  * The main plugin class for DragonsOnline.
@@ -129,10 +129,13 @@ public class Dragons extends JavaPlugin {
 
 	public static final String STAFF_DOCUMENTATION = "https://bit.ly/30FS0cW";
 
+	public static NamespacedKey FIXED_ENTITY_KEY;
+
 	@Override
 	public synchronized void onLoad() {
 		if (INSTANCE == null) {
 			INSTANCE = this;
+			FIXED_ENTITY_KEY = new NamespacedKey(this, "fixed");
 			started = System.currentTimeMillis();
 			getLogger().info("Searching for compatible version...");
 			switch (BUKKIT_API_VERSION) {
@@ -189,11 +192,22 @@ public class Dragons extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		getLogger().info("Removing unwanted entities...");
+		boolean hasFixed = false;
 		for (Entity e : getEntities()) {
+			if(e.getPersistentDataContainer().has(FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
+				getLogger().fine("-Skipping fixed entity #" + e.getEntityId());
+				hasFixed = true;
+			}
 			if (e instanceof ItemFrame) {
+				getLogger().fine("-Skipping item frame #" + e.getEntityId());
 				continue;
 			}
 			e.remove();
+		}
+		
+		if(hasFixed) {
+			getLogger().info("Notice: The use of fixed entities is not automatically synced across servers the same way that persistent NPCs are.\n"
+					+ "Instead, the appropriate world files must be copied.");
 		}
 		
 		// Game objects must be loaded from database in a particular sequence, to ensure
@@ -299,9 +313,6 @@ public class Dragons extends JavaPlugin {
 		User.getConnectionMessageHandler().clearServerEntries();
 		for (User user : UserLoader.allUsers()) {
 			if (user.getPlayer() == null || !user.getPlayer().isOnline()) {
-				continue;
-			}
-			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.TESTER, false)) {
 				continue;
 			}
 			user.handleQuit();

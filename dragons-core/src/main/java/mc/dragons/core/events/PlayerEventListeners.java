@@ -3,6 +3,7 @@ package mc.dragons.core.events;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -57,7 +58,7 @@ import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class PlayerEventListeners implements Listener {
-	public static final String GOLD_CURRENCY_DISPLAY_NAME = ChatColor.RESET + "" + ChatColor.GOLD + "Currency:Gold";
+	public static final String GOLD_CURRENCY_ITEM_CLASS_NAME = "Currency:Gold";
 	
 	private static ItemClassLoader itemClassLoader;
 	public static ItemClass[] DEFAULT_INVENTORY;
@@ -346,17 +347,18 @@ public class PlayerEventListeners implements Listener {
 		if (item == null) {
 			return;
 		}
+
 		LOGGER.finer("Pickup item event on " + player.getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + pickup.getAmount() + ")");
-		if (pickup.getItemMeta().getDisplayName().equals(GOLD_CURRENCY_DISPLAY_NAME)) {
+		if (item.getItemClass().getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME)) {
 			int amount = pickup.getAmount();
 			user.giveGold(amount * 1.0D);
 			new BukkitRunnable() {
 				@Override
 				public void run() {
 					Arrays.<ItemStack>asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
-							.filter(i -> (i.getItemMeta().getDisplayName() != null)).filter(i -> i.getItemMeta().getDisplayName().equals(PlayerEventListeners.GOLD_CURRENCY_DISPLAY_NAME))
+							.map(i -> ItemLoader.fromBukkit(i)).filter(Objects::nonNull).filter(i -> i.getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME))
 							.forEach(i -> {
-								player.getInventory().remove(i);
+								player.getInventory().remove(i.getItemStack());
 								plugin.getGameObjectRegistry().removeFromDatabase(item);
 							});
 				}
@@ -364,6 +366,7 @@ public class PlayerEventListeners implements Listener {
 			player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0F, 1.3F);
 			return;
 		}
+		
 		item.setQuantity(pickup.getAmount());
 		user.giveItem(item, true, false, false);
 		player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0F, 1.0F);

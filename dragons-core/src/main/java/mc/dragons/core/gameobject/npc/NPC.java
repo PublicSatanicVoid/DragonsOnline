@@ -46,7 +46,6 @@ import mc.dragons.core.util.StringUtil;
  */
 public class NPC extends GameObject {
 
-
 	public enum NPCType {
 		HOSTILE(ChatColor.RED, "", false, false, true, false, false),
 		NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),

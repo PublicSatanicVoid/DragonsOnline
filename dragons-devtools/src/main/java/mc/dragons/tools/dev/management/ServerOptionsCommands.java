@@ -2,6 +2,7 @@ package mc.dragons.tools.dev.management;
 
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -46,6 +47,10 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 			token.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click for copy-able text")));
 			token.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, CustomLoggingProvider.LOG_FILTER.getLogEntryUUID().toString()));
 			sender.spigot().sendMessage(token);
+		}
+		
+		else if(label.equalsIgnoreCase("vgir") || label.equalsIgnoreCase("vrgit")) {
+			Bukkit.dispatchCommand(sender, "verifygameintegrity -resolve");
 		}
 		
 		else if(label.equalsIgnoreCase("serveroptions")) {

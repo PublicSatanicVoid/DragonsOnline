@@ -25,7 +25,7 @@ public class ModQueueCommand extends DragonsCommandExecutor {
 		else {
 			Report assign = waiting.getPage().get(0);
 			assign.setReviewedBy(user(sender));
-			Bukkit.dispatchCommand(sender, "vr " + assign.getId());
+			Bukkit.dispatchCommand(sender, "viewreport " + assign.getId());
 		}
 		return true;
 	}

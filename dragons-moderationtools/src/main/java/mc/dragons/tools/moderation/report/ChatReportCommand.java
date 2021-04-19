@@ -8,13 +8,11 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
 import mc.dragons.core.gameobject.user.chat.MessageData;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
+import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ChatReportCommand extends DragonsCommandExecutor {
-	private static String CONFIRMATION_FLAG = " --internal-confirm-and-submit";
+	private static String CONFIRMATION_FLAG = "--internal-confirm-and-submit";
 	
 	private ChatMessageRegistry chatMessageRegistry = instance.getChatMessageRegistry();
 	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
@@ -43,20 +41,17 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		if(args.length < 2 || args[1].equals(CONFIRMATION_FLAG)) {
+		if(args.length < 2 || !args[1].equals(CONFIRMATION_FLAG)) {
 			sender.sendMessage(" ");
 			sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Please review your chat report before submitting.");
 			sender.sendMessage(ChatColor.GREEN + "Reporting: " + ChatColor.GRAY + messageData.getSender().getName());
 			sender.sendMessage(ChatColor.GREEN + "Message: " + ChatColor.GRAY + messageData.getMessage());
 			sender.sendMessage(" ");
-			TextComponent submit = new TextComponent(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]");
-			submit.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new Text(ChatColor.GRAY + "By submitting, you confirm that this report is accurate to the best of your knowledge.")));
-			submit.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + args[0] + " " + CONFIRMATION_FLAG));
-			TextComponent cancel = new TextComponent(ChatColor.GRAY + "   " + ChatColor.BOLD + "[Cancel]");
-			cancel.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-					new Text(ChatColor.GRAY + "You can always create a new chat report by clicking on a different message.")));
-			sender.spigot().sendMessage(submit, cancel);
+			sender.spigot().sendMessage(
+					StringUtil.clickableHoverableText(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]", "/chatreport " + args[0] + " " + CONFIRMATION_FLAG,
+						"By submitting, you confirm that this report is accurate to the best of your knowledge."), 
+					new TextComponent(" "),
+					StringUtil.hoverableText(ChatColor.GRAY + "" + ChatColor.BOLD + "[Cancel]", "You can always create a new chat report by clicking on a chat message."));
 			sender.sendMessage(" ");
 			return true;
 		}

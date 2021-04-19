@@ -21,6 +21,8 @@ commands:
     description: Information about the specified task.
   assign:
     description: Assign a player to a task.
+  unassign:
+    description: Un-assign a player from a task.
   done:
     description: Mark a task as completed.
   close:
@@ -41,3 +43,5 @@ commands:
     description: Toggle staff tips on or off.
   taskhelp:
     description: View commands for tasks.
+  reopen:
+    description: Re-open a closed task.

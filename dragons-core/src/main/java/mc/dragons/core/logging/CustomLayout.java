@@ -55,6 +55,9 @@ public class CustomLayout extends AbstractStringLayout {
 				} else if (loggerName.contains("org.bukkit.craftbukkit")) {
 					loggerName = "OBC." + mostSpecific;
 					special = true;
+				} else if (loggerName.contains("org.mongodb.driver")) {
+					loggerName = "OMD." + mostSpecific;
+					special = true;
 				}
 			}
 			if (!special && truncatePackageNames) {
