@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
@@ -61,12 +62,14 @@ public class EntityDamageListener implements Listener {
 		User userDamager = null;
 		NPC npcDamager = null;
 		Item attackerHeldItem = null;
+		
 		if (damager instanceof Player) {
 			userDamager = UserLoader.fromPlayer((Player) damager);
 			attackerHeldItem = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
 			if(attackerHeldItem != null && !attackerHeldItem.getItemClass().canUse(userDamager)) {
-				userDamager.debug("- GM Locked, cancelling");
+				userDamager.debug("- GM Locked, item stats will not be applied");
 				userDamager.sendActionBar(ChatColor.DARK_RED + "- This item is GM locked! -");
+				// Don't cancel the event, just don't modify the damage from the default
 				return;
 			}
 		} else if (damager instanceof Arrow) {
@@ -85,6 +88,16 @@ public class EntityDamageListener implements Listener {
 		Entity target = event.getEntity();
 		User userTarget = null;
 		NPC npcTarget = null;
+		
+		if(target.getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
+			if(userDamager != null) {
+				userDamager.debug("- Fixed entity, cancelling");
+				damager.sendMessage(ChatColor.RED + "You cannot damage or destroy a fixed entity! Please un-fix this entity (/fixed) if you wish to remove it.");
+			}
+			event.setCancelled(true);
+			return;
+		}
+		
 		if (target instanceof Player) {
 			userTarget = UserLoader.fromPlayer((Player) target);
 		} else if (target instanceof ArmorStand) {

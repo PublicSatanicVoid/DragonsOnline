@@ -28,7 +28,7 @@ public class FeedbackCommand extends DragonsCommandExecutor {
 	
 	/* 0=-list, 1=[page#] */
 	private void listUnread(CommandSender sender, String[] args) {
-		Integer page = parseIntType(sender, args[1]);
+		Integer page = parseInt(sender, args[1]);
 		if(page == null) return;
 		
 		PaginatedResult<FeedbackEntry> results = feedbackLoader.getUnreadFeedback(page);
@@ -47,7 +47,7 @@ public class FeedbackCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /feedback -unread <Feedback#>");
 			return;
 		}
-		Integer id = parseIntType(sender, args[1]);
+		Integer id = parseInt(sender, args[1]);
 		if(id == null) return;
 		
 		feedbackLoader.markRead(id, false);

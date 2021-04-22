@@ -106,7 +106,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GRAY + "Min: " + ChatColor.GREEN + StringUtil.locToString(region.getMin()));
 		sender.sendMessage(ChatColor.GRAY + "Max: " + ChatColor.GREEN + StringUtil.locToString(region.getMax()));
 		sender.sendMessage(ChatColor.GRAY + "Flags: " + ChatColor.GREEN + StringUtil.docToString(region.getFlags()));
-		MetadataConstants.displayMetadata(sender, region);
+		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.REGION, region.getUUID()));
 	}
 	
 	private void borderRegion(CommandSender sender, String[] args) {
@@ -114,7 +114,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		if(region == null) return;
 		
 		if(args.length == 1) {
-			sender.sendMessage(ChatColor.RED + "/region <RegionName> border [MaterialType=WOOL]");
+			sender.sendMessage(ChatColor.RED + "/region <RegionName> border [MaterialType=LIME_WOOL]");
 		}
 		
 		Material material = Material.LIME_WOOL;
@@ -242,7 +242,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		}
 		else {
 			Document base = Document.parse(region.getData().toJson());
-			double spawnRate = parseDoubleType(sender, args[3]);
+			double spawnRate = parseDouble(sender, args[3]);
 			region.setSpawnRate(args[2], spawnRate);
 			sender.sendMessage(ChatColor.GREEN + "Set spawn rate of entity class " + args[2] + " to " + spawnRate);
 			MetadataConstants.logRevision(region, user(sender), base, "Set spawn rate of class " + args[2] + " to " + spawnRate);

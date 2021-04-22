@@ -23,7 +23,7 @@ public class IPHistoryCommand extends DragonsCommandExecutor {
 		}
 		
 		Integer page = 1;
-		if(args.length > 1) page = parseIntType(sender, args[1]);
+		if(args.length > 1) page = parseInt(sender, args[1]);
 		
 		User target = lookupUser(sender, args[0]);
 		

@@ -54,7 +54,7 @@ public class TestQuestCommand extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Specify a step name to jump to! /testquest <QuestName> -stage <#>");
 					return true;
 				}
-				Integer stepNo = parseIntType(sender, args[2]);
+				Integer stepNo = parseInt(sender, args[2]);
 				if(stepNo == null) return true;
 				user.updateQuestProgress(quest, quest.getSteps().get(stepNo));
 				sender.sendMessage(ChatColor.GREEN + "Jumped to step " + stepNo + " of quest " + quest.getQuestName());

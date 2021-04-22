@@ -71,7 +71,7 @@ public class ResCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "/res delete <ID>");
 					return true;
 				}
-				Integer id = parseIntType(sender, args[1]);
+				Integer id = parseInt(sender, args[1]);
 				if(id == null) return true;
 				
 				Residence res = resLoader.getResidenceById(id);

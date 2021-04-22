@@ -89,7 +89,7 @@ public class ChangeLogCommands extends DragonsCommandExecutor {
 	}
 	
 	private void managerRemoveLine(CommandSender sender, User user, String[] args) {
-		Integer lineNo = parseIntType(sender, args[1]);
+		Integer lineNo = parseInt(sender, args[1]);
 		if(lineNo == null) return;
 		
 		user.getLocalData().getList("news.lines", String.class).remove((int) lineNo);

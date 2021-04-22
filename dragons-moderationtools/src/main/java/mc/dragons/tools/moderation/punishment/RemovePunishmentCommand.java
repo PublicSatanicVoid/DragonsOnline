@@ -30,7 +30,7 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 		}
 		
 		User targetUser = lookupUser(sender, args[0]);
-		Integer punishmentNo = parseIntType(sender, args[1]);
+		Integer punishmentNo = parseInt(sender, args[1]);
 		if(targetUser == null || punishmentNo == null) return true;
 		punishmentNo--;
 		

@@ -90,7 +90,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 		sender.sendMessage(tmColor + "/floor <FloorName> status <Status>" + ChatColor.GRAY + " change floor status");
 		sender.sendMessage(ChatColor.DARK_GRAY + " Floor statuses: " + StringUtil.parseList(FloorStatus.values()));
 		sender.sendMessage(gmColor + "/floor <FloorName> volatile <Volatile>" + ChatColor.GRAY + " set whether the floor is volatile");
-		sender.sendMessage(tmColor + "/floor <FloorName> push" + ChatColor.GRAY + " push the floor to production staging");
+		sender.sendMessage(tmColor + "/floor push <FloorName>" + ChatColor.GRAY + " push the floor to production staging");
 		sender.sendMessage(ChatColor.DARK_GRAY + "" +  ChatColor.BOLD + "Note:" + ChatColor.DARK_GRAY + " Floor names must not contain spaces.");
 		sender.sendMessage(ChatColor.GRAY + "View the full documentation at " + ChatColor.UNDERLINE + Dragons.STAFF_DOCUMENTATION);
 	}
@@ -130,7 +130,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 				superflat = true;
 			}
 		}
-		Integer lvMinOpt = parseIntType(sender, args[3]);
+		Integer lvMinOpt = parseInt(sender, args[3]);
 		if(lvMinOpt == null) return;
 		Floor floor = floorLoader.registerNew(args[1], args[2], args[2], lvMinOpt, superflat);
 		MetadataConstants.addBlankMetadata(floor, user(sender));
@@ -162,7 +162,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GRAY + "World Name: " + ChatColor.GREEN + floor.getWorldName());
 			sender.sendMessage(ChatColor.GRAY + "Level Min: " + ChatColor.GREEN + floor.getLevelMin());
 			sender.sendMessage(ChatColor.GRAY + "Volatile: " + ChatColor.GREEN + floor.isVolatile());
-			MetadataConstants.displayMetadata(sender, floor);
+			sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.FLOOR, floor.getUUID()));
 			return;
 		}
 		Document base = Document.parse(floor.getData().toJson());
@@ -191,14 +191,14 @@ public class FloorCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(floor, user, base, "Updated floor status to " + status);
 		}
 		else if(args[1].equalsIgnoreCase("lvmin")) {
-			Integer lvMin = parseIntType(sender, args[2]);
+			Integer lvMin = parseInt(sender, args[2]);
 			if(lvMin == null) return;
 			floor.setLevelMin(lvMin);
 			sender.sendMessage(ChatColor.GREEN + "Updated floor level requirement successfully.");
 			MetadataConstants.logRevision(floor, user, base, "Updated floor level min to " + lvMin);
 		}
 		else if(args[1].equalsIgnoreCase("volatile")) {
-			Boolean isVolatile = parseBooleanType(sender, args[2]);
+			Boolean isVolatile = parseBoolean(sender, args[2]);
 			if(isVolatile == null) return;
 			floor.setVolatile(isVolatile);
 			sender.sendMessage(ChatColor.GREEN + "Updated floor volatility status sucessfully.");

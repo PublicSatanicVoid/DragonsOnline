@@ -86,8 +86,12 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		}
 		
 		public void setReviewedBy(User user) {
-			if(user == null) return;
-			data.append("reviewedBy", user.getUUID().toString());
+			if(user == null) {
+				data.remove("reviewedBy");
+			}
+			else {
+				data.append("reviewedBy", user.getUUID().toString());
+			}
 			save();
 		}
 		

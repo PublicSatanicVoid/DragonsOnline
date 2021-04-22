@@ -40,7 +40,7 @@ public class SpeedCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "Removed walk speed override.");
 				return true;
 			}
-			Float speed = parseFloatType(sender, shortcut ? args[0] : args[1]);
+			Float speed = parseFloat(sender, shortcut ? args[0] : args[1]);
 			if(speed == null) return true;
 			user.overrideWalkSpeed(speed);
 			sender.sendMessage(ChatColor.GREEN + "Set your walk speed to " + speed);
@@ -48,7 +48,7 @@ public class SpeedCommand extends DragonsCommandExecutor {
 		}
 		
 		if(args[0].equalsIgnoreCase("fly") || label.equalsIgnoreCase("flyspeed") || label.equalsIgnoreCase("fs")) {
-			Float speed = parseFloatType(sender, shortcut ? args[0] : args[1]);
+			Float speed = parseFloat(sender, shortcut ? args[0] : args[1]);
 			if(speed == null) return true;
 			player.setFlySpeed(speed);
 			sender.sendMessage(ChatColor.GREEN + "Set your fly speed to " + speed);

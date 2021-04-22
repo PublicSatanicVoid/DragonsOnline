@@ -85,8 +85,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 		}
 		String npcClassName = args[1];
 		EntityType type = StringUtil.parseEntityType(sender, args[2]);
-		Double maxHealth = parseDoubleType(sender, args[3]);
-		Integer level = parseIntType(sender, args[4]);
+		Double maxHealth = parseDouble(sender, args[3]);
+		Integer level = parseInt(sender, args[4]);
 		NPCType npcType = StringUtil.parseEnum(sender, NPCType.class, args[5]);
 		if(type == null || maxHealth == null || level == null || npcType == null) return;
 		
@@ -168,11 +168,15 @@ public class NPCCommand extends DragonsCommandExecutor {
 			heldItemTypeName = heldItemType.toString();
 		}
 		sender.sendMessage(ChatColor.GRAY + "Holding: " + ChatColor.GREEN + heldItemTypeName);
-		MetadataConstants.displayMetadata(sender, npcClass);
-		sender.sendMessage(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " loot" + ChatColor.YELLOW + " to view loot table");
-		sender.sendMessage(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " behavior" + ChatColor.YELLOW + " to view behaviors");
-		sender.sendMessage(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " addon" + ChatColor.YELLOW + " to view addons");
-		sender.sendMessage(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " attribute" + ChatColor.YELLOW + " to view attributes");
+		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.NPC_CLASS, npcClass.getUUID()));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " loot" + ChatColor.YELLOW + " to view loot table",
+				"/npc " + npcClass.getClassName() + " loot", "Click to view loot table"));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " behavior" + ChatColor.YELLOW + " to view behaviors",
+				"/npc " + npcClass.getClassName() + " behavior", "Click to view behaviors"));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " addon" + ChatColor.YELLOW + " to view addons",
+				"/npc " + npcClass.getClassName() + " addon", "Click to view addons"));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " attribute" + ChatColor.YELLOW + " to view attributes",
+				"/npc " + npcClass.getClassName() + " attribute", "Click to view attributes"));
 	}
 	
 	private void manageAttributes(CommandSender sender, String[] args) {
@@ -198,7 +202,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			npcClass.removeCustomAttribute(att);
 		}
 		else {
-			Double value = parseDoubleType(sender, args[3]);
+			Double value = parseDouble(sender, args[3]);
 			if(value == null) return;
 			npcClass.setCustomAttribute(att, value);
 		}
@@ -271,7 +275,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(npcClass, user, base, "Removed entry from loot table");
 		}
 		else {
-			Double chance = parseDoubleType(sender, args[4]);
+			Double chance = parseDouble(sender, args[4]);
 			if(chance == null) return;
 			npcClass.updateLootTable(args[2], args[3], chance);
 			sender.sendMessage(ChatColor.GREEN + "Updated entity loot table successfully.");
@@ -349,7 +353,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> remove <#>");
 			return false;
 		}
-		Integer behaviorNo = parseIntType(sender, args[4]);
+		Integer behaviorNo = parseInt(sender, args[4]);
 		if(behaviorNo == null) return false;
 		
 		behaviors.remove((int) behaviorNo);
@@ -369,7 +373,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			return false;
 		}
 		
-		Integer behaviorNo = parseIntType(sender, args[3]);
+		Integer behaviorNo = parseInt(sender, args[3]);
 		if(behaviorNo == null) return false;
 		
 		Document behavior = behaviors.get(behaviorNo);
@@ -391,17 +395,17 @@ public class NPCCommand extends DragonsCommandExecutor {
 					cond = NPCCondition.hasCompletedQuest(questLoader.getQuestByName(args[7]), inverted);
 					break;
 				case HAS_QUEST_STAGE:
-					Integer stage = parseIntType(sender, args[8]);
+					Integer stage = parseInt(sender, args[8]);
 					if(stage == null) return false;
 					cond = NPCCondition.hasQuestStage(questLoader.getQuestByName(args[7]), stage, inverted);
 					break;
 				case HAS_GOLD:
-					Double qty = parseDoubleType(sender, args[7]);
+					Double qty = parseDouble(sender, args[7]);
 					if(qty == null) return false;
 					cond = NPCCondition.hasGold(qty, inverted);
 					break;
 				case HAS_LEVEL:
-					Integer lv = parseIntType(sender, args[7]);
+					Integer lv = parseInt(sender, args[7]);
 					if(lv == null) return false;
 					cond = NPCCondition.hasLevel(lv, inverted);
 					break;
@@ -416,7 +420,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> condition remove <#>");
 					return  false;
 				}
-				Integer index = parseIntType(sender, args[6]);
+				Integer index = parseInt(sender, args[6]);
 				if(index == null) return false;
 				conditions.remove((int) index);
 				behaviorsLocal.getConditional(behaviorNo).getKey().remove((int) index);
@@ -431,9 +435,9 @@ public class NPCCommand extends DragonsCommandExecutor {
 						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action shop add <#> <ItemClass> <Quantity> <CostPer>");
 						return false;
 					}
-					Integer actionNo = parseIntType(sender, args[7]);
-					Integer qty = parseIntType(sender, args[9]);
-					Double cost = parseDoubleType(sender, args[10]);
+					Integer actionNo = parseInt(sender, args[7]);
+					Integer qty = parseInt(sender, args[9]);
+					Double cost = parseDouble(sender, args[10]);
 					if(actionNo == null || qty == null || cost == null) return false;
 					
 					NPCAction action = behaviorsLocal.getConditional(behaviorNo).getValue().get(actionNo);
@@ -450,8 +454,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc class -s <ClassName> behavior <CLICK|HIT> <#> action shop remove <action#> <item#>");
 						return false;
 					}
-					Integer actionNo = parseIntType(sender, args[7]);
-					Integer slotNo = parseIntType(sender, args[8]);
+					Integer actionNo = parseInt(sender, args[7]);
+					Integer slotNo = parseInt(sender, args[8]);
 					if(actionNo == null || slotNo == null) return false;
 					NPCAction action = behaviorsLocal.getConditional(behaviorNo).getValue().get(actionNo);
 					action.getShopItems().remove((int) slotNo);
@@ -513,7 +517,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action remove <#>");
 					return false;
 				}
-				Integer index = parseIntType(sender, args[6]);
+				Integer index = parseInt(sender, args[6]);
 				if(index == null) return false;
 				actions.remove((int) index);
 				behaviorsLocal.getConditional(behaviorNo).getValue().remove((int) index);
@@ -555,7 +559,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 	
 	private void setMaxHealth(CommandSender sender, String[] args) {
 		NPCClass npcClass = lookupNPCClass(sender, args[0]);
-		Double maxHealth = parseDoubleType(sender, args[2]);
+		Double maxHealth = parseDouble(sender, args[2]);
 		if(npcClass == null || maxHealth == null) return;
 
 		Document base = Document.parse(npcClass.getData().toJson());
@@ -567,7 +571,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 	
 	private void setLevel(CommandSender sender, String[] args) {
 		NPCClass npcClass = lookupNPCClass(sender, args[0]);
-		Integer level = parseIntType(sender, args[2]);
+		Integer level = parseInt(sender, args[2]);
 		if(npcClass == null || level == null) return;
 
 		Document base = Document.parse(npcClass.getData().toJson());
@@ -615,7 +619,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 	
 	private void setAI(CommandSender sender, String[] args) {
 		NPCClass npcClass = lookupNPCClass(sender, args[0]);
-		Boolean ai = parseBooleanType(sender, args[2]);
+		Boolean ai = parseBoolean(sender, args[2]);
 		if(npcClass == null || ai == null) return;
 
 		Document base = Document.parse(npcClass.getData().toJson());
@@ -627,7 +631,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 	
 	private void setImmortal(CommandSender sender, String[] args) {
 		NPCClass npcClass = lookupNPCClass(sender, args[0]);
-		Boolean immortal = parseBooleanType(sender, args[2]);
+		Boolean immortal = parseBoolean(sender, args[2]);
 		if(npcClass == null || immortal == null) return;
 
 		Document base = Document.parse(npcClass.getData().toJson());

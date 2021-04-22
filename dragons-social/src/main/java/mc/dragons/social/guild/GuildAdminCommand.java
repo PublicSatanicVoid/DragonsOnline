@@ -56,7 +56,7 @@ public class GuildAdminCommand extends DragonsCommandExecutor {
 		else if(args[0].equalsIgnoreCase("list")) {
 			Integer page = 1;
 			if(args.length > 1) {
-				page = parseIntType(sender, args[1]);
+				page = parseInt(sender, args[1]);
 				if(page == null) return true;
 			}
 			PaginatedResult<Guild> results = guildLoader.getAllGuilds(page);
@@ -225,7 +225,7 @@ public class GuildAdminCommand extends DragonsCommandExecutor {
 	}
 
 	private Guild lookupGuild(CommandSender sender, String idStr) {
-		Integer id = parseIntType(sender, idStr);
+		Integer id = parseInt(sender, idStr);
 		if(id == null) return null;
 		Guild guild = guildLoader.getGuildById(id);
 		if(guild == null) {

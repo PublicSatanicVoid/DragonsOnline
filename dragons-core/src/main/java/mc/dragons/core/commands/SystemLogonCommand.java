@@ -100,7 +100,7 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 	private void updateProfilePermissionFlag(CommandSender sender, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
 		
-		Boolean value = parseBooleanType(sender, args[3]);
+		Boolean value = parseBoolean(sender, args[3]);
 		if(value == null) return;
 		
 		systemProfileLoader.setProfileFlag(args[1], args[2].toUpperCase(), value);

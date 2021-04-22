@@ -62,7 +62,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest create <ShortName> <LvMin>");
 			return;
 		}
-		Integer lvMin = parseIntType(sender, args[2]);
+		Integer lvMin = parseInt(sender, args[2]);
 		if(lvMin == null) return;
 		Quest quest = questLoader.registerNew(args[1], "Unnamed Quest", lvMin);
 		MetadataConstants.addBlankMetadata(quest, user(sender));
@@ -106,7 +106,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GRAY + "Full name: " + ChatColor.GREEN + quest.getQuestName());
 		sender.sendMessage(ChatColor.GRAY + "Level min: " + ChatColor.GREEN + quest.getLevelMin());
 		sender.sendMessage(ChatColor.GRAY + "# Stages: " + ChatColor.GREEN + quest.getSteps().size());
-		MetadataConstants.displayMetadata(sender, quest);
+		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.QUEST, quest.getUUID()));
 		if(!quest.isValid()) {
 			sender.sendMessage(ChatColor.RED + "Warning: Invalid or incomplete quest! To be valid, the final stage must be named \"Complete\", have trigger type INSTANT, and have no actions.");
 		}
@@ -202,7 +202,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void displayStage(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		QuestStep step = quest.getSteps().get(stepNo);
 		sender.sendMessage(ChatColor.GREEN + "Quest Stage #" + stepNo);
@@ -241,7 +241,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void addAction(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		QuestStep step = quest.getSteps().get(stepNo);
 		User user = user(sender);
@@ -305,7 +305,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return;
 		}
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		QuestStep step = quest.getSteps().get(stepNo);
 		
@@ -345,7 +345,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return;
 		}
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
@@ -364,7 +364,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return;
 		}
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
@@ -387,7 +387,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 		
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
@@ -399,7 +399,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void updateStepName(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
@@ -411,7 +411,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void updateStepTrigger(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
@@ -424,7 +424,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void deleteStep(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseIntType(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		

@@ -122,6 +122,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\FeedbackCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\HelpCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\mongo\MongoCounter.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\TableGenerator.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\User.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\ChatChannel.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\npc\NPCClassLoader.java

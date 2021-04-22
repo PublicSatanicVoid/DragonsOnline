@@ -21,7 +21,7 @@ public class SlayCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		Integer radius = parseIntType(sender, args[0]);
+		Integer radius = parseInt(sender, args[0]);
 		if(radius == null) return true;
 		
 		int slain = 0;

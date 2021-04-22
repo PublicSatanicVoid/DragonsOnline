@@ -61,6 +61,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.LogFilter;
@@ -84,6 +85,7 @@ import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
+import mc.dragons.core.util.PermissionUtil;
 
 /**
  * The main plugin class for DragonsOnline.
@@ -311,12 +313,19 @@ public class Dragons extends JavaPlugin {
 	public void onDisable() {
 		((AutoSaveTask) autoSaveRunnable).run(true);
 		User.getConnectionMessageHandler().clearServerEntries();
+		String kickMessage = ChatColor.YELLOW + "This server instance has been closed. We'll be back online soon.";
+		String kickMessageDev = kickMessage + "\nLog Token: " + CustomLoggingProvider.LOG_FILTER.getLogEntryUUID();
 		for (User user : UserLoader.allUsers()) {
 			if (user.getPlayer() == null || !user.getPlayer().isOnline()) {
 				continue;
 			}
 			user.handleQuit();
-			user.getPlayer().kickPlayer(ChatColor.YELLOW + "This server instance has been closed. We'll be back online soon.");
+			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.DEVELOPER, false)) {
+				user.getPlayer().kickPlayer(kickMessageDev);
+			}
+			else {
+				user.getPlayer().kickPlayer(kickMessage);
+			}
 		}
 	}
 

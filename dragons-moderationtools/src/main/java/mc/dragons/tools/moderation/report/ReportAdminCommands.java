@@ -27,7 +27,7 @@ public class ReportAdminCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/deletereport <ID>");
 				return true;
 			}
-			Integer id = parseIntType(sender, args[0]);
+			Integer id = parseInt(sender, args[0]);
 			if(id == null) return true;
 			boolean success = reportLoader.deleteReport(id);
 			if(success) {

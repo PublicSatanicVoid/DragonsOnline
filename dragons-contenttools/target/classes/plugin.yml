@@ -63,3 +63,6 @@ commands:
     aliases: ph
   fixed:
     description: (BUILDER) Sets the targeted entity to stay in place and persist past server restarts.
+  objmeta:
+    description: (GM) View metadata about a game object.
+    aliases: [obmeta, obmetadata]

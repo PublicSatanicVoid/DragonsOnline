@@ -31,7 +31,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
  *
  */
 public class StringUtil {
-	private static SimpleDateFormat standardDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 	
 	public static String locToString(Location loc) {
 		return String.valueOf(MathUtil.round(loc.getX())) + ", " + MathUtil.round(loc.getY()) + ", " + MathUtil.round(loc.getZ());
@@ -44,7 +44,7 @@ public class StringUtil {
 	public static String docToString(Document doc) {
 		String result = "";
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) doc.entrySet()) {
-			result = String.valueOf(result) + entry.getKey() + "=" + entry.getValue().toString() + "; ";
+			result = result + entry.getKey() + "=" + entry.getValue().toString() + "; ";
 		}
 		if (result.equals("")) {
 			return "";
@@ -65,7 +65,7 @@ public class StringUtil {
 		}
 		String result = "";
 		for (int i = startIndex; i < Math.min(endIndex, args.length); i++) {
-			result = String.valueOf(result) + args[i] + " ";
+			result = result + args[i] + " ";
 		}
 		return result.trim();
 	}
@@ -210,7 +210,7 @@ public class StringUtil {
 	}
 	
 	public static String dateFormatNow() {
-		return standardDateFormat.format(Date.from(Instant.now()));
+		return DATE_FORMAT.format(Date.from(Instant.now()));
 	}
 
 	public static String encodeBase64(String str) {
@@ -233,22 +233,22 @@ public class StringUtil {
 			}
 			if (!skip) {
 				if (input.charAt(t) == '/') {
-					returnString = String.valueOf(String.valueOf(returnString)) + '/';
+					returnString += '/';
 				} else if (input.charAt(t) == ' ') {
-					returnString = String.valueOf(String.valueOf(returnString)) + ' ';
+					returnString += ' ';
 				} else if (input.charAt(t) == '[') {
-					returnString = String.valueOf(String.valueOf(returnString)) + '[';
+					returnString += '[';
 				} else if (input.charAt(t) == ']') {
-					returnString = String.valueOf(String.valueOf(returnString)) + ']';
+					returnString += ']';
 				} else if (input.charAt(t) == '(') {
-					returnString = String.valueOf(String.valueOf(returnString)) + '(';
+					returnString += '(';
 				} else if (input.charAt(t) == ')') {
-					returnString = String.valueOf(String.valueOf(returnString)) + ')';
+					returnString += ')';
 				} else if (input.charAt(t) <= '' && input.charAt(t) >= ' ') {
-					returnString = String.valueOf(String.valueOf(returnString)) + (char) (65248 + input.charAt(t));
+					returnString += (char) (65248 + input.charAt(t));
 				}
 			} else {
-				returnString = String.valueOf(String.valueOf(returnString)) + input.charAt(t);
+				returnString += input.charAt(t);
 				if (!skipNext) {
 					skip = false;
 				} else {
@@ -258,7 +258,7 @@ public class StringUtil {
 		}
 		return returnString;
 	}
-	
+
 	public static boolean equalsAnyIgnoreCase(String input, String... tests) {
 		for(String test : tests) {
 			if(input.equalsIgnoreCase(test)) return true;

@@ -58,10 +58,10 @@ public class ItemCommand extends DragonsCommandExecutor {
 		
 		Material type = StringUtil.parseMaterialType(sender, args[2]);
 		if(type == null) return;
-		Integer lvMin = parseIntType(sender, args[3]);
-		Double cooldown = parseDoubleType(sender, args[4]);
-		Double damage = parseDoubleType(sender, args[5]);
-		Double armor = parseDoubleType(sender, args[6]);
+		Integer lvMin = parseInt(sender, args[3]);
+		Double cooldown = parseDouble(sender, args[4]);
+		Double damage = parseDouble(sender, args[5]);
+		Double armor = parseDouble(sender, args[6]);
 		if(lvMin == null || cooldown == null || damage == null || armor == null) return;
 		
 		ItemClass itemClass = itemClassLoader.registerNew(args[1], "Unnamed Item", ChatColor.GOLD, type, lvMin, cooldown, 0.0, false, false, damage, armor, new ArrayList<>(), 64);
@@ -112,7 +112,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 		
 		Item item = itemLoader.registerNew(itemClass);
 		if(args.length > 3) {
-			Integer quantityOpt = parseIntType(sender, args[3]);
+			Integer quantityOpt = parseInt(sender, args[3]);
 			if(quantityOpt == null) return;
 			item.setQuantity(quantityOpt);
 		}
@@ -154,7 +154,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 		for(String loreLine : itemClass.getLore()) {
 			sender.sendMessage(ChatColor.GREEN + " " + loreLine);
 		}
-		MetadataConstants.displayMetadata(sender, itemClass);
+		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.ITEM_CLASS, itemClass.getUUID()));
 	}
 	
 	private void push(CommandSender sender, String[] args) {
@@ -294,7 +294,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item type to " + type);
 		}
 		else if(args[1].equalsIgnoreCase("lvmin")) {
-			Integer lvMin = parseIntType(sender, args[2]);
+			Integer lvMin = parseInt(sender, args[2]);
 			if(lvMin == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -303,7 +303,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item level min to " + lvMin);
 		}
 		else if(args[1].equalsIgnoreCase("cooldown")) {
-			Double cooldown = parseDoubleType(sender, args[2]);
+			Double cooldown = parseDouble(sender, args[2]);
 			if(cooldown == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -312,7 +312,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item cooldown to " + cooldown);
 		}
 		else if(args[1].equalsIgnoreCase("unbreakable")) {
-			Boolean unbreakable = parseBooleanType(sender, args[2]);
+			Boolean unbreakable = parseBoolean(sender, args[2]);
 			if(unbreakable == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -321,7 +321,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item unbreakability to " + unbreakable);
 		}
 		else if(args[1].equalsIgnoreCase("undroppable")) {
-			Boolean undroppable = parseBooleanType(sender, args[2]);
+			Boolean undroppable = parseBoolean(sender, args[2]);
 			if(undroppable == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -330,7 +330,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item undroppability to " + undroppable);
 		}
 		else if(args[1].equalsIgnoreCase("gmlock")) {
-			Boolean gmLock = parseBooleanType(sender, args[2]);
+			Boolean gmLock = parseBoolean(sender, args[2]);
 			if(gmLock == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -339,7 +339,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item GM lock to " + gmLock);
 		}
 		else if(args[1].equalsIgnoreCase("damage")) {
-			Double damage = parseDoubleType(sender, args[2]);
+			Double damage = parseDouble(sender, args[2]);
 			if(damage == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -348,7 +348,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item damage to " + damage);
 		}
 		else if(args[1].equalsIgnoreCase("speedboost")) {
-			Double speedBoost = parseDoubleType(sender, args[2]);
+			Double speedBoost = parseDouble(sender, args[2]);
 			if(speedBoost == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -357,7 +357,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item speed boost to " + speedBoost);
 		}
 		else if(args[1].equalsIgnoreCase("armor")) {
-			Double armor = parseDoubleType(sender, args[2]);
+			Double armor = parseDouble(sender, args[2]);
 			if(armor == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());
@@ -366,7 +366,7 @@ public class ItemCommand extends DragonsCommandExecutor {
 			MetadataConstants.logRevision(itemClass, user, base, "Set item armor to " + armor);
 		}
 		else if(args[1].equalsIgnoreCase("stacksize")) {
-			Integer stackSize = parseIntType(sender, args[2]);
+			Integer stackSize = parseInt(sender, args[2]);
 			if(stackSize == null) return;
 
 			Document base = Document.parse(itemClass.getData().toJson());

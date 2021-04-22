@@ -33,7 +33,7 @@ public class ReportsCommand extends DragonsCommandExecutor {
 		int pageFlagIndex = StringUtil.getFlagIndex(args, "-page", 0);
 		Integer page = 1;
 		if(pageFlagIndex != -1) {
-			page = parseIntType(sender, args[++pageFlagIndex]);
+			page = parseInt(sender, args[++pageFlagIndex]);
 			if(page == null) return true;
 		}
 		
@@ -89,7 +89,7 @@ public class ReportsCommand extends DragonsCommandExecutor {
 			TextComponent entry = new TextComponent(ChatColor.DARK_GRAY + "#" + ChatColor.DARK_AQUA + ChatColor.BOLD + report.getId() + ChatColor.DARK_GRAY + " | " + ChatColor.GRAY + report.getType() + "/" + report.getStatus()
 					+ ChatColor.AQUA + " " + report.getTarget().getName() + " (by " + report.getFiledBy().getName() + ")");
 			entry.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to view report")));
-			entry.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vr " + report.getId()));
+			entry.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + report.getId()));
 			sender.spigot().sendMessage(entry);
 		}
 		

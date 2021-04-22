@@ -81,6 +81,10 @@ public class TaskCommands extends DragonsCommandExecutor {
 		return StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Re-Open]", "/reopen " + id, "Click to re-open task #" + id);
 	}
 	
+	private static TextComponent noteText(int id) {
+		return StringUtil.clickableHoverableText(ChatColor.GRAY + "[+Add Note]", "/tasknote " + id + " ", true, "Click to add a note to task #" + id);
+	}
+	
 	public TaskCommands() {
 		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
 		buildNotifier = JavaPlugin.getPlugin(DragonsDevPlugin.class).getBuildNotifier();
@@ -106,7 +110,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 	}
 	
 	private Task lookupTask(CommandSender sender, String idString) {
-		Integer id = parseIntType(sender, idString);
+		Integer id = parseInt(sender, idString);
 		if(id == null) return null;
 		Task task = lookup(sender, () -> taskLoader.getTaskById(id), PREFIX + ChatColor.RED + "Invalid task number! Do " + ChatColor.ITALIC + "/tasks" + ChatColor.RED + " to list tasks.");
 		return task;
@@ -224,7 +228,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		Integer page = 1;
 		if(args.length > pageIndex) {
-			page = parseIntType(sender, args[pageIndex]);
+			page = parseInt(sender, args[pageIndex]);
 			if(page == null) return;
 		}
 		int pageSize = 5;
@@ -251,7 +255,8 @@ public class TaskCommands extends DragonsCommandExecutor {
 		TextComponent otherAssign = assignText(task.getId());
 		otherAssign.addExtra(space);
 		TextComponent otherAssignEffective = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) ? otherAssign : new TextComponent();
-		sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done);
+		TextComponent note = noteText(task.getId());
+		sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done, space, note);
 		sender.sendMessage(REGULAR + "Name: " + ACCENT + task.getName());
 		sender.sendMessage(REGULAR + "By: " + ACCENT + task.getBy().getName());
 		sender.sendMessage(REGULAR + "Loc: " + ACCENT + StringUtil.locToString(task.getLocation()) + " [" + task.getLocation().getWorld().getName() + "]");
@@ -264,8 +269,8 @@ public class TaskCommands extends DragonsCommandExecutor {
 				.collect(Collectors.toList()));
 		sender.spigot().sendMessage(assignees.toArray(new BaseComponent[] {}));
 		sender.sendMessage(ChatColor.GRAY + "Notes: ");
-		for(String note : task.getNotes()) {
-			sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + note);
+		for(String line : task.getNotes()) {
+			sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.GREEN + line);
 		}
 	}
 	

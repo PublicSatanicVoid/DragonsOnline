@@ -1,7 +1,6 @@
 package mc.dragons.core.commands;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -77,11 +76,22 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	public static final String ERR_NOT_INTEGER = ChatColor.RED + "Invalid input! Please specify a valid integer!";
 	public static final String ERR_NOT_NUMBER = ChatColor.RED + "Invalid input! Please specify a valid number!";
 	public static final String ERR_NOT_BOOLEAN = ChatColor.RED + "Invalid input! Please specify 'true' or 'false'!";
+	public static final String ERR_NOT_UUID = ChatColor.RED + "Invalid input! Please specify a valid hyphenated UUID, e.g. " + UUID.randomUUID();
 	public static final String ERR_NO_RESULTS = ChatColor.RED + "No results were returned for this query.";
 	
 	
 	/* Helper functions */
 	
+	/**
+	 * Avoid code style warnings for unused parameters by
+	 * calling this function for all unused parameters.
+	 * 
+	 * Only use this if there is a compelling need to not
+	 * change the parameter list.
+	 * 
+	 * @param param
+	 */
+	protected void unusedParameters(Object... params) {}
 	protected void unusedParameter(Object param) {}
 	
 	protected Player player(CommandSender sender) {
@@ -137,18 +147,7 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 		}
 		return true;
 	}
-	
-	protected <T> Optional<T> parse(CommandSender sender, T parsed, String errorMessage) {
-		if(parsed == null) {
-			sender.sendMessage(errorMessage);
-			return Optional.empty();
-		}
-		return Optional.of(parsed);
-	}
 
-	/* eventually this should replace parse, so we can get rid of Optionals. Instead
-	 * 	of checking isEmpty we can check if null... so much easier
-	 */
 	protected <T> T parseType(CommandSender sender, T parsed, String errorMessage) {
 		if(parsed == null) {
 			sender.sendMessage(errorMessage);
@@ -157,36 +156,36 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 		return parsed;
 	}
 	
-	protected Optional<Integer> parseIntOpt(CommandSender sender, String value) {
-		return parse(sender, Integer.valueOf(value), ERR_NOT_INTEGER);
+	protected <T> T parseType(CommandSender sender, Supplier<T> parser, String errorMessage) {
+		T value = null;
+		try {
+			value = parser.get();
+		}
+		catch(Exception e) { /* ignored */ }
+		if(value == null) {
+			sender.sendMessage(errorMessage);
+		}
+		return value;
 	}
 	
-	protected Integer parseIntType(CommandSender sender, String value) {
-		return parseType(sender, Integer.valueOf(value), ERR_NOT_INTEGER);
+	protected Integer parseInt(CommandSender sender, String value) {
+		return parseType(sender, () -> Integer.valueOf(value), ERR_NOT_INTEGER);
 	}
 	
-	protected Optional<Double> parseDoubleOpt(CommandSender sender, String value) {
-		return parse(sender, Double.valueOf(value), ERR_NOT_NUMBER);
+	protected Double parseDouble(CommandSender sender, String value) {
+		return parseType(sender, () -> Double.valueOf(value), ERR_NOT_NUMBER);
 	}
 	
-	protected Double parseDoubleType(CommandSender sender, String value) {
-		return parseType(sender, Double.valueOf(value), ERR_NOT_NUMBER);
+	protected Float parseFloat(CommandSender sender, String value) {
+		return parseType(sender, () -> Float.valueOf(value), ERR_NOT_NUMBER);
 	}
 	
-	protected Optional<Float> parseFloatOpt(CommandSender sender, String value) {
-		return parse(sender, Float.valueOf(value), ERR_NOT_NUMBER);
-	}
-	 
-	protected Float parseFloatType(CommandSender sender, String value) {
-		return parseType(sender, Float.valueOf(value), ERR_NOT_NUMBER);
+	protected Boolean parseBoolean(CommandSender sender, String value) {
+		return parseType(sender, () -> Boolean.valueOf(value), ERR_NOT_BOOLEAN);
 	}
 	
-	protected Optional<Boolean> parseBooleanOpt(CommandSender sender, String value) {
-		return parse(sender, Boolean.valueOf(value), ERR_NOT_BOOLEAN);
-	}
-	
-	protected Boolean parseBooleanType(CommandSender sender, String value) {
-		return parseType(sender, Boolean.valueOf(value), ERR_NOT_BOOLEAN);
+	protected UUID parseUUID(CommandSender sender, String value) {
+		return parseType(sender, () -> UUID.fromString(value), ERR_NOT_UUID);
 	}
 	
 	protected UUID reportException(Exception e) {

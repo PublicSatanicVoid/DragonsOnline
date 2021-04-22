@@ -14,6 +14,7 @@ import mc.dragons.tools.content.command.builder.WarpCommands;
 import mc.dragons.tools.content.command.gameobject.FloorCommand;
 import mc.dragons.tools.content.command.gameobject.ItemCommand;
 import mc.dragons.tools.content.command.gameobject.NPCCommand;
+import mc.dragons.tools.content.command.gameobject.ObjectMetadataCommand;
 import mc.dragons.tools.content.command.gameobject.QuestCommand;
 import mc.dragons.tools.content.command.gameobject.RegionCommand;
 import mc.dragons.tools.content.command.statistics.ReloreCommand;
@@ -46,6 +47,7 @@ public class DragonsContentToolsPlugin extends JavaPlugin implements CommandExec
 		getCommand("resetprofile").setExecutor(new ResetProfileCommand());
 		getCommand("placeholder").setExecutor(new PlaceholderCommand());
 		getCommand("fixed").setExecutor(new FixedCommand());
+		getCommand("objmeta").setExecutor(new ObjectMetadataCommand());
 		
 		CommandExecutor gamemodeCommandExecutor = new GamemodeCommand();
 		getCommand("gamemode").setExecutor(gamemodeCommandExecutor);

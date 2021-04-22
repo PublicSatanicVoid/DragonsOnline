@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.persistence.PersistentDataType;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectRegistry;
@@ -40,6 +41,12 @@ public class EntityDeathListener implements Listener {
 	@EventHandler
 	public void onEntityDeath(EntityDeathEvent event) {
 		LOGGER.finer("Death event on " + StringUtil.entityToString(event.getEntity()));
+		if(event.getEntity().getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
+			LOGGER.severe("A fixed entity (" + StringUtil.entityToString(event.getEntity()) + ") has died! Location: "
+				+ StringUtil.locToString(event.getEntity().getLocation()) + " [" + event.getEntity().getWorld().getName() + "]");
+			return;
+		}
+		
 		Player player = event.getEntity().getKiller();
 		User user = UserLoader.fromPlayer(player);
 		LivingEntity livingEntity = event.getEntity();

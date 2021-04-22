@@ -36,11 +36,22 @@ import mc.dragons.core.networking.MessageDispatcher;
 import mc.dragons.core.tasks.LagMeter;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.core.util.TableGenerator;
+import mc.dragons.core.util.TableGenerator.Alignment;
+import mc.dragons.core.util.TableGenerator.Receiver;
 
 public class PerformanceCommands extends DragonsCommandExecutor {
 
 	private static final int BYTES_IN_MB = (int) Math.pow(10, 6);
 	private static final int NS_IN_MS = (int) Math.pow(10, 6);
+	
+	private static final String COL_FLOOR = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Floor Name";
+	private static final String COL_ENTITIES = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Entities";
+	private static final String COL_LIVING = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Living";
+	private static final String COL_PLAYERS = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Players";
+	private static final String COL_CHUNKS = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Chunks";
+	private static final String COL_POPULATED = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Populated";
+	private static final String COL_RATIO = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Ratio";
 	
 	private List<Long> tickTimings = new ArrayList<>();
 	
@@ -54,14 +65,22 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		if(label.equalsIgnoreCase("worldperformance")) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + instance.getServerName()
 					+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
+			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
+			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_LIVING, COL_PLAYERS, COL_CHUNKS, COL_POPULATED, COL_RATIO);
+			String floorPrefix = ChatColor.YELLOW + "";
+			String dataPrefix = ChatColor.GRAY + "";
 			for(World w : Bukkit.getWorlds()) {
 				long populatedChunks = Arrays.stream(w.getLoadedChunks())
 						.filter(ch -> Arrays.stream(ch.getEntities()).filter(e -> e.getType() == EntityType.PLAYER).count() > 0)
 						.count();
-				sender.sendMessage(ChatColor.YELLOW + "" + w.getName() + ": " + ChatColor.GREEN + "Ent:" + ChatColor.GRAY + w.getEntities().size() 
-						+ ChatColor.GREEN + " Liv:" + ChatColor.GRAY + w.getLivingEntities().size() + ChatColor.GREEN + " Plr:" + ChatColor.GRAY + w.getPlayers().size()
-						+ ChatColor.GREEN + "  Chk:" + ChatColor.GRAY + w.getLoadedChunks().length + ChatColor.GREEN + " Pop:" + ChatColor.GRAY + populatedChunks
-						+ ChatColor.GREEN + " Rat:" + ChatColor.GRAY + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%");
+				tg.addRow(floorPrefix + w.getName(), 
+						dataPrefix + w.getEntities().size(), dataPrefix + w.getLivingEntities().size(), dataPrefix + w.getPlayers().size(), 
+						dataPrefix + w.getLoadedChunks().length, dataPrefix + populatedChunks, 
+						dataPrefix + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%");
+			}
+			Receiver receiver = isPlayer(sender) ? Receiver.CLIENT : Receiver.CONSOLE;
+			for(String line : tg.generate(receiver, true, true)) {
+				sender.sendMessage(line);
 			}
 		}
 		
@@ -106,7 +125,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Please clear existing tick performance data before running this again! /tickperformance clear");
 					return true;
 				}
-				Integer seconds = parseIntType(sender, args[1]);
+				Integer seconds = parseInt(sender, args[1]);
 				if(seconds == null) return true;
 				new BukkitRunnable() {
 					long start = System.currentTimeMillis();
@@ -166,7 +185,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			UUID cid = CORRELATION.registerNewCorrelationID();
 			Thread thread = Thread.currentThread();
 			if(args.length > 0) {
-				Integer id = parseIntType(sender, args[0]);
+				Integer id = parseInt(sender, args[0]);
 				for(Thread test : Thread.getAllStackTraces().keySet()) {
 					if(test.getId() == id) {
 						thread = test;
@@ -252,7 +271,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "Successfully cleared the network-wide message cache (n=" + result.getDeletedCount() + ")");
 			}
 			else {
-				Integer seconds = parseIntType(sender, args[0]);
+				Integer seconds = parseInt(sender, args[0]);
 				if(seconds == null) return true;
 				DeleteResult result = messages.deleteMany(new Document("timestamp", new Document("$lt", System.currentTimeMillis() - seconds * 1000)));
 				sender.sendMessage(ChatColor.GREEN + "Successfully removed " + result.getDeletedCount() + " messages from the cache");

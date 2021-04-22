@@ -22,7 +22,7 @@ public class SetVerificationCommand extends DragonsCommandExecutor {
 		User target = lookupUser(sender, args[0]);
 		if(target == null) return true;
 		
-		Boolean verified = parseBooleanType(sender, args[1]);
+		Boolean verified = parseBoolean(sender, args[1]);
 		if(verified == null) return true;
 		
 		target.setVerified(verified);

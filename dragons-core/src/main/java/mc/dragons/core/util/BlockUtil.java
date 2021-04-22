@@ -5,6 +5,12 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
+/**
+ * Miscellaneous utilities for block handling.
+ * 
+ * @author Adam
+ *
+ */
 public class BlockUtil {
 	
 	/**
@@ -34,6 +40,12 @@ public class BlockUtil {
 		return start.getBlock().getLocation();
 	}
 	
+	/**
+	 * Calculates the closest air block in the XZ-plane.
+	 * 
+	 * @param start
+	 * @return
+	 */
 	public static Location getClosestAirXZ(Location start) {
 		Block nBelow = start.getBlock();
 		Block nAbove = start.getBlock();
@@ -53,6 +65,13 @@ public class BlockUtil {
 		return start.getBlock().getLocation();
 	}
 	
+	/**
+	 * Calculates the closest air block above the given block
+	 * in the XZ-plane.
+	 * 
+	 * @param start
+	 * @return
+	 */
 	public static Location getAirAboveXZ(Location start) {
 		Block buf = start.getBlock();
 		int n = 0;

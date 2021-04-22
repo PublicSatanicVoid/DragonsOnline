@@ -27,7 +27,7 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 		
 		User reporter = user(sender);
 		
-		Integer messageId = parseIntType(sender, args[0]);
+		Integer messageId = parseInt(sender, args[0]);
 		if(messageId == null) return true;
 		
 		MessageData messageData = chatMessageRegistry.get(messageId);

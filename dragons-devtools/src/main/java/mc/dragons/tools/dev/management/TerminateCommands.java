@@ -22,7 +22,7 @@ public class TerminateCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/killtask <TaskID>");
 				return true;
 			}
-			Integer id = parseIntType(sender, args[0]);
+			Integer id = parseInt(sender, args[0]);
 			if(id == null) return true;
 			Bukkit.getScheduler().cancelTask(id);
 			sender.sendMessage(ChatColor.GREEN + "Killed task #" + id);
