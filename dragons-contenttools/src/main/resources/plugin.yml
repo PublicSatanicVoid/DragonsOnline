@@ -1,9 +1,10 @@
 name: DragonsContentTools
-main: mc.dragons.tools.content.DragonsContentToolsPlugin
+main: mc.dragons.tools.content.DragonsContentTools
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
 api-version: 1.16
+description: Provides tools for GMs to view and edit game data.
 commands:
   clear:
     description: (TESTER) Clear your inventory.

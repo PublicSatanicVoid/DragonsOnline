@@ -1,9 +1,8 @@
-name: DragonsAntiCheat
-main: mc.dragons.anticheat.DragonsAntiCheatPlugin
+name: DragonsReplays
+main: mc.dragons.replays.DragonsReplays
 version: 1.0.0
 author: DragonRider747
 depend: [DragonsCore]
 api-version: 1.16
+description: (EXPERIMENTAL) Logs all player actions for viewing and rollback at a later date.
 commands:
-  ac:
-  acdebug:

@@ -33,7 +33,7 @@ public class ObjectMetadataCommand extends DragonsCommandExecutor {
 		UUID uuid = parseUUID(sender, args[1]);
 		if(type == null || uuid == null) return true;
 		
-		GameObject gameObject = type.getLoader().loadObject(instance.getPersistentStorageManager().getStorageAccess(type, uuid));
+		GameObject gameObject = type.getLoader().loadObject(dragons.getPersistentStorageManager().getStorageAccess(type, uuid));
 		if(gameObject == null) {
 			sender.sendMessage(ChatColor.RED + "No game object was found matching these criteria!");
 			return true;

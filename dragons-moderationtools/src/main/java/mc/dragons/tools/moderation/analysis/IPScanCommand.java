@@ -17,7 +17,7 @@ import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.StringUtil;
 
 public class IPScanCommand extends DragonsCommandExecutor {
-	private StorageManager storageManager = instance.getPersistentStorageManager();
+	private StorageManager storageManager = dragons.getPersistentStorageManager();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

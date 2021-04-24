@@ -11,7 +11,7 @@ import mc.dragons.core.util.StringUtil;
 
 public class AddonCommand extends DragonsCommandExecutor {
 
-	private AddonRegistry addonRegistry = instance.getAddonRegistry();
+	private AddonRegistry addonRegistry = dragons.getAddonRegistry();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

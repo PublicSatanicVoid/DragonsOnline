@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 
-import mc.dragons.anticheat.DragonsAntiCheatPlugin;
+import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import net.minecraft.server.v1_16_R3.Block;
@@ -15,9 +15,9 @@ import net.minecraft.server.v1_16_R3.IBlockData;
 
 public class AntiCheatCommand extends DragonsCommandExecutor {
 
-	private DragonsAntiCheatPlugin plugin;
+	private DragonsAntiCheat plugin;
 	
-	public AntiCheatCommand(DragonsAntiCheatPlugin instance) {
+	public AntiCheatCommand(DragonsAntiCheat instance) {
 		plugin = instance;
 	}
 	
@@ -58,6 +58,7 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			ff *= 0.91; // ?
 			sender.sendMessage("*multiplier="+ 0.1 * (0.1627714 / (ff * ff * ff)));
 			sender.sendMessage("*a="+ff);
+			
 			return true;
 		}
 		

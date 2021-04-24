@@ -20,6 +20,12 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
+/**
+ * Handles cross-server player chat.
+ * 
+ * @author Adam
+ *
+ */
 public class ChatMessageHandler extends MessageHandler {
 	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	private ChatMessageRegistry registry = Dragons.getInstance().getChatMessageRegistry();
@@ -73,6 +79,13 @@ public class ChatMessageHandler extends MessageHandler {
 		LOGGER.info("[" + user.getServer() + "/" + channel.getAbbreviation() + "/" + loc.getWorld().getName() + "] [" + user.getName() + "] " + message);
 	}
 	
+	/**
+	 * Send a message from the specified player on the specified channel.
+	 * 
+	 * @param user
+	 * @param channel
+	 * @param message
+	 */
 	public void send(User user, ChatChannel channel, String message) {
 		if(channel.isNetworked()) {
 			LOGGER.finer("-Channel " + channel + " is networked, sending all");

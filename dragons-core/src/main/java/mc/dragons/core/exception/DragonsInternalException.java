@@ -13,7 +13,6 @@ import mc.dragons.core.logging.correlation.CorrelationLogger;
  *
  */
 public class DragonsInternalException extends RuntimeException {
-
 	private static final long serialVersionUID = -7426259903091848617L;	
 	private static final CorrelationLogger CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 	

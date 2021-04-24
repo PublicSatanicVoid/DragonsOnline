@@ -1,4 +1,4 @@
-package mc.dragons.dev;
+package mc.dragons.dev.notifier;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -7,9 +7,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.util.HttpUtil;
+import mc.dragons.dev.DragonsDev;
 
 public class DiscordNotifier {
-	private static FileConfiguration config = JavaPlugin.getPlugin(DragonsDevPlugin.class).getConfig();
+	private static FileConfiguration config = JavaPlugin.getPlugin(DragonsDev.class).getConfig();
 	
 	public enum DiscordRole {
 		DEVELOPER(config.getString("roleid-dev")),

@@ -14,8 +14,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class ChatReportCommand extends DragonsCommandExecutor {
 	private static String CONFIRMATION_FLAG = "--internal-confirm-and-submit";
 	
-	private ChatMessageRegistry chatMessageRegistry = instance.getChatMessageRegistry();
-	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+	private ChatMessageRegistry chatMessageRegistry = dragons.getChatMessageRegistry();
+	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

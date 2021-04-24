@@ -1,5 +1,6 @@
 package mc.dragons.tools.dev.management;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -7,11 +8,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.ServerOptions;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.logging.CustomLoggingProvider;
+import mc.dragons.core.storage.mongo.MongoConfig;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -24,7 +24,7 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 		
 		if(label.equalsIgnoreCase("getservername")) {
-			sender.sendMessage(ChatColor.GREEN + "Server Name: " + ChatColor.GRAY + instance.getServerName());
+			sender.sendMessage(ChatColor.GREEN + "Server Name: " + ChatColor.GRAY + dragons.getServerName());
 		}
 		
 		else if(label.equalsIgnoreCase("spoofserver")) {
@@ -38,19 +38,29 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("ignoreremoterestarts")) {
-			instance.getRemoteAdminHandler().setIgnoresRemoteRestarts(true);
+			dragons.getRemoteAdminHandler().setIgnoresRemoteRestarts(true);
 			sender.sendMessage(ChatColor.GREEN + "Server will now ignore all remote restart commands.");
 		}
 		
 		else if(label.equalsIgnoreCase("getlogtoken")) {
-			TextComponent token = new TextComponent(ChatColor.GREEN + "Log Token: " + ChatColor.GRAY + CustomLoggingProvider.LOG_FILTER.getLogEntryUUID());
+			UUID logToken = dragons.getCustomLoggingProvider().getCustomLogFilter().getLogEntryUUID();
+			TextComponent token = new TextComponent(ChatColor.GREEN + "Log Token: " + ChatColor.GRAY + logToken);
 			token.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click for copy-able text")));
-			token.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, CustomLoggingProvider.LOG_FILTER.getLogEntryUUID().toString()));
+			token.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, logToken.toString()));
 			sender.spigot().sendMessage(token);
 		}
 		
 		else if(label.equalsIgnoreCase("vgir") || label.equalsIgnoreCase("vrgit")) {
 			Bukkit.dispatchCommand(sender, "verifygameintegrity -resolve");
+		}
+		
+		else if(label.equalsIgnoreCase("getnetworkstate")) {
+			MongoConfig mongoConfig = dragons.getMongoConfig();
+			sender.sendMessage(ChatColor.GREEN + "Server: " + ChatColor.GRAY + dragons.getServerName() + " - " + (Bukkit.getIp().equals("") ? "localhost" : Bukkit.getIp()) + ":" + Bukkit.getPort());
+			sender.sendMessage(ChatColor.GREEN + "Database: " + ChatColor.GRAY + mongoConfig.getHost() + ":" + mongoConfig.getPort() + " (" + mongoConfig.getUser() + ")");
+			if(!Bukkit.getOnlineMode()) {
+				sender.sendMessage(ChatColor.RED + "This server is in offline mode! This should not happen in production.");
+			}
 		}
 		
 		else if(label.equalsIgnoreCase("serveroptions")) {
@@ -61,7 +71,7 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 	}
 	
 	private void serverOptionsCommand(CommandSender sender, String[] args) {
-		ServerOptions options = Dragons.getInstance().getServerOptions();
+		ServerOptions options = dragons.getServerOptions();
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.YELLOW + "/serveroptions deathcountdown [Seconds]");

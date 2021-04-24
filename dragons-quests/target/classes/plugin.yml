@@ -1,9 +1,10 @@
 name: DragonsQuests
-main: mc.dragons.quests.DragonsQuestsPlugin
+main: mc.dragons.quests.DragonsQuests
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
 api-version: 1.16
+description: (EXPERIMENTAL) Additional functionality for loading and reloading quests.
 commands:
   loadquest:
     description: (GM+Quest) Load a quest from the specified URL or local file.

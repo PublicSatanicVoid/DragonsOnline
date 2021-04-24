@@ -41,8 +41,8 @@ public class ResLoader extends AbstractLightweightLoader<Residence> {
 	private static Map<Integer, Integer> resIdToLocalIndex = new HashMap<>();
 	
 	private static BukkitWorld resWorld = new BukkitWorld(Bukkit.getWorld("res_temp"));
-	private static Clipboard residenceSchematic = DragonsResPlugin.loadSchematic("Residence_1a");
-	private static EditSession worldEditSession = DragonsResPlugin.getEditSession(resWorld);
+	private static Clipboard residenceSchematic = DragonsResidences.loadSchematic("Residence_1a");
+	private static EditSession worldEditSession = DragonsResidences.getEditSession(resWorld);
 	
 	private static List<Integer> generated = new ArrayList<>();
 	
@@ -157,7 +157,7 @@ public class ResLoader extends AbstractLightweightLoader<Residence> {
 		World resWorld = Bukkit.getWorld("res_temp");
 		Location corner = resWorld.getSpawnLocation().clone().add((residenceSchematic.getDimensions().getX() + RES_SPACING) * index, 0, 0);
 		if(!generated.contains(id)) {			
-			DragonsResPlugin.pasteSchematic(residenceSchematic, worldEditSession, corner);
+			DragonsResidences.pasteSchematic(residenceSchematic, worldEditSession, corner);
 			// TODO apply properties to load customizations
 			generated.add(id);
 		}

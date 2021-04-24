@@ -18,7 +18,7 @@ public class MongoCommand extends DragonsCommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
-		MongoConfig config = instance.getMongoConfig();
+		MongoConfig config = dragons.getMongoConfig();
 		MongoDatabase db = config.getDatabase();
 		if(db == null) {
 			sender.sendMessage(ChatColor.RED + "No MongoDB instance connected!");

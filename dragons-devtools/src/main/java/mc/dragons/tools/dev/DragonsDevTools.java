@@ -22,10 +22,14 @@ import mc.dragons.tools.dev.monitor.PerformanceCommands;
 import mc.dragons.tools.dev.monitor.PingCommand;
 import mc.dragons.tools.dev.monitor.VerifyGameIntegrityCommand;
 
-public class DragonsDevToolsPlugin extends JavaPlugin {
+public class DragonsDevTools extends JavaPlugin {
+	private Dragons dragons;
 	
 	public void onEnable() {
-		Dragons.getInstance().getLightweightLoaderRegistry().register(new StateLoader(Dragons.getInstance().getMongoConfig()));
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
+		
+		dragons.getLightweightLoaderRegistry().register(new StateLoader(dragons.getMongoConfig()));
 		
 		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand());
 		getCommand("loglevel").setExecutor(new LogLevelCommand());
@@ -49,6 +53,7 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("ignoreremoterestarts").setExecutor(serverOptionsCommands);
 		getCommand("getlogtoken").setExecutor(serverOptionsCommands);
 		getCommand("vgir").setExecutor(serverOptionsCommands);
+		getCommand("getnetworkstate").setExecutor(serverOptionsCommands);
 		
 		CommandExecutor objectCommands = new ObjectCommands();
 		getCommand("autosave").setExecutor(objectCommands);
@@ -115,5 +120,6 @@ public class DragonsDevToolsPlugin extends JavaPlugin {
 		getCommand("testnetworkmessage").setExecutor(experimentalCommands);
 		getCommand("testdocumentdelta").setExecutor(experimentalCommands);
 		getCommand("testnewfonts").setExecutor(experimentalCommands);
+		getCommand("testuserlookup").setExecutor(experimentalCommands);
 	}
 }

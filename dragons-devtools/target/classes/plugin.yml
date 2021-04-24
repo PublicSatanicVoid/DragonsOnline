@@ -1,9 +1,10 @@
 name: DragonsDevTools
-main: mc.dragons.tools.dev.DragonsDevToolsPlugin
+main: mc.dragons.tools.dev.DragonsDevTools
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
 api-version: 1.16
+description: Utilities for developers to monitor, debug, test, and reconfigure the server.
 commands:
   addon:
     description: (ADMIN) Manage item and NPC addons.
@@ -135,3 +136,6 @@ commands:
     description: (ADMIN) Shortcut for /verifygameintegrity -resolve
     aliases: vrgit
   testnewfonts:
+  getnetworkstate:
+    description: (ADMIN) Display data about the server's network connection.
+  testuserlookup:

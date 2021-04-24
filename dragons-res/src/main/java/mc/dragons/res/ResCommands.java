@@ -41,7 +41,7 @@ public class ResCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GRAY + "To create a residence, open the door");
 				sender.sendMessage(ChatColor.GRAY + "of the residence you would like to claim.");
 				sender.sendMessage(ChatColor.GRAY + "You have claimed " + ChatColor.RESET + resLoader.getAllResidencesOf(user).size()
-						+ "/" + DragonsResPlugin.MAX_RES_PER_USER + " allowed residences.");
+						+ "/" + DragonsResidences.MAX_RES_PER_USER + " allowed residences.");
 				sender.sendMessage(ChatColor.YELLOW + "/res mine");
 				sender.sendMessage(ChatColor.YELLOW + "/res exit");
 				sender.sendMessage(ChatColor.YELLOW + "/res delete <ID>");
@@ -274,8 +274,8 @@ public class ResCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("testschematic")) {
 			if(args[1].equalsIgnoreCase("good")) {
-				DragonsResPlugin.pasteSchematic(DragonsResPlugin.loadSchematic(args[0]), 
-						DragonsResPlugin.getEditSession(new BukkitWorld(player.getWorld())), player.getLocation());
+				DragonsResidences.pasteSchematic(DragonsResidences.loadSchematic(args[0]), 
+						DragonsResidences.getEditSession(new BukkitWorld(player.getWorld())), player.getLocation());
 			}
 			else if(args[1].equalsIgnoreCase("bad")) {
 				//DragonsResPlugin.pasteSchematic(args[0], DragonsResPlugin.getEditSession(new BukkitWorld(player.getWorld())), player.getLocation());

@@ -27,7 +27,7 @@ public class ReportCommand extends DragonsCommandExecutor {
 	
 	private static String CONFIRMATION_FLAG = " --internal-confirm-and-submit";
 	
-	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

@@ -10,7 +10,9 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
-import mc.dragons.dev.TaskLoader.Task;
+import mc.dragons.dev.notifier.DiscordNotifier;
+import mc.dragons.dev.tasks.TaskLoader;
+import mc.dragons.dev.tasks.TaskLoader.Task;
 import net.md_5.bungee.api.ChatColor;
 
 public class DevUserHook implements UserHook {
@@ -19,7 +21,7 @@ public class DevUserHook implements UserHook {
 	
 	public DevUserHook() {
 		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
-		buildNotifier = JavaPlugin.getPlugin(DragonsDevPlugin.class).getBuildNotifier();
+		buildNotifier = JavaPlugin.getPlugin(DragonsDev.class).getBuildNotifier();
 	}
 
 	@Override

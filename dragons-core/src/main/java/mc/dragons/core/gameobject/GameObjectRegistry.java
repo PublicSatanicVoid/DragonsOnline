@@ -1,5 +1,6 @@
 package mc.dragons.core.gameobject;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -7,26 +8,41 @@ import java.util.stream.Collectors;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Central registry of all game objects.
+ * 
+ * <p>Includes persistent and non-persistent objects.
+ * 
+ * <p>Local objects on other servers are not registered.
+ * 
+ * @author Adam
+ *
+ */
 public class GameObjectRegistry {
 	protected Dragons plugin;
 	protected StorageManager storageManager;
 
 	protected Set<GameObject> registeredObjects;
 
-	public GameObjectRegistry(Dragons instance, StorageManager storageManager) {
+	public GameObjectRegistry(Dragons instance, StorageManager persistentStorageManager) {
 		plugin = instance;
-		this.storageManager = storageManager;
-		registeredObjects = new HashSet<>();
+		storageManager = persistentStorageManager;
+		registeredObjects = Collections.synchronizedSet(new HashSet<>());
 	}
 
-	public GameObject registerNew() {
-		return null;
-	}
-
+	/**
+	 * 
+	 * @return All registered game objects
+	 */
 	public Set<GameObject> getRegisteredObjects() {
 		return registeredObjects;
 	}
 
+	/**
+	 * 
+	 * @param types
+	 * @return All registered game objects matching any of the specified types
+	 */
 	public Set<GameObject> getRegisteredObjects(GameObjectType... types) {
 		return registeredObjects.stream().filter(obj -> {
 			for(GameObjectType type : types) {
@@ -38,15 +54,28 @@ public class GameObjectRegistry {
 		}).collect(Collectors.toSet());
 	}
 
+	/**
+	 * Removes the specified game object from the database, if it is persistent.
+	 * @param gameObject
+	 */
 	public void removeFromDatabase(GameObject gameObject) {
 		storageManager.removeObject(gameObject);
 		registeredObjects.remove(gameObject);
 	}
 
+	/**
+	 * Removes all game objects of the specified type from the local registry, 
+	 * but does not remove them from the database.
+	 * @param type
+	 */
 	public void removeFromRegistry(GameObjectType type) {
 		registeredObjects.removeIf(obj -> (obj.getType() == type));
 	}
 	
+	/**
+	 * Auto-saves all game objects that are eligible for auto-saving.
+	 * @param forceSave Whether to override a server option disabling auto-saving
+	 */
 	public void executeAutoSave(boolean forceSave) {
 		if (!plugin.getServerOptions().isAutoSaveEnabled() && !forceSave) {
 			return;
@@ -56,6 +85,6 @@ public class GameObjectRegistry {
 			gameObject.autoSave();
 			n++;
 		}
-		plugin.getLogger().info("Auto-saved " + n + " game objects");
+		plugin.getLogger().config("Auto-saved " + n + " game objects");
 	}
 }

@@ -17,19 +17,48 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
+/**
+ * Handles the sending and receiving of staff alerts.
+ * 
+ * @author Adam
+ *
+ */
 public class StaffAlertMessageHandler extends MessageHandler {
 	public StaffAlertMessageHandler() {
 		super(Dragons.getInstance(), "staffAlert");
 	}
 	
+	/**
+	 * Sends a staff alert indicating that this server is experiencing consistently low TPS.
+	 * 
+	 * <p>Only send this if you intend staff to receive the alert.
+	 * 
+	 * @implNote There is no internal rate-limiting.
+	 * 
+	 * @param tps
+	 */
 	public void sendLagMessage(double tps) {
 		sendAll(new Document("permissionLevel", PermissionLevel.DEVELOPER.toString()).append("subtype", "laggyServer").append("tps", tps).append("players", Bukkit.getOnlinePlayers().size()));
 	}
 	
+	/**
+	 * Sends a staff alert notifying moderation of a new report.
+	 * 
+	 * @param reportId
+	 * @param message A short description of the report
+	 */
 	public void sendReportMessage(int reportId, String message) {
 		sendAll(new Document("permissionLevel", PermissionLevel.MODERATOR.toString()).append("subtype", "report").append("reportId", reportId).append("message", message));
 	}
 	
+	/**
+	 * Sends a staff alert with the given message, to be displayed to
+	 * all staff with permission level greater than or equal to the
+	 * specified level.
+	 * 
+	 * @param level
+	 * @param message
+	 */
 	public void sendGenericMessage(PermissionLevel level, String message) {
 		sendAll(new Document("permissionLevel", level).append("subtype", "generic").append("message", message));
 	}

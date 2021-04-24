@@ -14,7 +14,7 @@ import mc.dragons.core.gameobject.user.User;
  * sequences of clicks performed while holding the item
  * which execute specific functionality.
  * 
- * Other behavior may also be implemented downstream,
+ * <p>Other behavior may also be implemented downstream,
  * but the combo functionality itself is provided by
  * DragonsCore to be used in other modules (e.g.
  * DragonsSpells).
@@ -39,6 +39,11 @@ public abstract class ItemAddon implements Addon {
 		comboStartTimes = new HashMap<>();
 	}
 
+	/**
+	 * Call this whenever a user left-clicks while holding this item.
+	 * 
+	 * @param user
+	 */
 	public void onLeftClick(User user) {
 		user.debug("ItemAddon received left click");
 		if (comboStartTimes.containsKey(user)) {
@@ -55,6 +60,11 @@ public abstract class ItemAddon implements Addon {
 		}
 	}
 
+	/**
+	 * Call this whenever a user right-clicks while holding this item.
+	 * 
+	 * @param user
+	 */
 	public void onRightClick(User user) {
 		user.debug("ItemAddon received right click");
 		if (!comboStartTimes.containsKey(user)) {
@@ -88,7 +98,18 @@ public abstract class ItemAddon implements Addon {
 		return result.trim();
 	}
 
+	/**
+	 * Called whenever the user prepares a combo.
+	 * 
+	 * @param user
+	 * @param combo The in-progress combo, e.g. "R", "RL", "RLL"
+	 */
 	public abstract void onPrepareCombo(User user, String combo);
 
+	/**
+	 * Called whenever the user executes a combo.
+	 * @param user
+	 * @param combo The full combo, e.g. "RLL"
+	 */
 	public abstract void onCombo(User user, String combo);
 }

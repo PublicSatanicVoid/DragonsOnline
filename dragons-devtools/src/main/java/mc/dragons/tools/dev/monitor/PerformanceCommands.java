@@ -38,20 +38,27 @@ import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.core.util.TableGenerator;
 import mc.dragons.core.util.TableGenerator.Alignment;
-import mc.dragons.core.util.TableGenerator.Receiver;
 
 public class PerformanceCommands extends DragonsCommandExecutor {
 
 	private static final int BYTES_IN_MB = (int) Math.pow(10, 6);
 	private static final int NS_IN_MS = (int) Math.pow(10, 6);
 	
-	private static final String COL_FLOOR = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Floor Name";
-	private static final String COL_ENTITIES = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Entities";
-	private static final String COL_LIVING = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Living";
-	private static final String COL_PLAYERS = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Players";
-	private static final String COL_CHUNKS = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Chunks";
-	private static final String COL_POPULATED = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Populated";
-	private static final String COL_RATIO = ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Ratio";
+	private static final String HEADER_PREFIX = ChatColor.GREEN + "";
+	
+	private static final String COL_FLOOR = HEADER_PREFIX + "Floor Name";
+	private static final String COL_ENTITIES = HEADER_PREFIX + "Entities";
+	private static final String COL_LIVING = HEADER_PREFIX + "Living";
+	private static final String COL_PLAYERS = HEADER_PREFIX + "Players";
+	private static final String COL_CHUNKS = HEADER_PREFIX + "Chunks";
+	private static final String COL_POPULATED = HEADER_PREFIX + "Populated";
+	private static final String COL_RATIO = HEADER_PREFIX + "Ratio";
+	
+	private static final String COL_ID = HEADER_PREFIX + "ID";
+	private static final String COL_NAME = HEADER_PREFIX + "Name";
+	private static final String COL_STATE = HEADER_PREFIX + "State";
+	private static final String COL_PRIORITY = HEADER_PREFIX + "Priority";
+	private static final String COL_DAEMON = HEADER_PREFIX + "Daemon";
 	
 	private List<Long> tickTimings = new ArrayList<>();
 	
@@ -63,7 +70,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(ThreadMXBean.class);
 		
 		if(label.equalsIgnoreCase("worldperformance")) {
-			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + instance.getServerName()
+			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + dragons.getServerName()
 					+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
 			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
 			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_LIVING, COL_PLAYERS, COL_CHUNKS, COL_POPULATED, COL_RATIO);
@@ -78,19 +85,16 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 						dataPrefix + w.getLoadedChunks().length, dataPrefix + populatedChunks, 
 						dataPrefix + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%");
 			}
-			Receiver receiver = isPlayer(sender) ? Receiver.CLIENT : Receiver.CONSOLE;
-			for(String line : tg.generate(receiver, true, true)) {
-				sender.sendMessage(line);
-			}
+			tg.display(sender);
 		}
 		
 		else if(label.equalsIgnoreCase("serverperformance")) {
 			new BukkitRunnable() { // some OperatingSystemMXBean operations lag the thread, so run asynchronously
 				@Override public void run() {
-					sender.sendMessage(ChatColor.DARK_GREEN + "Server performance statistics for " + instance.getServerName()
+					sender.sendMessage(ChatColor.DARK_GREEN + "Server performance statistics for " + dragons.getServerName()
 							+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
 					sender.sendMessage(ChatColor.GREEN + "Bukkit Version: " + ChatColor.GRAY + Bukkit.getVersion());
-					sender.sendMessage(ChatColor.GREEN + "Uptime: " + ChatColor.GRAY + StringUtil.parseSecondsToTimespan(instance.getUptime() / 1000));
+					sender.sendMessage(ChatColor.GREEN + "Uptime: " + ChatColor.GRAY + StringUtil.parseSecondsToTimespan(dragons.getUptime() / 1000));
 					sender.sendMessage(ChatColor.GREEN + "Server Architecture: " + ChatColor.GRAY + osBean.getArch());
 					sender.sendMessage(ChatColor.GREEN + "Operating System: " + ChatColor.GRAY + osBean.getName() + " v" + osBean.getVersion());
 					sender.sendMessage(ChatColor.GREEN + "Available Processors: " + ChatColor.GRAY + osBean.getAvailableProcessors());
@@ -107,7 +111,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.GREEN + "System CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemCpuLoad()) + "%");
 					sender.sendMessage(ChatColor.GREEN + "System Load Average: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemLoadAverage()) + "%");
 				}
-			}.runTaskAsynchronously(instance);
+			}.runTaskAsynchronously(dragons);
 		}
 		
 		else if(label.equalsIgnoreCase("tickperformance") || label.equalsIgnoreCase("tickperf")) {
@@ -137,7 +141,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 							cancel();
 						}
 					}
-				}.runTaskTimer(instance, 1L, 1L);
+				}.runTaskTimer(dragons, 1L, 1L);
 				sender.sendMessage(ChatColor.GREEN + "Began tick timings data collection. Server may experience mild lag while this runs.");
 			}
 			else if(args[0].equalsIgnoreCase("clear")) {
@@ -205,13 +209,18 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("getactivethreads")) {
 			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
 			sender.sendMessage(ChatColor.DARK_GREEN + "" + Thread.getAllStackTraces().size() + " active threads:");
+			
 			// adapted from https://stackoverflow.com/a/46979843/8463670
 			Thread.getAllStackTraces().keySet().stream().collect(Collectors.groupingBy(Thread::getThreadGroup)).forEach((group, threads) -> {
-				sender.sendMessage(ChatColor.YELLOW + "GROUP " + group.getName() + " - " + group.activeCount() + " thr, " + group.activeGroupCount() + " sub" 
+				sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "GROUP " + group.getName() + " - " + group.activeCount() + " thr, " + group.activeGroupCount() + " sub" 
 						+ ", par=" + (group.getParent() == null ? "none" : group.getParent().getName()) + ", maxpriority=" + group.getMaxPriority() + ", daemon=" + group.isDaemon());
+				TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
+				tg.addRow(COL_ID, COL_NAME, COL_STATE, COL_PRIORITY, COL_DAEMON);
 				for(Thread thread : threads) {
-					sender.sendMessage(ChatColor.GREEN + " #" + thread.getId() + ChatColor.GRAY + " - " + thread.getName() + " - state=" + thread.getState() + ", priority=" + thread.getPriority() + ", daemon=" + thread.isDaemon());
+					tg.addRowEx("/getstacktrace " + thread.getId(), "Click to view stack trace for thread #" + thread.getId(), 
+							"" + thread.getId(), StringUtil.truncateWithEllipsis(thread.getName(), 30), thread.getState().toString(), "" + thread.getPriority(), "" + thread.isDaemon());
 				}
+				tg.display(sender);
 			});
 		}
 		
@@ -224,48 +233,48 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("generatedump")) {
 			CommandSender console = Bukkit.getConsoleSender();
-			instance.getLogger().info("");
-			instance.getLogger().info("");
-			instance.getLogger().info("");
-			instance.getLogger().info("==== BEGIN FULL SERVER DATA DUMP ====");
-			instance.getLogger().info("");
-			instance.getLogger().info("=== BEGIN USER DUMP ===");
+			dragons.getLogger().info("");
+			dragons.getLogger().info("");
+			dragons.getLogger().info("");
+			dragons.getLogger().info("==== BEGIN FULL SERVER DATA DUMP ====");
+			dragons.getLogger().info("");
+			dragons.getLogger().info("=== BEGIN USER DUMP ===");
 			for(User user : UserLoader.allUsers()) {
 				if(user.getPlayer() == null) {
-					instance.getLogger().info("USER " + user.getName() + " - " + user + " - OFFLINE");
+					dragons.getLogger().info("USER " + user.getName() + " - " + user + " - OFFLINE");
 				}
 				else {
-				instance.getLogger().info("USER " + user.getName() + " - " + user + " - World " + user.getPlayer().getWorld()
+				dragons.getLogger().info("USER " + user.getName() + " - " + user + " - World " + user.getPlayer().getWorld()
 						+ ", Loc " + StringUtil.locToString(user.getPlayer().getLocation()) + ", Access Level " + user.getActivePermissionLevel());
 				}
 			}
-			instance.getLogger().info("=== END USER DUMP ===");
-			instance.getLogger().info("");
+			dragons.getLogger().info("=== END USER DUMP ===");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "debug dump gameobjects");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "debug dump entities");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "debug dump threads");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "debug dump workers");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "debug dump pendingtasks");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "lag");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "worldperformance");
-			instance.getLogger().info("");
+			dragons.getLogger().info("");
 			Bukkit.dispatchCommand(console, "serverperformance");
-			instance.getLogger().info("");
-			instance.getLogger().info("==== END FULL SERVER DATA DUMP ====");
-			instance.getLogger().info("");
-			instance.getLogger().info("");
-			instance.getLogger().info("");	
+			dragons.getLogger().info("");
+			dragons.getLogger().info("==== END FULL SERVER DATA DUMP ====");
+			dragons.getLogger().info("");
+			dragons.getLogger().info("");
+			dragons.getLogger().info("");	
 		}
 		
 		else if(label.equalsIgnoreCase("clearnetworkmessagecache") || label.equalsIgnoreCase("clearnmc")) {
 			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
-			MongoCollection<Document> messages = instance.getMongoConfig().getDatabase().getCollection(MessageConstants.MESSAGE_COLLECTION);
+			MongoCollection<Document> messages = dragons.getMongoConfig().getDatabase().getCollection(MessageConstants.MESSAGE_COLLECTION);
 			if(args.length == 0) {
 				DeleteResult result = messages.deleteMany(new Document());
 				sender.sendMessage(ChatColor.GREEN + "Successfully cleared the network-wide message cache (n=" + result.getDeletedCount() + ")");
@@ -280,7 +289,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("printnetworkmessages")) {
 			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
-			MessageDispatcher dispatcher = instance.getMessageDispatcher();
+			MessageDispatcher dispatcher = dragons.getMessageDispatcher();
 			dispatcher.setDebug(!dispatcher.isDebug());
 			sender.sendMessage(ChatColor.GREEN + (dispatcher.isDebug() ? "Enabled" : "Disabled") + " network message logging.");
 		}

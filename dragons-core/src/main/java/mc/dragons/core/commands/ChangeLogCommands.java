@@ -19,7 +19,7 @@ public class ChangeLogCommands extends DragonsCommandExecutor {
 	private ChangeLogLoader changeLogLoader;
 
 	public ChangeLogCommands() {
-		changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
+		changeLogLoader = dragons.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	}
 	
 	private void viewNews(CommandSender sender, User user) {

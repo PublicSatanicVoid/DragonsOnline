@@ -25,7 +25,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.local.LocalStorageAccess;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.content.DragonsContentToolsPlugin;
+import mc.dragons.tools.content.DragonsContentTools;
 import mc.dragons.tools.content.util.MetadataConstants;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -44,7 +44,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 	
 	private static void pushFloor(Floor floor) {
 		Bukkit.getLogger().info("Pushing floor " + floor.getDisplayName());
-		String pushRoot = DragonsContentToolsPlugin.PUSH_FOLDER + Dragons.getInstance().getServerName() + "\\";
+		String pushRoot = DragonsContentTools.PUSH_FOLDER + Dragons.getInstance().getServerName() + "\\";
 		File pushFolder = new File(pushRoot + floor.getWorldName());
 		pushFolder.mkdirs();
 		World world = floor.getWorld();
@@ -63,7 +63,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 		} catch(IOException ignored) {}
 	}
 	
-	private GameObjectRegistry registry = instance.getGameObjectRegistry();
+	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	private void showHelp(CommandSender sender) {
 		boolean gmGeneral = hasPermission(sender, PermissionLevel.GM);

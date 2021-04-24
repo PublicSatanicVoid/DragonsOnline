@@ -32,22 +32,30 @@ import mc.dragons.core.gameobject.floor.Floor.FloorStatus;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.storage.loader.LightweightLoaderRegistry;
+import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.res.ResPointLoader.ResPoint;
 
-public class DragonsResPlugin extends JavaPlugin implements CommandExecutor {
-	
+public class DragonsResidences extends JavaPlugin implements CommandExecutor {
 	public static final int MAX_RES_PER_USER = 5;
 	
+	private Dragons dragons;
+	
 	public void onEnable() {
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
+		
 		resetResWorld();
 		
-		ResLoader resLoader = new ResLoader(Dragons.getInstance().getMongoConfig());
-		ResPointLoader resPointLoader = new ResPointLoader(Dragons.getInstance().getMongoConfig());
+		MongoConfig mongoConfig = dragons.getMongoConfig();
+		ResLoader resLoader = new ResLoader(mongoConfig);
+		ResPointLoader resPointLoader = new ResPointLoader(mongoConfig);
 		
-		Dragons.getInstance().getLightweightLoaderRegistry().register(resLoader);
-		Dragons.getInstance().getLightweightLoaderRegistry().register(resPointLoader);
+		LightweightLoaderRegistry registry = dragons.getLightweightLoaderRegistry();
+		registry.register(resLoader);
+		registry.register(resPointLoader);
 		
-		Dragons.getInstance().getUserHookRegistry().registerHook(new ResUserHook());
+		dragons.getUserHookRegistry().registerHook(new ResUserHook());
 		
 		resPointLoader.loadAllResPoints();
 		

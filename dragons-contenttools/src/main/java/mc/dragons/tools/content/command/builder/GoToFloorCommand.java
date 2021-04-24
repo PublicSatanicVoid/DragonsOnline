@@ -13,7 +13,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 
 public class GoToFloorCommand extends DragonsCommandExecutor {
 
-	private GameObjectRegistry registry = instance.getGameObjectRegistry();
+	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	private void listFloors(CommandSender sender) {
 		sender.sendMessage(ChatColor.GREEN + "Listing all floors:");

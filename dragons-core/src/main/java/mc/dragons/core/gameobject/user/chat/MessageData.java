@@ -1,13 +1,15 @@
 package mc.dragons.core.gameobject.user.chat;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.Date;
-
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.util.StringUtil;
 
+/**
+ * Log entry for the local chat registry.
+ * 
+ * @author Adam
+ *
+ */
 public class MessageData {
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 	private static int idCounter;
 	
 	private int id;
@@ -18,7 +20,7 @@ public class MessageData {
 	public MessageData(User sender, String message) {
 		this.id = ++idCounter;
 		this.sender = sender;
-		this.when = DATE_FORMAT.format(Date.from(Instant.now()));
+		this.when = StringUtil.dateFormatNow();
 		this.message = message;
 	}
 	

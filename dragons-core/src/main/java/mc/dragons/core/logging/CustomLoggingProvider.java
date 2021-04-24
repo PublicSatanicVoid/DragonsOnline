@@ -10,25 +10,43 @@ import mc.dragons.core.Dragons;
 import net.minecrell.terminalconsole.TerminalConsoleAppender;
 
 /**
- * Swap in a better logging system that allows us to display debug-level messages.
+ * Swaps in a better logging system that allows us to display debug-level messages.
  * 
  * @author Adam
  *
  */
 public class CustomLoggingProvider {
-	public static final LogFilter LOG_FILTER = new LogFilter();
+	private Dragons dragons;
+	private LogFilter logFilter;
 	
-	public static void enableCustomLogging() {
-		Dragons.getInstance().getLogger().info("Switching to custom logging system...");
+	public CustomLoggingProvider(Dragons instance) {
+		dragons = instance;
+		logFilter = new LogFilter(instance);
+	}
+	
+	/**
+	 * Removes the default logging system and injects a custom logging system that
+	 * allows debug-level messages and custom formatting.
+	 */
+	public void enableCustomLogging() {
+		dragons.getLogger().info("Switching to custom logging system...");
 		Logger logger = (Logger) LogManager.getRootLogger();
 		for (Appender appender : logger.getAppenders().values()) {
 			if (appender.getName().equals("TerminalConsole")) {
 				logger.removeAppender(appender);
 			}
 		}
-		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", LOG_FILTER, new CustomLayout(Charset.defaultCharset()), false);
+		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", logFilter, new CustomLayout(Charset.defaultCharset()), false);
 		appender.initialize();
 		appender.start();
 		logger.addAppender(appender);
+	}
+	
+	/**
+	 * 
+	 * @return The custom filter for log messages.
+	 */
+	public LogFilter getCustomLogFilter() {
+		return logFilter;
 	}
 }

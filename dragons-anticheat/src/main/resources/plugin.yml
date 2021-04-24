@@ -1,9 +1,10 @@
 name: DragonsAntiCheat
-main: mc.dragons.anticheat.DragonsAntiCheatPlugin
+main: mc.dragons.anticheat.DragonsAntiCheat
 version: 1.0.0
 author: DragonRider747
 depend: [DragonsCore]
 api-version: 1.16
+description: (EXPERIMENTAL) Enforces vanilla gameplay behavior and detects illegal client modifications.
 commands:
   ac:
   acdebug:

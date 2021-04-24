@@ -3,6 +3,7 @@ package mc.dragons.core.gameobject.item;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -60,6 +61,24 @@ public class ItemLoader extends GameObjectLoader<Item> {
 	public Item loadObject(UUID uuid) {
 		LOGGER.fine("Loading item by UUID " + uuid);
 		return loadObject(storageManager.getStorageAccess(GameObjectType.ITEM, uuid));
+	}
+	
+	/**
+	 * Loads all items matching the given UUIDs in a single database query.
+	 * 
+	 * <p>Indexed by UUID for convenience.
+	 * 
+	 * @param uuids
+	 * @return
+	 */
+	public Map<UUID, Item> loadObjects(Set<UUID> uuids) {
+		LOGGER.fine("Loading items by UUID " + uuids.toArray());
+		Map<UUID, Item> result = new HashMap<>();
+		Set<StorageAccess> results = storageManager.getAllStorageAccess(GameObjectType.ITEM, new Document("_id", new Document("$in", uuids)));
+		for(StorageAccess sa : results) {
+			result.put(sa.getIdentifier().getUUID(), loadObject(sa));
+		}
+		return result;
 	}
 
 	public Item registerNew(ItemClass itemClass) {

@@ -16,7 +16,7 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.npcs.CompanionAddon;
 
 public class TestCompanionCommand extends DragonsCommandExecutor {
-	CompanionAddon addon = (CompanionAddon) instance.getAddonRegistry().getAddonByName("Companion");
+	CompanionAddon addon = (CompanionAddon) dragons.getAddonRegistry().getAddonByName("Companion");
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

@@ -20,7 +20,7 @@ import mc.dragons.social.guild.GuildLoader.Guild;
 
 public class SocialUserHook implements UserHook {
 	private GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
-	private DragonsSocialPlugin instance = JavaPlugin.getPlugin(DragonsSocialPlugin.class);
+	private DragonsSocial instance = JavaPlugin.getPlugin(DragonsSocial.class);
 	
 	@Override
 	public void onVerifiedJoin(User user) {

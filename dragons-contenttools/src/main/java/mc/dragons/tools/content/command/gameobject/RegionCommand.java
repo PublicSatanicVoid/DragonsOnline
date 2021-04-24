@@ -69,7 +69,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 			startingWith = args[1];
 		}
 		sender.sendMessage(ChatColor.GREEN + "Listing all regions" + (startingWith.length() > 0 ? (" starting with \"" + startingWith + "\"") : "") + ":");
-		for(GameObject gameObject : instance.getGameObjectRegistry().getRegisteredObjects(GameObjectType.REGION)) {
+		for(GameObject gameObject : dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.REGION)) {
 			Region region = (Region) gameObject;
 			if(!region.getName().startsWith(startingWith)) continue;
 			String floorData = "";
@@ -91,7 +91,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "No region by that name exists!");
 		}
 		else {
-			instance.getGameObjectRegistry().removeFromDatabase(region);
+			dragons.getGameObjectRegistry().removeFromDatabase(region);
 			sender.sendMessage(ChatColor.GREEN + "Removed region " + args[1] + " successfully. Changes may not fully take effect until a network-wide restart.");
 		}
 	}
@@ -178,7 +178,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 						changesDeformed.get(j).setType(fMaterial);
 					}
 				}
-			}.runTaskLater(instance, 2 * i / 50);
+			}.runTaskLater(dragons, 2 * i / 50);
 		}
 		
 		sender.sendMessage(ChatColor.GREEN + "Generated border successfully.");

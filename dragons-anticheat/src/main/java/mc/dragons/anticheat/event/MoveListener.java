@@ -15,12 +15,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
-import mc.dragons.anticheat.DragonsAntiCheatPlugin;
+import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 
 public class MoveListener implements Listener {
-	private DragonsAntiCheatPlugin plugin;
+	private DragonsAntiCheat plugin;
 	private static final Vector Z_AXIS = new Vector(0, 0, 1);
 	
 	private static final double IMPULSE_STRAIGHT = 0.350001;
@@ -136,7 +136,7 @@ public class MoveListener implements Listener {
 	
 	private Map<User, MoveContext> contextMap = new HashMap<>();
 	
-	public MoveListener(DragonsAntiCheatPlugin instance) {
+	public MoveListener(DragonsAntiCheat instance) {
 		plugin = instance;
 	}
 	

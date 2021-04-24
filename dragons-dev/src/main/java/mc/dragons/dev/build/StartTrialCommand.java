@@ -1,4 +1,4 @@
-package mc.dragons.dev;
+package mc.dragons.dev.build;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -14,7 +14,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class StartTrialCommand extends DragonsCommandExecutor {
 
-	private WarpLoader warpLoader= instance.getLightweightLoaderRegistry().getLoader(WarpLoader.class);
+	private WarpLoader warpLoader = dragons.getLightweightLoaderRegistry().getLoader(WarpLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {		

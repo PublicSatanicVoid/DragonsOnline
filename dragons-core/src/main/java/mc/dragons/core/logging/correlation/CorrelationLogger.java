@@ -15,6 +15,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.logging.correlation.CorrelationLogger.CorrelationLogEntry;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.util.BukkitUtil;
 import mc.dragons.core.util.StringUtil;
 
 /**
@@ -85,9 +86,9 @@ public class CorrelationLogger extends AbstractLightweightLoader<CorrelationLogE
 	 */
 	public UUID registerNewCorrelationID() {
 		UUID correlationID = UUID.randomUUID();
-		collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", Level.INFO.getName())
+		/*collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", Level.INFO.getName())
 				.append("timestamp", StringUtil.dateFormatNow()).append("message", "Correlation ID registered")
-				.append("instance", Dragons.getInstance().getServerName()));
+				.append("instance", Dragons.getInstance().getServerName()));*/
 		return correlationID;
 	}
 	
@@ -104,9 +105,9 @@ public class CorrelationLogger extends AbstractLightweightLoader<CorrelationLogE
 			return;
 		}
 		Bukkit.getLogger().log(level, "[" + correlationID.toString().substring(0, 5) + "] " + message);
-		collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", level.getName())
+		BukkitUtil.async(() -> collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", level.getName())
 				.append("timestamp", StringUtil.dateFormatNow()).append("message", message)
-				.append("instance", Dragons.getInstance().getServerName()));
+				.append("instance", Dragons.getInstance().getServerName())));
 	}
 	
 	/**
@@ -115,7 +116,7 @@ public class CorrelationLogger extends AbstractLightweightLoader<CorrelationLogE
 	 * @param correlationID
 	 */
 	public void discard(UUID correlationID) {
-		collection.deleteMany(new Document("correlationID", correlationID.toString()));
+		BukkitUtil.async(() -> collection.deleteMany(new Document("correlationID", correlationID.toString())));
 	}
 	
 	/**

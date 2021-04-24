@@ -3,11 +3,11 @@ C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\ma
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\management\ServerOptionsCommands.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\debug\StateLoader.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\monitor\MongoCommand.java
-C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\DragonsDevToolsPlugin.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\monitor\LogLevelCommand.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\monitor\VerifyGameIntegrityCommand.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\monitor\PingCommand.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\gameobject\ObjectCommands.java
+C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\DragonsDevTools.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\gameobject\ReloadObjectsCommands.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\debug\DebugCommand.java
 C:\Users\User\git\dragons\dragons-devtools\src\main\java\mc\dragons\tools\dev\ExperimentalCommands.java

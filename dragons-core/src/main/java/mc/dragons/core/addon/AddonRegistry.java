@@ -6,6 +6,12 @@ import java.util.logging.Logger;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * Central registry of game object add-ons.
+ * 
+ * @author Adam
+ *
+ */
 public class AddonRegistry {
 	private Logger LOGGER;
 
@@ -16,15 +22,28 @@ public class AddonRegistry {
 		LOGGER = plugin.getLogger();
 	}
 
+	/**
+	 * Register the specified add-on.
+	 * 
+	 * @param addon
+	 */
 	public void register(Addon addon) {
 		LOGGER.info("Registering addon " + addon.getName() + " of type " + addon.getType());
 		addons.add(addon);
 	}
 
+	/**
+	 * Enable all add-ons
+	 */
 	public void enableAll() {
 		addons.forEach(addon -> addon.onEnable());
 	}
 
+	/**
+	 * 
+	 * @param name
+	 * @return The add-on with the specified name
+	 */
 	public Addon getAddonByName(String name) {
 		for (Addon addon : addons) {
 			if (addon.getName().equalsIgnoreCase(name)) {
@@ -34,6 +53,10 @@ public class AddonRegistry {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @return All registered add-ons
+	 */
 	public List<Addon> getAllAddons() {
 		return addons;
 	}

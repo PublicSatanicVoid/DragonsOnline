@@ -113,13 +113,11 @@ public class Item extends GameObject {
 		ItemMeta meta = itemStack.getItemMeta();
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());
 		meta.setLore(getCompleteLore());
+		meta.setUnbreakable(isUnbreakable());
 		meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE });
 		meta.getPersistentDataContainer().set(ITEM_UUID_KEY, PersistentDataType.STRING, getUUID().toString());
 		itemStack.setItemMeta(meta);
 		itemStack.setAmount(getQuantity());
-		if (isUnbreakable()) {
-			Dragons.getInstance().getBridge().setItemStackUnbreakable(itemStack, true);
-		}
 		this.itemStack = itemStack;
 		getItemClass().getAddons().forEach(addon -> addon.initialize(this));
 	}

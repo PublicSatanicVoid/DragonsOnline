@@ -96,6 +96,10 @@ public class SidebarManager {
 		}
 		RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 		User user = UserLoader.fromPlayer(player);
+		if(!user.isInitialized()) {
+			instance.getLogger().finer("Skipping scoreboard update for uninitialized player " + player.getName());
+			return;
+		}
 		Team floor = scoreboard.getTeam("FLOOR");
 		floor.setPrefix(ChatColor.GRAY + "Floor: ");
 		Floor currentFloor = FloorLoader.fromWorld(player.getWorld());

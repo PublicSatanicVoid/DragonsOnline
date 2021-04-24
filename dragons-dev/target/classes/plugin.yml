@@ -1,9 +1,10 @@
 name: DragonsDev
-main: mc.dragons.dev.DragonsDevPlugin
+main: mc.dragons.dev.DragonsDev
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
 api-version: 1.16
+description: (PRE-PROD) Utilities for builders and managers in pre-production.
 commands:
   starttrial:
     description: Create a build trial for the specified player.

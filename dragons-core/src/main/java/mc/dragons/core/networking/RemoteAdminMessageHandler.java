@@ -5,6 +5,12 @@ import org.bukkit.Bukkit;
 
 import mc.dragons.core.Dragons;
 
+/**
+ * Handles remote administration and telemetry.
+ * 
+ * @author Adam
+ *
+ */
 public class RemoteAdminMessageHandler extends MessageHandler {
 	private boolean ignoresRemoteRestarts = false;
 	
@@ -20,6 +26,13 @@ public class RemoteAdminMessageHandler extends MessageHandler {
 		return ignoresRemoteRestarts;
 	}
 	
+	/**
+	 * Sends the specified server a message to restart immediately.
+	 * 
+	 * @implNote The receiving server can choose to ignore this.
+	 * 
+	 * @param server
+	 */
 	public void sendRemoteRestart(String server) {
 		send(new Document("action", "restart"), server);
 	}

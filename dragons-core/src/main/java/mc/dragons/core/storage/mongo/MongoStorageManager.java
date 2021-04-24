@@ -1,5 +1,7 @@
 package mc.dragons.core.storage.mongo;
 
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -81,7 +83,7 @@ public class MongoStorageManager implements StorageManager {
 
 	@Override
 	public void storeObject(GameObject gameObject) {
-		gameObjectCollection.updateOne(new Document("type", gameObject.getType().toString()).append("_id", gameObject.getUUID()), new Document("$set", gameObject.getData()));
+		rollingAsync(() -> gameObjectCollection.updateOne(new Document("type", gameObject.getType().toString()).append("_id", gameObject.getUUID()), new Document("$set", gameObject.getData())));
 	}
 
 	@Override
@@ -100,20 +102,24 @@ public class MongoStorageManager implements StorageManager {
 		StorageAccess storageAccess = new MongoStorageAccess(identifier, initialData, gameObjectCollection);
 		Document insert = new Document(identifier.getDocument());
 		insert.putAll(initialData);
-		gameObjectCollection.insertOne(insert);
+		rollingAsync(() -> gameObjectCollection.insertOne(insert));
 		LOGGER.finer("Creating new storage access of type " + objectType.toString());
 		return storageAccess;
 	}
 
 	@Override
 	public void removeObject(GameObject gameObject) {
-		DeleteResult result = gameObjectCollection.deleteOne(gameObject.getIdentifier().getDocument());
-		LOGGER.finer("Results for deleting " + gameObject.getIdentifier() + ": deleted " + result.getDeletedCount() + " objects with identifier " + gameObject.getIdentifier());
+		rollingAsync(() -> {
+			DeleteResult result = gameObjectCollection.deleteOne(gameObject.getIdentifier().getDocument());
+			LOGGER.finer("Results for deleting " + gameObject.getIdentifier() + ": deleted " + result.getDeletedCount() + " objects with identifier " + gameObject.getIdentifier());
+		});
 	}
 
 	@Override
 	public void push(GameObjectType objectType, Document selector, Document update) {
-		UpdateResult result = gameObjectCollection.updateMany(new Document(selector).append("type", objectType.toString()), new Document("$set", update));
-		LOGGER.finer("Pushed database mass update for type " + objectType.toString() + ". Matched " + result.getMatchedCount() + ", modified " + result.getModifiedCount());
+		rollingAsync(() -> {
+			UpdateResult result = gameObjectCollection.updateMany(new Document(selector).append("type", objectType.toString()), new Document("$set", update));
+			LOGGER.finer("Pushed database mass update for type " + objectType.toString() + ". Matched " + result.getMatchedCount() + ", modified " + result.getModifiedCount());
+		});
 	}
 }

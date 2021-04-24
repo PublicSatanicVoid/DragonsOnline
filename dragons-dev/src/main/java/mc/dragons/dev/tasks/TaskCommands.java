@@ -1,4 +1,4 @@
-package mc.dragons.dev;
+package mc.dragons.dev.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
@@ -20,8 +18,10 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.dev.DiscordNotifier.DiscordRole;
-import mc.dragons.dev.TaskLoader.Task;
+import mc.dragons.dev.DragonsDev;
+import mc.dragons.dev.notifier.DiscordNotifier;
+import mc.dragons.dev.notifier.DiscordNotifier.DiscordRole;
+import mc.dragons.dev.tasks.TaskLoader.Task;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -85,9 +85,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		return StringUtil.clickableHoverableText(ChatColor.GRAY + "[+Add Note]", "/tasknote " + id + " ", true, "Click to add a note to task #" + id);
 	}
 	
-	public TaskCommands() {
-		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
-		buildNotifier = JavaPlugin.getPlugin(DragonsDevPlugin.class).getBuildNotifier();
+	public TaskCommands(DragonsDev plugin) {
+		taskLoader = plugin.getDragonsInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
+		buildNotifier = plugin.getBuildNotifier();
 	}
 	
 	private void taskAlert(String message, DiscordRole... roles) {

@@ -9,18 +9,22 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.core.util.TableGenerator;
+import mc.dragons.core.util.TableGenerator.Alignment;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ReportsCommand extends DragonsCommandExecutor {
-	
-	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 
+	private static String COL_ID = ChatColor.DARK_AQUA + "ID";
+	private static String COL_TARGET = ChatColor.DARK_AQUA + "User";
+	private static String COL_PREVIEW = ChatColor.DARK_AQUA + "Preview";
+	private static String COL_TYPE = ChatColor.DARK_AQUA + "Type";
+	private static String COL_STATUS = ChatColor.DARK_AQUA + "Status";
+	private static String COL_FILER = ChatColor.DARK_AQUA + "Filer";
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
@@ -84,15 +88,23 @@ public class ReportsCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		sender.sendMessage(ChatColor.GREEN + "Page " + page + " of " + results.getPages() + " (" + results.getTotal() + " results)");
-		for(Report report : results.getPage()) {
-			TextComponent entry = new TextComponent(ChatColor.DARK_GRAY + "#" + ChatColor.DARK_AQUA + ChatColor.BOLD + report.getId() + ChatColor.DARK_GRAY + " | " + ChatColor.GRAY + report.getType() + "/" + report.getStatus()
-					+ ChatColor.AQUA + " " + report.getTarget().getName() + " (by " + report.getFiledBy().getName() + ")");
-			entry.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to view report")));
-			entry.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + report.getId()));
-			sender.spigot().sendMessage(entry);
-		}
+		TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
+		tg.addRow(COL_ID, COL_TARGET, COL_PREVIEW, COL_TYPE, COL_STATUS, COL_FILER);
+		String idPrefix = ChatColor.AQUA + "";
+		String dataPrefix = ChatColor.GRAY + "";
 		
+		for(Report report : results.getPage()) {
+			tg.addRowEx("/viewreport " + report.getId(), ChatColor.GRAY + "Click to view report #" + report.getId(), 
+					idPrefix + "#" + report.getId(), 
+					dataPrefix + report.getTarget().getName(), 
+					dataPrefix + StringUtil.truncateWithEllipsis(report.getPreview(), 30),
+					dataPrefix + report.getType(), 
+					dataPrefix + report.getStatus(), 
+					dataPrefix + report.getFiledBy().getName());
+		}
+
+		sender.sendMessage(ChatColor.GREEN + "Page " + page + " of " + results.getPages() + " (" + results.getTotal() + " results)");
+		tg.display(sender);
 		
 		return true;
 	}

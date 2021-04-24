@@ -10,7 +10,7 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 import mc.dragons.core.util.StringUtil;
 
 public class EscalateCommand extends DragonsCommandExecutor {
-	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);;
+	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);;
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

@@ -5,6 +5,12 @@ import java.util.Date;
 
 import org.bson.Document;
 
+/**
+ * Record about a punishment applied to a user.
+ * 
+ * @author Adam
+ *
+ */
 public class PunishmentData {
 	private PunishmentType type;
 	private String reason;

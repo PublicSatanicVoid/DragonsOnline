@@ -2,9 +2,9 @@ package mc.dragons.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
-import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -13,6 +13,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -24,6 +25,7 @@ import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.impl.BridgeSpigot116R3;
 import mc.dragons.core.commands.AutoRankCommand;
 import mc.dragons.core.commands.ChangeLogCommands;
+import mc.dragons.core.commands.DragonsCommand;
 import mc.dragons.core.commands.FeedbackCommand;
 import mc.dragons.core.commands.HealCommand;
 import mc.dragons.core.commands.HelpCommand;
@@ -64,7 +66,6 @@ import mc.dragons.core.gameobject.user.chat.ChatMessageRegistry;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
-import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.networking.MessageDispatcher;
 import mc.dragons.core.networking.RemoteAdminMessageHandler;
@@ -88,15 +89,38 @@ import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.PermissionUtil;
 
 /**
- * The main plugin class for DragonsOnline.
+ * The main plugin class for Dragons Online.
  * 
  * @author Adam
  *
  */
 public class Dragons extends JavaPlugin {
+	
+	/**
+	 * The package holding CraftBukkit.
+	 */
+	public static final String BUKKIT_PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName();
+	
+	/**
+	 * The version of CraftBukkit, as encoded in the package name.
+	 * E.g. 1_16_R3
+	 */
+	public static final String BUKKIT_API_VERSION = BUKKIT_PACKAGE_NAME.substring(BUKKIT_PACKAGE_NAME.lastIndexOf(".") + 1, BUKKIT_PACKAGE_NAME.length()).substring(1);
+
+	/**
+	 * Link to staff command documentation.
+	 */
+	public static final String STAFF_DOCUMENTATION = "https://bit.ly/30FS0cW";
+
+	/**
+	 * NamespacedKey that is present on all fixed entities.
+	 */
+	public static NamespacedKey FIXED_ENTITY_KEY;
+	
 	private static Dragons INSTANCE;
 	private Bridge bridge;
-
+	private List<Plugin> dragonsPlugins;
+	
 	private MongoConfig mongoConfig;
 	private StorageManager persistentStorageManager;
 	private LocalStorageManager localStorageManager;
@@ -108,6 +132,7 @@ public class Dragons extends JavaPlugin {
 	private EntityHider entityHider;
 	private ChatMessageRegistry chatMessageRegistry;
 	private MessageDispatcher messageDispatcher;
+	private CustomLoggingProvider customLoggingProvider;
 
 	private RemoteAdminMessageHandler remoteAdminHandler;
 	private StaffAlertMessageHandler staffAlertHandler;
@@ -126,73 +151,74 @@ public class Dragons extends JavaPlugin {
 
 	private long started;
 
-	public static final String BUKKIT_PACKAGE_NAME = Bukkit.getServer().getClass().getPackage().getName();
-	public static final String BUKKIT_API_VERSION = BUKKIT_PACKAGE_NAME.substring(BUKKIT_PACKAGE_NAME.lastIndexOf(".") + 1, BUKKIT_PACKAGE_NAME.length()).substring(1);
-
-	public static final String STAFF_DOCUMENTATION = "https://bit.ly/30FS0cW";
-
-	public static NamespacedKey FIXED_ENTITY_KEY;
-
 	@Override
 	public synchronized void onLoad() {
-		if (INSTANCE == null) {
-			INSTANCE = this;
-			FIXED_ENTITY_KEY = new NamespacedKey(this, "fixed");
-			started = System.currentTimeMillis();
-			getLogger().info("Searching for compatible version...");
-			switch (BUKKIT_API_VERSION) {
-			case "1_16_R3":
-				bridge = new BridgeSpigot116R3();
-				break;
-			default:
-				getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");
-				getLogger().severe("Cannot run DragonsOnline.");
-				getServer().getPluginManager().disablePlugin(this);
-				return;
-			}
-			getLogger().info("Initializing storage and registries...");
-			saveDefaultConfig();
-			mongoConfig = new MongoConfig(this);
-			persistentStorageManager = new MongoStorageManager(this);
-			localStorageManager = new LocalStorageManager();
-			gameObjectRegistry = new GameObjectRegistry(this, persistentStorageManager);
-			addonRegistry = new AddonRegistry(this);
-			userHookRegistry = new UserHookRegistry();
-			lightweightLoaderRegistry = new LightweightLoaderRegistry();
-			sidebarManager = new SidebarManager(this);
-			chatMessageRegistry = new ChatMessageRegistry();
-			messageDispatcher = new MessageDispatcher(this);
-			
-			autoSaveRunnable = new AutoSaveTask(this);
-			spawnEntityRunnable = new SpawnEntityTask(this);
-			verifyGameIntegrityRunnable = new VerifyGameIntegrityTask(this);
-			lagMeter = new LagMeter();
-			lagMonitorTask = new LagMonitorTask();
-			updateScoreboardTask = new UpdateScoreboardTask(this);
-			org.apache.logging.log4j.core.Logger pluginLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(getLogger().getName());
-			serverOptions = new ServerOptions(pluginLogger);
-			getLogger().setLevel(serverOptions.getLogLevel());
-			((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter(new LogFilter());
-			serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
-			debug = getConfig().getBoolean("debug");
-			if (debug) {
-				if (serverOptions.getLogLevel().intValue() > Level.CONFIG.intValue()) {
-					serverOptions.setLogLevel(Level.CONFIG);
-				}
-				serverOptions.setVerifyIntegrityEnabled(false);
-				getLogger().config("===========================================================================================");
-				getLogger().config("THIS SERVER IS IN DEVELOPMENT MODE. GAME INTEGRITY WILL NOT BE VERIFIED AFTER INITIAL LOAD.");
-				getLogger().config("===========================================================================================");
-			}
-			serverName = getConfig().getString("serverName");
-			getLogger().info("Server instance name is " + serverName);
-			CustomLoggingProvider.enableCustomLogging();
-			getLogger().info("Log token is " + CustomLoggingProvider.LOG_FILTER.getLogEntryUUID());
+		if (INSTANCE != null) return;
+		INSTANCE = this;
+		
+		FIXED_ENTITY_KEY = new NamespacedKey(this, "fixed");
+		started = System.currentTimeMillis();
+		
+		getLogger().info("Searching for compatible version...");
+		switch (BUKKIT_API_VERSION) {
+		case "1_16_R3":
+			bridge = new BridgeSpigot116R3();
+			break;
+		default:
+			getLogger().severe("Incompatible server version (" + BUKKIT_API_VERSION + ")");
+			getLogger().severe("Cannot run DragonsOnline.");
+			getServer().getPluginManager().disablePlugin(this);
+			return;
 		}
+		
+		getLogger().info("Initializing storage and registries...");
+		saveDefaultConfig();
+		dragonsPlugins = new ArrayList<>();
+		mongoConfig = new MongoConfig(this);
+		persistentStorageManager = new MongoStorageManager(this);
+		localStorageManager = new LocalStorageManager();
+		gameObjectRegistry = new GameObjectRegistry(this, persistentStorageManager);
+		addonRegistry = new AddonRegistry(this);
+		userHookRegistry = new UserHookRegistry();
+		lightweightLoaderRegistry = new LightweightLoaderRegistry();
+		sidebarManager = new SidebarManager(this);
+		chatMessageRegistry = new ChatMessageRegistry();
+		messageDispatcher = new MessageDispatcher(this);
+		customLoggingProvider = new CustomLoggingProvider(this);
+		
+		autoSaveRunnable = new AutoSaveTask(this);
+		spawnEntityRunnable = new SpawnEntityTask(this);
+		verifyGameIntegrityRunnable = new VerifyGameIntegrityTask(this);
+		lagMeter = new LagMeter();
+		lagMonitorTask = new LagMonitorTask();
+		updateScoreboardTask = new UpdateScoreboardTask(this);
+		
+		serverOptions = new ServerOptions(this);
+		serverOptions.setLogLevel(Level.parse(getConfig().getString("loglevel")));
+		
+		debug = getConfig().getBoolean("debug");
+		if (debug) {
+			if (serverOptions.getLogLevel().intValue() > Level.CONFIG.intValue()) {
+				serverOptions.setLogLevel(Level.CONFIG);
+			}
+			serverOptions.setVerifyIntegrityEnabled(false);
+			getLogger().warning("==========================================================");
+			getLogger().warning("THIS SERVER IS IN DEVELOPMENT MODE.");
+			getLogger().warning("GAME INTEGRITY WILL NOT BE VERIFIED AFTER INITIAL LOAD.");
+			getLogger().warning("==========================================================");
+		}
+		
+		serverName = getConfig().getString("serverName");
+		getLogger().info("Server instance name is " + serverName);
+		
+		customLoggingProvider.enableCustomLogging();
+		getLogger().info("Log token is " + customLoggingProvider.getCustomLogFilter().getLogEntryUUID());
 	}
 
 	@Override
 	public void onEnable() {
+		registerDragonsPlugin(this);
+		
 		getLogger().info("Removing unwanted entities...");
 		boolean hasFixed = false;
 		for (Entity e : getEntities()) {
@@ -276,6 +302,7 @@ public class Dragons extends JavaPlugin {
 		entityHider = new EntityHider(Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
 		
 		getLogger().info("Registering commands...");
+		getCommand("dragons").setExecutor(new DragonsCommand());
 		getCommand("rank").setExecutor(new RankCommand());
 		getCommand("autorank").setExecutor(new AutoRankCommand());
 		getCommand("syslogon").setExecutor(new SystemLogonCommand());
@@ -313,13 +340,15 @@ public class Dragons extends JavaPlugin {
 	public void onDisable() {
 		((AutoSaveTask) autoSaveRunnable).run(true);
 		User.getConnectionMessageHandler().clearServerEntries();
+		UUID logToken = customLoggingProvider.getCustomLogFilter().getLogEntryUUID();
+		getLogger().info("As a reminder, this session's log token is " + logToken);
 		String kickMessage = ChatColor.YELLOW + "This server instance has been closed. We'll be back online soon.";
-		String kickMessageDev = kickMessage + "\nLog Token: " + CustomLoggingProvider.LOG_FILTER.getLogEntryUUID();
-		for (User user : UserLoader.allUsers()) {
+		String kickMessageDev = kickMessage + "\nLog Token: " + logToken;
+		for (User user : UserLoader.allUsers()) { 
 			if (user.getPlayer() == null || !user.getPlayer().isOnline()) {
 				continue;
 			}
-			user.handleQuit();
+			user.handleQuit(false);
 			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.DEVELOPER, false)) {
 				user.getPlayer().kickPlayer(kickMessageDev);
 			}
@@ -329,6 +358,10 @@ public class Dragons extends JavaPlugin {
 		}
 	}
 
+	/**
+	 * 
+	 * @return All loaded chunks across all worlds
+	 */
 	public List<Chunk> getLoadedChunks() {
 		List<Chunk> chunks = new ArrayList<>();
 		for (World w : Bukkit.getWorlds()) {
@@ -339,6 +372,10 @@ public class Dragons extends JavaPlugin {
 		return chunks;
 	}
 
+	/**
+	 * 
+	 * @return All entities across all worlds
+	 */
 	public List<Entity> getEntities() {
 		List<Entity> entities = new ArrayList<>();
 		for (World w : Bukkit.getWorlds()) {
@@ -347,107 +384,241 @@ public class Dragons extends JavaPlugin {
 		return entities;
 	}
 
+	/**
+	 * 
+	 * @return The singleton instance of Dragons
+	 */
 	public static Dragons getInstance() {
 		return INSTANCE;
 	}
 	
+	/**
+	 * 
+	 * @return Configuration data for our MongoDB connection
+	 */
 	public MongoConfig getMongoConfig() {
 		return mongoConfig;
 	}
 	
+	/**
+	 * 
+	 * @return The storage manager responsible for persistent storage
+	 */
 	public StorageManager getPersistentStorageManager() {
 		return persistentStorageManager;
 	}
 
+	/**
+	 * 
+	 * @return The storage manager responsible for non-persistent storage
+	 */
 	public LocalStorageManager getLocalStorageManager() {
 		return localStorageManager;
 	}
 
+	/**
+	 * 
+	 * @return The central registry for all game objects
+	 */
 	public GameObjectRegistry getGameObjectRegistry() {
 		return gameObjectRegistry;
 	}
 
+	/**
+	 * 
+	 * @return The central registry for all game object add-ons
+	 */
 	public AddonRegistry getAddonRegistry() {
 		return addonRegistry;
 	}
 
+	/**
+	 * 
+	 * @return The central registry for all user hooks
+	 */
 	public UserHookRegistry getUserHookRegistry() {
 		return userHookRegistry;
 	}
 
+	/**
+	 * 
+	 * @return The central registry of all lightweight object loaders
+	 */
 	public LightweightLoaderRegistry getLightweightLoaderRegistry() {
 		return lightweightLoaderRegistry;
 	}
 
+	/**
+	 * 
+	 * @return The custom sidebar (scoreboard) manager
+	 */
 	public SidebarManager getSidebarManager() {
 		return sidebarManager;
 	}
 
+	/**
+	 * 
+	 * @return The entity hider
+	 */
 	public EntityHider getEntityHider() {
 		return entityHider;
 	}
 	
+	/**
+	 * 
+	 * @return The central registry of all chat messages sent
+	 */
 	public ChatMessageRegistry getChatMessageRegistry() {
 		return chatMessageRegistry;
 	}
 	
+	/**
+	 * 
+	 * @return The custom logging provider
+	 */
+	public CustomLoggingProvider getCustomLoggingProvider() {
+		return customLoggingProvider;
+	}
+	
+	/**
+	 * 
+	 * @return The inter-server network message dispatcher
+	 */
 	public MessageDispatcher getMessageDispatcher() {
 		return messageDispatcher;
 	}
 	
+	/**
+	 * 
+	 * @return The message handler for remote administration and telemetry services
+	 */
 	public RemoteAdminMessageHandler getRemoteAdminHandler() {
 		return remoteAdminHandler;
 	}
 	
+	/**
+	 * 
+	 * @return The message handler for staff alerts
+	 */
 	public StaffAlertMessageHandler getStaffAlertHandler() {
 		return staffAlertHandler;
 	}
 	
+	/**
+	 * 
+	 * @return The local, non-persistent server options manager
+	 */
 	public ServerOptions getServerOptions() {
 		return serverOptions;
 	}
 
+	/**
+	 * 
+	 * @return The abstraction layer for highly version-dependent functionality
+	 */
 	public Bridge getBridge() {
 		return bridge;
 	}
 
+	/**
+	 * 
+	 * @return The record of recent recorded Ticks Per Second readings
+	 */
 	public List<Double> getTPSRecord() {
 		return lagMonitorTask.getTPSRecord();
 	}
 
+	/**
+	 * 
+	 * @return The runnable for auto-saving
+	 */
 	public BukkitRunnable getAutoSaveRunnable() {
 		return autoSaveRunnable;
 	}
 
+	/**
+	 * Replaces the auto-save runnable. Does not cancel
+	 * the existing runnable.
+	 * 
+	 * @param runnable
+	 */
 	public void setAutoSaveRunnable(BukkitRunnable runnable) {
 		autoSaveRunnable = runnable;
 	}
 
+	/**
+	 * 
+	 * @return The mob spawning runnable
+	 */
 	public BukkitRunnable getSpawnEntityRunnable() {
 		return spawnEntityRunnable;
 	}
 
+	/**
+	 * Replaces the mob spawning runnable. Does not cancel
+	 * the existing runnable.
+	 * 
+	 * @param runnable
+	 */
 	public void setSpawnEntityRunnable(BukkitRunnable runnable) {
 		spawnEntityRunnable = runnable;
 	}
 
+	/**
+	 * 
+	 * @return The game integrity verification runnable
+	 */
 	public BukkitRunnable getVerifyGameIntegrityRunnable() {
 		return verifyGameIntegrityRunnable;
 	}
 
+	/**
+	 * Replaces the game integrity verification runnable. Does not cancel
+	 * the existing runnable.
+	 * @param runnable
+	 */
 	public void setVerifyGameIntegrityRunnable(VerifyGameIntegrityTask runnable) {
 		verifyGameIntegrityRunnable = runnable;
 	}
 
+	/**
+	 * 
+	 * @return The unique identifier for this server on the network
+	 */
 	public String getServerName() {
 		return serverName;
 	}
 
+	/**
+	 * 
+	 * @return The uptime in milliseconds of this server since it was started
+	 */
 	public long getUptime() {
 		return System.currentTimeMillis() - started;
 	}
 
+	/**
+	 * 
+	 * @return Whether this server is configured to be in debug mode 
+	 * (no periodic integrity verification and lower log level)
+	 */
 	public boolean isDebug() {
 		return debug;
+	}
+	
+	/**
+	 * Registers a Dragons Online component plugin.
+	 * @param plugin
+	 */
+	public void registerDragonsPlugin(Plugin plugin) {
+		dragonsPlugins.add(plugin);
+	}
+	
+	/**
+	 * 
+	 * @return All registered Dragons Online component plugins.
+	 */
+	public List<Plugin> getDragonsPlugins() {
+		return dragonsPlugins;
 	}
 }

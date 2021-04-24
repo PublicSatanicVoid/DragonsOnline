@@ -14,7 +14,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 
 public class TestQuestCommand extends DragonsCommandExecutor {
 
-	private GameObjectRegistry registry = instance.getGameObjectRegistry();
+	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

@@ -1,5 +1,8 @@
 package mc.dragons.core.gameobject.user;
 
+import static mc.dragons.core.util.BukkitUtil.async;
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -64,6 +67,7 @@ import mc.dragons.core.storage.loader.ChangeLogLoader.ChangeLogEntry;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -88,7 +92,9 @@ public class User extends GameObject {
 	
 	// Increasing this will theoretically decrease server load
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
-
+	
+	private static final String DASH_PATTERN_QUOTED = Pattern.quote("-");
+	
 	private static Dragons instance = Dragons.getInstance();
 
 	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
@@ -123,8 +129,9 @@ public class User extends GameObject {
 	private String lastReceivedMessageFrom;
 	private boolean chatSpy; // Whether the user can see others' private messages.
 	private GUI currentGUI;
-	private List<String> guiHotfixOpenedBefore; // Hotfix to get around a Bukkit-level inventory bug.
 	private boolean joined; // If the user has joined and authenticated yet.
+	private boolean initErrorOccurred;
+	private boolean initialized = false;
 	
 	public static ConnectionMessageHandler getConnectionMessageHandler() {
 		return connectionMessageHandler;
@@ -179,8 +186,9 @@ public class User extends GameObject {
 		UUID initCorrelationID = CORRELATION.registerNewCorrelationID();
 		CORRELATION.log(initCorrelationID, Level.FINE, "initializing player " + player);
 		LOGGER.fine("Initializing user " + this + " on player " + player);
-		boolean errorFlag = false;
+		
 		this.player = player;
+		sendActionBar(ChatColor.GRAY + "Loading your profile...");
 		if (player != null) {
 			CORRELATION.log(initCorrelationID, Level.FINE, "bukkit player exists");
 			setData("lastLocation", StorageUtil.locToDoc(player.getLocation()));
@@ -190,26 +198,40 @@ public class User extends GameObject {
 			if (getData("health") != null) {
 				player.setHealth((double) getData("health"));
 			}
-			errorFlag |= loadInventory(initCorrelationID, (Document) getData("inventory"));
 		}
-		questProgress = new HashMap<>();
-		questActionIndices = new HashMap<>();
-		questPauseStates = new HashMap<>();
-		questCorrelationIDs = new HashMap<>();
-		loadQuests(initCorrelationID, (Document) getData("quests"));
-		cachedRegions = new HashSet<>();
-		activePermissionLevel = PermissionLevel.USER;
-		guiHotfixOpenedBefore = new ArrayList<>();
-		userHookRegistry.getHooks().forEach(h -> h.onInitialize(this));
-		instance.getSidebarManager().createScoreboard(player);
-		if(errorFlag) {
-			CORRELATION.log(initCorrelationID, Level.WARNING, "an error occurred during initialization.");
-		}
-		else {
-			CORRELATION.discard(initCorrelationID);
-		}
-		LOGGER.fine("Finished initializing user " + this);
+		
+		async(() -> {
+			loadInventory(initCorrelationID, (Document) getData("inventory"));
+			questProgress = new HashMap<>();
+			questActionIndices = new HashMap<>();
+			questPauseStates = new HashMap<>();
+			questCorrelationIDs = new HashMap<>();
+			loadQuests(initCorrelationID, (Document) getData("quests"));
+			cachedRegions = new HashSet<>();
+			activePermissionLevel = PermissionLevel.USER;
+			sync(() -> {
+				instance.getSidebarManager().createScoreboard(player);
+				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
+			});
+			if(initErrorOccurred) {
+				CORRELATION.log(initCorrelationID, Level.WARNING, "an error occurred during initialization.");
+			}
+			else {
+				CORRELATION.discard(initCorrelationID);
+			}
+			initialized = true;
+			LOGGER.fine("Finished initializing user " + this);
+		});
+		
 		return this;
+	}
+
+	private synchronized void initErrorOccurred() {
+		initErrorOccurred = true;
+	}
+	
+	public boolean isInitialized() {
+		return initialized;
 	}
 	
 	public void addDebugTarget(CommandSender debugger) {
@@ -426,7 +448,7 @@ public class User extends GameObject {
 	public void setQuestPaused(Quest quest, boolean paused) {
 		questPauseStates.put(quest, paused ? QuestPauseState.PAUSED : QuestPauseState.RESUMED);
 		debug(String.valueOf(paused ? "Paused" : "Unpaused") + " quest " + quest.getName());
-		logQuestEvent(quest, Level.INFO, "Set quest pause state to " + paused);
+		logQuestEvent(quest, Level.FINE, "Set quest pause state to " + paused);
 	}
 
 	public void resetQuestPauseState(Quest quest) {
@@ -457,16 +479,25 @@ public class User extends GameObject {
 			if (pauseState == QuestPauseState.PAUSED) {
 				continue;
 			}
+			Quest quest = questStep.getKey();
+			int actionIndex = getQuestActionIndex(quest);
 			debug("updateQuests():   - Trigger = " + questStep.getValue().getTrigger().getTriggerType());
-			if (questStep.getValue().getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED) {
-				Quest quest = questStep.getKey();
-				debug("updateQuests():     - Triggered (starting @ action #" + getQuestActionIndex(quest) + ")");
-				if (questStep.getValue().executeActions(this, getQuestActionIndex(quest))) {
+			debug("updateQuests():   - Action# = " + actionIndex);
+			
+			/*
+			 * If they meet the trigger, great
+			 * If they were resumed from a pause state, great
+			 * If they already met the trigger and were further along in the stage, great
+			 * Any of these conditions are sufficient
+			 */
+			if (questStep.getValue().getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED || actionIndex > 0) {
+				debug("updateQuests():     - Triggered (starting @ action #" + actionIndex + ")");
+				if (questStep.getValue().executeActions(this, actionIndex)) {
 					debug("updateQuests():      - Normal progression to next step");
 					int nextIndex = quest.getSteps().indexOf(questStep.getValue()) + 1;
 					if (nextIndex != quest.getSteps().size()) {
 						QuestStep nextStep = quest.getSteps().get(nextIndex);
-						logQuestEvent(quest, Level.INFO, "update quest progress step " + questStep.getValue().getStepName() + " -> " + nextStep.getStepName());
+						logQuestEvent(quest, Level.FINE, "update quest progress step " + questStep.getValue().getStepName() + " -> " + nextStep.getStepName());
 						updateQuestProgress(quest, nextStep, true);
 					}
 				}
@@ -545,28 +576,6 @@ public class User extends GameObject {
 		if (forceClose) {
 			player.closeInventory();
 		}
-	}
-
-	public boolean hasHotfixedGUI(GUI gui) {
-		return guiHotfixOpenedBefore.contains(gui.getMenuName());
-	}
-
-	// FIXME Flashing GUI bug.
-	public void hotfixGUI() {
-		if (currentGUI == null) {
-			return;
-		}
-		guiHotfixOpenedBefore.add(currentGUI.getMenuName());
-		new BukkitRunnable() {
-			@Override public void run() {
-				currentGUI.open(User.this);
-			}
-		}.runTaskLater(instance, 2L);		
-		new BukkitRunnable() {
-			@Override public void run() {
-				player.closeInventory();
-			}
-		}.runTaskLater(instance, 1L);
 	}
 
 	public boolean hasOpenGUI() {
@@ -792,17 +801,22 @@ public class User extends GameObject {
 		List<UUID> usedItems = new ArrayList<>();
 		int dups = 0;
 		int broken = 0;
+		Set<UUID> uuids = inventory.entrySet().stream().map(e -> (UUID) e.getValue()).collect(Collectors.toSet());
+		Map<UUID, Item> items = itemLoader.loadObjects(uuids);
+		
+		Map<Integer, ItemStack> bukkitInventory = new HashMap<>();
+		
 		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
-			String[] labels = entry.getKey().split(Pattern.quote("-"));
+			String[] labels = entry.getKey().split(DASH_PATTERN_QUOTED);
 			String part = labels[0];
-			int slot = Integer.valueOf(labels[1]).intValue();
+			int slot = Integer.valueOf(labels[1]);
 			UUID id = (UUID) entry.getValue();
 			if(usedItems.contains(id)) {
 				dups++;
 				CORRELATION.log(cid, Level.WARNING, "duplicated item: " + id);
 				continue;
 			}
-			Item item = itemLoader.loadObject(id);
+			Item item = items.get(id);
 			if (item == null) {
 				broken++;
 				CORRELATION.log(cid, Level.WARNING, "could not load item: " + id);
@@ -810,10 +824,11 @@ public class User extends GameObject {
 			}
 			ItemStack itemStack = item.getItemStack();
 			if (part.equals("I")) {
-				player.getInventory().setItem(slot, itemStack);
+				bukkitInventory.put(slot, itemStack);
 				continue;
 			}
 		}
+		syncSetInventory(bukkitInventory);
 		boolean error = false;
 		if (broken > 0) {
 			player.sendMessage(ChatColor.RED + "" + broken + " items in your saved inventory could not be loaded.");
@@ -826,9 +841,20 @@ public class User extends GameObject {
 		if(error) {
 			player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
+		if(error) {
+			initErrorOccurred();
+		}
 		return error;
 	}
 	
+	private void syncSetInventory(Map<Integer, ItemStack> inventory) {
+		if(player == null) return;
+		sync(() -> {
+			inventory.forEach((slot, itemStack) -> {
+				player.getInventory().setItem(slot, itemStack);
+			});
+		});
+	}
 	public void clearInventory() {
 		player.getInventory().clear();
 		setData("inventory", new ArrayList<>());
@@ -916,6 +942,10 @@ public class User extends GameObject {
 	}
 
 	public void handleQuit() {
+		handleQuit(true);
+	}
+	
+	public void handleQuit(boolean removeFromLocalRegistry) {
 		autoSave();
 		setData("totalOnlineTime", getTotalOnlineTime() + getLocalOnlineTime());
 		setData("currentServer", null);
@@ -930,8 +960,10 @@ public class User extends GameObject {
 		player.getInventory().clear();
 		player.getInventory().setArmorContents(new ItemStack[4]);
 		userHookRegistry.getHooks().forEach(h -> h.onQuit(this));
-		userLoader.removeStalePlayer(player);
 		connectionMessageHandler.logDisconnect(this);
+		if(removeFromLocalRegistry) {
+			userLoader.removeStalePlayer(player);
+		}
 	}
 
 	public void handleMove() {
@@ -1108,7 +1140,8 @@ public class User extends GameObject {
 	}
 
 	public void sendActionBar(String message) {
-		instance.getBridge().sendActionBar(player, message);
+		if(player == null) return;
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
 	}
 
 	@Deprecated
@@ -1208,7 +1241,7 @@ public class User extends GameObject {
 	}
 	
 	public void respawn() {
-		instance.getBridge().respawnPlayer(player);
+		player.spigot().respawn();
 	}
 
 	public void sendToFloor(String floorName, boolean overrideLevelRequirement) {

@@ -1,4 +1,4 @@
-package mc.dragons.dev;
+package mc.dragons.dev.tasks;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
-import mc.dragons.dev.TaskLoader.Task;
+import mc.dragons.dev.tasks.TaskLoader.Task;
 
 public class TaskLoader extends AbstractLightweightLoader<Task> {
 	private static final String TASK_COLLECTION = "tasks";

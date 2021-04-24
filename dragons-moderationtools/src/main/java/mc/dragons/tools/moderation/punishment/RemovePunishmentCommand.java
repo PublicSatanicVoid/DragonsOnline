@@ -15,10 +15,10 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.tools.moderation.DragonsModerationToolsPlugin;
+import mc.dragons.tools.moderation.DragonsModerationTools;
 
 public class RemovePunishmentCommand extends DragonsCommandExecutor {
-	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationToolsPlugin.class).getPunishMessageHandler();
+	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationTools.class).getPunishMessageHandler();
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
@@ -50,7 +50,7 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 		if(record.getExpiry().after(Date.from(Instant.now())) || record.isPermanent()) {
 			targetUser.unpunish(record.getType());
 			// Check if we need to tell a different server to immediately apply the punishment
-			if(targetUser.getServer() != null && !targetUser.getServer().equals(instance.getServerName())) {
+			if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
 				handler.forwardUnpunishment(targetUser, record.getType());
 			}
 		}

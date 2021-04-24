@@ -8,14 +8,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.anticheat.command.AntiCheatCommand;
 import mc.dragons.anticheat.event.MoveListener;
+import mc.dragons.core.Dragons;
 
-public class DragonsAntiCheatPlugin extends JavaPlugin {
+public class DragonsAntiCheat extends JavaPlugin {
 	private boolean debug;
 	
+	private Dragons dragons;
 	private MoveListener moveListener;
 	
 	@Override
 	public void onEnable() {
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
+		
 		CommandExecutor ac = new AntiCheatCommand(this);
 		getCommand("ac").setExecutor(ac);
 		getCommand("acdebug").setExecutor(ac);
@@ -46,5 +51,4 @@ public class DragonsAntiCheatPlugin extends JavaPlugin {
 	public MoveListener getMoveListener() {
 		return moveListener;
 	}
-	
 }

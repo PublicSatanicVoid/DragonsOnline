@@ -13,15 +13,17 @@ import mc.dragons.social.guild.GuildLoader;
 import mc.dragons.social.messaging.PrivateMessageCommands;
 import mc.dragons.social.shout.ShoutCommand;
 
-public class DragonsSocialPlugin extends JavaPlugin implements CommandExecutor {
-	
+public class DragonsSocial extends JavaPlugin implements CommandExecutor {
+	private Dragons dragons;
 	private SocialUserHook socialHook;
 	
 	public void onEnable() {
-		Dragons instance = Dragons.getInstance();
-		instance.getLightweightLoaderRegistry().register(new GuildLoader(instance.getMongoConfig()));
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
+		
+		dragons.getLightweightLoaderRegistry().register(new GuildLoader(dragons.getMongoConfig()));
 		socialHook = new SocialUserHook();
-		instance.getUserHookRegistry().registerHook(socialHook);
+		dragons.getUserHookRegistry().registerHook(socialHook);
 		
 		
 		ChatChannel.GUILD.setHandler(new GuildChannelHandler());

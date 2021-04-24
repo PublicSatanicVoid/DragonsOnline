@@ -29,9 +29,9 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.content.util.MetadataConstants;
 
 public class ItemCommand extends DragonsCommandExecutor {
-	private GameObjectRegistry registry = instance.getGameObjectRegistry();;
-	private StorageManager storageManager = instance.getPersistentStorageManager();;
-	private AddonRegistry addonRegistry = instance.getAddonRegistry();;
+	private GameObjectRegistry registry = dragons.getGameObjectRegistry();;
+	private StorageManager storageManager = dragons.getPersistentStorageManager();;
+	private AddonRegistry addonRegistry = dragons.getAddonRegistry();;
 	
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/item create <ClassName> <MaterialType> <LvMin> <Cooldown> <Damage> <Armor>" 

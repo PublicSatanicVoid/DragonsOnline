@@ -11,7 +11,7 @@ import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
 
 public class FeedbackCommand extends DragonsCommandExecutor {
-	private FeedbackLoader feedbackLoader = instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
+	private FeedbackLoader feedbackLoader = dragons.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);
 
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/feedback <Your feedback here>");

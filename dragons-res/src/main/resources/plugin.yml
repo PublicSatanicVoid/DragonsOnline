@@ -1,9 +1,10 @@
 name: DragonsRes
-main: mc.dragons.res.DragonsResPlugin
+main: mc.dragons.res.DragonsResidences
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore, FastAsyncWorldEdit]
 api-version: 1.16
+description: Implements a complete instanced residence system.
 commands:
   res:
     description: Manage your residence.

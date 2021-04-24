@@ -14,8 +14,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import mc.dragons.core.gameobject.user.User;
 
 /**
- * A clickable item within an inventory menu.
- * An item can be associated with a callback,
+ * A clickable element within an inventory menu.
+ * An element can be associated with a callback,
  * which is called when the item is clicked.
  * 
  * @author Adam
@@ -80,13 +80,23 @@ public class GUIElement {
 		return itemStack;
 	}
 
+	/**
+	 * Fired when a user clicks this GUI element.
+	 * 
+	 * @param user
+	 */
 	public void click(User user) {
 		user.debug("clicked gui element " + itemStack.getType() + " x" + itemStack.getAmount() + " [" + itemStack.getItemMeta().getDisplayName() + "]");
 		callback.accept(user);
 	}
 
+	/**
+	 * 
+	 * @return Serialized data about this GUI element.
+	 * Does not include callback information.
+	 */
 	public Document toDocument() {
-		return new Document("slot", Integer.valueOf(slot)).append("type", itemStack.getType().toString()).append("amount", Integer.valueOf(itemStack.getAmount()))
+		return new Document("slot", slot).append("type", itemStack.getType().toString()).append("amount", itemStack.getAmount())
 				.append("name", itemStack.getItemMeta().getDisplayName()).append("lore", itemStack.getItemMeta().getLore());
 	}
 }

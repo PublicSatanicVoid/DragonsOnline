@@ -65,8 +65,8 @@ public class ResEvents implements Listener {
 					player.sendMessage(ChatColor.RED + "You cannot afford this residence! (Costs " + resPoint.getPrice() + " gold)");
 					return;
 				}
-				if(resLoader.getAllResidencesOf(user).size() >= DragonsResPlugin.MAX_RES_PER_USER) {
-					player.sendMessage(ChatColor.RED + "You have reached the maximum number of residences per user! (" + DragonsResPlugin.MAX_RES_PER_USER + ")");
+				if(resLoader.getAllResidencesOf(user).size() >= DragonsResidences.MAX_RES_PER_USER) {
+					player.sendMessage(ChatColor.RED + "You have reached the maximum number of residences per user! (" + DragonsResidences.MAX_RES_PER_USER + ")");
 					return;
 				}
 				GUI gui = new GUI(1, "Purchase a residence here?");

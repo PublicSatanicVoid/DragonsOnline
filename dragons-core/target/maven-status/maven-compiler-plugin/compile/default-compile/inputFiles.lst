@@ -40,6 +40,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\mon
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\floor\FloorLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\structure\StructureType.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\RestartInstanceCommand.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\BukkitUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\ChatMessageRegistry.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\Identifier.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\GameObject.java
@@ -66,6 +67,7 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\Hologr
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\npc\NPCCondition.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\InventoryEventListeners.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\ServerOptions.java
+C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\commands\DragonsCommand.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\EntityTargetEventListener.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\networking\MessageDispatcher.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\networking\StaffAlertMessageHandler.java

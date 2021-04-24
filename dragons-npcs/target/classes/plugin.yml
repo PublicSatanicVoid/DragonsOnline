@@ -4,6 +4,7 @@ version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore, DragonsSpells]
 api-version: 1.16
+description: Extends base NPC functionality with addons and custom models.
 commands:
   companion:
     description: Manage your companion.

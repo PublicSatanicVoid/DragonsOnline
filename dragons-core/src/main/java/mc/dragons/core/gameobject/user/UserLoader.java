@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +46,7 @@ public class UserLoader extends GameObjectLoader<User> {
 	private static UserLoader INSTANCE;
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
 	private static GlobalVarLoader VAR;
-	private static Set<User> users = new HashSet<>();
+	private static Set<User> users = Collections.synchronizedSet(new HashSet<>());
 
 	private GameObjectRegistry masterRegistry;
 
@@ -89,7 +90,7 @@ public class UserLoader extends GameObjectLoader<User> {
 		}
 		Player p = plugin.getServer().getPlayer((UUID) storageAccess.get("_id"));
 		if (p == null) {
-			LOGGER.warning("Attempting to load user with an offline or nonexistent player (" + storageAccess.getIdentifier() + ")");
+			LOGGER.warning("Attempting to load offline or nonexistent user (" + storageAccess.getIdentifier() + ")");
 		}
 		User user = new User(p, storageManager, storageAccess);
 		assign(p, user);
@@ -280,7 +281,7 @@ public class UserLoader extends GameObjectLoader<User> {
 		users.remove(user);
 	}
 
-	public static Collection<User> allUsers() {
+	public static synchronized Collection<User> allUsers() {
 		return users;
 	}
 }

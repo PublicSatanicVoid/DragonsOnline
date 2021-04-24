@@ -29,7 +29,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class StateCommands extends DragonsCommandExecutor {
 
-	private StateLoader stateLoader = instance.getLightweightLoaderRegistry().getLoader(StateLoader.class);
+	private StateLoader stateLoader = dragons.getLightweightLoaderRegistry().getLoader(StateLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -117,7 +117,7 @@ public class StateCommands extends DragonsCommandExecutor {
 				targetUser.getData().append("resExitTo", StorageUtil.docToLoc(state.get("resExitTo", Document.class)));
 			}
 			final User fTargetUser = targetUser;
-			Bukkit.getScheduler().runTaskLater(instance, () -> {
+			Bukkit.getScheduler().runTaskLater(dragons, () -> {
 				fTargetUser.sendActionBar(ChatColor.GRAY + "Your state was updated (" + args[0] + ")");
 			}, 5L);
 			sender.sendMessage(ChatColor.GREEN + "State data applied successfully. New token: " + UUID.fromString(args[0]));

@@ -22,7 +22,7 @@ import mc.dragons.core.util.StringUtil;
  *
  */
 public class StuckQuestCommand extends DragonsCommandExecutor {
-	private FeedbackLoader feedbackLoader = instance.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);;
+	private FeedbackLoader feedbackLoader = dragons.getLightweightLoaderRegistry().getLoader(FeedbackLoader.class);;
 	
 	private final String[][] POSSIBLE_ISSUES = {
 			{ "Deadlock", "There is no way to advance to the next objective of the quest", "deadlock" },

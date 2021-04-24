@@ -1,9 +1,10 @@
 name: DragonsSocial
-main: mc.dragons.social.DragonsSocialPlugin
+main: mc.dragons.social.DragonsSocial
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
 api-version: 1.16
+description: Implements social functionality such as guilds and private messaging.
 commands:
   guild:
     description: Create, join, and manage guilds.

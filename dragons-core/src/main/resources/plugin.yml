@@ -6,7 +6,10 @@ depend: [ProtocolLib]
 loadbefore: [WorldEdit]
 load: POSTWORLD
 api-version: 1.16
+description: Provides core APIs and game object functionality.
 commands:
+  dragons:
+    description: (ADMIN) View Dragons status.
   fastforwarddialogue:
     description: Fast-forward through active quest dialogue.
   feedback:

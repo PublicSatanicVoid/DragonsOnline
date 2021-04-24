@@ -26,13 +26,16 @@ import mc.dragons.tools.moderation.report.ReportLoader;
 import mc.dragons.tools.moderation.report.ReportsCommand;
 import mc.dragons.tools.moderation.report.ViewReportCommand;
 
-public class DragonsModerationToolsPlugin extends JavaPlugin implements CommandExecutor {
-	
+public class DragonsModerationTools extends JavaPlugin implements CommandExecutor {
+	private Dragons dragons;
 	private PunishMessageHandler punishMessageHandler;
 	
 	public void onEnable() {
-		Dragons.getInstance().getLightweightLoaderRegistry().register(new ReportLoader(Dragons.getInstance().getMongoConfig()));
-		Dragons.getInstance().getUserHookRegistry().registerHook(new ModUserHook());
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
+		
+		dragons.getLightweightLoaderRegistry().register(new ReportLoader(dragons.getMongoConfig()));
+		dragons.getUserHookRegistry().registerHook(new ModUserHook());
 		
 		punishMessageHandler = new PunishMessageHandler();
 		

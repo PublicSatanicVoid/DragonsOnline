@@ -31,7 +31,7 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.content.util.MetadataConstants;
 
 public class QuestCommand extends DragonsCommandExecutor {
-	private GameObjectRegistry registry = instance.getGameObjectRegistry();
+	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/quest create <ShortName> <LvMin>" + ChatColor.GRAY + " create a new quest");

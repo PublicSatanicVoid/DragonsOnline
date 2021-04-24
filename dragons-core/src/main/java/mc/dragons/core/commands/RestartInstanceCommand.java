@@ -17,7 +17,7 @@ public class RestartInstanceCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		instance.getRemoteAdminHandler().sendRemoteRestart(args[0]);
+		dragons.getRemoteAdminHandler().sendRemoteRestart(args[0]);
 		sender.sendMessage(ChatColor.GREEN + "Remote restart sent successfully.");
 		
 		return true;

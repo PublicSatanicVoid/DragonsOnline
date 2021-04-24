@@ -6,6 +6,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
+
 /**
  * https://github.com/FisheyLP/TableGenerator/blob/master/TableGenerator.java\
  * Copyright by FisheyLP, Version 1.3 (12.08.16)
@@ -37,7 +45,7 @@ public class TableGenerator {
 		this.alignments = alignments;
 	}
 
-	public List<String> generate(Receiver receiver, boolean ignoreColors, boolean coloredDistances) {
+	public List<TextComponent> generate(Receiver receiver, boolean ignoreColors, boolean coloredDistances) {
 		if (receiver == null) {
 			throw new IllegalArgumentException("Receiver must not be null.");
 		}
@@ -64,13 +72,13 @@ public class TableGenerator {
 			}
 		}
 
-		List<String> lines = new ArrayList<String>();
+		List<TextComponent> lines = new ArrayList<>();
 
 		for (Row r : table) {
 			StringBuilder sb = new StringBuilder();
 
 			if (r.empty) {
-				lines.add("");
+				lines.add(new TextComponent(""));
 				continue;
 			}
 
@@ -150,7 +158,12 @@ public class TableGenerator {
 					line = matcher.replaceAll("$1$2$3 ").replace("§r§0§r", "§r").replaceAll("§r(\\s*)§r", "§r$1");
 				}
 			}
-			lines.add(line);
+			TextComponent tc = new TextComponent(line);
+			if(r.command != null || r.hover != null) {
+				tc.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, r.command));
+				tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(r.hover)));
+			}
+			lines.add(tc);
 		}
 		return lines;
 	}
@@ -211,10 +224,32 @@ public class TableGenerator {
 
 		table.add(r);
 	}
+	
+	public void addRowEx(String command, String hover, String... texts) {
+		if (texts == null) {
+			throw new IllegalArgumentException("Texts must not be null.");
+		}
+		if (texts != null && texts.length > columns) {
+			throw new IllegalArgumentException("Too big for the table.");
+		}
+
+		Row r = new Row(command, hover, texts);
+
+		table.add(r);
+	}
+	
+	public void display(CommandSender sender) {
+		Receiver receiver = sender instanceof Player ? Receiver.CLIENT : Receiver.CONSOLE;
+		for(TextComponent line : generate(receiver, true, true)) {
+			sender.spigot().sendMessage(line);
+		}
+	}
 
 	private class Row {
 
 		public List<String> texts = new ArrayList<>();
+		public String command;
+		public String hover;
 		public boolean empty = true;
 
 		public Row(String... texts) {
@@ -235,6 +270,12 @@ public class TableGenerator {
 				if (i >= texts.length)
 					this.texts.add("");
 			}
+		}
+		
+		public Row(String command, String hover, String... texts) {
+			this(texts);
+			this.command = command;
+			this.hover = hover;
 		}
 	}
 

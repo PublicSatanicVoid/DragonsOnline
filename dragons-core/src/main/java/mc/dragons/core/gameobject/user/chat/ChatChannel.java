@@ -17,6 +17,13 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 /**
  * Named channels of text-based communication in the game.
  * 
+ * <p>Users speak on one channel and listen on one or more.
+ * 
+ * <p>Some channels are context-sensitive; for example, the
+ * LOCAL channel is associated with the floor a player is on.
+ * Thus, two players listening only on the LOCAL channel 
+ * cannot hear each other if they are on different floors.
+ * 
  * @author Adam
  *
  */
@@ -53,6 +60,10 @@ public enum ChatChannel {
 		return format(ChatColor.GRAY + "[" + getAbbreviation() + "]");
 	}
 
+	/**
+	 * 
+	 * @return Whether chat messages on this channel are synced with other servers.
+	 */
 	public boolean isNetworked() {
 		return networked;
 	}
@@ -65,6 +76,11 @@ public enum ChatChannel {
 		this.handler = handler;
 	}
 
+	/**
+	 * 
+	 * @param str
+	 * @return A hoverable overlay showing a snapshot of data about the channel.
+	 */
 	public TextComponent format(String str) {
 		long listening = UserLoader.allUsers().stream().filter(u -> u.getActiveChatChannels().contains(this)).count();
 		TextComponent component = new TextComponent(str);

@@ -128,11 +128,14 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
 			ItemStack itemStack = player.getInventory().getItemInMainHand();
-			sender.sendMessage("meta=" + itemStack.getItemMeta());
 			sender.sendMessage("pdc=" + itemStack.getItemMeta().getPersistentDataContainer());
 			sender.sendMessage("uuid=" + itemStack.getItemMeta().getPersistentDataContainer().get(Item.ITEM_UUID_KEY, PersistentDataType.STRING));
 			Item item = ItemLoader.fromBukkit(itemStack);
 			sender.sendMessage("item=" + item);
+			if(item != null) {
+				sender.sendMessage("item class=" + item.getClassName());
+				sender.sendMessage("item data=" + item.getData().toJson());
+			}
 		}
 		
 		else if(label.equalsIgnoreCase("testlocaluserstorage")) {
@@ -186,6 +189,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 					sender.sendMessage("-Also user " + test + " => " + test.getPlayer());
 				}
 			}
+			sender.sendMessage("StorageAccess="+(user==null?"null":user.getStorageAccess()));
 		}
 		
 		else if(label.equalsIgnoreCase("testpathfinding")) {
@@ -314,6 +318,16 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 				TextComponent tc = new TextComponent(text);
 				tc.setFont(font);
 				sender.spigot().sendMessage(new TextComponent(font + " "), tc);
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("testuserlookup")) {
+			User target = lookupUser(sender, args[0]);
+			if(target == null) {
+				sender.sendMessage("Not found");
+			}
+			else {
+				sender.sendMessage("User is " + target);
 			}
 		}
 		

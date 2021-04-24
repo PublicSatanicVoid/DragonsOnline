@@ -9,18 +9,20 @@ import mc.dragons.spells.commands.BindSpellCommand;
 import mc.dragons.spells.events.SpellListeners;
 
 public class DragonsSpellAddons extends JavaPlugin {
+	private Dragons dragons;
 	
 	public void onLoad() {
-		getLogger().info("Loading item addons...");
-		AddonRegistry registry = Dragons.getInstance().getAddonRegistry();
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
 		
+		getLogger().info("Loading item addons...");
+		AddonRegistry registry = dragons.getAddonRegistry();
 		registry.register(new SpellCastAddon());
 		registry.register(new SpellScrollAddon());
 	}
 	
 	public void onEnable() {
 		getCommand("bindspell").setExecutor(new BindSpellCommand());
-	
 		Bukkit.getPluginManager().registerEvents(new SpellListeners(), this);
 	}
 }

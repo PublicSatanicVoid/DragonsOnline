@@ -25,7 +25,7 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 import mc.dragons.core.storage.loader.WarpLoader;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.EntityHider.Policy;
-import mc.dragons.social.DragonsSocialPlugin;
+import mc.dragons.social.DragonsSocial;
 
 public class DuelCommands extends DragonsCommandExecutor {
 
@@ -76,7 +76,7 @@ public class DuelCommands extends DragonsCommandExecutor {
 		}
 		else if(label.equalsIgnoreCase("testduelwin")) {
 			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
-			JavaPlugin.getPlugin(DragonsSocialPlugin.class).getSocialHook().onDeath(user(sender));
+			JavaPlugin.getPlugin(DragonsSocial.class).getSocialHook().onDeath(user(sender));
 		}
 		
 		return true;
@@ -137,7 +137,7 @@ public class DuelCommands extends DragonsCommandExecutor {
 			pair.add(user);
 			pair.add(userTarget);
 			active.add(pair);
-			Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocialPlugin.class), () -> {
+			Bukkit.getScheduler().scheduleSyncDelayedTask(JavaPlugin.getPlugin(DragonsSocial.class), () -> {
 				restore.put(user, player.getLocation());
 				restore.put(userTarget, target.getLocation());
 				entityHider.setPolicy(player, Policy.WHITELIST);

@@ -1,5 +1,6 @@
 package mc.dragons.core.gameobject.region;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class RegionLoader extends GameObjectLoader<Region> {
 	private RegionLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
 		masterRegistry = instance.getGameObjectRegistry();
-		worldToRegions = new HashMap<>();
+		worldToRegions = Collections.synchronizedMap(new HashMap<>());
 	}
 
 	public static synchronized RegionLoader getInstance(Dragons instance, StorageManager storageManager) {
@@ -126,7 +127,7 @@ public class RegionLoader extends GameObjectLoader<Region> {
 		storageAccess.set("spawnRates", new Document());
 		Region region = new Region(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(region);
-		Set<Region> regions = worldToRegions.getOrDefault(region.getWorld().getName(), new HashSet<>());
+		Set<Region> regions = worldToRegions.getOrDefault(region.getWorld().getName(), Collections.synchronizedSet(new HashSet<>()));
 		regions.add(region);
 		worldToRegions.put(region.getWorld().getName(), regions);
 		return region;

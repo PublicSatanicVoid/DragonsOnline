@@ -150,13 +150,13 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 		Location doorLoc = resPoint.getDoorLocation();
 		BlockData blockData = doorLoc.getBlock().getBlockData();
 		if(!doorLoc.getBlock().getType().toString().toUpperCase().contains("DOOR") || !(blockData instanceof Directional)) {
-			JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().warning("Could not load res point at " + StringUtil.locToString(doorLoc));
+			JavaPlugin.getPlugin(DragonsResidences.class).getLogger().warning("Could not load res point at " + StringUtil.locToString(doorLoc));
 			HologramUtil.makeHologram(ChatColor.RED + "Invalid res point!", doorLoc.add(0, 1, 0));
 			return;
 		}
 		Directional dir = (Directional) blockData;
 		Location holoLoc = doorLoc.add(-dir.getFacing().getModX(), 0.5, -dir.getFacing().getModZ());
-		JavaPlugin.getPlugin(DragonsResPlugin.class).getLogger().info("Door at " + StringUtil.locToString(holoLoc) + " has direction " + dir.getFacing().getModX() + ", " + dir.getFacing().getModZ());
+		JavaPlugin.getPlugin(DragonsResidences.class).getLogger().info("Door at " + StringUtil.locToString(holoLoc) + " has direction " + dir.getFacing().getModX() + ", " + dir.getFacing().getModZ());
 		ArmorStand[] notOwnedHologram = {
 				HologramUtil.makeHologram(ChatColor.GRAY + "Price: " + ChatColor.YELLOW + resPoint.getPrice() + "g", holoLoc),
 				HologramUtil.makeHologram(ChatColor.GOLD + resPoint.getDisplayName(), holoLoc.clone().add(0, 0.3, 0)) 

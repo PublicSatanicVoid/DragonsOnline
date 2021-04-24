@@ -16,7 +16,7 @@ import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class ViewReportCommand extends DragonsCommandExecutor {
-	private ReportLoader reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import mc.dragons.core.logging.LogFilter;
 import mc.dragons.core.tasks.AutoSaveTask;
 import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
@@ -20,8 +19,8 @@ import mc.dragons.core.tasks.VerifyGameIntegrityTask;
  *
  */
 public class ServerOptions {
+	private Dragons dragons;
 	private Logger LOGGER;
-	private org.apache.logging.log4j.core.Logger pluginLogger;
 
 	private int autoSavePeriodTicks;
 	private boolean autoSaveEnabled;
@@ -41,9 +40,10 @@ public class ServerOptions {
 
 	private Level logLevel;
 
-	public ServerOptions(org.apache.logging.log4j.core.Logger pluginLogger) {
-		this.pluginLogger = pluginLogger;
-		LOGGER = Dragons.getInstance().getLogger();
+	public ServerOptions(Dragons instance) {
+		dragons = instance;
+		LOGGER = dragons.getLogger();
+		
 		autoSavePeriodTicks = 6000;
 		autoSaveEnabled = true;
 		customSpawnMargin = 25;
@@ -60,9 +60,9 @@ public class ServerOptions {
 	public void setAutoSavePeriodTicks(int period) {
 		autoSavePeriodTicks = period;
 		Dragons.getInstance().getAutoSaveRunnable().cancel();
-		AutoSaveTask task = new AutoSaveTask(Dragons.getInstance());
+		AutoSaveTask task = new AutoSaveTask(dragons);
 		Dragons.getInstance().setAutoSaveRunnable(task);
-		task.runTaskTimer(Dragons.getInstance(), 0L, period);
+		task.runTaskTimer(dragons, 0L, period);
 		LOGGER.config("Set auto-save period to " + period + " ticks");
 	}
 
@@ -72,7 +72,7 @@ public class ServerOptions {
 
 	public void setAutoSaveEnabled(boolean enabled) {
 		autoSaveEnabled = enabled;
-		LOGGER.config(String.valueOf(enabled ? "Enabled" : "Disabled") + " auto-saving");
+		LOGGER.config((enabled ? "Enabled" : "Disabled") + " auto-saving");
 	}
 
 	public boolean isAutoSaveEnabled() {
@@ -81,10 +81,10 @@ public class ServerOptions {
 
 	public void setCustomSpawnRate(int rate) {
 		customSpawnRate = rate;
-		Dragons.getInstance().getSpawnEntityRunnable().cancel();
-		SpawnEntityTask task = new SpawnEntityTask(Dragons.getInstance());
-		Dragons.getInstance().setSpawnEntityRunnable(task);
-		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
+		dragons.getSpawnEntityRunnable().cancel();
+		SpawnEntityTask task = new SpawnEntityTask(dragons);
+		dragons.setSpawnEntityRunnable(task);
+		task.runTaskTimer(dragons, 0L, rate);
 		LOGGER.config("Custom spawn rate set to " + rate + "t.");
 	}
 
@@ -130,10 +130,10 @@ public class ServerOptions {
 
 	public void setVerifyIntegritySweepRate(int rate) {
 		verifyIntegritySweepRate = rate;
-		Dragons.getInstance().getVerifyGameIntegrityRunnable().cancel();
-		VerifyGameIntegrityTask task = new VerifyGameIntegrityTask(Dragons.getInstance());
-		Dragons.getInstance().setVerifyGameIntegrityRunnable(task);
-		task.runTaskTimer(Dragons.getInstance(), 0L, rate);
+		dragons.getVerifyGameIntegrityRunnable().cancel();
+		VerifyGameIntegrityTask task = new VerifyGameIntegrityTask(dragons);
+		dragons.setVerifyGameIntegrityRunnable(task);
+		task.runTaskTimer(dragons, 0L, rate);
 		LOGGER.config("Game verification sweep rate set to " + rate + "t.");
 	}
 
@@ -162,7 +162,6 @@ public class ServerOptions {
 	public void setLogLevel(Level level) {
 		logLevel = level;
 		LOGGER.setLevel(level);
-		pluginLogger.setLevel(LogFilter.fromJUL(level));
 		Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(Plugin::getLogger).forEach(logger -> logger.setLevel(level));
 		LOGGER.info("Log level changed to " + level);
 	}

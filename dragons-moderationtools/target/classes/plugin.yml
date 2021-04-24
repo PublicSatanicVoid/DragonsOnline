@@ -1,9 +1,10 @@
 name: DragonsModerationTools
-main: mc.dragons.tools.moderation.DragonsModerationToolsPlugin
+main: mc.dragons.tools.moderation.DragonsModerationTools
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]
 api-version: 1.16
+description: Utilities for the moderation team to monitor and take action on user behavior.
 commands:
   escalate:
     description: (HELPER) Escalate an issue with a player for action by senior staff.

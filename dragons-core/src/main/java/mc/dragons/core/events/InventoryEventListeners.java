@@ -36,11 +36,6 @@ public class InventoryEventListeners implements Listener {
 		user.debug("inventory close event. invTitle=" + e.getView().getTitle() + ", viewtype=" + e.getView().getType());
 		if (user.hasOpenGUI()) {
 			user.debug("- has open gui");
-			if (!user.hasHotfixedGUI(user.getCurrentGUI())) {
-				user.debug("- hotfix for random server-side closing crap");
-				user.hotfixGUI();
-				return;
-			}
 			if (e.getView().getTitle().equals(user.getCurrentGUI().getMenuName())) {
 				user.debug("- matches gui name " + user.getCurrentGUI().getMenuName() + ", marking closed");
 				user.closeGUI(false);

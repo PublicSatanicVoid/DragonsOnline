@@ -22,8 +22,8 @@ public class ObjectCommands extends DragonsCommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
 		
-		GameObjectRegistry registry = instance.getGameObjectRegistry();
-		StorageManager localStorageManager = instance.getLocalStorageManager();
+		GameObjectRegistry registry = dragons.getGameObjectRegistry();
+		StorageManager localStorageManager = dragons.getLocalStorageManager();
 		
 		if(label.equalsIgnoreCase("autosave")) {
 			Dragons.getInstance().getGameObjectRegistry().executeAutoSave(true);

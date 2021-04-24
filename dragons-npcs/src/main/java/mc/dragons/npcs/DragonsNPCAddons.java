@@ -16,10 +16,14 @@ import mc.dragons.npcs.model.UndeadMurdererAddon;
 import mc.dragons.npcs.model.WalkingArmorStandAddon;
 
 public class DragonsNPCAddons extends JavaPlugin {
+	private Dragons dragons;
 	
 	public void onLoad() {
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
+		
 		getLogger().info("Loading NPC addons...");
-		AddonRegistry registry = Dragons.getInstance().getAddonRegistry();
+		AddonRegistry registry = dragons.getAddonRegistry();
 		
 		registry.register(new GuardAddon());
 		registry.register(new EnchanterAddon());
@@ -31,7 +35,7 @@ public class DragonsNPCAddons extends JavaPlugin {
 		registry.register(new PossessedWoodChipsAddon());
 		registry.register(new CompanionAddon());
 		
-		Dragons.getInstance().getUserHookRegistry().registerHook(new NPCUserHook());
+		dragons.getUserHookRegistry().registerHook(new NPCUserHook(this));
 	}
 
 	public void onEnable() {
@@ -40,5 +44,9 @@ public class DragonsNPCAddons extends JavaPlugin {
 		getCommand("iwannacompanion").setExecutor(new IWannaCompanionCommand());
 		getCommand("togglecompanionlaunch").setExecutor(new ToggleCompanionLaunch());
 		getCommand("/slay").setExecutor(new SlayCommand());
+	}
+	
+	public Dragons getDragonsInstance() {
+		return dragons;
 	}
 }

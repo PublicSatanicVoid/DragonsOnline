@@ -1,11 +1,12 @@
 package mc.dragons.core.util;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 
@@ -40,17 +41,14 @@ public class HologramUtil {
 		armorStand.setInvulnerable(true);
 		armorStand.setSmall(true);
 		armorStand.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				nameTagFix.teleport(entity.getLocation().add(xOffset, yOffset, zOffset));		
-				nameTagFix.setCustomName(nameTag);
-				nameTagFix.setCustomNameVisible(true);
-				if (bind) {
-					entity.addPassenger(nameTagFix);
-				}
+		sync(() -> {
+			nameTagFix.teleport(entity.getLocation().add(xOffset, yOffset, zOffset));		
+			nameTagFix.setCustomName(nameTag);
+			nameTagFix.setCustomNameVisible(true);
+			if (bind) {
+				entity.addPassenger(nameTagFix);
 			}
-		}.runTaskLater(Dragons.getInstance(), 1L);
+		}, 1);
 		return armorStand;
 	}
 
@@ -75,15 +73,12 @@ public class HologramUtil {
 		double yOffset = bind ? 0.5D : Math.random() * 1.2D;
 		double zOffset = bind ? 0.0D : Math.random() * 0.5D;
 		final ArmorStand tag = makeArmorStandNameTag(entity, label, xOffset, yOffset, zOffset, bind);
-		new BukkitRunnable() {
-			@Override
-			public void run() {
+		sync(() -> {
 				if (bind) {
-					entity.removePassenger(tag);
-				}
-				tag.remove();
+				entity.removePassenger(tag);
 			}
-		}.runTaskLater(Dragons.getInstance(), durationTicks);
+			tag.remove();
+		}, durationTicks);
 		return tag;
 	}
 }

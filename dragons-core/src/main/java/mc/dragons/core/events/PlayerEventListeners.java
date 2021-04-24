@@ -1,5 +1,7 @@
 package mc.dragons.core.events;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -7,7 +9,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -169,7 +170,7 @@ public class PlayerEventListeners implements Listener {
 		}
 		user.debug("-normal="+normal);
 		boolean fNormal = normal;
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+		sync(() -> {
 			if(fNormal) {
 				user.sendToFloor("BeginnerTown");
 			}
@@ -178,7 +179,7 @@ public class PlayerEventListeners implements Listener {
 				user.getPlayer().sendTitle(ChatColor.RED + "< " + ChatColor.DARK_RED + "You are dead" + ChatColor.RED + " >", ChatColor.GRAY + "Respawning on floor 1", 0, 20 * (countdown - 2), 40);
 				user.setDeathCountdown(countdown);
 			}
-		}, 1L);
+		}, 1);
 	}
 
 	/**

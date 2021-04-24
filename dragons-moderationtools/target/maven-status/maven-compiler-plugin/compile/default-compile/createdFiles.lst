@@ -12,7 +12,6 @@ mc\dragons\tools\moderation\report\ViewReportCommand.class
 mc\dragons\tools\moderation\punishment\PunishCommands.class
 mc\dragons\tools\moderation\analysis\LocateCommand.class
 mc\dragons\tools\moderation\punishment\ViewPunishmentsCommand.class
-mc\dragons\tools\moderation\DragonsModerationToolsPlugin.class
 mc\dragons\tools\moderation\punishment\UnPunishCommands.class
 mc\dragons\tools\moderation\SetVerificationCommand.class
 mc\dragons\tools\moderation\report\ReportAdminCommands.class

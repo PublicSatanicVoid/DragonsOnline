@@ -47,8 +47,8 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.content.util.MetadataConstants;
 
 public class NPCCommand extends DragonsCommandExecutor {
-	private GameObjectRegistry gameObjectRegistry = instance.getGameObjectRegistry();;
-	private AddonRegistry addonRegistry = instance.getAddonRegistry();;
+	private GameObjectRegistry gameObjectRegistry = dragons.getGameObjectRegistry();;
+	private AddonRegistry addonRegistry = dragons.getAddonRegistry();;
 
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/npc create <ClassName> <EntityType> <MaxHealth> <Level> <NPCType>" + ChatColor.GRAY + " create a new NPC class");
@@ -768,8 +768,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 	 */
 	private void propagateRevisions(NPCClass npcClass) {
 		if(!npcClass.getNPCType().isPersistent()) return;
-		Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
-			for(GameObject obj : instance.getGameObjectRegistry().getRegisteredObjects(GameObjectType.FLOOR)) {
+		Bukkit.getScheduler().runTaskAsynchronously(dragons, () -> {
+			for(GameObject obj : dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.FLOOR)) {
 				Floor floor = (Floor) obj;
 				for(Entity e : floor.getWorld().getEntities()) {
 					NPC npc = NPCLoader.fromBukkit(e);

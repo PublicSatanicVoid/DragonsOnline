@@ -1,5 +1,7 @@
 package mc.dragons.core.storage.mongo;
 
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
+
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -39,13 +41,13 @@ public class MongoStorageAccess implements StorageAccess {
 	@Override
 	public void update(Document document) {
 		this.document.putAll(document);
-		collection.updateOne(identifier.getDocument(), new Document("$set", document));
+		rollingAsync(() -> collection.updateOne(identifier.getDocument(), new Document("$set", document)));
 	}
 	
 	@Override
 	public void delete(String key) {
 		this.document.remove(key);
-		collection.updateOne(identifier.getDocument(), new Document("$unset", new Document(key, null)));
+		rollingAsync(() -> collection.updateOne(identifier.getDocument(), new Document("$unset", new Document(key, null))));
 	}
 
 	@Override

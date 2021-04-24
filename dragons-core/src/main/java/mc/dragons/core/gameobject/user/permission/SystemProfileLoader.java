@@ -29,6 +29,15 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 
+/**
+ * Loads system profiles from the database and locally authenticates users.
+ * 
+ * TODO: Replace with a remote authentication API so that login implementation
+ * is abstracted away from server view.
+ * 
+ * @author Adam
+ *
+ */
 public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile> {
 	private static String saltString;
 

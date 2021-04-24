@@ -23,7 +23,7 @@ import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.util.StringUtil;
 
 public class SystemLogonCommand extends DragonsCommandExecutor {
-	private SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
+	private SystemProfileLoader systemProfileLoader = dragons.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 	
 	private Map<User, Long> rateLimiting;
 	private Map<User, Integer> rateLimitingCounter;

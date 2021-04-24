@@ -14,6 +14,10 @@ public enum AddonType {
 		this.bindType = bindType;
 	}
 
+	/**
+	 * 
+	 * @return The class that this add-on binds to.
+	 */
 	public Class<? extends GameObject> getBindType() {
 		return bindType;
 	}

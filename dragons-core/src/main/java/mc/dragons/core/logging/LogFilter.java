@@ -1,5 +1,7 @@
 package mc.dragons.core.logging;
 
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -21,16 +23,18 @@ import mc.dragons.core.Dragons;
  * The custom log4j filter to enable debug-level logging
  * and hide potentially sensitive information from the logs.
  * 
- * This operates at the log4j level rather than the JUL level.
+ * <p>This operates at the log4j level rather than the JUL level.
  * To be clear, log messages in Bukkit are routed as follows:
- * 	1) PluginLogger	- Bukkit
- * 	2) java.util.Logger - JUL
- * 	3) org.apache.logging.log4j.core.Logger - log4j
+ * <ol>
+ *  <li>PluginLogger	- Bukkit
+ * 	<li>java.util.Logger - JUL
+ * 	<li>org.apache.logging.log4j.core.Logger - log4j
  * 		*We operate here, at a lower level of abstraction
- * 	4) Appenders to log file and console
+ * 	<li>Appenders to log file and console
  * 		*We replace the default appender with Minecrell's
  * 		 TerminalConsoleAppender
- * 	5) Platform-dependent code
+ * 	<li>Platform-dependent code
+ * </ol>
  * 
  * @author Adam
  *
@@ -39,18 +43,26 @@ public class LogFilter implements Filter {
 	private LifeCycle.State state;
 	private boolean hideDebugFromOtherLoggers = true;
 	
+	private Dragons dragons;
 	private MongoCollection<Document> log = Dragons.getInstance().getMongoConfig().getDatabase().getCollection("server_logs");
 	private UUID logEntryUUID = UUID.randomUUID();
 	private Document logIdentifier = new Document("_id", logEntryUUID);
 	
-	public LogFilter() {
-		log.insertOne(new Document("_id", logEntryUUID).append("instance", Dragons.getInstance().getServerName()).append("logs", new ArrayList<>()));
+	public LogFilter(Dragons instance) {
+		dragons = instance;
+		log.insertOne(new Document("_id", logEntryUUID).append("instance", dragons.getServerName()).append("logs", new ArrayList<>()));
 	}
 	
 	public UUID getLogEntryUUID() {
 		return logEntryUUID;
 	}
 	
+	/**
+	 * Marshal between JUL and log4j levels.
+	 * 
+	 * @param level
+	 * @return
+	 */
 	public static Level fromLog4j(org.apache.logging.log4j.Level level) {
 		if (level == org.apache.logging.log4j.Level.ALL) {
 			return Level.ALL;
@@ -79,6 +91,11 @@ public class LogFilter implements Filter {
 		return Level.OFF;
 	}
 
+	/**
+	 * Marshal between JUL and log4j levels.
+	 * @param level
+	 * @return
+	 */
 	public static org.apache.logging.log4j.Level fromJUL(Level level) {
 		if (level == Level.ALL) {
 			return org.apache.logging.log4j.Level.ALL;
@@ -105,17 +122,19 @@ public class LogFilter implements Filter {
 		if (level.intLevel() > fromJUL(Dragons.getInstance().getServerOptions().getLogLevel()).intLevel()) {
 			return Filter.Result.DENY;
 		}
-		if (hideDebugFromOtherLoggers && !loggerName.equals(Dragons.getInstance().getLogger().getName()) && level.intLevel() >= fromJUL(Level.CONFIG).intLevel()) {
+		if (hideDebugFromOtherLoggers && !loggerName.equals(dragons.getLogger().getName()) && level.intLevel() >= fromJUL(Level.CONFIG).intLevel()) {
 			return Filter.Result.DENY;
 		}
+		
+		// XXX Really janky way to block passwords or other sensitive data from being logged.
 		if (!message.contains("issued server command: /syslogon")) {
-			log.updateOne(logIdentifier, new Document("$push", new Document("logs", new Document("loggerName", loggerName)
+			rollingAsync(() -> log.updateOne(logIdentifier, new Document("$push", new Document("logs", new Document("loggerName", loggerName)
 					.append("level", level.toString())
 					.append("ts", Instant.now().getEpochSecond())
-					.append("message", message))));
+					.append("message", message)))));
 			return Filter.Result.NEUTRAL;
 		}
-		Dragons.getInstance().getLogger().info(String.valueOf(message.substring(0, message.indexOf(" "))) + " accessed the System Logon Authentication Service.");
+		dragons.getLogger().info(message.substring(0, message.indexOf(" ")) + " accessed the System Logon Authentication Service.");
 		return Filter.Result.DENY;
 	}
 

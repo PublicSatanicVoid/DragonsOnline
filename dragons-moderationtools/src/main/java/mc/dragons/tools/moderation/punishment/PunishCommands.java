@@ -9,10 +9,10 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.moderation.DragonsModerationToolsPlugin;
+import mc.dragons.tools.moderation.DragonsModerationTools;
 
 public class PunishCommands extends DragonsCommandExecutor {
-	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationToolsPlugin.class).getPunishMessageHandler();
+	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationTools.class).getPunishMessageHandler();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -38,7 +38,7 @@ public class PunishCommands extends DragonsCommandExecutor {
 		targetUser.punish(type, reason, durationSeconds);
 		
 		// Check if we need to tell a different server to immediately apply the punishment
-		if(targetUser.getServer() != null && !targetUser.getServer().equals(instance.getServerName())) {
+		if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
 			LOGGER.finer("forwarding punishment to " + targetUser.getServer());
 			handler.forwardPunishment(targetUser, type, reason, durationSeconds);
 		}

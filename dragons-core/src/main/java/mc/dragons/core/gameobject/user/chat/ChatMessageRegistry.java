@@ -3,6 +3,12 @@ package mc.dragons.core.gameobject.user.chat;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Registry of all chat messages since the server was started
+ * 
+ * @author Adam
+ *
+ */
 public class ChatMessageRegistry {
 	private Map<Integer, MessageData> history;
 	

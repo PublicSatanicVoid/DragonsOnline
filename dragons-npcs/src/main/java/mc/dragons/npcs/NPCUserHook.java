@@ -15,13 +15,17 @@ import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.util.StringUtil;
 
 public class NPCUserHook implements UserHook {
-
+	private Dragons dragons;
 	private CorrelationLogger CORRELATION;
 	
 	private void lazyLoadCorrelation() {
 		if(CORRELATION == null) {
-			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
+			CORRELATION = dragons.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 		}
+	}
+	
+	public NPCUserHook(DragonsNPCAddons plugin) {
+		dragons = plugin.getDragonsInstance();
 	}
 
 	@Override

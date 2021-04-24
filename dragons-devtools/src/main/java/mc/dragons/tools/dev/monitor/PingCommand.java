@@ -21,7 +21,7 @@ public class PingCommand extends DragonsCommandExecutor {
 			target = lookupPlayer(sender, args[0]);
 		}
 		
-		int ping = instance.getBridge().getPing(target);
+		int ping = dragons.getBridge().getPing(target);
 		sender.sendMessage(ChatColor.GREEN + "Ping of player " + target.getName() + " is " + ping + "ms");
 		
 		return true;

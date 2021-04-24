@@ -18,6 +18,12 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.util.PermissionUtil;
 
+/**
+ * Handles cross-server connection notifications.
+ * 
+ * @author Adam
+ *
+ */
 public class ConnectionMessageHandler extends MessageHandler {
 	private MongoCollection<Document> manifest = Dragons.getInstance().getMongoConfig().getDatabase().getCollection("manifest");
 	

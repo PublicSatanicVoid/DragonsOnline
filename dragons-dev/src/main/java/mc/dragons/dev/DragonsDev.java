@@ -18,17 +18,28 @@ import org.bukkit.scheduler.BukkitRunnable;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.dev.build.BackupCommand;
+import mc.dragons.dev.build.StartTrialCommand;
+import mc.dragons.dev.notifier.AdviceBroadcaster;
+import mc.dragons.dev.notifier.DiscordNotifier;
+import mc.dragons.dev.notifier.TipsCommand;
+import mc.dragons.dev.tasks.TaskCommands;
+import mc.dragons.dev.tasks.TaskLoader;
 
-public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
+public class DragonsDev extends JavaPlugin implements CommandExecutor {
 	
 	private static int ADVICE_BROADCASTER_PERIOD_SECONDS;
 	private static String BACKUP_FOLDER;
 	private static int BACKUP_PERIOD_MINUTES;
 	
+	private Dragons dragons;
 	private DiscordNotifier buildNotifier;
 	
 	public void onEnable() {
 		saveDefaultConfig();
+		
+		dragons = Dragons.getInstance();
+		dragons.registerDragonsPlugin(this);
 		
 		buildNotifier = new DiscordNotifier(getConfig().getString("discord-notifier-webhook-url"));
 		buildNotifier.setEnabled(getConfig().getBoolean("discord-notifier-enabled"));
@@ -37,10 +48,10 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 		BACKUP_FOLDER = getConfig().getString("backup.folder", "C:\\DragonsBackups\\");
 		BACKUP_PERIOD_MINUTES = getConfig().getInt("backup.period-minutes", 30);
 		
-		Dragons.getInstance().getLightweightLoaderRegistry().register(new TaskLoader());
-		Dragons.getInstance().getUserHookRegistry().registerHook(new DevUserHook());
+		dragons.getLightweightLoaderRegistry().register(new TaskLoader());
+		dragons.getUserHookRegistry().registerHook(new DevUserHook());
 		
-		CommandExecutor taskCommands = new TaskCommands();
+		CommandExecutor taskCommands = new TaskCommands(this);
 		getCommand("task").setExecutor(taskCommands);
 		getCommand("tasks").setExecutor(taskCommands);
 		getCommand("taskinfo").setExecutor(taskCommands);
@@ -68,6 +79,10 @@ public class DragonsDevPlugin extends JavaPlugin implements CommandExecutor {
 				backupFloors();
 			}
 		}.runTaskTimer(this, 20L * 60 * BACKUP_PERIOD_MINUTES, 20L * 60 * BACKUP_PERIOD_MINUTES);
+	}
+	
+	public Dragons getDragonsInstance() {
+		return dragons;
 	}
 	
 	public void backupFloors() {

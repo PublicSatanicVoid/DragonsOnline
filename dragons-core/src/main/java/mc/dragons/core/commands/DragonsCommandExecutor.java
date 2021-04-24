@@ -47,7 +47,7 @@ import mc.dragons.core.util.PermissionUtil;
 public abstract class DragonsCommandExecutor implements CommandExecutor {
 	/* Common instance variables */
 	
-	protected Dragons instance = Dragons.getInstance();
+	protected Dragons dragons = Dragons.getInstance();
 	
 	protected UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	protected FloorLoader floorLoader = GameObjectType.FLOOR.<Floor, FloorLoader>getLoader();
@@ -58,9 +58,9 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	protected ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 	protected QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 	
-	protected final Logger LOGGER = instance.getLogger();
-	protected final CorrelationLogger CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
-	protected final GlobalVarLoader VAR = instance.getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
+	protected final Logger LOGGER = dragons.getLogger();
+	protected final CorrelationLogger CORRELATION = dragons.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
+	protected final GlobalVarLoader VAR = dragons.getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
 	
 	/* Standard error messages */
 	public static final String ERR_USER_NOT_FOUND = ChatColor.RED + "That user was not found in our records!";
@@ -190,6 +190,7 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	
 	protected UUID reportException(Exception e) {
 		UUID cid = CORRELATION.registerNewCorrelationID();
+		CORRELATION.log(cid, Level.SEVERE, "An exception occurred: " + e.getCause() + " (" + e.getMessage() + ")");
 		Arrays.asList(e.getStackTrace()).stream().forEachOrdered(elem -> {
 			CORRELATION.log(cid, Level.SEVERE, elem.toString());
 		});

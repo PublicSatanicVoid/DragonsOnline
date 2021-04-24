@@ -75,6 +75,20 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		public Document getData() {
 			return data.get("data", Document.class);
 		}
+		
+		public String getPreview() {
+			switch(getType()) {
+			case CHAT:
+				return "\"" + getData().getString("message") + "\"";
+			case REGULAR:
+			case STAFF_ESCALATION:
+				return getData().getString("reason");
+			case AUTOMATED:
+				return "Auto-generated user report";
+			default:
+				return "No preview available";
+			}
+		}
 	
 		public List<String> getNotes() {
 			return data.getList("notes", String.class);

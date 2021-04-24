@@ -18,7 +18,7 @@ import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import mc.dragons.core.Dragons;
 
 /**
- * Interfaces with MongoDB to handle message receipt.
+ * Interfaces with MongoDB to handle inter-server messaging.
  * 
  * @author Adam
  *

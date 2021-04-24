@@ -10,6 +10,7 @@ import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.structure.StructureLoader;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.storage.StorageManager;
 
 /**
  * Possible types of a {@link mc.dragons.core.gameobject.GameObject}.
@@ -21,15 +22,18 @@ import mc.dragons.core.gameobject.user.UserLoader;
  *
  */
 public enum GameObjectType {
-	USER(true, UserLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	ITEM_CLASS(false, ItemClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	ITEM(false, ItemLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	NPC_CLASS(false, NPCClassLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	NPC(true, NPCLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	QUEST(false, QuestLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	STRUCTURE(false, StructureLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	REGION(false, RegionLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager())),
-	FLOOR(false, FloorLoader.getInstance(Dragons.getInstance(), Dragons.getInstance().getPersistentStorageManager()));
+	USER(true, UserLoader.getInstance(dragons(), psm())),
+	ITEM_CLASS(false, ItemClassLoader.getInstance(dragons(), psm())),
+	ITEM(false, ItemLoader.getInstance(dragons(), psm())),
+	NPC_CLASS(false, NPCClassLoader.getInstance(dragons(), psm())),
+	NPC(true, NPCLoader.getInstance(dragons(), psm())),
+	QUEST(false, QuestLoader.getInstance(dragons(), psm())),
+	STRUCTURE(false, StructureLoader.getInstance(dragons(), psm())),
+	REGION(false, RegionLoader.getInstance(dragons(), psm())),
+	FLOOR(false, FloorLoader.getInstance(dragons(), psm()));
+	
+	private static Dragons dragons() { return Dragons.getInstance(); }
+	private static StorageManager psm() { return dragons().getPersistentStorageManager(); }
 	
 	private GameObjectLoader<?> loader;
 
@@ -37,11 +41,22 @@ public enum GameObjectType {
 		this.loader = loader;
 	}
 
+	/**
+	 * 
+	 * @param <T> The game object type
+	 * @param <LT>The game object loader type
+	 * @return The GameObjectLoader for this type
+	 */
 	@SuppressWarnings("unchecked")
 	public <T extends GameObject, LT extends GameObjectLoader<T>> LT getLoader() {
 		return (LT) loader;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return The GameObjectType of the specified name
+	 */
 	public static GameObjectType get(String type) {
 		for(GameObjectType objType : values()) {
 			if(objType.toString().equalsIgnoreCase(type)) {

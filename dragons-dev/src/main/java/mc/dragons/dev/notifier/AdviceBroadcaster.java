@@ -1,4 +1,4 @@
-package mc.dragons.dev;
+package mc.dragons.dev.notifier;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
