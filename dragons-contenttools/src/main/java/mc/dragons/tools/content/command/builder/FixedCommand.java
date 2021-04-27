@@ -50,14 +50,14 @@ public class FixedCommand extends DragonsCommandExecutor {
 		
 		if(pdc.has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.INTEGER)) {
 			pdc.remove(Dragons.FIXED_ENTITY_KEY);
-			Dragons.getInstance().getBridge().setEntityAI(target, true);
-			Dragons.getInstance().getBridge().setEntityInvulnerable(target, false);
+			dragons.getBridge().setEntityAI(target, true);
+			dragons.getBridge().setEntityInvulnerable(target, false);
 			sender.sendMessage(ChatColor.GREEN + "Target entity (#" + target.getEntityId() + ") is " + ChatColor.ITALIC + "no longer fixed");
 		}
 		else {
 			pdc.set(Dragons.FIXED_ENTITY_KEY, PersistentDataType.INTEGER, 1);
-			Dragons.getInstance().getBridge().setEntityAI(target, false);
-			Dragons.getInstance().getBridge().setEntityInvulnerable(target, true);
+			dragons.getBridge().setEntityAI(target, false);
+			dragons.getBridge().setEntityInvulnerable(target, true);
 			sender.sendMessage(ChatColor.GREEN + "Target entity (#" + target.getEntityId() + ") is " + ChatColor.ITALIC + "now fixed");
 		}
 		

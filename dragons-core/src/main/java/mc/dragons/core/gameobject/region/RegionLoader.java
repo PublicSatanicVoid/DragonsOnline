@@ -21,10 +21,10 @@ import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class RegionLoader extends GameObjectLoader<Region> {
-	private static RegionLoader INSTANCE;
-
+public class RegionLoader extends GameObjectLoader<Region> implements Singleton {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 
 	private boolean allLoaded = false;
@@ -37,11 +37,9 @@ public class RegionLoader extends GameObjectLoader<Region> {
 		worldToRegions = Collections.synchronizedMap(new HashMap<>());
 	}
 
-	public static synchronized RegionLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new RegionLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	public static RegionLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(RegionLoader.class, () -> new RegionLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
 	@Override

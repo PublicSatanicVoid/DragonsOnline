@@ -293,4 +293,14 @@ public class StringUtil {
 		if(text.length() <= length) return text;
 		return text.substring(0, length - 3) + "...";
 	}
+	
+	public static boolean isIntegral(String str) {
+		try {
+			Integer.parseInt(str);
+			return true;
+		}
+		catch(Exception e) {
+			return false;
+		}
+	}
 }

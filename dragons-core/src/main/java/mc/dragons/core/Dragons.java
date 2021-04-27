@@ -87,6 +87,9 @@ import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.SingletonReInstantiationException;
+import mc.dragons.core.util.singletons.Singletons;
 
 /**
  * The main plugin class for Dragons Online.
@@ -94,7 +97,7 @@ import mc.dragons.core.util.PermissionUtil;
  * @author Adam
  *
  */
-public class Dragons extends JavaPlugin {
+public class Dragons extends JavaPlugin implements Singleton {
 	
 	/**
 	 * The package holding CraftBukkit.
@@ -117,7 +120,6 @@ public class Dragons extends JavaPlugin {
 	 */
 	public static NamespacedKey FIXED_ENTITY_KEY;
 	
-	private static Dragons INSTANCE;
 	private Bridge bridge;
 	private List<Plugin> dragonsPlugins;
 	
@@ -151,11 +153,28 @@ public class Dragons extends JavaPlugin {
 
 	private long started;
 
+	/**
+	 * Only intended for use by the Bukkit API plugin loader.
+	 * 
+	 * @apiNote This needs to be public for Bukkit to load it.
+	 * 
+	 */
+	public Dragons() {
+		if(Singletons.getInstance(Dragons.class, () -> this) != this) {
+			throw new SingletonReInstantiationException(Dragons.class);
+		}
+	}
+	
+	/**
+	 * 
+	 * @return The singleton instance of Dragons
+	 */
+	public static Dragons getInstance() {
+		return Singletons.getInstance(Dragons.class, () -> new Dragons());
+	}
+	
 	@Override
 	public synchronized void onLoad() {
-		if (INSTANCE != null) return;
-		INSTANCE = this;
-		
 		FIXED_ENTITY_KEY = new NamespacedKey(this, "fixed");
 		started = System.currentTimeMillis();
 		
@@ -382,14 +401,6 @@ public class Dragons extends JavaPlugin {
 			entities.addAll(w.getEntities());
 		}
 		return entities;
-	}
-
-	/**
-	 * 
-	 * @return The singleton instance of Dragons
-	 */
-	public static Dragons getInstance() {
-		return INSTANCE;
 	}
 	
 	/**

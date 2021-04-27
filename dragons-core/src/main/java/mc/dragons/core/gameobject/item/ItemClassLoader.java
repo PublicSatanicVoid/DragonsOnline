@@ -16,10 +16,10 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class ItemClassLoader extends GameObjectLoader<ItemClass> {
-	private static ItemClassLoader INSTANCE;
-
+public class ItemClassLoader extends GameObjectLoader<ItemClass> implements Singleton {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 	
 	private GameObjectRegistry masterRegistry;
@@ -31,11 +31,9 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> {
 		masterRegistry = instance.getGameObjectRegistry();
 	}
 
-	public static synchronized ItemClassLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new ItemClassLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	public static ItemClassLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(ItemClassLoader.class, () -> new ItemClassLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
 	@Override

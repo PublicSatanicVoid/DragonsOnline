@@ -108,7 +108,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 		for(GameObject gameObject : Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects(GameObjectType.NPC_CLASS)) {
 			NPCClass npcClass = (NPCClass) gameObject;
 			if(!npcClass.getClassName().startsWith(startingWith)) continue;
-			sender.sendMessage(ChatColor.GRAY + "- " + npcClass.getClassName() + " [Lv " + npcClass.getLevel() + "]");
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + npcClass.getClassName() + " [Lv " + npcClass.getLevel() + "]",
+					"/npc spawn " + npcClass.getClassName(), true, "Click to Spawn"));
 		}
 	}
 	
@@ -168,7 +169,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 			heldItemTypeName = heldItemType.toString();
 		}
 		sender.sendMessage(ChatColor.GRAY + "Holding: " + ChatColor.GREEN + heldItemTypeName);
-		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.NPC_CLASS, npcClass.getUUID()));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Spawn] ", "/npc spawn " + npcClass.getClassName(), true, "Click to Spawn"),
+				ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.NPC_CLASS, npcClass.getUUID()));
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " loot" + ChatColor.YELLOW + " to view loot table",
 				"/npc " + npcClass.getClassName() + " loot", "Click to view loot table"));
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " behavior" + ChatColor.YELLOW + " to view behaviors",

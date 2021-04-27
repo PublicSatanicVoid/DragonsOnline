@@ -1,6 +1,5 @@
 package mc.dragons.core.gameobject;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
@@ -10,7 +9,6 @@ import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.structure.StructureLoader;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.storage.StorageManager;
 
 /**
  * Possible types of a {@link mc.dragons.core.gameobject.GameObject}.
@@ -22,18 +20,15 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public enum GameObjectType {
-	USER(true, UserLoader.getInstance(dragons(), psm())),
-	ITEM_CLASS(false, ItemClassLoader.getInstance(dragons(), psm())),
-	ITEM(false, ItemLoader.getInstance(dragons(), psm())),
-	NPC_CLASS(false, NPCClassLoader.getInstance(dragons(), psm())),
-	NPC(true, NPCLoader.getInstance(dragons(), psm())),
-	QUEST(false, QuestLoader.getInstance(dragons(), psm())),
-	STRUCTURE(false, StructureLoader.getInstance(dragons(), psm())),
-	REGION(false, RegionLoader.getInstance(dragons(), psm())),
-	FLOOR(false, FloorLoader.getInstance(dragons(), psm()));
-	
-	private static Dragons dragons() { return Dragons.getInstance(); }
-	private static StorageManager psm() { return dragons().getPersistentStorageManager(); }
+	USER(true, UserLoader.getInstance()),
+	ITEM_CLASS(false, ItemClassLoader.getInstance()),
+	ITEM(false, ItemLoader.getInstance()),
+	NPC_CLASS(false, NPCClassLoader.getInstance()),
+	NPC(true, NPCLoader.getInstance()),
+	QUEST(false, QuestLoader.getInstance()),
+	STRUCTURE(false, StructureLoader.getInstance()),
+	REGION(false, RegionLoader.getInstance()),
+	FLOOR(false, FloorLoader.getInstance());
 	
 	private GameObjectLoader<?> loader;
 

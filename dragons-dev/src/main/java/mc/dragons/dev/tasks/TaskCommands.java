@@ -91,11 +91,11 @@ public class TaskCommands extends DragonsCommandExecutor {
 	}
 	
 	private void taskAlert(String message, DiscordRole... roles) {
-		taskAlert(new TextComponent(message), roles);
+		taskAlert(new TextComponent(PREFIX + message), roles);
 	}
 
 	private void taskAlert(BaseComponent message, DiscordRole... roles) {
-		taskAlert(new BaseComponent[] { message }, roles);
+		taskAlert(new BaseComponent[] { new TextComponent(PREFIX), message }, roles);
 	}
 	
 	private void taskAlert(BaseComponent[] message, DiscordRole... roles) {
@@ -178,6 +178,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GOLD + "List all tasks.");
 			sender.sendMessage(ChatColor.YELLOW + "/tasks <all|my|waiting|approved|assigned|rejected|done|closed> [page#]");
 			sender.sendMessage(ChatColor.YELLOW + "/tasks <of|by> <player> [page#]");
+			sender.sendMessage(ChatColor.YELLOW + "/tasks search <keywords> [page#]");
 			return;
 		}
 		int pageIndex = 1;
@@ -218,8 +219,17 @@ public class TaskCommands extends DragonsCommandExecutor {
 			tasks = taskLoader.getAllTasksBy(target);
 			pageIndex = 2;
 		}
+		else if(args[0].equalsIgnoreCase("search")) {
+			String last = args[args.length - 1];
+			pageIndex = args.length;
+			if(StringUtil.isIntegral(last)) {
+				pageIndex = args.length - 1;
+			}
+			String query = StringUtil.concatArgs(args, 1, pageIndex);
+			tasks = taskLoader.searchTasks(query);
+		}
 		else {
-			sender.sendMessage(ChatColor.RED + "Invalid query! /tasks <all|my|waiting|approved|assigned|rejected|done|closed>");
+			sender.sendMessage(ChatColor.RED + "Invalid query! /tasks");
 			return;
 		}
 		if(tasks == null || tasks.size() == 0) {
@@ -255,8 +265,11 @@ public class TaskCommands extends DragonsCommandExecutor {
 		TextComponent otherAssign = assignText(task.getId());
 		otherAssign.addExtra(space);
 		TextComponent otherAssignEffective = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) ? otherAssign : new TextComponent();
+		TextComponent close = closeText(task.getId());
+		close.addExtra(space);
+		TextComponent closeEffective = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) && task.isDone() ? close : new TextComponent();
 		TextComponent note = noteText(task.getId());
-		sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done, space, note);
+		sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done, space, closeEffective, note);
 		sender.sendMessage(REGULAR + "Name: " + ACCENT + task.getName());
 		sender.sendMessage(REGULAR + "By: " + ACCENT + task.getBy().getName());
 		sender.sendMessage(REGULAR + "Loc: " + ACCENT + StringUtil.locToString(task.getLocation()) + " [" + task.getLocation().getWorld().getName() + "]");

@@ -15,9 +15,10 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class FloorLoader extends GameObjectLoader<Floor> {
-	private static FloorLoader INSTANCE;
+public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 	
 	private static Map<String, Floor> worldNameToFloor;
@@ -30,15 +31,13 @@ public class FloorLoader extends GameObjectLoader<Floor> {
 	private FloorLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
 		masterRegistry = instance.getGameObjectRegistry();
+		worldNameToFloor = new HashMap<>();
+		floorNameToFloor = new CaseInsensitiveMap<>();
 	}
 
-	public static synchronized FloorLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new FloorLoader(instance, storageManager);
-			worldNameToFloor = new HashMap<>();
-			floorNameToFloor = new CaseInsensitiveMap<>();
-		}
-		return INSTANCE;
+	public static FloorLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(FloorLoader.class, () -> new FloorLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
 	@Override

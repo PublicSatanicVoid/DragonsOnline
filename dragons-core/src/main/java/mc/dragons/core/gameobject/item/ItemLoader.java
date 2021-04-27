@@ -21,9 +21,10 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class ItemLoader extends GameObjectLoader<Item> {
-	private static ItemLoader INSTANCE;
+public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 	private static Map<String, Item> uuidToItem = new HashMap<>();
 
 	private Logger LOGGER = Dragons.getInstance().getLogger();
@@ -37,11 +38,9 @@ public class ItemLoader extends GameObjectLoader<Item> {
 		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 	}
 
-	public static synchronized ItemLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new ItemLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	public static ItemLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(ItemLoader.class, () -> new ItemLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
 	@Override

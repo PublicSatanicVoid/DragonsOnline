@@ -83,7 +83,8 @@ public class ItemCommand extends DragonsCommandExecutor {
 		for(GameObject gameObject : registry.getRegisteredObjects(GameObjectType.ITEM_CLASS)) {
 			ItemClass itemClass = (ItemClass) gameObject;
 			if(!itemClass.getClassName().startsWith(startingWith)) continue;
-			sender.sendMessage(ChatColor.GRAY + "- " + itemClass.getClassName() + " [Lv Min " + itemClass.getLevelMin() + "]");
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + itemClass.getClassName() + " [Lv Min " + itemClass.getLevelMin() + "]",
+					"/item give " + itemClass.getClassName(), true, "Click to receive this item"));
 		}
 	}
 	
@@ -154,7 +155,8 @@ public class ItemCommand extends DragonsCommandExecutor {
 		for(String loreLine : itemClass.getLore()) {
 			sender.sendMessage(ChatColor.GREEN + " " + loreLine);
 		}
-		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.ITEM_CLASS, itemClass.getUUID()));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Receive Item] ", "/item give " + itemClass.getClassName(), true, "Click to receive this item"),
+				ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.ITEM_CLASS, itemClass.getUUID()));
 	}
 	
 	private void push(CommandSender sender, String[] args) {

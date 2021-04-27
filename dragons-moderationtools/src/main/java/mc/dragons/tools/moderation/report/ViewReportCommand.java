@@ -42,7 +42,7 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 			TextComponent insufficient = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Insufficient] ", "/viewreport " + id + " insufficient", "Insufficient evidence to confirm report");
 			TextComponent escalate = StringUtil.clickableHoverableText(ChatColor.GOLD + "[Escalate] ", "/viewreport " + id + " escalate", "Escalate report for review by a senior staff member");
 			TextComponent noAction = StringUtil.clickableHoverableText(ChatColor.GRAY + "[No Action] ", "/viewreport " + id + " status NO_ACTION", "Take no action on this report");
-			TextComponent addNote = StringUtil.clickableHoverableText(ChatColor.WHITE + "" + ChatColor.ITALIC + "   [+Add Note]", "/viewreport " + id + " note ", true, "Confirm report and apply punishment");
+			TextComponent addNote = StringUtil.clickableHoverableText(ChatColor.WHITE + "" + ChatColor.ITALIC + "   [+Add Note]", "/viewreport " + id + " note ", true, "Add a note to this report");
 			sender.spigot().sendMessage(confirm, insufficient, escalate, noAction, addNote);
 			sender.sendMessage(ChatColor.GRAY + "Filed Against: " + ChatColor.RESET + report.getTarget().getName());
 			sender.sendMessage(ChatColor.GRAY + "Filed By: " + ChatColor.RESET + report.getFiledBy().getName());

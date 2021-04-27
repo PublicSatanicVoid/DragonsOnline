@@ -12,7 +12,6 @@ import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 
 public class GoToFloorCommand extends DragonsCommandExecutor {
-
 	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	private void listFloors(CommandSender sender) {
@@ -40,7 +39,6 @@ public class GoToFloorCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/gotofloor <FloorName>");
 			return true;
 		}
-		
 		
 		if(args[0].equalsIgnoreCase("-listfloors") || args[0].equalsIgnoreCase("-list") || args[0].equalsIgnoreCase("-l")) {
 			listFloors(sender);

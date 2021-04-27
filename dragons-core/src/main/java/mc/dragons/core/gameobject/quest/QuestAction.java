@@ -434,7 +434,7 @@ public class QuestAction {
 		} else if (action == QuestActionType.PATHFIND_NPC) {
 			npcClassDeferredLoad();
 			NPC npc = quest.getNPCByReference(user, npcReferenceName);
-			double speed = 0.15D;
+			double speed = 0.25D;
 			if (npc.getEntity() instanceof Attributable) {
 				speed = ((Attributable) npc.getEntity()).getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
 			}

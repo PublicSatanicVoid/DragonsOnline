@@ -17,16 +17,14 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class NPCClassLoader extends GameObjectLoader<NPCClass> {
-	private static NPCClassLoader INSTANCE;
-
+public class NPCClassLoader extends GameObjectLoader<NPCClass> implements Singleton {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
-
+	
 	private GameObjectRegistry masterRegistry;
-
 	private boolean allLoaded = false;
-
 	private Map<String, NPCClass> cachedNPCClasses;
 
 	private NPCClassLoader(Dragons instance, StorageManager storageManager) {
@@ -34,14 +32,12 @@ public class NPCClassLoader extends GameObjectLoader<NPCClass> {
 		masterRegistry = instance.getGameObjectRegistry();
 		cachedNPCClasses = new HashMap<>();
 	}
-
-	public static synchronized NPCClassLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new NPCClassLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	
+	public static NPCClassLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(NPCClassLoader.class, () -> new NPCClassLoader(dragons, dragons.getPersistentStorageManager()));
 	}
-
+	
 	@Override
 	public NPCClass loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();

@@ -42,5 +42,4 @@ public class ObjectMetadataCommand extends DragonsCommandExecutor {
 		MetadataConstants.displayMetadata(sender, gameObject);
 		return true;
 	}
-
 }

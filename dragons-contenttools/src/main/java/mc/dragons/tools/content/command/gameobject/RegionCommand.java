@@ -1,5 +1,7 @@
 package mc.dragons.tools.content.command.gameobject;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -13,7 +15,6 @@ import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
@@ -31,6 +32,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 	private void displayHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/region create <RegionName>" + ChatColor.GRAY + " create a region");
 		sender.sendMessage(ChatColor.YELLOW + "/region list [startingWith]" + ChatColor.GRAY + " list all regions, optionally starting with the specified text");
+		sender.sendMessage(ChatColor.YELLOW + "/region goto <RegionName>" + ChatColor.GRAY + " teleport to a region");
 		sender.sendMessage(ChatColor.YELLOW + "/region delete <RegionName>" + ChatColor.GRAY + " delete a region");
 		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName>" + ChatColor.GRAY + " view region info");
 		sender.sendMessage(ChatColor.YELLOW + "/region <RegionName> corner <Corner#|go>" + ChatColor.GRAY + " set region boundary");
@@ -76,7 +78,25 @@ public class RegionCommand extends DragonsCommandExecutor {
 			if(region.getFloor() != null) {
 				floorData = " (Floor: " + region.getFloor().getDisplayName() + ")";
 			}
-			sender.sendMessage(ChatColor.GRAY + "- " + region.getName() + floorData);
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + region.getName() + floorData, "/region goto " + region.getName(), "Click to teleport to this region"));
+		}
+	}
+	
+	private void gotoRegion(CommandSender sender, String[] args) {
+		if(!requirePlayer(sender)) return;
+		if(args.length == 1) {
+			sender.sendMessage(ChatColor.RED + "Specify a region to delete! /region -d <RegionName>");
+			return;
+		}
+		Region region = regionLoader.getRegionByName(args[1]);
+		if(region == null) {
+			sender.sendMessage(ChatColor.RED + "No region by that name exists!");
+		}
+		else {
+			Player player = player(sender);
+			Location center = BlockUtil.getAirAboveXZ(region.getMin().add(region.getMax()).multiply(0.5));
+			player.teleport(center);
+			sender.sendMessage(ChatColor.GREEN + "Teleported to center of region " + region.getName());
 		}
 	}
 	
@@ -106,7 +126,8 @@ public class RegionCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GRAY + "Min: " + ChatColor.GREEN + StringUtil.locToString(region.getMin()));
 		sender.sendMessage(ChatColor.GRAY + "Max: " + ChatColor.GREEN + StringUtil.locToString(region.getMax()));
 		sender.sendMessage(ChatColor.GRAY + "Flags: " + ChatColor.GREEN + StringUtil.docToString(region.getFlags()));
-		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.REGION, region.getUUID()));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Go To Region] ", "/region goto " + region.getName(), "Click to teleport to this region"),
+				ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.REGION, region.getUUID()));
 	}
 	
 	private void borderRegion(CommandSender sender, String[] args) {
@@ -172,13 +193,11 @@ public class RegionCommand extends DragonsCommandExecutor {
 		int batchSize = 50;
 		for(int i = 0; i < changesDeformed.size(); i += batchSize) {
 			int start = i;
-			new BukkitRunnable() {
-				public void run() {
-					for(int j = start; j < Math.min(changesDeformed.size(), start + batchSize); j++) {
-						changesDeformed.get(j).setType(fMaterial);
-					}
+			sync(() -> {
+				for(int j = start; j < Math.min(changesDeformed.size(), start + batchSize); j++) {
+					changesDeformed.get(j).setType(fMaterial);
 				}
-			}.runTaskLater(dragons, 2 * i / 50);
+			}, 2 * i / 50);
 		}
 		
 		sender.sendMessage(ChatColor.GREEN + "Generated border successfully.");
@@ -285,6 +304,9 @@ public class RegionCommand extends DragonsCommandExecutor {
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[0], "list", "-l", "-list", "--list")) {
 			listRegions(sender, args);
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "goto", "-g", "-goto", "--goto", "go", "-go", "--go")) {
+			gotoRegion(sender, args);
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[0], "delete", "del", "-d", "-delete", "--delete")) {
 			deleteRegion(sender, args);

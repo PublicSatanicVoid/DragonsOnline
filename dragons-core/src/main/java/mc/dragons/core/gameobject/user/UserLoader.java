@@ -41,9 +41,10 @@ import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.GlobalVarLoader;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class UserLoader extends GameObjectLoader<User> {
-	private static UserLoader INSTANCE;
+public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	private static Logger LOGGER = Dragons.getInstance().getLogger();
 	private static GlobalVarLoader VAR;
 	private static Set<User> users = Collections.synchronizedSet(new HashSet<>());
@@ -59,11 +60,9 @@ public class UserLoader extends GameObjectLoader<User> {
 		VAR = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
 	}
 	
-	public static synchronized UserLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new UserLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	public static UserLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(UserLoader.class, () -> new UserLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
 	public static User fixUser(User user) {
@@ -88,7 +87,7 @@ public class UserLoader extends GameObjectLoader<User> {
 				return fixUser(user);
 			}
 		}
-		Player p = plugin.getServer().getPlayer((UUID) storageAccess.get("_id"));
+		Player p = Bukkit.getPlayer((UUID) storageAccess.get("_id"));
 		if (p == null) {
 			LOGGER.warning("Attempting to load offline or nonexistent user (" + storageAccess.getIdentifier() + ")");
 		}

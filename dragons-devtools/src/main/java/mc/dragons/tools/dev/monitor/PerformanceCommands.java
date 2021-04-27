@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -65,9 +66,6 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
-
-		OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-		ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(ThreadMXBean.class);
 		
 		if(label.equalsIgnoreCase("worldperformance")) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + dragons.getServerName()
@@ -91,25 +89,33 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("serverperformance")) {
 			new BukkitRunnable() { // some OperatingSystemMXBean operations lag the thread, so run asynchronously
 				@Override public void run() {
-					sender.sendMessage(ChatColor.DARK_GREEN + "Server performance statistics for " + dragons.getServerName()
-							+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
+					Properties props = System.getProperties();
+					sender.sendMessage(ChatColor.DARK_GREEN + "Server performance statistics generated at " + StringUtil.dateFormatNow());
 					sender.sendMessage(ChatColor.GREEN + "Bukkit Version: " + ChatColor.GRAY + Bukkit.getVersion());
 					sender.sendMessage(ChatColor.GREEN + "Uptime: " + ChatColor.GRAY + StringUtil.parseSecondsToTimespan(dragons.getUptime() / 1000));
-					sender.sendMessage(ChatColor.GREEN + "Server Architecture: " + ChatColor.GRAY + osBean.getArch());
-					sender.sendMessage(ChatColor.GREEN + "Operating System: " + ChatColor.GRAY + osBean.getName() + " v" + osBean.getVersion());
-					sender.sendMessage(ChatColor.GREEN + "Available Processors: " + ChatColor.GRAY + osBean.getAvailableProcessors());
-					sender.sendMessage(ChatColor.GREEN + "Process Committed Virtual Memory: " + ChatColor.GRAY + (osBean.getCommittedVirtualMemorySize() / BYTES_IN_MB) + "MB");
-					sender.sendMessage(ChatColor.GREEN + "Process Free Physical Memory: " + ChatColor.GRAY + (osBean.getFreePhysicalMemorySize() / BYTES_IN_MB) + "MB");
-					sender.sendMessage(ChatColor.GREEN + "Process CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getProcessCpuLoad()) + "%");
-					sender.sendMessage(ChatColor.GREEN + "Process CPU Time: " + ChatColor.GRAY + (osBean.getProcessCpuTime() / NS_IN_MS) + "ms");
 					sender.sendMessage(ChatColor.GREEN + "Estimated Current TPS: " + ChatColor.GRAY + LagMeter.getRoundedTPS());
-					sender.sendMessage(ChatColor.GREEN + "Daemon Thread Count: " + ChatColor.GRAY + threadBean.getDaemonThreadCount());
-					sender.sendMessage(ChatColor.GREEN + "Peak Thread Count: " + ChatColor.GRAY + threadBean.getPeakThreadCount());
-					sender.sendMessage(ChatColor.GREEN + "Thread Count: " + ChatColor.GRAY + threadBean.getThreadCount());
-					sender.sendMessage(ChatColor.GREEN + "Free Swap Space: " + ChatColor.GRAY + (osBean.getFreeSwapSpaceSize() / BYTES_IN_MB) + "MB");
-					sender.sendMessage(ChatColor.GREEN + "Total Physical Memory: " + ChatColor.GRAY + (osBean.getTotalPhysicalMemorySize() / BYTES_IN_MB) + "MB");
-					sender.sendMessage(ChatColor.GREEN + "System CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemCpuLoad()) + "%");
-					sender.sendMessage(ChatColor.GREEN + "System Load Average: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemLoadAverage()) + "%");
+					sender.sendMessage(ChatColor.GREEN + "Server Architecture: " + ChatColor.GRAY + props.getProperty("os.arch", "Unknown"));
+					sender.sendMessage(ChatColor.GREEN + "Operating System: " + ChatColor.GRAY + props.getProperty("os.name", "Unknown") + " v" + props.getProperty("os.version", "Unknown"));
+					sender.sendMessage(ChatColor.GREEN + "Java Version: " + ChatColor.GRAY + props.getProperty("java.version", "Unknown") + " (" + props.getProperty("java.vendor", "Unknown Vendor") + ")");
+					try {
+						OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+						sender.sendMessage(ChatColor.GREEN + "Available Processors: " + ChatColor.GRAY + osBean.getAvailableProcessors());
+						sender.sendMessage(ChatColor.GREEN + "Process Committed Virtual Memory: " + ChatColor.GRAY + (osBean.getCommittedVirtualMemorySize() / BYTES_IN_MB) + "MB");
+						sender.sendMessage(ChatColor.GREEN + "Process Free Physical Memory: " + ChatColor.GRAY + (osBean.getFreePhysicalMemorySize() / BYTES_IN_MB) + "MB");
+						sender.sendMessage(ChatColor.GREEN + "Process CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getProcessCpuLoad()) + "%");
+						sender.sendMessage(ChatColor.GREEN + "Process CPU Time: " + ChatColor.GRAY + (osBean.getProcessCpuTime() / NS_IN_MS) + "ms");
+						sender.sendMessage(ChatColor.GREEN + "Free Swap Space: " + ChatColor.GRAY + (osBean.getFreeSwapSpaceSize() / BYTES_IN_MB) + "MB");
+						sender.sendMessage(ChatColor.GREEN + "Total Physical Memory: " + ChatColor.GRAY + (osBean.getTotalPhysicalMemorySize() / BYTES_IN_MB) + "MB");
+						sender.sendMessage(ChatColor.GREEN + "System CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemCpuLoad()) + "%");
+						sender.sendMessage(ChatColor.GREEN + "System Load Average: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemLoadAverage()) + "%");
+						ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(ThreadMXBean.class);
+						sender.sendMessage(ChatColor.GREEN + "Thread Count: " + ChatColor.GRAY + threadBean.getThreadCount());
+						sender.sendMessage(ChatColor.GREEN + "Daemon Thread Count: " + ChatColor.GRAY + threadBean.getDaemonThreadCount());
+						sender.sendMessage(ChatColor.GREEN + "Peak Thread Count: " + ChatColor.GRAY + threadBean.getPeakThreadCount());
+					}
+					catch(Exception e) {
+						sender.sendMessage(ChatColor.GRAY + "Some server statistics are unavailable for this platform: Unsupported MXBean(s)");
+					}
 				}
 			}.runTaskAsynchronously(dragons);
 		}

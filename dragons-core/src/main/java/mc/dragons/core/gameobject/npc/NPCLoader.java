@@ -29,10 +29,10 @@ import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.local.LocalStorageManager;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class NPCLoader extends GameObjectLoader<NPC> {
-	private static NPCLoader INSTANCE;
-
+public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 	private CorrelationLogger CORRELATION;
 	
@@ -49,11 +49,9 @@ public class NPCLoader extends GameObjectLoader<NPC> {
 		npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
 	}
 
-	public static synchronized NPCLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new NPCLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	public static NPCLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(NPCLoader.class, () -> new NPCLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 	
 	@Override

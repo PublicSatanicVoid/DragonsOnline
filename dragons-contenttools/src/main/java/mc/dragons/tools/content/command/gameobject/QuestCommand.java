@@ -76,7 +76,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 		for(GameObject gameObject : registry.getRegisteredObjects(GameObjectType.QUEST)) {
 			Quest quest = (Quest) gameObject;
 			if(!quest.isValid()) nInvalid++;
-			sender.sendMessage(ChatColor.GRAY + "- " + quest.getName() + " (" + quest.getQuestName() + ") [Lv " + quest.getLevelMin() + "] [" + quest.getSteps().size() + " steps]" + (quest.isValid() ? "" : ChatColor.RED + " (Incomplete Setup!)"));
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + quest.getName() + " (" + quest.getQuestName() + ") [Lv " + quest.getLevelMin() + "] [" + quest.getSteps().size() + " steps]"
+				+ (quest.isValid() ? "" : ChatColor.RED + " (Incomplete Setup!)"), "/quest " + quest.getName(), "Click to view quest details"));
 		}
 		if(nInvalid > 0) {
 			sender.sendMessage(ChatColor.RED + "" + nInvalid + " invalid or incomplete quests found!");
@@ -106,7 +107,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GRAY + "Full name: " + ChatColor.GREEN + quest.getQuestName());
 		sender.sendMessage(ChatColor.GRAY + "Level min: " + ChatColor.GREEN + quest.getLevelMin());
 		sender.sendMessage(ChatColor.GRAY + "# Stages: " + ChatColor.GREEN + quest.getSteps().size());
-		sender.spigot().sendMessage(ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.QUEST, quest.getUUID()));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Test Quest] ", "/testquest " + quest.getName(), true, "Click to test quest"), 
+				ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.QUEST, quest.getUUID()));
 		if(!quest.isValid()) {
 			sender.sendMessage(ChatColor.RED + "Warning: Invalid or incomplete quest! To be valid, the final stage must be named \"Complete\", have trigger type INSTANT, and have no actions.");
 		}

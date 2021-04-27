@@ -24,9 +24,28 @@ public class PaginatedResult<E> {
 		this.currentPage = currentPage;
 	}
 	
+	/**
+	 * 
+	 * @return The results for this page only
+	 */
 	public List<E> getPage() { return results; }
+	
+	/**
+	 * 
+	 * @return The total number of results, across all pages
+	 */
 	public int getTotal() { return total; }
+	
+	/**
+	 * 
+	 * @return The number of pages in total
+	 */
 	public int getPages() { return pages; }
+	
+	/**
+	 * 
+	 * @return The current page held by this PaginatedResult
+	 */
 	public int getPageIndex() { return currentPage; }
 	
 }

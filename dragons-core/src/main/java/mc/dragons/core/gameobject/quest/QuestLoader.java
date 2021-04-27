@@ -13,14 +13,13 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
+import mc.dragons.core.util.singletons.Singleton;
+import mc.dragons.core.util.singletons.Singletons;
 
-public class QuestLoader extends GameObjectLoader<Quest> {
-	private static QuestLoader INSTANCE;
-
+public class QuestLoader extends GameObjectLoader<Quest> implements Singleton {
 	private Logger LOGGER = Dragons.getInstance().getLogger();
 
 	private GameObjectRegistry masterRegistry;
-
 	private boolean allLoaded = false;
 
 	private QuestLoader(Dragons instance, StorageManager storageManager) {
@@ -28,11 +27,9 @@ public class QuestLoader extends GameObjectLoader<Quest> {
 		masterRegistry = instance.getGameObjectRegistry();
 	}
 
-	public static synchronized QuestLoader getInstance(Dragons instance, StorageManager storageManager) {
-		if (INSTANCE == null) {
-			INSTANCE = new QuestLoader(instance, storageManager);
-		}
-		return INSTANCE;
+	public static QuestLoader getInstance() {
+		Dragons dragons = Dragons.getInstance();
+		return Singletons.getInstance(QuestLoader.class, () -> new QuestLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
 	@Override

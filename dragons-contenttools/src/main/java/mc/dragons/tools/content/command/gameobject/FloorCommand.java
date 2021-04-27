@@ -141,7 +141,9 @@ public class FloorCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Listing all floors:");
 		for(GameObject gameObject : registry.getRegisteredObjects(GameObjectType.FLOOR)) {
 			Floor floor = (Floor) gameObject;
-			sender.sendMessage(ChatColor.GRAY + "- " + floor.getFloorName() + " [" + floor.getFloorStatus() + "] [Lv " + floor.getLevelMin() + "]" + (floor.getStorageAccess() instanceof LocalStorageAccess ? LOCAL_FLOOR_WARNING : ""));
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + floor.getFloorName() + " [" + floor.getFloorStatus() + "] [Lv " + floor.getLevelMin() + "]" 
+				+ (floor.getStorageAccess() instanceof LocalStorageAccess ? LOCAL_FLOOR_WARNING : ""),
+				"/floor goto " + floor.getFloorName(), "Click to go to floor " + floor.getFloorName()));
 		}
 	}
 	
@@ -155,6 +157,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 			String usable = floor.isPlayerLocked() ? ChatColor.RED + "Closed to players" : ChatColor.GREEN + "Open to players";
 			String editable = floor.isGMLocked() ? ChatColor.RED + "Closed to editing" : ChatColor.GREEN + "Open to editing";
 			sender.sendMessage(usable + ChatColor.GRAY + " - " + editable);
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Go To Floor]", "/floor goto " + floor.getFloorName(), "Click to go to floor " + floor.getFloorName()));
 			sender.sendMessage(ChatColor.GRAY + "Database identifier: " + ChatColor.GREEN + floor.getIdentifier().toString());
 			sender.sendMessage(ChatColor.GRAY + "Floor Name: " + ChatColor.GREEN + floor.getFloorName());
 			sender.sendMessage(ChatColor.GRAY + "Display Name: " + ChatColor.GREEN + floor.getDisplayName());

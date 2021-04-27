@@ -178,6 +178,10 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		return asTasks(collection.find(new Document("closed", closed)));
 	}
 
+	public List<Task> searchTasks(String query) {
+		return asTasks(collection.find(new Document("$text", new Document("$search", query))));
+	}
+	
 	public Task getTaskById(int id) {
 		return Task.fromDocument(collection.find(new Document("_id", id)).first());
 	}

@@ -3,6 +3,8 @@ package mc.dragons.core.util;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -66,6 +68,23 @@ public class BukkitUtil {
 			return;
 		}
 		Bukkit.getScheduler().runTaskLaterAsynchronously(dragons, runnable, delay);
+	}
+	
+	/**
+	 * Asynchronously gets a value and then supplies it to a
+	 * synchronous consumer.
+	 * 
+	 * @param <T> The type that is returned by the async supplier
+	 * @param asyncSupplier A thread-safe supplier
+	 * @param syncConsumer A synchronous consumer
+	 */
+	public static <T> void await(Supplier<T> asyncSupplier, Consumer<T> syncConsumer) {
+		async(() -> {
+			T value = asyncSupplier.get();
+			sync(() -> {
+				syncConsumer.accept(value);
+			});
+		});
 	}
 	
 	/**
