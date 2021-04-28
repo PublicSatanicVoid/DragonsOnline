@@ -108,7 +108,7 @@ public class Item extends GameObject {
 	
 	public Item(ItemStack itemStack, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		LOGGER.fine("Constructing RPG Item (" + itemStack.getType() + " x" + itemStack.getAmount() + ", " + storageManager + ", " + storageAccess + ")");
+		LOGGER.verbose("Constructing RPG Item (" + itemStack.getType() + " x" + itemStack.getAmount() + ", " + storageManager + ", " + storageAccess + ")");
 		itemClass = itemClassLoader.getItemClassByClassName(getClassName());
 		ItemMeta meta = itemStack.getItemMeta();
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());

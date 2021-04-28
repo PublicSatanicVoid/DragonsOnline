@@ -16,7 +16,7 @@ import mc.dragons.core.storage.StorageManager;
 public class Structure extends GameObject {
 	public Structure(StorageManager storageManager) {
 		super(GameObjectType.STRUCTURE, storageManager);
-		LOGGER.fine("Constructing structure (" + storageManager + ")");
+		LOGGER.verbose("Constructing structure (" + storageManager + ")");
 		// TODO: Specific instantiation via storageAccess
 	}
 }

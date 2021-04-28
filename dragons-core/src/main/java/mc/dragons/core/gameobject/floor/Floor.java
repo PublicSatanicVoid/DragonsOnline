@@ -60,8 +60,8 @@ public class Floor extends GameObject {
 	
 	public Floor(StorageManager storageManager, StorageAccess storageAccess, boolean superflat) {
 		super(storageManager, storageAccess);
-		LOGGER.fine("Constructing floor (" + storageManager + ", " + storageAccess + ", superflat=" + superflat + ")");
-		LOGGER.info("Loading floor " + getFloorName() + " [" + getWorldName() + "]");
+		LOGGER.verbose("Constructing floor (" + storageManager + ", " + storageAccess + ", superflat=" + superflat + ")");
+		LOGGER.debug("Loading floor " + getFloorName() + " [" + getWorldName() + "]");
 		WorldCreator creator = WorldCreator.name(getWorldName());
 		if (superflat) {
 			creator.type(WorldType.FLAT);

@@ -138,7 +138,7 @@ public class Region extends GameObject {
 
 	public Region(StorageManager storageManager, StorageAccess storageAccess) {
 		super(GameObjectType.REGION, storageAccess.getIdentifier().getUUID(), storageManager);
-		LOGGER.fine("Constructing region (" + storageManager + ", " + storageAccess + ")");
+		LOGGER.verbose("Constructing region (" + storageManager + ", " + storageAccess + ")");
 		regionData = new CachedRegionData(storageAccess);
 		floor = FloorLoader.fromWorld(getWorld());
 	}

@@ -29,7 +29,7 @@ public class NPCClass extends GameObject {
 	@SuppressWarnings("unchecked")
 	public NPCClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		LOGGER.fine("Constructing NPC Class (" + storageManager + ", " + storageAccess + ")");
+		LOGGER.trace("Constructing NPC Class (" + storageManager + ", " + storageAccess + ")");
 		lootTable = new LootTable(this);
 		int i = 0;
 		for(NPCTrigger trigger : NPCTrigger.values()) {

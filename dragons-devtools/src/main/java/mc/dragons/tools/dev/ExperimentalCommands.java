@@ -339,10 +339,6 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("Log entry written successfully");
 		}
 		
-		else if(label.equalsIgnoreCase("testadventuretext")) {
-			
-		}
-		
 		return true;
 	}
 

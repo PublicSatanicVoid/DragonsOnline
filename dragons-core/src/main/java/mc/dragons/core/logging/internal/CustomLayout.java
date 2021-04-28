@@ -106,7 +106,7 @@ public class CustomLayout extends AbstractStringLayout {
 		}
 	
 		if(logEvent.getLevel() == Level.ERROR || logEvent.getLevel() == Level.FATAL) {
-			UserLoader.allUsers().stream().filter(u -> u.isDebuggingErrors()).forEach(u -> u.getPlayer().sendMessage(ChatColor.RED + finalMessage));
+			UserLoader.allUsers().stream().filter(u -> u.isDebuggingErrors()).forEach(u -> u.getPlayer().sendMessage(finalMessage));
 		}
 		
 		return finalMessage;
