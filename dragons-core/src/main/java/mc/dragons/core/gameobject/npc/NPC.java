@@ -126,7 +126,7 @@ public class NPC extends GameObject {
 	
 	public NPC(Entity entity, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		LOGGER.fine("Constructing NPC (" + StringUtil.entityToString(entity) + ", " + storageManager + ", " + storageAccess + ")");
+		LOGGER.verbose("Constructing NPC (" + StringUtil.entityToString(entity) + ", " + storageManager + ", " + storageAccess + ")");
 		this.entity = entity;
 		initializeEntity();
 		initializeAddons();
@@ -297,7 +297,7 @@ public class NPC extends GameObject {
 	}
 
 	public void phase(Player playerFor) {
-		LOGGER.finer("Phasing NPC " + getIdentifier() + " for " + playerFor.getName());
+		LOGGER.trace("Phasing NPC " + getIdentifier() + " for " + playerFor.getName());
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			if (!p.equals(playerFor)) {
 				entityHider.hideEntity(p, entity);
@@ -314,7 +314,7 @@ public class NPC extends GameObject {
 		if (this.entity != null) {
 			this.entity.removeMetadata("handle", Dragons.getInstance());
 		}
-		LOGGER.finer("Replacing entity backing NPC " + getIdentifier() + ": " + StringUtil.entityToString(this.entity) + " -> " + StringUtil.entityToString(entity));
+		LOGGER.trace("Replacing entity backing NPC " + getIdentifier() + ": " + StringUtil.entityToString(this.entity) + " -> " + StringUtil.entityToString(entity));
 		this.entity = entity;
 		this.entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
 	}
@@ -324,10 +324,9 @@ public class NPC extends GameObject {
 	}
 
 	public void regenerate(Location spawn) {
-		LOGGER.fine("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
+		LOGGER.trace("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
 		if (entity != null) {
 			entity.remove();
-			LOGGER.fine("-Removed old entity");
 		}
 		setEntity(spawn.getWorld().spawnEntity(spawn, getNPCClass().getEntityType()));
 		healthIndicator = entity;

@@ -4,12 +4,12 @@ import java.util.function.Consumer;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.logging.DragonsLogger;
+import mc.dragons.paper_utils.PaperPathfindingUtil;
 
 public class PathfindingUtil {
 	private static Dragons dragons = Dragons.getInstance();
@@ -19,36 +19,11 @@ public class PathfindingUtil {
 		LOGGER.trace("PATHFIND BEGIN " + StringUtil.entityToString(entity) + ": " + StringUtil.locToString(entity.getLocation()) + " -> " + StringUtil.locToString(location) + " (speed=" + speed + ")");
 
 		// In most cases, we should be able to rely on Paper's pathfinding API.
-		if(entity instanceof Mob) {
-			Mob mob = (Mob) entity;
-			final boolean wasAware = mob.isAware();
-			mob.setAware(false); // Disable other behaviors from overriding this one.
-			if(mob.getPathfinder().moveTo(location, speed)) {
-				new BukkitRunnable() {
-					@Override
-					public void run() {
-						if(entity.isValid()) {
-							if(entity.getLocation().distanceSquared(location) <= 1.0D) {
-								callback.accept(entity);
-								mob.setAware(wasAware);
-								cancel();
-							}
-						}
-						else {
-							LOGGER.trace("Entity died while pathfinding: " + StringUtil.entityToString(entity));
-							cancel();
-						}
-					}
-				}.runTaskTimer(dragons, 0L, 10L);
-				return;
-			}
-			else {
-				LOGGER.trace("Could not successfully start pathfinding through standard API on entity " + StringUtil.entityToString(entity));
-			}
-			
+		if(PaperPathfindingUtil.paperPathfinderMoveTo(entity, location, speed, callback, dragons)) {
+			return;
 		}
 		else {
-			LOGGER.trace("Falling through to naive pathfinding algorithm on entity " + StringUtil.entityToString(entity));
+			LOGGER.trace("Could not call Paper pathfinder API");
 		}
 		
 		// Otherwise, use this simple algorithm

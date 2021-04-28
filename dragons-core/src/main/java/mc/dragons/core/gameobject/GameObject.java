@@ -1,11 +1,11 @@
 package mc.dragons.core.gameobject;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
@@ -27,7 +27,7 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public abstract class GameObject {
-	protected static Logger LOGGER = Dragons.getInstance().getLogger();
+	protected static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 
 	protected StorageManager storageManager;
 	protected StorageAccess storageAccess;
@@ -41,29 +41,29 @@ public abstract class GameObject {
 		this.storageManager = storageManager;
 		storageAccess = storageManager.getStorageAccess(type, uuid);
 		localData = new Document();
-		LOGGER.finer("Initializing game object (" + type + ", " + uuid + ", " + storageManager + ")");
+		LOGGER.verbose("Initializing game object (" + type + ", " + uuid + ", " + storageManager + ")");
 	}
 
 	protected GameObject(StorageManager storageManager, StorageAccess storageAccess) {
 		this.storageManager = storageManager;
 		this.storageAccess = storageAccess;
 		localData = new Document();
-		LOGGER.finer("Initializing game object (" + storageManager + ", " + storageAccess + ")");
+		LOGGER.verbose("Initializing game object (" + storageManager + ", " + storageAccess + ")");
 	}
 
 	protected void setData(String key, Object value) {
 		storageAccess.set(key, value);
-		LOGGER.finest("Set data on " + this + ": " + key + "=" + value);
+		LOGGER.verbose("Set data on " + this + ": " + key + "=" + value);
 	}
 
 	protected void removeData(String key) {
 		storageAccess.delete(key);
-		LOGGER.finest("Remove data on " + this + ": " + key);
+		LOGGER.verbose("Remove data on " + this + ": " + key);
 	}
 	
 	protected void update(Document document) {
 		storageAccess.update(document);
-		LOGGER.finest("Update document on " + this + ": " + document);
+		LOGGER.verbose("Update document on " + this + ": " + document);
 	}
 
 	protected Object getData(String key) {
@@ -95,7 +95,7 @@ public abstract class GameObject {
 	}
 
 	public void autoSave() {
-		LOGGER.fine("Auto-saving game object " + getIdentifier());
+		LOGGER.trace("Auto-saving game object " + getIdentifier());
 	}
 
 	public Document getLocalData() {

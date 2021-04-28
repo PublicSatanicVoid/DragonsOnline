@@ -24,7 +24,7 @@ public class ItemClass extends GameObject {
 	@SuppressWarnings("unchecked")
 	public ItemClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		LOGGER.fine("Constrcting item class (" + storageManager + ", " + storageAccess + ")");
+		LOGGER.verbose("Constrcting item class (" + storageManager + ", " + storageAccess + ")");
 		addons = ((List<String>) getData("addons")).stream()
 				.map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
 	}

@@ -85,6 +85,6 @@ public class GameObjectRegistry {
 			gameObject.autoSave();
 			n++;
 		}
-		plugin.getLogger().config("Auto-saved " + n + " game objects");
+		plugin.getLogger().debug("Auto-saved " + n + " game objects");
 	}
 }
