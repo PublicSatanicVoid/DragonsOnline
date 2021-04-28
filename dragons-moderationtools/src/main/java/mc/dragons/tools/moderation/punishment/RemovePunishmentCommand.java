@@ -49,7 +49,7 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Removed punishment #" + args[1] + " from " + targetUser.getName());
 		if(record.getExpiry().after(Date.from(Instant.now())) || record.isPermanent()) {
 			targetUser.unpunish(record.getType());
-			// Check if we need to tell a different server to immediately apply the punishment
+			// Check if we need to tell a different server to immediately revoke the punishment
 			if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
 				handler.forwardUnpunishment(targetUser, record.getType());
 			}

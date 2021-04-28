@@ -29,7 +29,7 @@ public class UnPunishCommands extends DragonsCommandExecutor {
 		PunishmentType type = label.equalsIgnoreCase("unban") ? PunishmentType.BAN : PunishmentType.MUTE;
 		targetUser.unpunish(type);
 		
-		// Check if we need to tell a different server to immediately apply the punishment
+		// Check if we need to tell a different server to immediately revoke the punishment
 		if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
 			handler.forwardUnpunishment(targetUser, type);
 		}

@@ -11,9 +11,14 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
 import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.social.DragonsSocial;
 
 public class PrivateMessageCommands extends DragonsCommandExecutor {
-	private PrivateMessageHandler handler = new PrivateMessageHandler();
+	private PrivateMessageHandler handler;
+	
+	public PrivateMessageCommands(DragonsSocial instance) {
+		handler = new PrivateMessageHandler(instance);
+	}
 	
 	private void privateMessageCommand(User user, String to, String message) {
 		User target = lookupUser(user.getPlayer(), to);

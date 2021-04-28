@@ -25,13 +25,12 @@ import mc.dragons.res.ResLoader.Residence.ResAccess;
 import mc.dragons.res.ResPointLoader.ResPoint;
 
 public class ResEvents implements Listener {
-
 	private ResLoader resLoader;
 	private ResPointLoader resPointLoader;
 	
-	public ResEvents() {
-		resLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResLoader.class);
-		resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
+	public ResEvents(Dragons instance) {
+		resLoader = instance.getLightweightLoaderRegistry().getLoader(ResLoader.class);
+		resPointLoader = instance.getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
 	}
 	
 	@EventHandler

@@ -8,7 +8,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import mc.dragons.core.gameobject.user.UserLoader;
 
 public class AdviceBroadcaster extends BukkitRunnable {
-
 	private int adviceNo = 0;
 	private String[] advice = {
 		ChatColor.YELLOW + "Use " + ChatColor.GOLD + "/task " + ChatColor.YELLOW + "to create a new task! An admin will approve it and assign people to it.",
@@ -25,7 +24,7 @@ public class AdviceBroadcaster extends BukkitRunnable {
 	public void run() {
 		String msg = ChatColor.GRAY + "" + ChatColor.BOLD + " * " + advice[adviceNo++];
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			if(UserLoader.fromPlayer(p).getData().getBoolean(TipsCommand.DISABLE_TIPS, false)) continue;
+			if(UserLoader.fromPlayer(p).getData().getBoolean(TipsCommand.KEY_DISABLE_TIPS, false)) continue;
 			p.sendMessage(msg);
 		}
 		if(adviceNo == advice.length) adviceNo = 0;

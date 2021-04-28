@@ -26,6 +26,8 @@ import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.logging.LogLevel;
+import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.ChatColor;
 
 public class DebugCommand extends DragonsCommandExecutor {
@@ -50,10 +52,10 @@ public class DebugCommand extends DragonsCommandExecutor {
 		
 		if(args[0].equalsIgnoreCase("level")) {
 			if(args.length == 1) {
-				sender.sendMessage(ChatColor.RED + "Specify a log level! /debug level <OFF|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|ALL>");
+				sender.sendMessage(ChatColor.RED + "Specify a log level! /debug level <" + StringUtil.parseList(LogLevel.getApprovedLevels(), "|") + ">");
 				return true;
 			}
-			Level level = this.lookup(sender, () -> Level.parse(args[1].toUpperCase()), ChatColor.RED + "Invalid log level! /debug level <OFF|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|ALL>");
+			Level level = this.lookup(sender, () -> Level.parse(args[1].toUpperCase()), ChatColor.RED + "Invalid log level! /debug level <" + StringUtil.parseList(LogLevel.getApprovedLevels(), "|") + ">");
 			if(level == null) return true;
 			Dragons.getInstance().getServerOptions().setLogLevel(level);
 			sender.sendMessage(ChatColor.GREEN + "Set log level to " + level);

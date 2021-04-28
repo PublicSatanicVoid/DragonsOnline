@@ -3,8 +3,6 @@ package mc.dragons.core.commands;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,7 +30,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.loader.GlobalVarLoader;
 import mc.dragons.core.util.PermissionUtil;
 
@@ -58,8 +56,7 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	protected ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
 	protected QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 	
-	protected final Logger LOGGER = dragons.getLogger();
-	protected final CorrelationLogger CORRELATION = dragons.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
+	protected final DragonsLogger LOGGER = dragons.getLogger();
 	protected final GlobalVarLoader VAR = dragons.getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
 	
 	/* Standard error messages */
@@ -189,10 +186,10 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	}
 	
 	protected UUID reportException(Exception e) {
-		UUID cid = CORRELATION.registerNewCorrelationID();
-		CORRELATION.log(cid, Level.SEVERE, "An exception occurred: " + e.getCause() + " (" + e.getMessage() + ")");
+		UUID cid = LOGGER.newCID();
+		LOGGER.severe(cid, "An exception occurred: " + e.getCause() + " (" + e.getMessage() + ")");
 		Arrays.asList(e.getStackTrace()).stream().forEachOrdered(elem -> {
-			CORRELATION.log(cid, Level.SEVERE, elem.toString());
+			LOGGER.severe(cid, elem.toString());
 		});
 		return cid;
 	}

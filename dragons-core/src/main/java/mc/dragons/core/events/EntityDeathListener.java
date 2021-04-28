@@ -1,7 +1,6 @@
 package mc.dragons.core.events;
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -22,11 +21,12 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class EntityDeathListener implements Listener {
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 	private GameObjectRegistry registry;
 
 	public EntityDeathListener(Dragons instance) {
@@ -40,7 +40,7 @@ public class EntityDeathListener implements Listener {
 
 	@EventHandler
 	public void onEntityDeath(EntityDeathEvent event) {
-		LOGGER.finer("Death event on " + StringUtil.entityToString(event.getEntity()));
+		LOGGER.debug("Death event on " + StringUtil.entityToString(event.getEntity()));
 		if(event.getEntity().getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
 			LOGGER.severe("A fixed entity (" + StringUtil.entityToString(event.getEntity()) + ") has died! Location: "
 				+ StringUtil.locToString(event.getEntity().getLocation()) + " [" + event.getEntity().getWorld().getName() + "]");

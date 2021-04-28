@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
@@ -161,9 +160,9 @@ public class LagCommand extends DragonsCommandExecutor {
 		boolean warn = memoryUsedPerc > 70.0 || recentMinTPS < 10.0 || avgTPS < 17.0;
 		
 		if(warn) {
-			UUID cid = CORRELATION.registerNewCorrelationID();
-			CORRELATION.log(cid, Level.WARNING, "Server " + Dragons.getInstance().getServerName() + " may be experiencing performance issues.");
-			CORRELATION.log(cid, Level.WARNING, "N=" + tpsRecord.size() + " - Uptime: " + Dragons.getInstance().getUptime()/1000 + "s - Last Spike: " + lastSpikeTPS + "TPS, " + lastSpikeAgo + "s ago - Memory used %: " + MathUtil.round(memoryUsedPerc) + 
+			UUID cid = LOGGER.newCID();
+			LOGGER.warning(cid, "Server " + Dragons.getInstance().getServerName() + " may be experiencing performance issues.");
+			LOGGER.warning(cid, "N=" + tpsRecord.size() + " - Uptime: " + Dragons.getInstance().getUptime()/1000 + "s - Last Spike: " + lastSpikeTPS + "TPS, " + lastSpikeAgo + "s ago - Memory used %: " + MathUtil.round(memoryUsedPerc) + 
 					" - Min TPS: " + minTPS + " - Recent Min: " + recentMinTPS + "TPS, " + recentMinAgo + "s ago - Avg TPS: " + avgTPS + " - Curr TPS: " + LagMeter.getRoundedTPS() + " - Chunks: " + Dragons.getInstance().getLoadedChunks().size() + " - Entities: " + Dragons.getInstance().getEntities().size());
 			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "/!\\ " + ChatColor.RED + "Server may be experiencing performance issues. ");
 			sender.sendMessage(ChatColor.RED + "     " + StringUtil.toHdFont("Correlation ID: " + cid));

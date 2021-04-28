@@ -58,6 +58,11 @@ public class LocalStorageAccess implements StorageAccess {
 	}
 
 	@Override
+	public <T> T get(String key, Class<? extends T> clazz) {
+		return data.get(key, clazz);
+	}
+	
+	@Override
 	public Set<Entry<String, Object>> getAll() {
 		return data.entrySet();
 	}

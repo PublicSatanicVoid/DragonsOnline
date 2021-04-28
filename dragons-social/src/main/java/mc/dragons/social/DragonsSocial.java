@@ -1,9 +1,7 @@
 package mc.dragons.social;
 
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import mc.dragons.core.Dragons;
+import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.social.duel.DuelCommands;
 import mc.dragons.social.guild.GuildAdminCommand;
@@ -13,18 +11,17 @@ import mc.dragons.social.guild.GuildLoader;
 import mc.dragons.social.messaging.PrivateMessageCommands;
 import mc.dragons.social.shout.ShoutCommand;
 
-public class DragonsSocial extends JavaPlugin implements CommandExecutor {
+public class DragonsSocial extends DragonsJavaPlugin {
 	private Dragons dragons;
 	private SocialUserHook socialHook;
 	
 	public void onEnable() {
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
+		enableDebugLogging();
 		
+		dragons = Dragons.getInstance();
 		dragons.getLightweightLoaderRegistry().register(new GuildLoader(dragons.getMongoConfig()));
 		socialHook = new SocialUserHook();
 		dragons.getUserHookRegistry().registerHook(socialHook);
-		
 		
 		ChatChannel.GUILD.setHandler(new GuildChannelHandler());
 		
@@ -36,7 +33,7 @@ public class DragonsSocial extends JavaPlugin implements CommandExecutor {
 		getCommand("listallduelstatus").setExecutor(duelCommands);
 		getCommand("testduelwin").setExecutor(duelCommands);
 		
-		PrivateMessageCommands privateMessageCommands = new PrivateMessageCommands();
+		PrivateMessageCommands privateMessageCommands = new PrivateMessageCommands(this);
 		getCommand("msg").setExecutor(privateMessageCommands);
 		getCommand("reply").setExecutor(privateMessageCommands);
 		getCommand("chatspy").setExecutor(privateMessageCommands);
@@ -44,6 +41,10 @@ public class DragonsSocial extends JavaPlugin implements CommandExecutor {
 		
 		getCommand("shout").setExecutor(new ShoutCommand());
 		getCommand("channel").setExecutor(new ChannelCommand());
+	}
+	
+	public Dragons getDragonsInstance() {
+		return dragons;
 	}
 	
 	public SocialUserHook getSocialHook() {

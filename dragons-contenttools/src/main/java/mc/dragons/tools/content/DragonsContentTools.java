@@ -2,9 +2,8 @@ package mc.dragons.tools.content;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import mc.dragons.core.Dragons;
+import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.tools.content.command.PlaceholderCommand;
 import mc.dragons.tools.content.command.builder.ClearInventoryCommand;
 import mc.dragons.tools.content.command.builder.FixedCommand;
@@ -26,16 +25,12 @@ import mc.dragons.tools.content.command.statistics.UpdateStatsCommand;
 import mc.dragons.tools.content.command.testing.TestQuestCommand;
 import mc.dragons.tools.content.event.PlayerChangedWorldListener;
 
-public class DragonsContentTools extends JavaPlugin implements CommandExecutor {
-
+public class DragonsContentTools extends DragonsJavaPlugin {
 	public static String PUSH_FOLDER;
-	private Dragons dragons;
 	
 	public void onEnable() {
+		enableDebugLogging();
 		saveDefaultConfig();
-		
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
 		
 		PUSH_FOLDER = getConfig().getString("push-folder", "C:\\DragonsPush\\");
 		

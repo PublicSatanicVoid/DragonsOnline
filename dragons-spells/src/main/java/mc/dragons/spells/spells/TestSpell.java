@@ -9,14 +9,17 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.spells.DragonsSpells;
 
 public class TestSpell extends Spell {
-	public TestSpell() {
-		super("TestSpell", "Lightning Strike", "RLL");
+	private DragonsSpells plugin;
+	
+	public TestSpell(DragonsSpells instance) {
+		super(instance, "TestSpell", "Lightning Strike", "RLL");
+		plugin = instance;
 	}
 
 	@Override
@@ -53,6 +56,6 @@ public class TestSpell extends Spell {
 					}
 				}
 			}
-		}.runTaskTimer(Dragons.getInstance(), 0L, 1L);
+		}.runTaskTimer(plugin, 0L, 1L);
 	}
 }

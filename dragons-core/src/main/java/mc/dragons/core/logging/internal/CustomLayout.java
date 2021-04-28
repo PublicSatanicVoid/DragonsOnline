@@ -1,4 +1,4 @@
-package mc.dragons.core.logging;
+package mc.dragons.core.logging.internal;
 
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
+import org.apache.logging.log4j.util.ReadOnlyStringMap;
 
 import mc.dragons.core.gameobject.user.UserLoader;
 import net.md_5.bungee.api.ChatColor;
@@ -43,6 +44,8 @@ public class CustomLayout extends AbstractStringLayout {
 
 	@Override
 	public String toSerializable(LogEvent logEvent) {
+		ReadOnlyStringMap ctx = logEvent.getContextData();
+		String level = ctx.containsKey("OriginalLevel") ? ctx.getValue("OriginalLevel") : logEvent.getLevel().toString();
 		String loggerName = logEvent.getLoggerName();
 		if (loggerName.contains(".")) {
 			int lastIndex = loggerName.lastIndexOf(".");
@@ -78,28 +81,28 @@ public class CustomLayout extends AbstractStringLayout {
 		if (hideEmpty && loggerName.length() == 0) {
 			includeLogger = false;
 		}
-		String timestamp = new SimpleDateFormat("HH:mm:ss").format(Long.valueOf(logEvent.getTimeMillis()));
-		String datestamp = new SimpleDateFormat("yyyy-MM-dd").format(Long.valueOf(logEvent.getTimeMillis()));
+		String timestamp = new SimpleDateFormat("HH:mm:ss").format(logEvent.getTimeMillis());
+		String datestamp = new SimpleDateFormat("yyyy-MM-dd").format(logEvent.getTimeMillis());
 		String message = ChatColor.stripColor(logEvent.getMessage().getFormattedMessage());
 		if (logEvent.getThrown() != null) {
 			Throwable buf = logEvent.getThrown();
 			while (buf != null) {
-				message += "\n" + format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName,
+				message += "\n" + format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, level, loggerName,
 						String.valueOf(buf.getClass().getName()) + ": " + buf.getMessage());
 				for(StackTraceElement elem : buf.getStackTrace()) {
-					message += "\n"	+ format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "    " + elem.toString());
+					message += "\n"	+ format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, level, loggerName, "    " + elem.toString());
 				}
 				buf = buf.getCause();
 				if (buf != null) {
-					message += "\n" + format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, "Caused by:");
+					message += "\n" + format(includeLogger ? formatWithLogger : formatWithoutLogger, datestamp, timestamp, level, loggerName, "Caused by:");
 				}
 			}
 		}
 		final String finalMessage;
 		if (includeLogger) {
-			finalMessage = format(formatWithLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+			finalMessage = format(formatWithLogger, datestamp, timestamp, level, loggerName, message);
 		} else {
-			finalMessage = format(formatWithoutLogger, datestamp, timestamp, logEvent.getLevel().toString(), loggerName, message);
+			finalMessage = format(formatWithoutLogger, datestamp, timestamp, level, loggerName, message);
 		}
 	
 		if(logEvent.getLevel() == Level.ERROR || logEvent.getLevel() == Level.FATAL) {

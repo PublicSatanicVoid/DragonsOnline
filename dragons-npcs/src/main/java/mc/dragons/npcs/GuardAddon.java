@@ -20,6 +20,7 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPC.NPCType;
 import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -30,10 +31,14 @@ import mc.dragons.core.util.StringUtil;
  *
  */
 public class GuardAddon extends NPCAddon {
+	private Dragons dragons;
+	private DragonsLogger LOGGER;
 	
 	private Set<NPC> guards;
 	
-	public GuardAddon() {
+	public GuardAddon(Dragons instance) {
+		dragons = instance;
+		LOGGER = instance.getLogger();
 		guards = new HashSet<>();
 	}
 	
@@ -56,12 +61,12 @@ public class GuardAddon extends NPCAddon {
 							}
 						}
 						guard.setTarget(leTest);
-						LOGGER.fine("Guard " + StringUtil.entityToString(eGuard) + " is now targeting " + StringUtil.entityToString(test));
+						LOGGER.verbose("Guard " + StringUtil.entityToString(eGuard) + " is now targeting " + StringUtil.entityToString(test));
 						break;
 					}
 				}
 			}
-		}.runTaskTimer(Dragons.getInstance(), 0L, 20L * 2);
+		}.runTaskTimer(dragons, 0L, 20L * 2);
 	}
 	
 	@Override
@@ -86,8 +91,8 @@ public class GuardAddon extends NPCAddon {
 				LivingEntity leGuard = (LivingEntity) guard;
 				leGuard.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 100, false, false));
 			}
-		}.runTaskLater(Dragons.getInstance(), 1L);
-		LOGGER.fine("Initialized Guard addon on entity " + StringUtil.entityToString(e) + " with golem " + StringUtil.entityToString(guard));
+		}.runTaskLater(dragons, 1L);
+		LOGGER.trace("Initialized Guard addon on entity " + StringUtil.entityToString(e) + " with golem " + StringUtil.entityToString(guard));
 		att.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(0.2);
 		guards.add(npc);
 	}

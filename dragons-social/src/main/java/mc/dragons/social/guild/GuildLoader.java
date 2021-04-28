@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
@@ -23,6 +24,7 @@ import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
+import mc.dragons.social.DragonsSocial;
 import mc.dragons.social.guild.GuildLoader.Guild;
 
 /**
@@ -34,11 +36,13 @@ import mc.dragons.social.guild.GuildLoader.Guild;
 public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	public static final int PAGE_SIZE = 10;
 	private static final String GUILD_COLLECTION = "guilds";
+	private static DragonsSocial plugin = JavaPlugin.getPlugin(DragonsSocial.class);
+	private static Dragons dragons = plugin.getDragonsInstance();
 	private static GuildMessageHandler guildMessageHandler;
 	
 	private static synchronized void lazyLoadMessageHandler() {
 		if(guildMessageHandler == null) {
-			guildMessageHandler = new GuildMessageHandler();
+			guildMessageHandler = new GuildMessageHandler(plugin);
 		}
 	}
 	
@@ -109,7 +113,7 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	 *
 	 */
 	public static class Guild {
-		private static GuildLoader guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
+		private static GuildLoader guildLoader = dragons.getLightweightLoaderRegistry().getLoader(GuildLoader.class);
 	
 		private Document data;
 		
@@ -162,14 +166,14 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 		}
 		
 		public void save() { 
-			Dragons.getInstance().getLogger().finest("saving guild #" + getId() + ". data: " + data.toJson());
+			plugin.getLogger().verbose("saving guild #" + getId() + ". data: " + data.toJson());
 			guildLoader.updateGuild(this); 
 		}
 		
 		public void resync() {
-			Dragons.getInstance().getLogger().finest("resyncing guild #" + getId() + ". before sync: " + data.toJson());
+			plugin.getLogger().verbose("resyncing guild #" + getId() + ". before sync: " + data.toJson());
 			data = guildLoader.getGuildData(getName()); 
-			Dragons.getInstance().getLogger().finest("resynced. after sync: " + data.toJson());
+			plugin.getLogger().verbose("resynced. after sync: " + data.toJson());
 		}
 		
 		public void setDescription(String description) {

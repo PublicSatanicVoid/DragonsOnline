@@ -5,10 +5,10 @@ import static mc.dragons.core.util.BukkitUtil.rollingAsync;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 
+import com.google.common.base.Preconditions;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -18,6 +18,7 @@ import com.mongodb.client.result.UpdateResult;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.Identifier;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
@@ -29,7 +30,7 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public class MongoStorageManager implements StorageManager {
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 	
 	private MongoDatabase database;
 	private MongoCollection<Document> gameObjectCollection;
@@ -54,7 +55,7 @@ public class MongoStorageManager implements StorageManager {
 		}
 		UUID uuid = result.get("_id", UUID.class);
 		Identifier identifier = new Identifier(objectType, uuid);
-		LOGGER.finer("Retrieved storage access for type " + objectType.toString());
+		LOGGER.trace("Retrieved storage access for type " + objectType.toString());
 		return new MongoStorageAccess(identifier, result, gameObjectCollection);
 	}
 
@@ -65,11 +66,10 @@ public class MongoStorageManager implements StorageManager {
 
 	@Override
 	public Set<StorageAccess> getAllStorageAccess(GameObjectType objectType, Document filter) {
+		Preconditions.checkNotNull(objectType, "getAllStorageAccess: objectType must not be null");
+		Preconditions.checkNotNull(filter, "getAllStorageAccess: filter must not be null");
 		if (gameObjectCollection == null) {
-			LOGGER.severe("Could not load batch storage access: gameObjectCollection is NULL");
-		}
-		if (objectType == null) {
-			LOGGER.warning("objectType parameter is NULL");
+			LOGGER.severe("getAllStorageAccess: Could not load batch storage access: gameObjectCollection is NULL");
 		}
 		FindIterable<Document> dbResults = gameObjectCollection.find(filter.append("type", objectType.toString()));
 		Set<StorageAccess> result = new HashSet<>();
@@ -77,7 +77,7 @@ public class MongoStorageManager implements StorageManager {
 			Identifier id = new Identifier(GameObjectType.get(d.getString("type")), d.get("_id", UUID.class));
 			result.add(new MongoStorageAccess(id, d, gameObjectCollection));
 		}
-		LOGGER.finer("Found " + result.size() + " results for filtered storage accesses of type " + objectType.toString());
+		LOGGER.trace("getAllStorageAccess: Found " + result.size() + " results for filtered storage accesses of type " + objectType.toString());
 		return result;
 	}
 
@@ -103,7 +103,7 @@ public class MongoStorageManager implements StorageManager {
 		Document insert = new Document(identifier.getDocument());
 		insert.putAll(initialData);
 		rollingAsync(() -> gameObjectCollection.insertOne(insert));
-		LOGGER.finer("Creating new storage access of type " + objectType.toString());
+		LOGGER.verbose("Creating new storage access of type " + objectType.toString());
 		return storageAccess;
 	}
 
@@ -111,7 +111,7 @@ public class MongoStorageManager implements StorageManager {
 	public void removeObject(GameObject gameObject) {
 		rollingAsync(() -> {
 			DeleteResult result = gameObjectCollection.deleteOne(gameObject.getIdentifier().getDocument());
-			LOGGER.finer("Results for deleting " + gameObject.getIdentifier() + ": deleted " + result.getDeletedCount() + " objects with identifier " + gameObject.getIdentifier());
+			LOGGER.trace("Results for deleting " + gameObject.getIdentifier() + ": deleted " + result.getDeletedCount() + " objects with identifier " + gameObject.getIdentifier());
 		});
 	}
 
@@ -119,7 +119,7 @@ public class MongoStorageManager implements StorageManager {
 	public void push(GameObjectType objectType, Document selector, Document update) {
 		rollingAsync(() -> {
 			UpdateResult result = gameObjectCollection.updateMany(new Document(selector).append("type", objectType.toString()), new Document("$set", update));
-			LOGGER.finer("Pushed database mass update for type " + objectType.toString() + ". Matched " + result.getMatchedCount() + ", modified " + result.getModifiedCount());
+			LOGGER.trace("Pushed database mass update for type " + objectType.toString() + ". Matched " + result.getMatchedCount() + ", modified " + result.getModifiedCount());
 		});
 	}
 }

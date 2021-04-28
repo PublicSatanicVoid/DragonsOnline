@@ -11,7 +11,9 @@ import org.bukkit.command.CommandSender;
 import mc.dragons.core.ServerOptions;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.logging.LogLevel;
 import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -192,8 +194,10 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "Log level is currently " + options.getLogLevel());
 			}
 			else {
-				options.setLogLevel(Level.parse(args[1]));
-				sender.sendMessage(ChatColor.GREEN + "Log level is now " + options.getLogLevel());
+				Level level = this.lookup(sender, () -> Level.parse(args[0].toUpperCase()), ChatColor.RED + "Invalid log level! /loglevel <" + StringUtil.parseList(LogLevel.getApprovedLevels(), "|") + ">");
+				if(level == null) return;
+				options.setLogLevel(level);
+				sender.sendMessage(ChatColor.GREEN + "Log level is now " + level);
 			}
 		}
 		

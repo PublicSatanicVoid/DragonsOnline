@@ -1,7 +1,5 @@
 package mc.dragons.core.addon;
 
-import java.util.logging.Logger;
-
 import org.bson.Document;
 
 import mc.dragons.core.gameobject.GameObject;
@@ -15,8 +13,7 @@ import mc.dragons.core.gameobject.GameObject;
  *
  */
 public interface Addon {
-	Logger LOGGER = Logger.getLogger("Dragons Addon");
-
+	
 	/**
 	 * 
 	 * @return The name of this add-on

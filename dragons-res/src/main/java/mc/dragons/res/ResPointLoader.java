@@ -19,19 +19,21 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.res.ResPointLoader.ResPoint;
 
 public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
-
 	private static final String RES_POINT_COLLECTION = "res_points";
 	
+	private EntityHider entityHider;
 	private Map<String, ResPoint> resPoints;
 	
 	public ResPointLoader(MongoConfig config) {
 		super(config, "#unused#", RES_POINT_COLLECTION);
 		resPoints = new LinkedHashMap<>();
+		entityHider = Dragons.getInstance().getEntityHider();
 	}
 
 	public static class ResPoint {
@@ -156,7 +158,7 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 		}
 		Directional dir = (Directional) blockData;
 		Location holoLoc = doorLoc.add(-dir.getFacing().getModX(), 0.5, -dir.getFacing().getModZ());
-		JavaPlugin.getPlugin(DragonsResidences.class).getLogger().info("Door at " + StringUtil.locToString(holoLoc) + " has direction " + dir.getFacing().getModX() + ", " + dir.getFacing().getModZ());
+		JavaPlugin.getPlugin(DragonsResidences.class).getLogger().config("Door at " + StringUtil.locToString(holoLoc) + " has direction " + dir.getFacing().getModX() + ", " + dir.getFacing().getModZ());
 		ArmorStand[] notOwnedHologram = {
 				HologramUtil.makeHologram(ChatColor.GRAY + "Price: " + ChatColor.YELLOW + resPoint.getPrice() + "g", holoLoc),
 				HologramUtil.makeHologram(ChatColor.GOLD + resPoint.getDisplayName(), holoLoc.clone().add(0, 0.3, 0)) 
@@ -183,10 +185,10 @@ public class ResPointLoader extends AbstractLightweightLoader<ResPoint> {
 			hide = resPoint.getOwnedHolograms();
 		}
 		for(ArmorStand shown : show) {
-			Dragons.getInstance().getEntityHider().showEntity(user.getPlayer(), shown);
+			entityHider.showEntity(user.getPlayer(), shown);
 		}
 		for(ArmorStand hidden : hide) {
-			Dragons.getInstance().getEntityHider().hideEntity(user.getPlayer(), hidden);
+			entityHider.hideEntity(user.getPlayer(), hidden);
 		}
 	}
 }

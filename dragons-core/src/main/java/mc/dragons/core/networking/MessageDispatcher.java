@@ -16,6 +16,8 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.logging.DragonsLogger;
+import mc.dragons.core.logging.LogLevel;
 
 /**
  * Interfaces with MongoDB to handle inter-server messaging.
@@ -25,6 +27,7 @@ import mc.dragons.core.Dragons;
  */
 public class MessageDispatcher {
 	private Dragons instance;
+	private DragonsLogger LOGGER;
 	private boolean debug;
 	private boolean active;
 	private Map<String, MessageHandler> handlers;
@@ -33,6 +36,7 @@ public class MessageDispatcher {
 	
 	public MessageDispatcher(Dragons instance) {
 		this.instance = instance;
+		LOGGER = instance.getLogger();
 		handlers = new HashMap<>();
 		debug = false;
 		active = true;
@@ -64,12 +68,10 @@ public class MessageDispatcher {
 												Filters.ne(MessageConstants.STREAM_PREFIX + MessageConstants.ORIG_FIELD, instance.getServerName())))))));
 				watcher.forEach((Consumer<ChangeStreamDocument<Document>>) d -> {
 					if(!active) return;
-					if(debug) {
-						long latency = new Date().getTime() - d.getFullDocument().getLong("timestamp");
-						instance.getLogger().info("Message Received from " + d.getFullDocument().getString(MessageConstants.ORIG_FIELD) 
-								+ " (" + latency + "ms) into " + handler.getClass().getSimpleName() + ": " 
-								+ d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class).toJson());
-					}
+					long latency = new Date().getTime() - d.getFullDocument().getLong("timestamp");
+					LOGGER.log(debug ? LogLevel.INFO : LogLevel.DEBUG, "Message Received from " + d.getFullDocument().getString(MessageConstants.ORIG_FIELD) 
+							+ " (" + latency + "ms) into " + handler.getClass().getSimpleName() + ": " 
+							+ d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class).toJson());
 					handler.receive(d.getFullDocument().getString(MessageConstants.ORIG_FIELD), d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class));
 				});
 			}

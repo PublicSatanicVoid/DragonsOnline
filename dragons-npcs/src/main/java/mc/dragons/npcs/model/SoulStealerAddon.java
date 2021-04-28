@@ -28,11 +28,14 @@ import mc.dragons.npcs.util.NPCUtil;
 public class SoulStealerAddon extends ComplexAddon {
 	private static final int N_SOULS = 5;
 	
+	private Dragons dragons;
+	
 	private Map<NPC, List<ArmorStand>> capturedSouls = new HashMap<>();
 	private Map<NPC, BukkitRunnable> attackRunnables = new HashMap<>();
 	
-	public SoulStealerAddon() {
+	public SoulStealerAddon(Dragons instance) {
 		super("SoulStealer");
+		dragons = instance;
 		hideEntity = false;
 	}
 
@@ -104,10 +107,10 @@ public class SoulStealerAddon extends ComplexAddon {
 							soul.remove();
 						}
 					}
-				}.runTaskTimer(Dragons.getInstance(), 0L, 2L);
+				}.runTaskTimer(dragons, 0L, 2L);
 			}
 		});
-		attackRunnables.get(npc).runTaskTimer(Dragons.getInstance(), 0L, 20L * 5);
+		attackRunnables.get(npc).runTaskTimer(dragons, 0L, 20L * 5);
 	}
 	
 	@Override

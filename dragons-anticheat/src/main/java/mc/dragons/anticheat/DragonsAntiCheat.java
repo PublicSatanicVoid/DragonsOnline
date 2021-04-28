@@ -4,22 +4,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.anticheat.command.AntiCheatCommand;
 import mc.dragons.anticheat.event.MoveListener;
-import mc.dragons.core.Dragons;
+import mc.dragons.core.DragonsJavaPlugin;
 
-public class DragonsAntiCheat extends JavaPlugin {
+public class DragonsAntiCheat extends DragonsJavaPlugin {
 	private boolean debug;
-	
-	private Dragons dragons;
 	private MoveListener moveListener;
 	
 	@Override
 	public void onEnable() {
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
+		enableDebugLogging();
 		
 		CommandExecutor ac = new AntiCheatCommand(this);
 		getCommand("ac").setExecutor(ac);

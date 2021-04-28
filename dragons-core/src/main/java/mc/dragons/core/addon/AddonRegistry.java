@@ -2,9 +2,9 @@ package mc.dragons.core.addon;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.logging.DragonsLogger;
 
 /**
  * Central registry of game object add-ons.
@@ -13,7 +13,7 @@ import mc.dragons.core.Dragons;
  *
  */
 public class AddonRegistry {
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 
 	private List<Addon> addons;
 
@@ -28,7 +28,7 @@ public class AddonRegistry {
 	 * @param addon
 	 */
 	public void register(Addon addon) {
-		LOGGER.info("Registering addon " + addon.getName() + " of type " + addon.getType());
+		LOGGER.debug("Registering addon " + addon.getName() + " of type " + addon.getType());
 		addons.add(addon);
 	}
 
@@ -36,6 +36,7 @@ public class AddonRegistry {
 	 * Enable all add-ons
 	 */
 	public void enableAll() {
+		LOGGER.debug("Enabling all addons");
 		addons.forEach(addon -> addon.onEnable());
 	}
 

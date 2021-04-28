@@ -11,10 +11,12 @@ import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.logging.correlation.CorrelationLogger.CorrelationLogEntry;
 import net.md_5.bungee.api.ChatColor;
 
 public class CorrelationCommand extends DragonsCommandExecutor {
+	private CorrelationLogger CORRELATION = dragons.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 	
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "View log entries for a given correlation ID.");

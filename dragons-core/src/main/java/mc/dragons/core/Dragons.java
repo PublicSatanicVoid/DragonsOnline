@@ -13,9 +13,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.comphenix.protocol.ProtocolLibrary;
@@ -87,8 +85,6 @@ import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.PermissionUtil;
-import mc.dragons.core.util.singletons.Singleton;
-import mc.dragons.core.util.singletons.SingletonReInstantiationException;
 import mc.dragons.core.util.singletons.Singletons;
 
 /**
@@ -97,7 +93,7 @@ import mc.dragons.core.util.singletons.Singletons;
  * @author Adam
  *
  */
-public class Dragons extends JavaPlugin implements Singleton {
+public class Dragons extends DragonsJavaPlugin {
 	
 	/**
 	 * The package holding CraftBukkit.
@@ -121,7 +117,6 @@ public class Dragons extends JavaPlugin implements Singleton {
 	public static NamespacedKey FIXED_ENTITY_KEY;
 	
 	private Bridge bridge;
-	private List<Plugin> dragonsPlugins;
 	
 	private MongoConfig mongoConfig;
 	private StorageManager persistentStorageManager;
@@ -134,7 +129,6 @@ public class Dragons extends JavaPlugin implements Singleton {
 	private EntityHider entityHider;
 	private ChatMessageRegistry chatMessageRegistry;
 	private MessageDispatcher messageDispatcher;
-	private CustomLoggingProvider customLoggingProvider;
 
 	private RemoteAdminMessageHandler remoteAdminHandler;
 	private StaffAlertMessageHandler staffAlertHandler;
@@ -160,9 +154,7 @@ public class Dragons extends JavaPlugin implements Singleton {
 	 * 
 	 */
 	public Dragons() {
-		if(Singletons.getInstance(Dragons.class, () -> this) != this) {
-			throw new SingletonReInstantiationException(Dragons.class);
-		}
+		super();
 	}
 	
 	/**
@@ -192,7 +184,6 @@ public class Dragons extends JavaPlugin implements Singleton {
 		
 		getLogger().info("Initializing storage and registries...");
 		saveDefaultConfig();
-		dragonsPlugins = new ArrayList<>();
 		mongoConfig = new MongoConfig(this);
 		persistentStorageManager = new MongoStorageManager(this);
 		localStorageManager = new LocalStorageManager();
@@ -203,7 +194,7 @@ public class Dragons extends JavaPlugin implements Singleton {
 		sidebarManager = new SidebarManager(this);
 		chatMessageRegistry = new ChatMessageRegistry();
 		messageDispatcher = new MessageDispatcher(this);
-		customLoggingProvider = new CustomLoggingProvider(this);
+		setCustomLoggingProvider(new CustomLoggingProvider(this));
 		
 		autoSaveRunnable = new AutoSaveTask(this);
 		spawnEntityRunnable = new SpawnEntityTask(this);
@@ -231,29 +222,28 @@ public class Dragons extends JavaPlugin implements Singleton {
 		getLogger().info("Server instance name is " + serverName);
 		
 		customLoggingProvider.enableCustomLogging();
+		enableDebugLogging();
 		getLogger().info("Log token is " + customLoggingProvider.getCustomLogFilter().getLogEntryUUID());
 	}
 
 	@Override
 	public void onEnable() {
-		registerDragonsPlugin(this);
-		
 		getLogger().info("Removing unwanted entities...");
 		boolean hasFixed = false;
 		for (Entity e : getEntities()) {
 			if(e.getPersistentDataContainer().has(FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
-				getLogger().fine("-Skipping fixed entity #" + e.getEntityId());
+				getLogger().verbose("-Skipping fixed entity #" + e.getEntityId());
 				hasFixed = true;
 			}
 			if (e instanceof ItemFrame) {
-				getLogger().fine("-Skipping item frame #" + e.getEntityId());
+				getLogger().verbose("-Skipping item frame #" + e.getEntityId());
 				continue;
 			}
 			e.remove();
 		}
 		
 		if(hasFixed) {
-			getLogger().info("Notice: The use of fixed entities is not automatically synced across servers the same way that persistent NPCs are.\n"
+			getLogger().notice("The use of fixed entities is not automatically synced across servers the same way that persistent NPCs are.\n"
 					+ "Instead, the appropriate world files must be copied.");
 		}
 		
@@ -376,7 +366,7 @@ public class Dragons extends JavaPlugin implements Singleton {
 			}
 		}
 	}
-
+	
 	/**
 	 * 
 	 * @return All loaded chunks across all worlds
@@ -615,21 +605,5 @@ public class Dragons extends JavaPlugin implements Singleton {
 	 */
 	public boolean isDebug() {
 		return debug;
-	}
-	
-	/**
-	 * Registers a Dragons Online component plugin.
-	 * @param plugin
-	 */
-	public void registerDragonsPlugin(Plugin plugin) {
-		dragonsPlugins.add(plugin);
-	}
-	
-	/**
-	 * 
-	 * @return All registered Dragons Online component plugins.
-	 */
-	public List<Plugin> getDragonsPlugins() {
-		return dragonsPlugins;
 	}
 }

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -38,6 +37,7 @@ import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.GlobalVarLoader;
@@ -45,7 +45,7 @@ import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
 public class UserLoader extends GameObjectLoader<User> implements Singleton {
-	private static Logger LOGGER = Dragons.getInstance().getLogger();
+	private static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	private static GlobalVarLoader VAR;
 	private static Set<User> users = Collections.synchronizedSet(new HashSet<>());
 
@@ -70,7 +70,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 		Player newPlayer = Bukkit.getPlayerExact(user.getName());
 		if(newPlayer == null) return user; // Offline user, so nothing to fix
 		if (!newPlayer.equals(oldPlayer)) {
-			LOGGER.fine("Reloading user profile of " + newPlayer.getName() + " (old=" + oldPlayer + " != " + newPlayer + ")");
+			LOGGER.trace("Reloading user profile of " + newPlayer.getName() + " (old=" + oldPlayer + " != " + newPlayer + ")");
 			user.initialize(newPlayer);
 			users.add(user);
 			assign(newPlayer, user);
@@ -80,16 +80,16 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 
 	@Override
 	public User loadObject(StorageAccess storageAccess) {
-		LOGGER.finest("Loading user by storage access " + storageAccess.getIdentifier());
+		LOGGER.trace("Loading user by storage access " + storageAccess.getIdentifier());
 		for (User user : users) {
 			if (user.getIdentifier().equals(storageAccess.getIdentifier())) {
-				LOGGER.finest(" - Found user in cache, fixing and returning");
+				LOGGER.verbose(" - Found user in cache, fixing and returning");
 				return fixUser(user);
 			}
 		}
 		Player p = Bukkit.getPlayer((UUID) storageAccess.get("_id"));
 		if (p == null) {
-			LOGGER.warning("Attempting to load offline or nonexistent user (" + storageAccess.getIdentifier() + ")");
+			LOGGER.notice("Attempting to load offline or nonexistent user (" + storageAccess.getIdentifier() + ")");
 		}
 		User user = new User(p, storageManager, storageAccess);
 		assign(p, user);
@@ -99,11 +99,11 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	}
 
 	public User loadObject(UUID uuid) {
-		LOGGER.finest("Loading user by UUID " + uuid);
+		LOGGER.trace("Loading user by UUID " + uuid);
 		for (User user : users) {
-			LOGGER.finest("-Checking user " + user + ": " + user.getUUID() + " vs " + uuid + " (eq: " + user.getUUID().equals(uuid) + ")");
+			LOGGER.verbose("-Checking user " + user + ": " + user.getUUID() + " vs " + uuid + " (eq: " + user.getUUID().equals(uuid) + ")");
 			if (user.getUUID().equals(uuid)) {
-				LOGGER.finest(" - Found user in cache, fixing and returning");
+				LOGGER.verbose(" - Found user in cache, fixing and returning");
 				return fixUser(user);
 			}
 		}
@@ -115,10 +115,10 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	}
 
 	public User loadObject(String username) {
-		LOGGER.fine("Loading user by username " + username);
+		LOGGER.trace("Loading user by username " + username);
 		for (User user : users) {
 			if (user.getName().equalsIgnoreCase(username)) {
-				LOGGER.finer(" - Found user in cache, fixing and returning");
+				LOGGER.verbose(" - Found user in cache, fixing and returning");
 				return fixUser(user);
 			}
 		}
@@ -130,7 +130,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	}
 
 	public User registerNew(Player player) {
-		LOGGER.fine("Registering new user " + player.getName());
+		LOGGER.trace("Registering new user " + player.getName());
 		Document skills = new Document();
 		Document skillProgress = new Document();
 		for(SkillType skill : SkillType.values()) {
@@ -187,7 +187,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	}
 
 	public static void assign(Player player, User user) {
-		LOGGER.fine("Assigning player " + player + " to user " + user);
+		LOGGER.trace("Assigning player " + player + " to user " + user);
 		if (player != null) {
 			player.removeMetadata("handle", Dragons.getInstance());
 			player.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), user));
@@ -268,14 +268,14 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	}
 	
 	public void removeStalePlayer(Player player) {
-		LOGGER.fine("Removing stale player " + player.getName());
+		LOGGER.trace("Removing stale player " + player.getName());
 		User user = fromPlayer(player);
 		masterRegistry.getRegisteredObjects().remove(user);
 		users.remove(user);
 	}
 
 	public void unregister(User user) {
-		LOGGER.fine("Locally unregistering player " + user.getName());
+		LOGGER.trace("Locally unregistering player " + user.getName());
 		masterRegistry.getRegisteredObjects().remove(user);
 		users.remove(user);
 	}

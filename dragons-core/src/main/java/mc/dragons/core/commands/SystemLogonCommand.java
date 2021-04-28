@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -287,16 +286,16 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "Please wait " + rateLimitingCounter.get(user) + "s.");
 			return;
 		}
-		UUID cid = CORRELATION.registerNewCorrelationID();
+		UUID cid = LOGGER.newCID();
 		if (user.getSystemProfile() != null) {
-			CORRELATION.log(cid, Level.FINE, "user is currently signed in. signing out first");
+			LOGGER.trace(cid, "user is currently signed in. signing out first");
 			systemProfileLoader.logoutProfile(user.getSystemProfile().getProfileName());
 			user.setActivePermissionLevel(PermissionLevel.USER);
 			sender.sendMessage(ChatColor.GREEN + "Signed out of current system profile");
 		}
 		SystemProfile profile = systemProfileLoader.authenticateProfile(user, args[0], args[1], cid);
 		if (profile == null) {
-			CORRELATION.log(cid, Level.FINE, "user notified of error");
+			LOGGER.trace(cid, "user notified of error");
 			sender.sendMessage(ChatColor.RED + "Could not log in! Make sure you are authorized on this account and entered the correct password.");
 			sender.sendMessage(ChatColor.RED + "If the issue persists, report the following error message: " + StringUtil.toHdFont("Correlation ID: " + cid));
 			rateLimiting.put(user, System.currentTimeMillis());
@@ -306,7 +305,7 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		user.setSystemProfile(profile);
 		user.setActivePermissionLevel(profile.getMaxPermissionLevel());
 		sender.sendMessage(ChatColor.GREEN + "Logged on to system console as " + profile.getProfileName() + ". Permission level: " + profile.getMaxPermissionLevel().toString());
-		CORRELATION.discard(cid);
+		LOGGER.discardCID(cid);
 	}
 	
 	

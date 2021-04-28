@@ -14,6 +14,7 @@ import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 
 public class ViewPunishmentsCommand extends DragonsCommandExecutor {
 	
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.MODERATOR)) return true;
 		

@@ -26,9 +26,13 @@ import mc.dragons.res.ResLoader.Residence;
 import mc.dragons.res.ResLoader.Residence.ResAccess;
 import mc.dragons.res.ResPointLoader.ResPoint;
 public class ResCommands extends DragonsCommandExecutor {
+	private ResLoader resLoader;
+	private ResPointLoader resPointLoader;
 	
-	private ResLoader resLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResLoader.class);
-	private ResPointLoader resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
+	public ResCommands(Dragons instance) {
+		resLoader = instance.getLightweightLoaderRegistry().getLoader(ResLoader.class);
+		resPointLoader = instance.getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
+	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

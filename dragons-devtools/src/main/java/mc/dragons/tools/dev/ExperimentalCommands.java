@@ -331,6 +331,18 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			}
 		}
 		
+		else if(label.equalsIgnoreCase("writelog")) {
+			Level level = this.lookup(sender, () -> Level.parse(args[0].toUpperCase()), ChatColor.RED + "Invalid log level! /writelog <level> <message>");
+			String message = StringUtil.concatArgs(args, 1);
+			if(level == null || message == null) return true;
+			dragons.getLogger().log(level, message);
+			sender.sendMessage("Log entry written successfully");
+		}
+		
+		else if(label.equalsIgnoreCase("testadventuretext")) {
+			
+		}
+		
 		return true;
 	}
 

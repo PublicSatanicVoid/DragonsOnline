@@ -18,12 +18,19 @@ import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.spells.SpellCastAddon;
+import mc.dragons.spells.DragonsSpells;
 import mc.dragons.spells.SpellConstants;
 import mc.dragons.spells.spells.Spell;
 import mc.dragons.spells.spells.Spell.BindStatus;
+import mc.dragons.spells.spells.SpellRegistry;
 
 public class SpellListeners implements Listener {
+	private SpellRegistry registry;
+	
+	public SpellListeners(DragonsSpells instance) {
+		registry = instance.getSpellRegistry();
+	}
+	
 	
 	@SuppressWarnings("deprecation")
 	@EventHandler
@@ -84,7 +91,7 @@ public class SpellListeners implements Listener {
 				if(cc.getItem(1) == null) return; // No fuel
 				String spellDisplayName = ChatColor.stripColor(cc.getItem(1).getItemMeta().getDisplayName().replace("Scroll", "").trim());
 				user.debug("binding spell " + spellDisplayName);
-				Spell spell = SpellCastAddon.getSpellRegistry().getSpellByDisplayName(spellDisplayName);
+				Spell spell = registry.getSpellByDisplayName(spellDisplayName);
 				user.debug("spell="+spell);
 				if(spell.bindStatus(item) == BindStatus.CAPABLE) {
 					double gold = user.getGold();

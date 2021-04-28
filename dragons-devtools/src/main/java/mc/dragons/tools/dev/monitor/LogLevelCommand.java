@@ -11,6 +11,8 @@ import org.bukkit.plugin.Plugin;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.logging.LogLevel;
+import mc.dragons.core.util.StringUtil;
 
 public class LogLevelCommand extends DragonsCommandExecutor {
 	
@@ -19,12 +21,12 @@ public class LogLevelCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 		
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /loglevel <OFF|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|ALL> [Plugin]");
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /loglevel <" + StringUtil.parseList(LogLevel.getApprovedLevels(), "|") + "> [Plugin]");
 			sender.sendMessage(ChatColor.RED + "Global log level is currently " + Dragons.getInstance().getServerOptions().getLogLevel());
 			return true;
 		}
 
-		Level level = this.lookup(sender, () -> Level.parse(args[0].toUpperCase()), ChatColor.RED + "Invalid log level! /loglevel <OFF|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|ALL>");
+		Level level = this.lookup(sender, () -> Level.parse(args[0].toUpperCase()), ChatColor.RED + "Invalid log level! /loglevel <" + StringUtil.parseList(LogLevel.getApprovedLevels(), "|") + ">");
 		if(level == null) return true;
 		
 		if(args.length == 1) {
@@ -34,7 +36,7 @@ public class LogLevelCommand extends DragonsCommandExecutor {
 		else {
 			Plugin plugin = Bukkit.getPluginManager().getPlugin(args[1]);
 			if(plugin == null) {
-				sender.sendMessage(ChatColor.RED + "Invalid plugin name! /debug level <OFF|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|ALL> [Plugin]");
+				sender.sendMessage(ChatColor.RED + "Invalid plugin name! /debug level <"  + StringUtil.parseList(LogLevel.getApprovedLevels(), "|") + ">" + " [Plugin]");
 				return true;
 			}
 			plugin.getLogger().setLevel(level);

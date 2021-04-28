@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
@@ -19,6 +18,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.singletons.Singleton;
@@ -27,7 +27,7 @@ import mc.dragons.core.util.singletons.Singletons;
 public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 	private static Map<String, Item> uuidToItem = new HashMap<>();
 
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	
 	private GameObjectRegistry masterRegistry;
 	private ItemClassLoader itemClassLoader;
@@ -48,7 +48,7 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 		if (storageAccess == null) {
 			return null;
 		}
-		LOGGER.fine("Loading item by storage access " + storageAccess.getIdentifier());
+		LOGGER.trace("Loading item by storage access " + storageAccess.getIdentifier());
 		Material type = Material.valueOf((String) storageAccess.get("materialType"));
 		ItemStack itemStack = new ItemStack(type);
 		Item item = new Item(itemStack, storageManager, storageAccess);
@@ -58,7 +58,7 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 	}
 
 	public Item loadObject(UUID uuid) {
-		LOGGER.fine("Loading item by UUID " + uuid);
+		LOGGER.trace("Loading item by UUID " + uuid);
 		return loadObject(storageManager.getStorageAccess(GameObjectType.ITEM, uuid));
 	}
 	
@@ -71,7 +71,7 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 	 * @return
 	 */
 	public Map<UUID, Item> loadObjects(Set<UUID> uuids) {
-		LOGGER.fine("Loading items by UUID " + uuids.toArray());
+		LOGGER.trace("Loading items by UUID " + uuids.toArray());
 		Map<UUID, Item> result = new HashMap<>();
 		Set<StorageAccess> results = storageManager.getAllStorageAccess(GameObjectType.ITEM, new Document("_id", new Document("$in", uuids)));
 		for(StorageAccess sa : results) {
@@ -117,7 +117,7 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 		data.append("_id", UUID.randomUUID());
 		String className = data.getString("className");
 		Material material = Material.valueOf(data.getString("materialType"));
-		LOGGER.fine("Registering new item of class " + className);
+		LOGGER.trace("Registering new item of class " + className);
 		Document clone = new Document(data);
 		itemClassLoader.getItemClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(clone));
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.ITEM, clone);

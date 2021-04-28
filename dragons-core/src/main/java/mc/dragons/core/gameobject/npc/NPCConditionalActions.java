@@ -6,15 +6,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.logging.DragonsLogger;
 
 public class NPCConditionalActions {
-	private static Logger LOGGER = Dragons.getInstance().getLogger();
+	private static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 
 	private NPCTrigger trigger;
 	private NPCClass npcClass;
@@ -25,24 +25,24 @@ public class NPCConditionalActions {
 	}
 
 	public NPCConditionalActions(NPCTrigger trigger, NPCClass npcClass) {
-		LOGGER.fine("Constructing conditional actions for " + npcClass.getClassName() + " with trigger " + trigger);
+		LOGGER.verbose("Constructing conditional actions for " + npcClass.getClassName() + " with trigger " + trigger);
 		this.trigger = trigger;
 		this.npcClass = npcClass;
 		conditionals = new LinkedHashMap<>();
 		Iterator<Document> iterator = npcClass.getStorageAccess().getDocument().get("conditionals", Document.class).getList(trigger.toString(), Document.class).iterator();
 		while (iterator.hasNext()) {
 			Document conditional = iterator.next();
-			LOGGER.fine("- Found an action set");
+			LOGGER.verbose("- Found an action set");
 			List<Document> conditions = conditional.getList("conditions", Document.class);
 			List<Document> actions = conditional.getList("actions", Document.class);
 			List<NPCCondition> parsedConditions = new ArrayList<>();
 			List<NPCAction> parsedActions = new ArrayList<>();
 			for (Document condition : conditions) {
-				LOGGER.fine("  - Found a condition: " + condition.toJson());
+				LOGGER.verbose("  - Found a condition: " + condition.toJson());
 				parsedConditions.add(NPCCondition.fromDocument(condition));
 			}
 			for (Document action : actions) {
-				LOGGER.fine("  - Found an action: " + action.toJson());
+				LOGGER.verbose("  - Found an action: " + action.toJson());
 				parsedActions.add(NPCAction.fromDocument(npcClass, action));
 			}
 			conditionals.put(parsedConditions, parsedActions);

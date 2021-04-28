@@ -5,17 +5,19 @@ import java.util.UUID;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.networking.MessageHandler;
+import mc.dragons.social.DragonsSocial;
 
 public class PrivateMessageHandler extends MessageHandler {
+	private DragonsSocial plugin;
 	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	
-	public PrivateMessageHandler() {
-		super(Dragons.getInstance(), "directMessage");
+	public PrivateMessageHandler(DragonsSocial instance) {
+		super(instance.getDragonsInstance(), "directMessage");
+		plugin = instance;
 	}
 	
 	private void informLocalSpies(String from, String to, String message) {
@@ -50,12 +52,12 @@ public class PrivateMessageHandler extends MessageHandler {
 		String message = data.getString("message");
 		
 		if(from == null || to == null) {
-			Dragons.getInstance().getLogger().warning("Cannot handle private message receipt from " + serverFrom + ": missing data (from=" + from + ", to=" + to + ")");
+			plugin.getLogger().warning("Cannot handle private message receipt from " + serverFrom + ": missing data (from=" + from + ", to=" + to + ")");
 			return;
 		}
 		
 		if(to.getPlayer() == null) {
-			Dragons.getInstance().getLogger().warning("Cannot handle private message receipt from " + serverFrom + ": recipient is not online locally (" + to.getName() + ")");
+			plugin.getLogger().warning("Cannot handle private message receipt from " + serverFrom + ": recipient is not online locally (" + to.getName() + ")");
 			return;
 		}
 		

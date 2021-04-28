@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -23,7 +21,7 @@ import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC.NPCType;
-import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -33,8 +31,7 @@ import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
 public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
-	private CorrelationLogger CORRELATION;
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	
 	private boolean allPermanentLoaded = false;
 
@@ -64,7 +61,7 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	
 	public NPC loadObject(StorageAccess storageAccess, List<BukkitRunnable> spawnRunnables) {
 		lazyLoadAllPermanent();
-		LOGGER.fine("Loading NPC " + storageAccess.getIdentifier());
+		LOGGER.trace("Loading NPC " + storageAccess.getIdentifier());
 		NPC.NPCType npcType = NPC.NPCType.valueOf((String) storageAccess.get("npcType"));
 		Location loc = StorageUtil.docToLoc((Document) storageAccess.get("lastLocation"));
 		NPC npc = new NPC(loc, spawnRunnables, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager,
@@ -78,21 +75,20 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	}
 	
 	public NPC loadObject(UUID uuid, UUID cid) {
-		lazyLoadCorrelation();
-		CORRELATION.log(cid, Level.FINE, "loading NPC with uuid " + uuid);
+		LOGGER.verbose(cid, "loading NPC with uuid " + uuid);
 		for (GameObject gameObject : masterRegistry.getRegisteredObjects(new GameObjectType[] { GameObjectType.NPC })) {
 			NPC npc = (NPC) gameObject;
 			if (npc.getUUID().equals(uuid)) {
-				CORRELATION.log(cid, Level.FINE, "found in local cache (" + npc + "), returning");
+				LOGGER.verbose("found in local cache (" + npc + "), returning");
 				return npc;
 			}
 		}
 		StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.NPC, uuid);
 		if (storageAccess == null) {
-			CORRELATION.log(cid, Level.WARNING, "could not load NPC from database: returned null storage access");
+			LOGGER.warning(cid, "could not load NPC from database: returned null storage access");
 			return null;
 		}
-		CORRELATION.log(cid, Level.FINE, "loaded storage access (" + storageAccess + "), constructing downstream");
+		LOGGER.verbose(cid, "loaded storage access (" + storageAccess + "), constructing downstream");
 		return loadObject(storageAccess);
 	}
 
@@ -136,7 +132,7 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	}
 
 	public NPC registerNew(Entity entity, String className, String name, double maxHealth, int level, NPC.NPCType npcType, boolean ai, boolean immortal) {
-		LOGGER.fine("Registering new NPC of class " + className + " using Bukkit entity " + StringUtil.entityToString(entity));
+		LOGGER.trace("Registering new NPC of class " + className + " using Bukkit entity " + StringUtil.entityToString(entity));
 		lazyLoadAllPermanent();
 		Document data = new Document("_id", UUID.randomUUID()).append("className", className).append("name", name).append("entityType", entity.getType().toString())
 				.append("maxHealth", Double.valueOf(maxHealth)).append("lastLocation", StorageUtil.locToDoc(entity.getLocation())).append("level", Integer.valueOf(level))
@@ -146,10 +142,10 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 				: localStorageManager.getNewStorageAccess(GameObjectType.NPC, data);
 		NPC npc = new NPC(entity, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager, storageAccess);
 		if (storageAccess instanceof mc.dragons.core.storage.local.LocalStorageAccess) {
-			LOGGER.fine("- Using local storage access for NPC of type " + npcType + " (" + storageAccess + ")");
+			LOGGER.verbose("- Using local storage access for NPC of type " + npcType + " (" + storageAccess + ")");
 		}
 		if (storageAccess == null) {
-			LOGGER.warning("- Whoops! The storage access was null!");
+			LOGGER.warning("- Could not construct storage access for NPC of type " + npcType + " and class " + className);
 		}
 		npc.setMaxHealth(maxHealth);
 		npc.setHealth(maxHealth);
@@ -162,7 +158,7 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 		if (allPermanentLoaded && !force) {
 			return;
 		}
-		LOGGER.fine("Loading all permanent NPCs...");
+		LOGGER.debug("Loading all persistent NPCs...");
 		allPermanentLoaded = true;
 		masterRegistry.removeFromRegistry(GameObjectType.NPC);
 		List<BukkitRunnable> asyncSpawnerRunnables = new ArrayList<>();
@@ -170,41 +166,35 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 				.getAllStorageAccess(GameObjectType.NPC, new Document("$or", Arrays.<NPCType>asList(NPCType.values()).stream()
 						.filter(type -> (type.isPersistent() && type.isLoadedImmediately())).map(type -> new Document("npcType", type.toString())).collect(Collectors.toList())))
 				.stream().forEach(storageAccess -> {
-					Dragons.getInstance().getLogger().finer("Loading permanent NPC: " + storageAccess.getIdentifier());
+					LOGGER.verbose("Loading permanent NPC: " + storageAccess.getIdentifier());
 					NPC npc = loadObject(storageAccess, asyncSpawnerRunnables);
-					Dragons.getInstance().getLogger().fine("Loaded permanent NPC: " + npc.getIdentifier() + " of class " + npc.getNPCClass().getClassName());
+					LOGGER.verbose("- Loaded permanent NPC: " + npc.getIdentifier() + " of class " + npc.getNPCClass().getClassName());
 					masterRegistry.getRegisteredObjects().add(npc);
 				});
 		Bukkit.getScheduler().runTaskLaterAsynchronously(Dragons.getInstance(), () -> {
 			int batchSize = 5;
-			Dragons.getInstance().getLogger().info("We have " + asyncSpawnerRunnables.size() + " persistent NPCs to spawn");
+			LOGGER.info("We have " + asyncSpawnerRunnables.size() + " persistent NPCs to spawn");
 			for(int i = 0; i < (int) Math.ceil((double) asyncSpawnerRunnables.size() / batchSize); i++) {
 				final int fi = i;
 				Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
 					long start = System.currentTimeMillis();
-					Dragons.getInstance().getLogger().finer("==SPAWNING BATCH #" + fi + "==");
+					LOGGER.verbose("==SPAWNING BATCH #" + fi + "==");
 					for(int j = fi * batchSize; j < Math.min(asyncSpawnerRunnables.size(), (fi + 1) * batchSize); j++) {
-						Dragons.getInstance().getLogger().finer("===Spawning #" + j);
+						LOGGER.verbose("===Spawning #" + j);
 						asyncSpawnerRunnables.get(j).run();
 					}
 					long duration = System.currentTimeMillis() - start;
-					Dragons.getInstance().getLogger().finer("===Finished batch #" + fi + " in " + duration + "ms");
+					LOGGER.verbose("===Finished batch #" + fi + " in " + duration + "ms");
 					if(duration > 1000) {
-						Dragons.getInstance().getLogger().warning("Spawn of batch #" + fi + " took " + duration + "ms (batch size: " + batchSize + ")");
+						LOGGER.warning("Spawn of batch #" + fi + " took " + duration + "ms (batch size: " + batchSize + ")");
 					}
 				}, i * 2);
 			}
 		}, 1L);
-		Dragons.getInstance().getLogger().info("Initial entity count: " + Dragons.getInstance().getEntities().size());
+		LOGGER.info("Initial entity count: " + Dragons.getInstance().getEntities().size());
 	}
 
 	public void lazyLoadAllPermanent() {
 		loadAllPermanent(false);
-	}
-	
-	private void lazyLoadCorrelation() {
-		if(CORRELATION == null) {
-			CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
-		}
 	}
 }

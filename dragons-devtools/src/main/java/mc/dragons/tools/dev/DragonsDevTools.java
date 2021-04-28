@@ -1,9 +1,9 @@
 package mc.dragons.tools.dev;
 
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.tools.dev.debug.DebugCommand;
 import mc.dragons.tools.dev.debug.StateCommands;
 import mc.dragons.tools.dev.debug.StateLoader;
@@ -22,13 +22,13 @@ import mc.dragons.tools.dev.monitor.PerformanceCommands;
 import mc.dragons.tools.dev.monitor.PingCommand;
 import mc.dragons.tools.dev.monitor.VerifyGameIntegrityCommand;
 
-public class DragonsDevTools extends JavaPlugin {
+public class DragonsDevTools extends DragonsJavaPlugin {
 	private Dragons dragons;
 	
 	public void onEnable() {
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
+		enableDebugLogging();
 		
+		dragons = Dragons.getInstance();
 		dragons.getLightweightLoaderRegistry().register(new StateLoader(dragons.getMongoConfig()));
 		
 		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand());
@@ -90,6 +90,7 @@ public class DragonsDevTools extends JavaPlugin {
 		getCommand("clearnetworkmessagecache").setExecutor(performanceCommands);
 		getCommand("printnetworkmessages").setExecutor(performanceCommands);
 		getCommand("manifest").setExecutor(performanceCommands);
+		getCommand("getsystemproperties").setExecutor(performanceCommands);
 		
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);
@@ -121,5 +122,6 @@ public class DragonsDevTools extends JavaPlugin {
 		getCommand("testdocumentdelta").setExecutor(experimentalCommands);
 		getCommand("testnewfonts").setExecutor(experimentalCommands);
 		getCommand("testuserlookup").setExecutor(experimentalCommands);
+		getCommand("writelog").setExecutor(experimentalCommands);
 	}
 }

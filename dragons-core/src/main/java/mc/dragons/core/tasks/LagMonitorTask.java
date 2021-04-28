@@ -44,7 +44,7 @@ public class LagMonitorTask extends BukkitRunnable {
 				if (tpsRecord.size() >= TPS_RECORD_LENGTH) {
 					tpsRecord.remove(0);
 				}
-				//LOGGER.info("TPS Monitor: " + tps + ", Acc=" + networkAccumulator + ", Frames=" + frames);
+//				LOGGER.debug("TPS Monitor: " + tps + ", Acc=" + networkAccumulator + ", Frames=" + frames);
 				tpsRecord.add(tps);
 				if (tps <= TPS_WARN_THRESHOLD) {
 					LOGGER.warning("TPS is unusually low! (" + tps + ")");
@@ -65,7 +65,7 @@ public class LagMonitorTask extends BukkitRunnable {
 				}
 			}
 		} catch (Exception exception) {
-			LOGGER.warning("Exception occurred in lag monitor task: " + exception.getClass().getCanonicalName() + " (" + exception.getMessage() + ")");
+			LOGGER.warning("Exception occurred in lag monitor task (ignored): " + exception.getClass().getCanonicalName() + " (" + exception.getMessage() + ")");
 			exception.printStackTrace();
 		}
 	}

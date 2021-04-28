@@ -139,3 +139,7 @@ commands:
   getnetworkstate:
     description: (ADMIN) Display data about the server's network connection.
   testuserlookup:
+  getsystemproperties:
+    description: (ADMIN) Display all JRE system properties.
+  writelog:
+    description: (ADMIN) Write directly to the server log.

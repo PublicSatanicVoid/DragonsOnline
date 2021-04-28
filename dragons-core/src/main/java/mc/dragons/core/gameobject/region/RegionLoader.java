@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.bukkit.Location;
@@ -17,6 +16,7 @@ import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -25,7 +25,7 @@ import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
 public class RegionLoader extends GameObjectLoader<Region> implements Singleton {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 
 	private boolean allLoaded = false;
 	private GameObjectRegistry masterRegistry;
@@ -45,7 +45,7 @@ public class RegionLoader extends GameObjectLoader<Region> implements Singleton 
 	@Override
 	public Region loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
-		LOGGER.fine("Loading region " + storageAccess.getIdentifier());
+		LOGGER.trace("Loading region " + storageAccess.getIdentifier());
 		return new Region(storageManager, storageAccess);
 	}
 
@@ -107,7 +107,7 @@ public class RegionLoader extends GameObjectLoader<Region> implements Singleton 
 
 	public Region registerNew(String name, Location corner1, Location corner2) {
 		lazyLoadAll();
-		LOGGER.fine("Registering new region " + name + " (" + StringUtil.locToString(corner1) + " [" + corner1.getWorld().getName() + "] -> " + StringUtil.locToString(corner2) + " ["
+		LOGGER.trace("Registering new region " + name + " (" + StringUtil.locToString(corner1) + " [" + corner1.getWorld().getName() + "] -> " + StringUtil.locToString(corner2) + " ["
 				+ corner2.getWorld().getName() + "]");
 		if (corner1.getWorld() != corner2.getWorld()) {
 			throw new IllegalArgumentException("Corners must be in the same world");
@@ -135,7 +135,7 @@ public class RegionLoader extends GameObjectLoader<Region> implements Singleton 
 		if (allLoaded && !force) {
 			return;
 		}
-		LOGGER.fine("Loading all regions...");
+		LOGGER.debug("Loading all regions...");
 		allLoaded = true;
 		masterRegistry.removeFromRegistry(GameObjectType.REGION);
 		storageManager.getAllStorageAccess(GameObjectType.REGION).stream().forEach(storageAccess -> {

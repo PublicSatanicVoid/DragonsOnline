@@ -1,4 +1,4 @@
-package mc.dragons.core.logging;
+package mc.dragons.core.logging.internal;
 
 import static mc.dragons.core.util.BukkitUtil.rollingAsync;
 
@@ -18,6 +18,7 @@ import org.bson.Document;
 import com.mongodb.client.MongoCollection;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.logging.LogLevel;
 
 /**
  * The custom log4j filter to enable debug-level logging
@@ -56,73 +57,12 @@ public class LogFilter implements Filter {
 	public UUID getLogEntryUUID() {
 		return logEntryUUID;
 	}
-	
-	/**
-	 * Marshal between JUL and log4j levels.
-	 * 
-	 * @param level
-	 * @return
-	 */
-	public static Level fromLog4j(org.apache.logging.log4j.Level level) {
-		if (level == org.apache.logging.log4j.Level.ALL) {
-			return Level.ALL;
-		}
-		if (level == org.apache.logging.log4j.Level.FATAL) {
-			return Level.SEVERE;
-		}
-		if (level == org.apache.logging.log4j.Level.ERROR) {
-			return Level.SEVERE;
-		}
-		if (level == org.apache.logging.log4j.Level.WARN) {
-			return Level.WARNING;
-		}
-		if (level == org.apache.logging.log4j.Level.INFO) {
-			return Level.INFO;
-		}
-		if (level == org.apache.logging.log4j.Level.DEBUG) {
-			return Level.CONFIG;
-		}
-		if (level == org.apache.logging.log4j.Level.TRACE) {
-			return Level.FINE;
-		}
-		if (level == org.apache.logging.log4j.Level.ALL) {
-			return Level.ALL;
-		}
-		return Level.OFF;
-	}
-
-	/**
-	 * Marshal between JUL and log4j levels.
-	 * @param level
-	 * @return
-	 */
-	public static org.apache.logging.log4j.Level fromJUL(Level level) {
-		if (level == Level.ALL) {
-			return org.apache.logging.log4j.Level.ALL;
-		}
-		if (level == Level.SEVERE) {
-			return org.apache.logging.log4j.Level.ERROR;
-		}
-		if (level == Level.WARNING) {
-			return org.apache.logging.log4j.Level.WARN;
-		}
-		if (level == Level.INFO) {
-			return org.apache.logging.log4j.Level.INFO;
-		}
-		if (level == Level.CONFIG) {
-			return org.apache.logging.log4j.Level.DEBUG;
-		}
-		if (level == Level.FINE || level == Level.FINER || level == Level.FINEST) {
-			return org.apache.logging.log4j.Level.TRACE;
-		}
-		return org.apache.logging.log4j.Level.OFF;
-	}
 
 	private Filter.Result process(String message, org.apache.logging.log4j.Level level, String loggerName) {
-		if (level.intLevel() > fromJUL(Dragons.getInstance().getServerOptions().getLogLevel()).intLevel()) {
+		if (level.intLevel() > LogLevel.fromJUL(Dragons.getInstance().getServerOptions().getLogLevel()).intLevel()) {
 			return Filter.Result.DENY;
 		}
-		if (hideDebugFromOtherLoggers && !loggerName.equals(dragons.getLogger().getName()) && level.intLevel() >= fromJUL(Level.CONFIG).intLevel()) {
+		if (hideDebugFromOtherLoggers && !loggerName.equals(dragons.getLogger().getName()) && level.intLevel() >= LogLevel.fromJUL(Level.CONFIG).intLevel()) {
 			return Filter.Result.DENY;
 		}
 		

@@ -2,11 +2,11 @@ package mc.dragons.core;
 
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.tasks.AutoSaveTask;
 import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
@@ -20,7 +20,7 @@ import mc.dragons.core.tasks.VerifyGameIntegrityTask;
  */
 public class ServerOptions {
 	private Dragons dragons;
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 
 	private int autoSavePeriodTicks;
 	private boolean autoSaveEnabled;

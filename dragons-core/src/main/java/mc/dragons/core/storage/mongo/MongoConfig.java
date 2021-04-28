@@ -10,6 +10,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.Counter;
 
 /**
@@ -19,6 +20,8 @@ import mc.dragons.core.storage.Counter;
  *
  */
 public class MongoConfig {
+	private static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
+	
 	public static final String GAMEOBJECTS_COLLECTION = "gameobjects";
 	public static final String SYSPROFILES_COLLECTION = "sysprofiles";
 	public static final String FEEDBACK_COLLECTION = "feedback";
@@ -35,6 +38,7 @@ public class MongoConfig {
 	private int port;
 	
 	public MongoConfig(Dragons instance) {
+		LOGGER.debug("Loading MongoDB configuration data...");
 		ConfigurationSection dbConfig = instance.getConfig().getConfigurationSection("db.mongo");
 		
 		user = dbConfig.getString("user");
@@ -45,6 +49,7 @@ public class MongoConfig {
 		String database = dbConfig.getString("database");
 		accessionToken = dbConfig.getString("global-var-accession-token");
 		
+		LOGGER.debug("Establishing connection to MongoDB database...");
 		ConnectionString connectionString = new ConnectionString("mongodb://" + user + ":" + password + "@" + host + ":" + port + "/?authSource=" + authDB);
 		MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connectionString).uuidRepresentation(UuidRepresentation.STANDARD).build();
 		MongoClient client = MongoClients.create(settings);

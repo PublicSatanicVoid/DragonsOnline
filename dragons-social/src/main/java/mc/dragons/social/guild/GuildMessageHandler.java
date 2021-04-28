@@ -8,20 +8,22 @@ import java.util.UUID;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.networking.MessageHandler;
+import mc.dragons.social.DragonsSocial;
 import mc.dragons.social.guild.GuildLoader.Guild;
  
 public class GuildMessageHandler extends MessageHandler {
+	private DragonsSocial plugin;
 	private GuildLoader guildLoader;
 	
-	public GuildMessageHandler() {
-		super(Dragons.getInstance(), "guild");
-		guildLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
+	public GuildMessageHandler(DragonsSocial instance) {
+		super(instance.getDragonsInstance(), "guild");
+		plugin = instance;
+		guildLoader = instance.getDragonsInstance().getLightweightLoaderRegistry().getLoader(GuildLoader.class);
 	}
 
 	private void doLocalNotify(String guildName, String message) {
-		Dragons.getInstance().getLogger().finest("Guild local notify: guild=" + guildName + ", msg=" + message);
+		plugin.getLogger().verbose("Guild local notify: guild=" + guildName + ", msg=" + message);
 		Guild guild = guildLoader.getGuildByName(guildName);
 		List<UUID> members = new ArrayList<>(guild.getMembers());
 		members.add(guild.getOwner());

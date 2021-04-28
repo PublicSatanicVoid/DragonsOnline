@@ -1,5 +1,5 @@
 name: DragonsSpells
-main: mc.dragons.spells.DragonsSpellAddons
+main: mc.dragons.spells.DragonsSpells
 version: 1.0.0
 author: UniverseCraft
 depend: [DragonsCore]

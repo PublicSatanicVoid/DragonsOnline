@@ -7,11 +7,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import mc.dragons.core.logging.DragonsLogger;
 
 /**
  * Utilities for simplifying cumbersome Bukkit or Spigot API tasks.
@@ -21,6 +19,7 @@ import net.md_5.bungee.api.chat.TextComponent;
  */
 public class BukkitUtil {
 	private static Dragons dragons = Dragons.getInstance();
+	private static DragonsLogger LOGGER = dragons.getLogger();
 	
 	// The price of usability is static abuse
 	// Just a little
@@ -34,6 +33,7 @@ public class BukkitUtil {
 						rolling.get(0).run();
 					}
 					catch(Exception e) {
+						LOGGER.warning("Exception occurred in rolling async thread (ignored): " + e.getMessage());
 						e.printStackTrace();
 					}
 					rolling.remove(0);
@@ -107,9 +107,5 @@ public class BukkitUtil {
 	
 	public static void sync(Runnable runnable, int delay) {
 		Bukkit.getScheduler().runTaskLater(dragons, runnable, delay);
-	}
-	
-	public static void sendActionBar(Player player, String message) {
-		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
 	}
 }

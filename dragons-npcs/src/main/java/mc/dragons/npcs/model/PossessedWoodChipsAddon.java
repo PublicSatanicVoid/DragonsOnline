@@ -12,9 +12,11 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.npcs.util.NPCUtil;
 
 public class PossessedWoodChipsAddon extends WalkingArmorStandAddon {
+	private Dragons dragons;
 	
-	public PossessedWoodChipsAddon() {
+	public PossessedWoodChipsAddon(Dragons instance) {
 		super("PossessedWoodChips");
+		dragons = instance;
 	}
 	
 	@Override
@@ -26,7 +28,7 @@ public class PossessedWoodChipsAddon extends WalkingArmorStandAddon {
 			ArmorStand woodChip = newPart(npc);
 			woodChip.getEquipment().setHelmet(new ItemStack(Material.OAK_BUTTON));
 			woodChip.setHeadPose(NPCUtil.randomRotation());
-			woodChip.setMetadata("woodChip", new FixedMetadataValue(Dragons.getInstance(), true));
+			woodChip.setMetadata("woodChip", new FixedMetadataValue(dragons, true));
 		}
 	}
 	 

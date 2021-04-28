@@ -777,7 +777,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 					NPC npc = NPCLoader.fromBukkit(e);
 					if(npc == null) continue;
 					if(npc.getNPCClass().equals(npcClass)) {
-						LOGGER.fine("Automatically incremented revision count on " + floor.getFloorName() + " due to modification of NPC class " + npcClass.getClassName());
+						LOGGER.trace("Automatically incremented revision count on " + floor.getFloorName() + " due to modification of NPC class " + npcClass.getClassName());
 						MetadataConstants.logRevision(floor, null, "Picked up revision of NPC class " + npcClass.getClassName());
 						break;
 					}

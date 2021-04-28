@@ -1,7 +1,6 @@
 package mc.dragons.core.gameobject.user.chat;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
@@ -12,6 +11,7 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -29,15 +29,15 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 public class ChatMessageHandler extends MessageHandler {
 	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	private ChatMessageRegistry registry = Dragons.getInstance().getChatMessageRegistry();
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	
 	public ChatMessageHandler() {
 		super(Dragons.getInstance(), "chat");
 	}
 
 	private void doLocalSend(User user, ChatChannel channel, String message) {
-		LOGGER.finer("Chat message from " + user.getName());
-		LOGGER.finer("-Creating message text component");
+		LOGGER.trace("Chat message from " + user.getName());
+		LOGGER.verbose("-Creating message text component");
 		String messageSenderInfo = "";
 		if(user.isVerified()) {
 			messageSenderInfo = ChatColor.GREEN + "✓ " + ChatColor.GRAY;
@@ -70,10 +70,10 @@ public class ChatMessageHandler extends MessageHandler {
 		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId()));
 		registry.register(messageData);
 		for (User test: UserLoader.allUsers()) {
-			LOGGER.finer("-Checking if " + user.getName() + " can receive");
+			LOGGER.verbose("-Checking if " + user.getName() + " can receive");
 			if(test.getPlayer() == null) continue;
 			if (!channel.canHear(test, user) && !test.hasChatSpy()) continue;
-			LOGGER.finer("  -Yes!");
+			LOGGER.verbose("  -Yes!");
 			test.sendMessage(channel, user, new BaseComponent[] { messageInfoComponent, messageComponent });
 		}
 		LOGGER.info("[" + user.getServer() + "/" + channel.getAbbreviation() + "/" + loc.getWorld().getName() + "] [" + user.getName() + "] " + message);
@@ -88,11 +88,11 @@ public class ChatMessageHandler extends MessageHandler {
 	 */
 	public void send(User user, ChatChannel channel, String message) {
 		if(channel.isNetworked()) {
-			LOGGER.finer("-Channel " + channel + " is networked, sending all");
+			LOGGER.trace("-Channel " + channel + " is networked, sending all");
 			sendAll(new Document("sender", user.getUUID().toString()).append("channel", channel.toString()).append("message", message));
 		}
 		else {
-			LOGGER.finer("-Channel " + channel + " is local, sending locally");
+			LOGGER.trace("-Channel " + channel + " is local, sending locally");
 			doLocalSend(user, channel, message);
 		}
 	}

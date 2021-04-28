@@ -9,8 +9,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -26,6 +24,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.Floor.FloorStatus;
@@ -36,15 +35,15 @@ import mc.dragons.core.storage.loader.LightweightLoaderRegistry;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.res.ResPointLoader.ResPoint;
 
-public class DragonsResidences extends JavaPlugin implements CommandExecutor {
+public class DragonsResidences extends DragonsJavaPlugin {
 	public static final int MAX_RES_PER_USER = 5;
 	
 	private Dragons dragons;
 	
 	public void onEnable() {
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
+		enableDebugLogging();
 		
+		dragons = Dragons.getInstance();
 		resetResWorld();
 		
 		MongoConfig mongoConfig = dragons.getMongoConfig();
@@ -55,13 +54,13 @@ public class DragonsResidences extends JavaPlugin implements CommandExecutor {
 		registry.register(resLoader);
 		registry.register(resPointLoader);
 		
-		dragons.getUserHookRegistry().registerHook(new ResUserHook());
+		dragons.getUserHookRegistry().registerHook(new ResUserHook(dragons));
 		
 		resPointLoader.loadAllResPoints();
 		
-		getServer().getPluginManager().registerEvents(new ResEvents(), this);
+		getServer().getPluginManager().registerEvents(new ResEvents(dragons), this);
 		
-		ResCommands resCommands = new ResCommands();
+		ResCommands resCommands = new ResCommands(dragons);
 		getCommand("res").setExecutor(resCommands);
 		getCommand("resadmin").setExecutor(resCommands);
 		getCommand("restest").setExecutor(resCommands);
@@ -96,7 +95,7 @@ public class DragonsResidences extends JavaPlugin implements CommandExecutor {
 		WorldCreator creator = WorldCreator.name("res_temp");
 		creator.type(WorldType.FLAT);
 		Bukkit.createWorld(creator);
-		StorageManager lsm = Dragons.getInstance().getLocalStorageManager();
+		StorageManager lsm = dragons.getLocalStorageManager();
 		StorageAccess lsa = lsm.getNewStorageAccess(GameObjectType.FLOOR, 
 				new Document("worldName", "res_temp")
 				.append("floorName", "RES")
@@ -106,7 +105,7 @@ public class DragonsResidences extends JavaPlugin implements CommandExecutor {
 				.append("status", FloorStatus.LIVE.toString()));
 		Floor resFloor = new Floor(lsm, lsa, true);
 		FloorLoader.link(Bukkit.getWorld("res_temp"), resFloor);
-		Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects().add(resFloor);
+		dragons.getGameObjectRegistry().getRegisteredObjects().add(resFloor);
 	}
 
 	public static Clipboard loadSchematic(String fileName) {

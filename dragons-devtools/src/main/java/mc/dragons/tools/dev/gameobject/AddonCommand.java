@@ -10,7 +10,6 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.StringUtil;
 
 public class AddonCommand extends DragonsCommandExecutor {
-
 	private AddonRegistry addonRegistry = dragons.getAddonRegistry();
 	
 	@Override

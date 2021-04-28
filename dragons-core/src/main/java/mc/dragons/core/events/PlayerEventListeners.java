@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -55,6 +54,7 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
 import mc.dragons.core.gameobject.user.punishment.PunishmentType;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -72,7 +72,7 @@ public class PlayerEventListeners implements Listener {
 	}
 	
 	private Dragons plugin;
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 
 	private UserLoader userLoader;
 	private ItemLoader itemLoader;
@@ -88,7 +88,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent event) {
-		LOGGER.finer("Chat event from player " + event.getPlayer().getName());
+		LOGGER.debug("Chat event from player " + event.getPlayer().getName());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		event.setCancelled(true);
 		user.chat(event.getMessage());
@@ -156,7 +156,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
-		LOGGER.finer("Death event from " + event.getEntity().getName());
+		LOGGER.debug("Death event from " + event.getEntity().getName());
 		Player player = event.getEntity();
 		final User user = UserLoader.fromPlayer(player);
 		user.debug("death!");
@@ -194,7 +194,7 @@ public class PlayerEventListeners implements Listener {
 		Item item = ItemLoader.fromBukkit(drop);
 		
 		
-		LOGGER.finer("Drop item event on " + event.getPlayer().getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + amt + ")");
+		LOGGER.trace("Drop item event on " + event.getPlayer().getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + amt + ")");
 		if (item == null) {
 			return;
 		}
@@ -214,7 +214,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onItemHeldChange(PlayerItemHeldEvent event) {
-		LOGGER.finer("Item held change event on " + event.getPlayer().getName() + ": " + event.getPreviousSlot() + " -> " + event.getNewSlot());
+		LOGGER.trace("Item held change event on " + event.getPlayer().getName() + ": " + event.getPreviousSlot() + " -> " + event.getNewSlot());
 		ItemStack held = event.getPlayer().getInventory().getItemInMainHand();
 		Item heldItem = ItemLoader.fromBukkit(held);
 		if(heldItem != null && !heldItem.hasCooldownRemaining()) {
@@ -224,14 +224,14 @@ public class PlayerEventListeners implements Listener {
 	
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
-		LOGGER.finer("Gamemode change event on " + event.getPlayer().getName() + " to " + event.getNewGameMode());
+		LOGGER.trace("Gamemode change event on " + event.getPlayer().getName() + " to " + event.getNewGameMode());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.setGameMode(event.getNewGameMode(), false);
 	}
 
 	@EventHandler
 	public void onHungerChangeEvent(FoodLevelChangeEvent event) {
-		LOGGER.finer("Hunger change event on " + event.getEntity().getName());
+		LOGGER.trace("Hunger change event on " + event.getEntity().getName());
 		event.setCancelled(true);
 		Player player = (Player) event.getEntity();
 		player.setFoodLevel(20);
@@ -239,7 +239,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onInteractEntity(PlayerInteractEntityEvent event) {
-		LOGGER.finer("Interact entity event on " + event.getPlayer().getName() + " to " + StringUtil.entityToString(event.getRightClicked()));
+		LOGGER.debug("Interact entity event on " + event.getPlayer().getName() + " to " + StringUtil.entityToString(event.getRightClicked()));
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.debug("Right-click");
 		NPC npc = NPCLoader.fromBukkit(event.getRightClicked());
@@ -274,7 +274,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		LOGGER.fine("Join event on " + event.getPlayer().getName());
+		LOGGER.debug("Join event on " + event.getPlayer().getName());
 		Player player = event.getPlayer();
 		UUID uuid = player.getUniqueId();
 		User user = userLoader.loadObject(uuid);
@@ -317,8 +317,6 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onMove(PlayerMoveEvent event) {
-		LOGGER.finest("Move event on " + event.getPlayer().getName() + " (" + StringUtil.locToString(event.getFrom()) + " [" + event.getFrom().getWorld().getName() + "] -> "
-				+ StringUtil.locToString(event.getTo()) + " [" + event.getTo().getWorld().getName() + "])");
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		if (user.hasDeathCountdown()) {
 			event.setTo(event.getFrom());
@@ -349,7 +347,7 @@ public class PlayerEventListeners implements Listener {
 			return;
 		}
 
-		LOGGER.finer("Pickup item event on " + player.getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + pickup.getAmount() + ")");
+		LOGGER.trace("Pickup item event on " + player.getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + pickup.getAmount() + ")");
 		if (item.getItemClass().getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME)) {
 			int amount = pickup.getAmount();
 			user.giveGold(amount * 1.0D);
@@ -377,7 +375,7 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		LOGGER.fine("Quit event on " + event.getPlayer().getName());
+		LOGGER.debug("Quit event on " + event.getPlayer().getName());
 		User user = UserLoader.fromPlayer(event.getPlayer());
 		user.handleQuit();
 		event.setQuitMessage(null);

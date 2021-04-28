@@ -2,7 +2,6 @@ package mc.dragons.core.gameobject.floor;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.bson.Document;
@@ -13,13 +12,14 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectLoader;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
 public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	
 	private static Map<String, Floor> worldNameToFloor;
 	private static Map<String, Floor> floorNameToFloor;
@@ -43,7 +43,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 	@Override
 	public Floor loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
-		LOGGER.fine("Loading floor " + storageAccess.getIdentifier());
+		LOGGER.trace("Loading floor " + storageAccess.getIdentifier());
 		Floor floor = new Floor(storageManager, storageAccess, false);
 		masterRegistry.getRegisteredObjects().add(floor);
 		worldNameToFloor.put(floor.getWorldName(), floor);
@@ -53,7 +53,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 
 	public Floor registerNew(String floorName, String worldName, String displayName, int levelMin, boolean superflat) {
 		lazyLoadAll();
-		LOGGER.fine("Registering new floor " + floorName + " (world " + worldName + ", displayName " + displayName + ", lvMin " + levelMin + ", superflat=" + superflat + ")");
+		LOGGER.trace("Registering new floor " + floorName + " (world " + worldName + ", displayName " + displayName + ", lvMin " + levelMin + ", superflat=" + superflat + ")");
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.FLOOR,
 				new Document("floorName", floorName)
 				.append("worldName", worldName)
@@ -97,7 +97,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 		if (allLoaded && !force) {
 			return;
 		}
-		LOGGER.fine("Loading all floors...");
+		LOGGER.debug("Loading all floors...");
 		allLoaded = true;
 		masterRegistry.removeFromRegistry(GameObjectType.FLOOR);
 		storageManager.getAllStorageAccess(GameObjectType.FLOOR).stream().forEach(storageAccess -> masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));

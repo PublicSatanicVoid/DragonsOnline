@@ -1,7 +1,6 @@
 package mc.dragons.core.events;
 
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.ArmorStand;
@@ -31,6 +30,7 @@ import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.PermissionUtil;
@@ -39,7 +39,7 @@ import mc.dragons.core.util.StringUtil;
 
 public class EntityDamageListener implements Listener {
 	private Dragons dragons;
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 
 	private RegionLoader regionLoader;
 
@@ -57,7 +57,7 @@ public class EntityDamageListener implements Listener {
 	 */
 	@EventHandler
 	public void onEntityDamage(EntityDamageByEntityEvent event) {
-		LOGGER.finer("Damage event on " + StringUtil.entityToString(event.getEntity()) + " by " + StringUtil.entityToString(event.getDamager()));
+		LOGGER.debug("Damage event on " + StringUtil.entityToString(event.getEntity()) + " by " + StringUtil.entityToString(event.getDamager()));
 		Entity damager = event.getDamager();
 		User userDamager = null;
 		NPC npcDamager = null;
@@ -109,7 +109,7 @@ public class EntityDamageListener implements Listener {
 			 * actual entity by checking for the appropriate metadata.
 			 */
 			if (target.hasMetadata("partOf")) {
-				LOGGER.finer("-Target is part of a complex entity!");
+				LOGGER.trace("-Target is part of a complex entity!");
 				npcTarget = (NPC) target.getMetadata("partOf").get(0).value();
 				external = true;
 			}
@@ -141,7 +141,8 @@ public class EntityDamageListener implements Listener {
 				/*
 				 * Sometimes vanilla entities will sneak their way into a production world.
 				 */
-				LOGGER.finer("-ERROR: Target is an entity but not an NPC! HasHandle=" + target.hasMetadata("handle"));
+				LOGGER.trace("- Target is an entity but not an NPC! HasHandle=" + target.hasMetadata("handle"));
+				LOGGER.warning("- Unauthorized vanilla interaction from " + StringUtil.entityToString(damager) + " to " + StringUtil.entityToString(target));
 				if(userDamager != null && PermissionUtil.verifyActivePermissionLevel(userDamager, PermissionLevel.TESTER, false)) {
 					HologramUtil.temporaryArmorStand(target, ChatColor.RED + "Error: Unbound Entity Target", 20 * 5, true);
 				}
@@ -313,7 +314,7 @@ public class EntityDamageListener implements Listener {
 		if (external) {
 			npcTarget.damage(damage, damager);
 			event.setDamage(0.0D);
-			LOGGER.finer("-Damage event external from " + StringUtil.entityToString(target) + " to " + StringUtil.entityToString(npcTarget.getEntity()));
+			LOGGER.trace("-Damage event external from " + StringUtil.entityToString(target) + " to " + StringUtil.entityToString(npcTarget.getEntity()));
 		} else {
 			event.setDamage(damage);
 			if (userDamager != null) {

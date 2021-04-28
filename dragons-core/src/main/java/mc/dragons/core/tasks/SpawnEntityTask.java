@@ -41,7 +41,7 @@ import mc.dragons.core.util.dataholder.ReusableDataMap;
 public class SpawnEntityTask extends BukkitRunnable {
 	private final double SPAWN_RADIUS = 15.0D;
 	
-//	private Logger LOGGER;
+//	private DragonsLogger LOGGER;
 
 	private Dragons plugin;
 	private NPCLoader npcLoader;

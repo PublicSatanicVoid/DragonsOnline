@@ -18,6 +18,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.logging.DragonsLogger;
 
 /**
  * Complex NPCs are NPCs that do not appear to follow any "vanilla" entity models
@@ -30,6 +31,9 @@ import mc.dragons.core.gameobject.npc.NPC;
  *
  */
 public abstract class ComplexAddon extends NPCAddon {
+	private Dragons dragons = Dragons.getInstance();
+	private DragonsLogger LOGGER = dragons.getLogger();
+	
 	private Map<NPC, Location> lastLocations;
 	private String modelName;
 	
@@ -47,7 +51,7 @@ public abstract class ComplexAddon extends NPCAddon {
 		part.setGravity(false);
 		part.setMarker(false);
 		part.setVisible(false);
-		part.setMetadata("partOf", new FixedMetadataValue(Dragons.getInstance(), npc));
+		part.setMetadata("partOf", new FixedMetadataValue(dragons, npc));
 		part.setSmall(false);
 		parts.get(npc).add(part);
 		return part;
@@ -56,7 +60,7 @@ public abstract class ComplexAddon extends NPCAddon {
 	protected void registerPart(NPC npc, ArmorStand part) {
 		part.setRemoveWhenFarAway(false);
 		part.setCollidable(true);
-		part.setMetadata("partOf", new FixedMetadataValue(Dragons.getInstance(), npc));
+		part.setMetadata("partOf", new FixedMetadataValue(dragons, npc));
 		parts.get(npc).add(part);
 	}
 	
@@ -75,14 +79,14 @@ public abstract class ComplexAddon extends NPCAddon {
 	public void initialize(GameObject gameObject) {
 		NPC npc = (NPC) gameObject;
 		LivingEntity le = (LivingEntity) npc.getEntity();
-		le.setMetadata("complex", new FixedMetadataValue(Dragons.getInstance(), true));
+		le.setMetadata("complex", new FixedMetadataValue(dragons, true));
 		if(hideEntity) {
 			le.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 100, false, false));
 			le.setSilent(true);
 		}
 		parts.put(npc, new ArrayList<>());
 		lastLocations.put(npc, npc.getEntity().getLocation());
-		LOGGER.finer("Initializing complex parts for NPC " + npc.getIdentifier().toString());
+		LOGGER.trace("Initializing complex parts for NPC " + npc.getIdentifier().toString());
 		initializeParts(npc);
 	}
 	
@@ -90,7 +94,6 @@ public abstract class ComplexAddon extends NPCAddon {
 
 	@Override
 	public void onMove(NPC npc, Location loc) {
-		LOGGER.finer("Handling move of complex parts for NPC " + npc.getIdentifier().toString());
 		if(!parts.containsKey(npc)) {
 			return;
 		}
@@ -106,7 +109,7 @@ public abstract class ComplexAddon extends NPCAddon {
 
 	@Override
 	public void onDeath(NPC npc) {
-		LOGGER.finer("Despawning complex parts for NPC " + npc.getIdentifier().toString());
+		LOGGER.trace("Despawning complex parts for NPC " + npc.getIdentifier().toString());
 		for(ArmorStand part : parts.get(npc)) {
 			part.remove();
 		}

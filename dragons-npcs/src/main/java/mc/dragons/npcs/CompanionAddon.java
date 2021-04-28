@@ -21,13 +21,16 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.BlockUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.npcs.commands.ToggleCompanionLaunch;
 
 public class CompanionAddon extends NPCAddon {
-	private Set<NPC> companions = new HashSet<>();
+	private Dragons dragons = Dragons.getInstance();
+	private DragonsLogger LOGGER = dragons.getLogger();
 	
+	private Set<NPC> companions = new HashSet<>();	
 	public Set<NPC> getCompanions() { return companions; }
 	
 	public User getCompanionOwner(NPC npc) {
@@ -55,7 +58,7 @@ public class CompanionAddon extends NPCAddon {
 	@Override
 	public void initialize(GameObject gameObject) {
 		NPC companion = (NPC) gameObject;
-		LOGGER.fine("Initializing Companion addon on " + companion.getUUID() + " (" + companion.getName() + ")");
+		LOGGER.trace("Initializing Companion addon on " + companion.getUUID() + " (" + companion.getName() + ")");
 		companions.add(companion);
 	}
 	
@@ -69,18 +72,18 @@ public class CompanionAddon extends NPCAddon {
 					if(owner.getPlayer() == null) continue;
 					if(!owner.getPlayer().isOnline()) continue;
 					if(companion.getEntity().isDead()) continue;
-					LOGGER.fine("Checking position of companion " + companion.getIdentifier() + " [entity " + StringUtil.entityToString(companion.getEntity()) + "]");
+					LOGGER.verbose("Checking position of companion " + companion.getIdentifier() + " [entity " + StringUtil.entityToString(companion.getEntity()) + "]");
 					fixCompanion(companion, owner.getPlayer());
 					if(owner.getPlayer().getLocation().distanceSquared(companion.getEntity().getLocation()) > 5.0 * 5.0) {
 						Vector move = owner.getPlayer().getLocation().subtract(companion.getEntity().getLocation()).toVector();
 						move.multiply(Math.random() * 0.9);
 						companion.getEntity().teleport(BlockUtil.getClosestGroundXZ(companion.getEntity().getLocation().add(move)).add(0, 1, 0));
-						//owner.debug("Moved companion " + companion.getIdentifier() + " closer");
+						LOGGER.verbose("- Moved companion closer to owner");
 					}
 					
 				}
 			}
-		}.runTaskTimer(Dragons.getInstance(), 0L, 20L * 3);
+		}.runTaskTimer(dragons, 0L, 20L * 3);
 		
 		new BukkitRunnable() {
 			@Override public void run() {
@@ -89,13 +92,13 @@ public class CompanionAddon extends NPCAddon {
 					if(owner == null) continue;
 					if(owner.getPlayer() == null) continue;
 					if(!owner.getPlayer().isOnline()) continue;
-					LOGGER.fine("Running health boost from companion " + companion.getIdentifier() + " [entity " + StringUtil.entityToString(companion.getEntity()) + "]");
+					LOGGER.verbose("Running health boost from companion " + companion.getIdentifier() + " [entity " + StringUtil.entityToString(companion.getEntity()) + "]");
 					fixCompanion(companion, owner.getPlayer());
 					owner.getPlayer().setHealth(Math.min(owner.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), 
 							owner.getPlayer().getHealth() + 0.25 * owner.getPlayer().getLocation().distance(companion.getEntity().getLocation())));
 				}
 			}
-		}.runTaskTimer(Dragons.getInstance(), 20L, 20L * 10);
+		}.runTaskTimer(dragons, 20L, 20L * 10);
 	}
 
 	@Override
@@ -119,7 +122,7 @@ public class CompanionAddon extends NPCAddon {
 						player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * 5, 1));
 						this.cancel();
 						if(hasAI) {
-							Dragons.getInstance().getBridge().setEntityAI(companion, true);
+							dragons.getBridge().setEntityAI(companion, true);
 						}
 						return;
 					}
@@ -128,7 +131,7 @@ public class CompanionAddon extends NPCAddon {
 					companion.teleport(companion.getLocation().add(move));
 					companion.getWorld().spawnParticle(Particle.CRIT_MAGIC, companion.getLocation().add(0, 1, 0), 10);
 				}
-			}.runTaskTimer(Dragons.getInstance(), 20L, 1L);
+			}.runTaskTimer(dragons, 20L, 1L);
 		}
 	}
 

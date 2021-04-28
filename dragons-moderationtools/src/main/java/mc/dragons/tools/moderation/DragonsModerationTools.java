@@ -1,9 +1,9 @@
 package mc.dragons.tools.moderation;
 
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.tools.moderation.abilities.FlyCommand;
 import mc.dragons.tools.moderation.abilities.GodModeCommand;
 import mc.dragons.tools.moderation.abilities.UnVanishCommand;
@@ -26,14 +26,14 @@ import mc.dragons.tools.moderation.report.ReportLoader;
 import mc.dragons.tools.moderation.report.ReportsCommand;
 import mc.dragons.tools.moderation.report.ViewReportCommand;
 
-public class DragonsModerationTools extends JavaPlugin implements CommandExecutor {
+public class DragonsModerationTools extends DragonsJavaPlugin {
 	private Dragons dragons;
 	private PunishMessageHandler punishMessageHandler;
 	
 	public void onEnable() {
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
+		enableDebugLogging();
 		
+		dragons = Dragons.getInstance();
 		dragons.getLightweightLoaderRegistry().register(new ReportLoader(dragons.getMongoConfig()));
 		dragons.getUserHookRegistry().registerHook(new ModUserHook());
 		

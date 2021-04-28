@@ -1,6 +1,5 @@
 package mc.dragons.tools.moderation.report;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,13 +23,11 @@ import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
+import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 
 public class ReportLoader extends AbstractLightweightLoader<Report> {
-
 	public static final int PAGE_SIZE = 10;
-	
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 	
 	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	private Map<Integer, Report> reportPool = new HashMap<>();
@@ -199,7 +196,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	private Report fileReport(Document data) {
 		Document fullData = new Document(data);
 		fullData.append("_id", reserveNextId())
-			.append("filedOn", DATE_FORMAT.format(Date.from(Instant.now())))
+			.append("filedOn", StringUtil.DATE_FORMAT.format(Date.from(Instant.now())))
 			.append("status", ReportStatus.OPEN.toString())
 			.append("notes", new ArrayList<>());
 		Report report = new Report(fullData);

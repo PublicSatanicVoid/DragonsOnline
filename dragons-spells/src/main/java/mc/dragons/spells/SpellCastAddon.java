@@ -16,25 +16,16 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.spells.spells.Spell;
 import mc.dragons.spells.spells.Spell.BindStatus;
 import mc.dragons.spells.spells.SpellRegistry;
-import mc.dragons.spells.spells.TestSpell;
 import net.md_5.bungee.api.ChatColor;
 
 public class SpellCastAddon extends ItemAddon {
-
-	private static SpellRegistry registry;
+	private SpellRegistry registry;
 	
-	static {
-		registry = new SpellRegistry();
-		
-		// Instantiate all spells here
-		new TestSpell();
+	public SpellCastAddon(DragonsSpells instance) {
+		registry = instance.getSpellRegistry();
 	}
 	
-	public static SpellRegistry getSpellRegistry() {
-		return registry;
-	}
-	
-	public static void updateItemData(Item item) {
+	public void updateItemData(Item item) {
 		ItemMeta meta = item.getItemStack().getItemMeta();
 		List<String> lore = Item.getCompleteLore(item.getData(), item.getLore().toArray(new String[item.getLore().size()]), item.getUUID(), item.isCustom(), item.getItemClass());
 		List<Spell> spells = registry.getSpells(item);

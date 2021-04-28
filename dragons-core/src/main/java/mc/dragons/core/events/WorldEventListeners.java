@@ -1,7 +1,5 @@
 package mc.dragons.core.events;
 
-import java.util.logging.Logger;
-
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,10 +10,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.util.StringUtil;
+import mc.dragons.core.logging.DragonsLogger;
 
 public class WorldEventListeners implements Listener {
-	private Logger LOGGER;
+	private DragonsLogger LOGGER;
 	
 	public WorldEventListeners(Dragons instance) {
 		LOGGER = instance.getLogger();
@@ -23,29 +21,26 @@ public class WorldEventListeners implements Listener {
 
 	@EventHandler
 	public void onLeavesDecay(LeavesDecayEvent event) {
-		LOGGER.finest("Leaves decay event on " + event.getBlock().getType() + " at " + StringUtil.locToString(event.getBlock().getLocation()) + " [" + event.getBlock().getWorld().getName() + "]");
 		event.setCancelled(true);
 	}
 
 	@EventHandler
 	public void onWeather(WeatherChangeEvent e) {
-		LOGGER.finest("Weather change event in world " + e.getWorld().getName());
 		e.setCancelled(e.toWeatherState());
 	}
 
 	@EventHandler
 	public void onCropTrample(PlayerInteractEvent e) {
-		LOGGER.finest("Player interact event in world " + e.getPlayer().getWorld().getName());
 		if (e.getAction() == Action.PHYSICAL && e.getClickedBlock().getType() == Material.WHEAT) {
-			LOGGER.finest(" - It's a crop trample event! Cancelling.");
+			LOGGER.verbose("Cancelled a crop trample in world " + e.getPlayer().getWorld().getName());
 			e.setCancelled(true);
 		}
 	}
 
 	@EventHandler
 	public void onEntityCropTrample(EntityInteractEvent event) {
-		LOGGER.finest("Entity interact event in world " + event.getEntity().getWorld());
 		if (event.getBlock().getType() == Material.WHEAT) {
+			LOGGER.verbose("Cancelled an entity crop trample in world " + event.getEntity().getWorld());
 			event.setCancelled(true);
 		}
 	}

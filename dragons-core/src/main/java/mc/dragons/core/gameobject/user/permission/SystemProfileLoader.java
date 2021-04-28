@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -26,7 +24,7 @@ import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
-import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 
 /**
@@ -42,8 +40,7 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 	private static String saltString;
 
 	private Set<SystemProfile> profileCache;
-	private Logger LOGGER;
-	private CorrelationLogger CORRELATION;
+	private DragonsLogger LOGGER;
 	
 	static {
 		saltString = Dragons.getInstance().getConfig().getString("db.mongo.password-salt-string");
@@ -52,7 +49,6 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 	public SystemProfileLoader(Dragons instance) {
 		super(instance.getMongoConfig(), "#unused#", "sysprofiles");
 		LOGGER = instance.getLogger();
-		CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 		profileCache = new HashSet<>();
 	}
 	
@@ -66,43 +62,43 @@ public class SystemProfileLoader extends AbstractLightweightLoader<SystemProfile
 	}
 	
 	public SystemProfile authenticateProfile(User user, String profileName, String profilePassword, UUID cid) {
-		CORRELATION.log(cid, Level.FINE, "authenticating profile " + profileName + " for user " + user.getName() + " (" + user.getUUID() + ")");
+		LOGGER.debug(cid, "authenticating profile " + profileName + " for user " + user.getName() + " (" + user.getUUID() + ")");
 		if (!isAvailable(profileName, user.getName())) {
-			CORRELATION.log(cid, Level.FINE, "profile is already logged in, returning null");
+			LOGGER.trace(cid, "profile is already logged in, returning null");
 			return null;
 		}
 		SystemProfile systemProfile = loadProfile(profileName);
 		if (systemProfile == null) {
-			CORRELATION.log(cid, Level.FINE, "profile does not exist, returning null");
+			LOGGER.trace(cid, "profile does not exist, returning null");
 			return null;
 		}
 		if (!systemProfile.isActive()) {
-			CORRELATION.log(cid, Level.FINE, "profile is inactive, returning null");
+			LOGGER.trace(cid, "profile is inactive, returning null");
 			return null;
 		}
 		if(systemProfile.getPasswordHash(user.getUUID()) == null) {
-			CORRELATION.log(cid, Level.FINE, "user is not authorized for this profile, returning null");
+			LOGGER.trace(cid, "user is not authorized for this profile, returning null");
 			return null;
 		}
 		if (!systemProfile.getPasswordHash(user.getUUID()).equals(passwordHash(profilePassword))) {
-			CORRELATION.log(cid, Level.FINE, "invalid password, returning null");
+			LOGGER.trace(cid, "invalid password, returning null");
 			return null;
 		}
-		CORRELATION.log(cid, Level.FINE, "authentication passed, logging in.");
+		LOGGER.trace(cid, "authentication passed, logging in.");
 		systemProfile.setLocalCurrentUser(user);
 		LOGGER.info(user.getName() + " logged into system profile " + profileName);
 		return systemProfile;
 	}
 
 	public SystemProfile loadProfile(String profileName) {
-		LOGGER.fine("Loading profile " + profileName);
+		LOGGER.trace("Loading profile " + profileName);
 		for (SystemProfile systemProfile : profileCache) {
 			if (systemProfile.getProfileName().equalsIgnoreCase(profileName)) {
 				return systemProfile;
 			}
 		}
 		
-		LOGGER.fine("-Profile was not found in cache, fetching from mongo");
+		LOGGER.verbose("-Profile was not found in cache, fetching from database");
 		Document profile = collection.find(new Document("profileName", profileName)).first();
 		if (profile == null) {
 			return null;

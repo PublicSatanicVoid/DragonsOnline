@@ -26,6 +26,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
@@ -58,7 +59,7 @@ import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.gameobject.user.punishment.PunishmentData;
 import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.gui.GUI;
-import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -96,12 +97,12 @@ public class User extends GameObject {
 	private static final String DASH_PATTERN_QUOTED = Pattern.quote("-");
 	
 	private static Dragons instance = Dragons.getInstance();
+	private static DragonsLogger LOGGER = instance.getLogger();
 
 	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
 	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
 	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
 	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-	private static CorrelationLogger CORRELATION = instance.getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
 	private static ChatMessageHandler chatMessageHandler = new ChatMessageHandler();
@@ -176,21 +177,20 @@ public class User extends GameObject {
 
 	public User(Player player, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		LOGGER.fine("Constructing user (" + player + ", " + storageManager + ", " + storageAccess + ")");
+		LOGGER.trace("Constructing user (" + player + ", " + storageManager + ", " + storageAccess + ")");
 		currentlyDebugging = new ArrayList<>();
 		joined = false;
 		initialize(player);
 	}
 
 	public User initialize(Player player) {
-		UUID initCorrelationID = CORRELATION.registerNewCorrelationID();
-		CORRELATION.log(initCorrelationID, Level.FINE, "initializing player " + player);
-		LOGGER.fine("Initializing user " + this + " on player " + player);
+		UUID initCorrelationID = LOGGER.newCID();
+		LOGGER.trace(initCorrelationID, "Initializing user " + this + " on player " + player);
 		
 		this.player = player;
 		sendActionBar(ChatColor.GRAY + "Loading your profile...");
 		if (player != null) {
-			CORRELATION.log(initCorrelationID, Level.FINE, "bukkit player exists");
+			LOGGER.trace(initCorrelationID, "Bukkit player exists");
 			setData("lastLocation", StorageUtil.locToDoc(player.getLocation()));
 			setData("health", player.getHealth());
 			player.getInventory().clear();
@@ -214,13 +214,13 @@ public class User extends GameObject {
 				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
 			});
 			if(initErrorOccurred) {
-				CORRELATION.log(initCorrelationID, Level.WARNING, "an error occurred during initialization.");
+				LOGGER.warning(initCorrelationID, "An error occurred during initialization.");
 			}
 			else {
-				CORRELATION.discard(initCorrelationID);
+				LOGGER.discardCID(initCorrelationID);
 			}
 			initialized = true;
-			LOGGER.fine("Finished initializing user " + this);
+			LOGGER.trace("Finished initializing user " + this);
 		});
 		
 		return this;
@@ -243,8 +243,15 @@ public class User extends GameObject {
 	}
 
 	public void debug(String message) {
+		boolean console = false;
 		for (CommandSender debugger : currentlyDebugging) {
 			debugger.sendMessage(ChatColor.YELLOW + "DBG:" + getName() + " " + ChatColor.RESET + message);
+			if(debugger instanceof ConsoleCommandSender) {
+				console = true;
+			}
+		}
+		if(!console) {
+			LOGGER.debug("DBG:" + getName() + " " + message);
 		}
 	}
 
@@ -267,7 +274,7 @@ public class User extends GameObject {
 	 * @param notify
 	 */
 	public void updateState(boolean applyQuestTriggers, boolean notify) {
-		LOGGER.finest("Update user state: " + getName() + " (applyQuestTriggers=" + applyQuestTriggers + ", notify=" + notify + ")");
+		LOGGER.verbose("Update user state: " + getName() + " (applyQuestTriggers=" + applyQuestTriggers + ", notify=" + notify + ")");
 		String worldName = player.getWorld().getName();
 		boolean privilegedWorld = !worldName.equals("staff_verification") && !worldName.equals("trials") && !worldName.equalsIgnoreCase("trial-" + player.getName());
 		if (PermissionUtil.verifyActiveProfileFlag(this, SystemProfileFlag.TRIAL_BUILD_ONLY, false) && privilegedWorld) {
@@ -346,7 +353,7 @@ public class User extends GameObject {
 	 */
 	
 	public void loadQuests(UUID cid, Document questProgressDoc) {
-		CORRELATION.log(cid, Level.FINEST, "stored quest data: " + questProgressDoc.toJson());
+		LOGGER.verbose(cid, "stored quest data: " + questProgressDoc.toJson());
 		questProgress.clear();
 		questActionIndices.clear();
 		questPauseStates.clear();
@@ -359,12 +366,12 @@ public class User extends GameObject {
 			questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
 			questActionIndices.put(quest, 0);
 			questPauseStates.put(quest, QuestPauseState.NORMAL);
-			questCorrelationIDs.put(quest, CORRELATION.registerNewCorrelationID());
+			questCorrelationIDs.put(quest, LOGGER.newCID());
 		}
 	}
 
 	public void logQuestEvent(Quest quest, Level level, String message) {
-		CORRELATION.log(questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID()), level, quest.getName() + " | " + message);
+		LOGGER.log(questCorrelationIDs.computeIfAbsent(quest, q -> LOGGER.newCID()), level, quest.getName() + " | " + message);
 	}
 	
 	public void logAllQuestData(Quest quest) {
@@ -379,7 +386,7 @@ public class User extends GameObject {
 	}
 	
 	public UUID getQuestCorrelationID(Quest quest) {
-		return questCorrelationIDs.computeIfAbsent(quest, q -> CORRELATION.registerNewCorrelationID());
+		return questCorrelationIDs.computeIfAbsent(quest, q -> LOGGER.newCID());
 	}
 
 	public void setDialogueBatch(Quest quest, String speaker, List<String> dialogue) {
@@ -797,7 +804,7 @@ public class User extends GameObject {
 	 * @return whether an error occurred.
 	 */
 	public boolean loadInventory(UUID cid, Document inventory) {
-		CORRELATION.log(cid, Level.FINEST, "stored inventory data: " + inventory);
+		LOGGER.verbose(cid, "Stored inventory data: " + inventory);
 		List<UUID> usedItems = new ArrayList<>();
 		int dups = 0;
 		int broken = 0;
@@ -813,13 +820,13 @@ public class User extends GameObject {
 			UUID id = (UUID) entry.getValue();
 			if(usedItems.contains(id)) {
 				dups++;
-				CORRELATION.log(cid, Level.WARNING, "duplicated item: " + id);
+				LOGGER.warning(cid, "Duplicated item: " + id);
 				continue;
 			}
 			Item item = items.get(id);
 			if (item == null) {
 				broken++;
-				CORRELATION.log(cid, Level.WARNING, "could not load item: " + id);
+				LOGGER.warning(cid, "Could not load item: " + id);
 				continue;
 			}
 			ItemStack itemStack = item.getItemStack();
@@ -1421,7 +1428,7 @@ public class User extends GameObject {
 
 	public void setSystemProfile(SystemProfile profile) {
 		this.profile = profile;
-		LOGGER.fine("User " + getName() + " system profile set to " + (profile == null ? "null" : profile.getProfileName()));
+		LOGGER.trace("User " + getName() + " system profile set to " + (profile == null ? "null" : profile.getProfileName()));
 	}
 
 	public SystemProfile getSystemProfile() {
@@ -1439,7 +1446,7 @@ public class User extends GameObject {
 			return false;
 		}
 		
-		LOGGER.fine("User " + getName() + " active permission level set to " + permissionLevel);
+		LOGGER.debug("User " + getName() + " active permission level set to " + permissionLevel);
 		activePermissionLevel = permissionLevel;
 		SystemProfileFlags flags = getSystemProfile().getFlags();
 		

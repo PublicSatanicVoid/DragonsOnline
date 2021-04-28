@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -86,6 +85,13 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			tg.display(sender);
 		}
 		
+		else if(label.equalsIgnoreCase("getsystemproperties")) {
+			sender.sendMessage(ChatColor.GREEN + "Listing all system properties:");
+			System.getProperties().forEach((key, value) -> {
+				sender.sendMessage(ChatColor.GRAY + "" + key + " = " + value);
+			});
+		}
+		
 		else if(label.equalsIgnoreCase("serverperformance")) {
 			new BukkitRunnable() { // some OperatingSystemMXBean operations lag the thread, so run asynchronously
 				@Override public void run() {
@@ -95,8 +101,11 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.GREEN + "Uptime: " + ChatColor.GRAY + StringUtil.parseSecondsToTimespan(dragons.getUptime() / 1000));
 					sender.sendMessage(ChatColor.GREEN + "Estimated Current TPS: " + ChatColor.GRAY + LagMeter.getRoundedTPS());
 					sender.sendMessage(ChatColor.GREEN + "Server Architecture: " + ChatColor.GRAY + props.getProperty("os.arch", "Unknown"));
-					sender.sendMessage(ChatColor.GREEN + "Operating System: " + ChatColor.GRAY + props.getProperty("os.name", "Unknown") + " v" + props.getProperty("os.version", "Unknown"));
+					sender.sendMessage(ChatColor.GREEN + "Operating System: " + ChatColor.GRAY + props.getProperty("os.name", "Unknown") + " v" + props.getProperty("os.version", "Unknown") 
+						+ " (" + props.getProperty("os.arch", "Unknown Architecture") + ")");
 					sender.sendMessage(ChatColor.GREEN + "Java Version: " + ChatColor.GRAY + props.getProperty("java.version", "Unknown") + " (" + props.getProperty("java.vendor", "Unknown Vendor") + ")");
+					sender.sendMessage(ChatColor.GREEN + "JVM Version: " + props.getProperty("java.vm.name", "Unknown Name") + ChatColor.GRAY + props.getProperty("java.vm.version", "Unknown") 
+						+ " (" + props.getProperty("java.vm.vendor", "Unknown Vendor") + ")");
 					try {
 						OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 						sender.sendMessage(ChatColor.GREEN + "Available Processors: " + ChatColor.GRAY + osBean.getAvailableProcessors());
@@ -192,7 +201,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("getstacktrace")) {
 			if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true; 
-			UUID cid = CORRELATION.registerNewCorrelationID();
+			UUID cid = LOGGER.newCID();
 			Thread thread = Thread.currentThread();
 			if(args.length > 0) {
 				Integer id = parseInt(sender, args[0]);
@@ -203,11 +212,11 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					}
 				}
 			}
-			CORRELATION.log(cid, Level.INFO, "Stack trace requested for thread " + thread.getId() + " (" + thread.getState() + ")");
+			LOGGER.info(cid, "Stack trace requested for thread " + thread.getId() + " (" + thread.getState() + ")");
 			sender.sendMessage(ChatColor.GREEN + "Stack trace for thread " + thread.getId() + " (" + thread.getState() + ")");
 			for(StackTraceElement elem : thread.getStackTrace()) {
 				sender.sendMessage(ChatColor.GRAY + elem.toString());
-				CORRELATION.log(cid, Level.INFO, elem.toString());
+				LOGGER.info(cid, elem.toString());
 			}
 			sender.sendMessage(ChatColor.YELLOW + "Stack trace logged with correlation ID " + StringUtil.toHdFont(cid.toString()));
 		}

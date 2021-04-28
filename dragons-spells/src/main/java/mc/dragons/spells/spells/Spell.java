@@ -6,6 +6,7 @@ import org.bson.Document;
 
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.spells.DragonsSpells;
 import mc.dragons.spells.SpellCastAddon;
 
 public abstract class Spell {
@@ -16,15 +17,20 @@ public abstract class Spell {
 		DISALLOWED
 	}
 	
+	private SpellCastAddon spellCastAddon;
+	private SpellRegistry spellRegistry;
+	
 	private String spellName;
 	private String spellDisplayName;
 	private String spellCombo;
 	
-	public Spell(String spellName, String spellDisplayName, String spellCombo) {
+	public Spell(DragonsSpells instance, String spellName, String spellDisplayName, String spellCombo) {
 		this.spellName = spellName;
 		this.spellDisplayName = spellDisplayName;
 		this.spellCombo = spellCombo;
-		SpellCastAddon.getSpellRegistry().register(this);
+		instance.getSpellRegistry().register(this);
+		spellRegistry = instance.getSpellRegistry();
+		spellCastAddon = instance.getSpellCastAddon();
 	}
 	
 	public String getSpellName() {
@@ -44,7 +50,7 @@ public abstract class Spell {
 		if(boundSpells == null) return BindStatus.DISALLOWED;
 		for(String spellName : boundSpells) {
 			if(spellName.equals(this.spellName)) return BindStatus.BOUND; 
-			Spell spell = SpellCastAddon.getSpellRegistry().getSpellByName(spellName);
+			Spell spell = spellRegistry.getSpellByName(spellName);
 			if(spell.getSpellCombo().equals(spellCombo)) return BindStatus.INCAPABLE;	
 		}
 		return BindStatus.CAPABLE;
@@ -56,7 +62,7 @@ public abstract class Spell {
 		List<String> boundSpells = item.getStorageAccess().getDocument().getList("spells", String.class);
 		boundSpells.add(spellName);
 		item.getStorageAccess().update(new Document("spells", boundSpells));
-		SpellCastAddon.updateItemData(item);
+		spellCastAddon.updateItemData(item);
 	}
 	
 	public abstract void execute(User user);

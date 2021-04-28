@@ -1,15 +1,11 @@
 package mc.dragons.quests;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import mc.dragons.core.DragonsJavaPlugin;
 
-import mc.dragons.core.Dragons;
-
-public class DragonsQuests extends JavaPlugin {
-	private Dragons dragons;
+public class DragonsQuests extends DragonsJavaPlugin {
 	
 	public void onEnable() {
-		dragons = Dragons.getInstance();
-		dragons.registerDragonsPlugin(this);
+		enableDebugLogging();
 		
 		getCommand("loadquest").setExecutor(new LoadQuestCommand());
 	}

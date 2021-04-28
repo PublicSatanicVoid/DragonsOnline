@@ -1,10 +1,6 @@
 package mc.dragons.tools.content.command.gameobject;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -24,6 +20,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.local.LocalStorageAccess;
+import mc.dragons.core.util.FileUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.content.DragonsContentTools;
 import mc.dragons.tools.content.util.MetadataConstants;
@@ -49,19 +46,8 @@ public class FloorCommand extends DragonsCommandExecutor {
 		pushFolder.mkdirs();
 		World world = floor.getWorld();
 		File sourceFolder = world.getWorldFolder();
-		copy(sourceFolder, pushFolder);
+		FileUtil.copyFolder(sourceFolder, pushFolder);
  	}
-	
-	private static void copy(File source, File dest) {
-		try {
-			Files.walk(source.toPath(), FileVisitOption.FOLLOW_LINKS)
-				.forEach(s -> {
-					try {
-						Files.copy(s, dest.toPath().resolve(source.toPath().relativize(s)), StandardCopyOption.REPLACE_EXISTING);
-					} catch (IOException ignored) {}
-				});
-		} catch(IOException ignored) {}
-	}
 	
 	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	

@@ -33,7 +33,7 @@ public class PunishMessageHandler extends MessageHandler {
 		
 		User user = UserLoader.fromPlayer(Bukkit.getPlayer(uuid));
 		if(user == null) {
-			Dragons.getInstance().getLogger().warning("Could not apply punishment from server " + serverFrom + " on " + uuid + ": user is null");
+			Dragons.getInstance().getLogger().warning("Could not apply punishment from server " + serverFrom + " on " + uuid + ": target user is null");
 			return;
 		}
 		

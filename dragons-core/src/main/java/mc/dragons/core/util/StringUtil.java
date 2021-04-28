@@ -53,6 +53,7 @@ public class StringUtil {
 	}
 
 	public static String entityToString(Entity e) {
+		if(e == null) return "NULL";
 		return e.getType() + " " + e + " (#" + e.getEntityId() + ")";
 	}
 

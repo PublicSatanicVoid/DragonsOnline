@@ -117,8 +117,8 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		}
 	}
 	
-	public TaskLoader() {
-		super(Dragons.getInstance().getMongoConfig(), "tasks", TASK_COLLECTION);
+	public TaskLoader(Dragons dragons) {
+		super(dragons.getMongoConfig(), "tasks", TASK_COLLECTION);
 	}
 	
 	public List<Task> asTasks(FindIterable<Document> tasks) {

@@ -38,8 +38,8 @@ public class PunishCommands extends DragonsCommandExecutor {
 		targetUser.punish(type, reason, durationSeconds);
 		
 		// Check if we need to tell a different server to immediately apply the punishment
-		if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
-			LOGGER.finer("forwarding punishment to " + targetUser.getServer());
+		if(!dragons.getServerName().equals(targetUser.getServer())) {
+			LOGGER.trace("Forwarding punishment on " + targetUser.getName() + " to " + targetUser.getServer());
 			handler.forwardPunishment(targetUser, type, reason, durationSeconds);
 		}
 		

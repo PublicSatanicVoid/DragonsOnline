@@ -48,6 +48,15 @@ public interface StorageAccess {
 	
 	/**
 	 * 
+	 * @param <T> The type of the given key.
+	 * @param key
+	 * @param clazz
+	 * @return The value of the given key.
+	 */
+	<T> T get(String key, Class<? extends T> clazz);
+	
+	/**
+	 * 
 	 * @return All data in this StorageAccess as a set of key-value pairs.
 	 */
 	Set<Entry<String, Object>> getAll();

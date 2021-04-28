@@ -13,7 +13,6 @@ import mc.dragons.core.storage.loader.WarpLoader;
 import net.md_5.bungee.api.ChatColor;
 
 public class StartTrialCommand extends DragonsCommandExecutor {
-
 	private WarpLoader warpLoader = dragons.getLightweightLoaderRegistry().getLoader(WarpLoader.class);
 	
 	@Override

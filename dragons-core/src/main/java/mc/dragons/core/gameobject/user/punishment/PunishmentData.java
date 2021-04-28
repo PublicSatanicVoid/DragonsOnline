@@ -57,7 +57,6 @@ public class PunishmentData {
 	public static PunishmentData fromDocument(Document data) {
 		if(data == null) return null;
 		PunishmentData pdata = new PunishmentData(data);
-		//if(!pdata.isPermanent() && pdata.expiry.before(Date.from(Instant.now()))) return null;
 		return pdata;
 	}
 }

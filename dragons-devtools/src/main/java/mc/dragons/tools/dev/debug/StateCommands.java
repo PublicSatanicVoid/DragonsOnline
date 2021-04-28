@@ -28,7 +28,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class StateCommands extends DragonsCommandExecutor {
-
 	private StateLoader stateLoader = dragons.getLightweightLoaderRegistry().getLoader(StateLoader.class);
 	
 	@Override

@@ -37,7 +37,7 @@ public class EntityMoveListener extends PacketAdapter {
 		if (npc.getNPCType() == NPC.NPCType.HOSTILE) {
 			Set<Region> regions = regionLoader.getRegionsByLocation(entity.getLocation());
 			for (Region region : regions) {
-				if (!Boolean.valueOf(region.getFlags().getString("allowhostile")).booleanValue()) {
+				if (!Boolean.valueOf(region.getFlags().getString("allowhostile"))) {
 					npc.remove();
 				}
 			}

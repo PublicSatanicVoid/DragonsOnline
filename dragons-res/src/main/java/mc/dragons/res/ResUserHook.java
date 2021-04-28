@@ -11,11 +11,10 @@ import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.res.ResPointLoader.ResPoint;
 
 public class ResUserHook implements UserHook {
-
 	private ResPointLoader resPointLoader;
 	
-	public ResUserHook() {
-		resPointLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
+	public ResUserHook(Dragons instance) {
+		resPointLoader = instance.getLightweightLoaderRegistry().getLoader(ResPointLoader.class);
 	}
 	
 	@Override

@@ -1,7 +1,5 @@
 package mc.dragons.core.bridge.impl;
 
-import java.util.logging.Logger;
-
 import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -12,13 +10,14 @@ import org.bukkit.inventory.ItemStack;
 import io.github.bananapuncher714.nbteditor.NBTEditor;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.bridge.Bridge;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 
 public class BridgeSpigot116R3 implements Bridge {
-	private Logger LOGGER = Dragons.getInstance().getLogger();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 
 	@Override
 	public String getAPIVersion() {
@@ -39,7 +38,7 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void respawnPlayer(Player player) {
 		player.spigot().respawn();
-		LOGGER.finest("Respawning player " + player.getName());
+		LOGGER.trace("BRIDGE: Respawning player " + player.getName());
 	}
 
 	@Override
@@ -50,13 +49,13 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void setEntityAI(Entity entity, boolean ai) {
 		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), "NoAI");
-		LOGGER.finest("Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
+		LOGGER.trace("BRIDGE: Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
 
 	@Override
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {
 		NBTEditor.set(itemStack, unbreakable ? 1 : 0, "Unbreakable");
-		LOGGER.finest("Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
+		LOGGER.trace("BRIDGE: Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
 	}
 
 	@Override
@@ -69,7 +68,7 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void setEntityInvulnerable(Entity entity, boolean immortal) {
 		entity.setInvulnerable(immortal);
-		LOGGER.finest("Set Invulnerability on entity " + StringUtil.entityToString(entity) + " to " + immortal);
+		LOGGER.trace("BRIDGE: Set Invulnerability on entity " + StringUtil.entityToString(entity) + " to " + immortal);
 	}
 
 	@Override
