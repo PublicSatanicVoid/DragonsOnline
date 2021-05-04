@@ -40,3 +40,13 @@ commands:
   testduelwin:
   toggleselfmessage:
     description: (ADMIN) Toggle your ability to message yourself. No other players are affected.
+  block:
+    description: Block chat messages, private messages, and friend requests from the specified player.
+  unblock:
+    description: Allow chat messages, private messages, and friend requests from the specified player.
+  toggleselffriend:
+    description: (ADMIN) Toggle your ability to friend-request yourself. No other players are affected.
+  toggleselfblock:
+    description: (ADMIN) Toggle your ability to block/unblock yourself. No other players are affected.
+  togglemsg:
+    description: Toggle whether you can be messaged by everyone or by friends only.

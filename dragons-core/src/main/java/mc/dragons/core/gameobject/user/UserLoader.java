@@ -7,7 +7,6 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,7 +47,8 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	private static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	private static GlobalVarLoader VAR;
 	private static Set<User> users = Collections.synchronizedSet(new HashSet<>());
-
+	private static Dragons dragons;
+	
 	private GameObjectRegistry masterRegistry;
 
 	private UserLoader(Dragons instance, StorageManager storageManager) {
@@ -61,7 +61,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	}
 	
 	public static UserLoader getInstance() {
-		Dragons dragons = Dragons.getInstance();
+		dragons = Dragons.getInstance();
 		return Singletons.getInstance(UserLoader.class, () -> new UserLoader(dragons, dragons.getPersistentStorageManager()));
 	}
 
@@ -134,8 +134,8 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 		Document skills = new Document();
 		Document skillProgress = new Document();
 		for(SkillType skill : SkillType.values()) {
-			skills.append(skill.toString(), Integer.valueOf(0));
-			skillProgress.append(skill.toString(), Double.valueOf(0.0D));
+			skills.append(skill.toString(), 0);
+			skillProgress.append(skill.toString(), 0.0D);
 		}
 		Rank rank = Rank.DEFAULT;
 
@@ -146,7 +146,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 		String autoRank = VAR.getDocument("autorank").getString(player.getUniqueId().toString());
 		if(autoRank != null) {
 			rank = Rank.valueOf(autoRank);
-			Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
+			Bukkit.getScheduler().runTaskLater(dragons, () -> {
 				player.sendMessage(ChatColor.GREEN + "Your rank of " + autoRank + " was successfully applied.");
 			}, 20L * 3);
 			Document autoRanks = VAR.getDocument("autorank");
@@ -166,18 +166,20 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 				.append("lastSeen", System.currentTimeMillis())
 				.append("skills", skills)
 				.append("skillProgress", skillProgress)
-				.append("inventory", new Document()).append("quests", new Document())
+				.append("inventory", new Document())
+				.append("quests", new Document())
 				.append("vanished", false)
 				.append("punishmentHistory", new ArrayList<>())
-				.append("chatChannels", new ArrayList<>(Arrays.asList(new String[] { ChatChannel.LOCAL.toString() })))
+				.append("chatChannels", List.of(ChatChannel.LOCAL.toString()))
 				.append("speakingChannel", ChatChannel.LOCAL.toString())
 				.append("gamemode", GameMode.ADVENTURE.toString())
 				.append("lastReadChangeLog", 0)
 				.append("ip", player.getAddress().getAddress().getHostAddress())
 				.append("ipHistory", List.of(player.getAddress().getAddress().getHostAddress()))
 				.append("totalOnlineTime", 0L)
-				.append("currentServer", Dragons.getInstance().getServerName())
-				.append("verified", false);
+				.append("currentServer", dragons.getServerName())
+				.append("verified", false)
+				.append("blockedUsers", new ArrayList<>());
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
 		User user = new User(player, storageManager, storageAccess);
 		assign(player, user);
@@ -189,8 +191,8 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	public static void assign(Player player, User user) {
 		LOGGER.trace("Assigning player " + player + " to user " + user);
 		if (player != null) {
-			player.removeMetadata("handle", Dragons.getInstance());
-			player.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), user));
+			player.removeMetadata("handle", dragons);
+			player.setMetadata("handle", new FixedMetadataValue(dragons, user));
 		}
 		user.setPlayer(player);
 	}
@@ -247,7 +249,6 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 			UUID uuid = UUID.fromString(hyphenatedUUID);
 			return uuid;
 		} catch (IOException | ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -264,7 +265,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 			@Override public void run() {
 				whenComplete.accept(uuidFromUsername(username));
 			}
-		}.runTaskAsynchronously(Dragons.getInstance());
+		}.runTaskAsynchronously(dragons);
 	}
 	
 	public void removeStalePlayer(Player player) {

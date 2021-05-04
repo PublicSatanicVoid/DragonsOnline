@@ -12,6 +12,7 @@ import mc.dragons.core.gameobject.user.punishment.PunishmentData;
 import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.DragonsSocial;
+import mc.dragons.social.friend.FriendUtil;
 
 public class PrivateMessageCommands extends DragonsCommandExecutor {
 	private PrivateMessageHandler handler;
@@ -28,6 +29,19 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 		}
 		else if (target.hasActiveDialogue()) {
 			user.getPlayer().sendMessage(ChatColor.RED + "That player is in active dialogue and cannot hear you.");
+		}
+		else if (target.getBlockedUsers().contains(user)) {
+			user.getPlayer().sendMessage(ChatColor.RED + "That player has blocked you.");
+		}
+		else if (user.getBlockedUsers().contains(target)) {
+			user.getPlayer().sendMessage(ChatColor.RED + "You can't send messages to players you've blocked.");
+		}
+		else if (!FriendUtil.getFriends(user).contains(target)) {
+			boolean all = user.getData().getBoolean("messageFriendsOnly", false);
+			if(!all && !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
+				user.getPlayer().sendMessage(ChatColor.RED + "You can't send or receive messages from non-friends. Use /togglemsg to change this.");
+				return;
+			}
 		}
 		else {
 			handler.send(user, target, message);
@@ -87,6 +101,15 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 			return true;
 		}
 		
+		else if (label.equalsIgnoreCase("togglemsg")) {
+			boolean all = user.getData().getBoolean("messageFriendsOnly", false);
+			user.getStorageAccess().set("messageFriendsOnly", !all);
+			sender.sendMessage(ChatColor.GREEN + "Set messaging capability to " + (all ? "EVERYONE" : "FRIENDS ONLY"));
+			if(!all) {
+				sender.sendMessage(ChatColor.GRAY + " You'll still be able to send and receive messages from staff members.");
+			}
+		}
+		
 		else if (label.equalsIgnoreCase("chatspy")) {
 			if(!requirePlayer(sender) || !hasPermission(sender, SystemProfileFlag.MODERATION)) return true;
 			user.setChatSpy(!user.hasChatSpy());
@@ -95,7 +118,7 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 		}
 		
 		else if (label.equalsIgnoreCase("toggleselfmessage")) {
-			if(!requirePermission(sender, PermissionLevel.ADMIN)) return true;
+			if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 			user.getLocalData().append("canSelfMessage", !user.getLocalData().getBoolean("canSelfMessage", false));
 			sender.sendMessage(ChatColor.GREEN + "Toggled self-messaging ability.");
 		}

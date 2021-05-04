@@ -140,6 +140,10 @@ public class User extends GameObject {
 		return connectionMessageHandler;
 	}
 	
+	public static List<User> asUsers(List<UUID> uuids) {
+		return uuids.stream().map(uuid -> userLoader.loadObject(uuid)).collect(Collectors.toList());
+	}
+	
 	/**
 	 * Calculates the user's global level based on their current XP.
 	 * 
@@ -690,6 +694,21 @@ public class User extends GameObject {
 		return chatSpy;
 	}
 	
+	public List<User> getBlockedUsers() {
+		return asUsers(getData().getList("blockedUsers", UUID.class));
+	}
+	
+	public void blockUser(User user) {
+		List<UUID> blocked = getData().getList("blockedUsers", UUID.class);
+		blocked.add(user.getUUID());
+		storageAccess.set("blockedUsers", blocked);
+	}
+	
+	public void unblockUser(User user) {
+		List<UUID> blocked = getData().getList("blockedUsers", UUID.class);
+		blocked.remove(user.getUUID());
+		storageAccess.set("blockedUsers", blocked);
+	}
 	
 	/*
 	 * Item management

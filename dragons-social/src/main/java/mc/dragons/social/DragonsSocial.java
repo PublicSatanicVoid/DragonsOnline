@@ -4,6 +4,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.social.duel.DuelCommands;
+import mc.dragons.social.friend.FriendCommand;
 import mc.dragons.social.guild.GuildAdminCommand;
 import mc.dragons.social.guild.GuildChannelHandler;
 import mc.dragons.social.guild.GuildCommand;
@@ -37,6 +38,16 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		getCommand("reply").setExecutor(privateMessageCommands);
 		getCommand("chatspy").setExecutor(privateMessageCommands);
 		getCommand("toggleselfmessage").setExecutor(privateMessageCommands);
+		getCommand("togglemsg").setExecutor(privateMessageCommands);
+		
+		BlockCommands blockCommands = new BlockCommands();
+		getCommand("block").setExecutor(blockCommands);
+		getCommand("unblock").setExecutor(blockCommands);
+		getCommand("toggleselfblock").setExecutor(blockCommands);
+		
+		FriendCommand friendCommand = new FriendCommand(this);
+		getCommand("friend").setExecutor(friendCommand);
+		getCommand("toggleselffriend").setExecutor(friendCommand);
 		
 		getCommand("shout").setExecutor(new ShoutCommand());
 		getCommand("channel").setExecutor(new ChannelCommand());
