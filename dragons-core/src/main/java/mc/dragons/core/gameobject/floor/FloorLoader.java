@@ -68,31 +68,69 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 		return floor;
 	}
 
+	/**
+	 * Statically associate the specified Bukkit world with the specified floor.
+	 * 
+	 * @param world
+	 * @param floor
+	 */
 	public static void link(World world, Floor floor) {
 		worldNameToFloor.put(world.getName(), floor);
 		floorNameToFloor.put(floor.getFloorName(), floor);
 	}
 
+	/**
+	 * 
+	 * @param worldName
+	 * @return The floor associated with the specified world.
+	 */
 	public static Floor fromWorldName(String worldName) {
 		return worldNameToFloor.get(worldName);
 	}
 
+	/**
+	 * 
+	 * @param world
+	 * @return The floor associated with the specified world.
+	 */
 	public static Floor fromWorld(World world) {
 		return worldNameToFloor.get(world.getName());
 	}
 
+	/**
+	 * 
+	 * @param loc
+	 * @return The floor associated with the world of the specified location.
+	 */
 	public static Floor fromLocation(Location loc) {
 		return worldNameToFloor.get(loc.getWorld().getName());
 	}
 
+	/**
+	 * 
+	 * @param floorName
+	 * @return The floor associated with the specified internal (GM) name.
+	 */
 	public static Floor fromFloorName(String floorName) {
 		return floorNameToFloor.get(floorName);
 	}
 
+	/**
+	 * Update static associations between floor name and floor when the
+	 * floor name has changed.
+	 * 
+	 * @param floorName
+	 * @param newFloorName
+	 */
 	public static void updateFloorName(String floorName, String newFloorName) {
 		floorNameToFloor.put(newFloorName, floorNameToFloor.remove(floorName));
 	}
 
+	/**
+	 * Load all floors synchronously.
+	 * 
+	 * @param force Whether to load even if they have already been loaded.
+	 */
 	public void loadAll(boolean force) {
 		if (allLoaded && !force) {
 			return;
@@ -103,6 +141,9 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 		storageManager.getAllStorageAccess(GameObjectType.FLOOR).stream().forEach(storageAccess -> masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));
 	}
 
+	/**
+	 * Load all floors synchronously, if they have not already been loaded.
+	 */
 	public void lazyLoadAll() {
 		loadAll(false);
 	}

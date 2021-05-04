@@ -27,6 +27,7 @@ import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
@@ -99,17 +100,18 @@ public class User extends GameObject {
 	private static Dragons instance = Dragons.getInstance();
 	private static DragonsLogger LOGGER = instance.getLogger();
 
-	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
-	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
-	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private static RegionLoader regionLoader = GameObjectType.REGION.getLoader();
+	private static QuestLoader questLoader = GameObjectType.QUEST.getLoader();
+	private static ItemLoader itemLoader = GameObjectType.ITEM.getLoader();
+	private static UserLoader userLoader = GameObjectType.USER.getLoader();
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
 	private static ChatMessageHandler chatMessageHandler = new ChatMessageHandler();
 	private static ConnectionMessageHandler connectionMessageHandler = new ConnectionMessageHandler();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
-
+	private static FileConfiguration config = instance.getConfig();
+	
 	private Player player; // The underlying Bukkit player associated with this User, or null if the user is offline.
 	private Set<Region> cachedRegions; // Last-known occupied regions.
 	private Location cachedLocation; // Last-known location.
@@ -935,6 +937,7 @@ public class User extends GameObject {
 		updateVanishState();
 		updateVanishStatesOnSelf();
 		updateVanillaLeveling();
+		updateTablistHeaders();
 		String ip = player.getAddress().getAddress().getHostAddress();
 		setData("ip", ip);
 		
@@ -1161,6 +1164,15 @@ public class User extends GameObject {
 		instance.getBridge().sendTitle(player, titleColor, title, subtitleColor, subtitle, fadeInTime, showTime, fadeOutTime);
 	}
 
+	public void updateTablistHeaders() {
+		player.setPlayerListHeaderFooter(tablistText(config.getString("game.tablist.header")), 
+				tablistText(config.getString("game.tablist.footer")));
+	}
+	
+	public String tablistText(String raw) {
+		return StringUtil.colorize(raw).replaceAll("%SERVER%", instance.getServerName());
+	}
+	
 	public void overrideWalkSpeed(float speed) {
 		player.setWalkSpeed(speed);
 		isOverridingWalkSpeed = true;

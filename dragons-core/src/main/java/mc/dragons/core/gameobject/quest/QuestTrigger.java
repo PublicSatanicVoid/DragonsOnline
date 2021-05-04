@@ -26,10 +26,16 @@ import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
 
+/**
+ * A trigger condition for a quest stage's actions to be executed.
+ * 
+ * @author Adam
+ *
+ */
 public class QuestTrigger {
-	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+	private static RegionLoader regionLoader = GameObjectType.REGION.getLoader();
+	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
 	
 	private TriggerType type;
 	private String npcClassShortName;

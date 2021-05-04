@@ -62,6 +62,11 @@ public class QuestLoader extends GameObjectLoader<Quest> implements Singleton {
 		return quest;
 	}
 
+	/**
+	 * Load all quests synchronously.
+	 * 
+	 * @param force Whether to load even if they have already been loaded.
+	 */
 	public void loadAll(boolean force) {
 		if (allLoaded && !force) {
 			return;
@@ -72,6 +77,9 @@ public class QuestLoader extends GameObjectLoader<Quest> implements Singleton {
 		storageManager.getAllStorageAccess(GameObjectType.QUEST).stream().forEach(storageAccess -> masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));
 	}
 
+	/**
+	 * Load all quests synchronously, if they have not already been loaded.
+	 */
 	public void lazyLoadAll() {
 		loadAll(false);
 	}

@@ -304,4 +304,8 @@ public class StringUtil {
 			return false;
 		}
 	}
+
+	public static String colorize(String str) {
+		return ChatColor.translateAlternateColorCodes('&', str);
+	}
 }

@@ -131,6 +131,11 @@ public class RegionLoader extends GameObjectLoader<Region> implements Singleton 
 		return region;
 	}
 
+	/**
+	 * Load all regions synchronously.
+	 * 
+	 * @param force Whether to load even if they have already been loaded.
+	 */
 	public void loadAll(boolean force) {
 		if (allLoaded && !force) {
 			return;
@@ -147,6 +152,9 @@ public class RegionLoader extends GameObjectLoader<Region> implements Singleton 
 		});
 	}
 
+	/**
+	 * Load all regions synchronously, if they have not already been loaded.
+	 */
 	public void lazyLoadAll() {
 		loadAll(false);
 	}

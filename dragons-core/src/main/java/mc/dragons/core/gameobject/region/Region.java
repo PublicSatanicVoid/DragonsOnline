@@ -98,6 +98,14 @@ public class Region extends GameObject {
 	private CachedRegionData regionData;
 	private Floor floor;
 
+	/**
+	 * Information about a region which should not
+	 * need to be re-calculated unless the configuration
+	 * changes.
+	 * 
+	 * @author Adam
+	 *
+	 */
 	private class CachedRegionData {
 		private Location min;
 		private Location max;

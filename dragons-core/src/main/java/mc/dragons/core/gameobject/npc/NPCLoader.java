@@ -154,6 +154,13 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 		return npc;
 	}
 
+	/**
+	 * Load all persistent NPCs.
+	 * 
+	 * <p>This is done as asynchronously as possible.
+	 * 
+	 * @param force Whether to load even if they have already been loaded.
+	 */
 	public void loadAllPermanent(boolean force) {
 		if (allPermanentLoaded && !force) {
 			return;
@@ -194,6 +201,11 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 		LOGGER.info("Initial entity count: " + Dragons.getInstance().getEntities().size());
 	}
 
+	/**
+	 * Load all persistent NPCs, if they have not already been loaded.
+	 * 
+	 * <p>This is done as asynchronously as possible.
+	 */
 	public void lazyLoadAllPermanent() {
 		loadAllPermanent(false);
 	}

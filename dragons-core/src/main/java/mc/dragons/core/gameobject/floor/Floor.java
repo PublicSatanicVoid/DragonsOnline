@@ -26,6 +26,17 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public class Floor extends GameObject {
+	
+	/**
+	 * The current state of a floor.
+	 * 
+	 * <p>Editability and accessibility are affected
+	 * by these settings, which also serve as benchmarks
+	 * for progress on development.
+	 * 
+	 * @author Adam
+	 *
+	 */
 	public enum FloorStatus {
 		FROZEN(true, true),
 		DISABLED(false, true),
@@ -83,65 +94,118 @@ public class Floor extends GameObject {
 		world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
 	}
 
+	/**
+	 * 
+	 * @return The name of the world file associated with this floor
+	 */
 	public String getWorldName() {
 		return (String) getData("worldName");
 	}
 
+	/**
+	 * 
+	 * @return The Bukkit world associated with this floor
+	 */
 	public World getWorld() {
 		return Bukkit.getWorld(getWorldName());
 	}
 
+	/**
+	 * 
+	 * @return The internal (GM) name associated with this floor
+	 */
 	public String getFloorName() {
 		return (String) getData("floorName");
 	}
 
+	/**
+	 * Change the internal (GM) name associated with this floor
+	 * 
+	 * @implSpec Does not update references to this name.
+	 * 
+	 * @param floorName
+	 */
 	public void setFloorName(String floorName) {
 		FloorLoader.updateFloorName(getFloorName(), floorName);
 		setData("floorName", floorName);
 	}
 	
+	/**
+	 * 
+	 * @return The current state of this floor in its lifecycle.
+	 */
 	public FloorStatus getFloorStatus() {
 		return FloorStatus.valueOf((String) getData("status"));
 	}
 	
+	/**
+	 * Change the current state of this floor in its lifecycle.
+	 * 
+	 * @param status
+	 */
 	public void setFloorStatus(FloorStatus status) {
 		setData("status", status.toString());
 	}
 	
-	// Coupled to floor status, for now.
+	/**
+	 * 
+	 * @return Whether this floor is locked from editing
+	 * by builders or GMs.
+	 */
 	public boolean isGMLocked() {
+		// Coupled to floor status, for now.
 		return getFloorStatus().isGMLocked();
 	}
 	
+	/**
+	 * 
+	 * @return Whether this floor is open to players.
+	 */
 	public boolean isPlayerLocked() {
 		return getFloorStatus().isPlayerLocked();
 	}
 
+	/**
+	 * 
+	 * @return The publicly shown display name of this floor.
+	 */
 	public String getDisplayName() {
 		return (String) getData("displayName");
 	}
 
+	/**
+	 * Change the publicly shown display name of this floor.
+	 * 
+	 * @param displayName
+	 */
 	public void setDisplayName(String displayName) {
 		setData("displayName", displayName);
 	}
 
+	/**
+	 * 
+	 * @return The minimum level for players to go to this floor.
+	 */
 	public int getLevelMin() {
 		return (int) getData("levelMin");
 	}
 
+	/**
+	 * Change the minimum level for players to go to this floor.
+	 * 
+	 * @param levelMin
+	 */
 	public void setLevelMin(int levelMin) {
 		setData("levelMin", levelMin);
 	}
 	
 	/**
-	 * While a player is on a volatile floor,
-	 * their location is not saved. Thus, if
-	 * they rejoin, they will go to their last
-	 * saved location *NOT* on that floor.
+	 * While a player is on a volatile floor, their location is not saved. 
+	 * Thus, if they rejoin, they will go to their last saved location 
+	 * <i>not</i> on that floor.
 	 * 
-	 * This is useful for floors like the Duel
-	 * floor where rejoining on that floor would
-	 * cause phasing issues with other players.
+	 * <p>This is useful for floors like the Duel floor where rejoining on 
+	 * that floor would cause phasing issues with other players.
 	 * 
 	 * @return whether the floor is volatile.
 	 */
@@ -149,6 +213,11 @@ public class Floor extends GameObject {
 		return (boolean) getData("volatile");
 	}
 	
+	/**
+	 * Change the volatility status of this floor.
+	 * 
+	 * @param isVolatile
+	 */
 	public void setVolatile(boolean isVolatile) {
 		setData("volatile", isVolatile);
 	}

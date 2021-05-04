@@ -2,6 +2,7 @@ package mc.dragons.core.gameobject;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,14 +45,8 @@ public class GameObjectRegistry {
 	 * @return All registered game objects matching any of the specified types
 	 */
 	public Set<GameObject> getRegisteredObjects(GameObjectType... types) {
-		return registeredObjects.stream().filter(obj -> {
-			for(GameObjectType type : types) {
-				if(type == obj.getType()) {
-					return true;
-				}
-			}
-			return false;
-		}).collect(Collectors.toSet());
+		List<GameObjectType> arrTypes = List.of(types);
+		return registeredObjects.stream().filter(obj -> arrTypes.contains(obj.getType())).collect(Collectors.toSet());
 	}
 
 	/**

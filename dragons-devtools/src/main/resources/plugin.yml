@@ -143,3 +143,5 @@ commands:
     description: (ADMIN) Display all JRE system properties.
   writelog:
     description: (ADMIN) Write directly to the server log.
+  testheader:
+  testfooter:

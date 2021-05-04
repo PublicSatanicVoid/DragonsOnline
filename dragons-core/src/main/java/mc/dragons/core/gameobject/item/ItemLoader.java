@@ -128,6 +128,11 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 		return item;
 	}
 
+	/**
+	 * 
+	 * @param itemStack
+	 * @return The item that is statically associated with the specified Bukkit item stack.
+	 */
 	public static Item fromBukkit(ItemStack itemStack) {
 		if(itemStack == null) return null;
 		ItemMeta meta = itemStack.getItemMeta();

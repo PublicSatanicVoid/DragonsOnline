@@ -26,5 +26,13 @@ serverName: dragons-1
 debug: false
 
 # The default level at which the logger outputs.
-# Valid levels are OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL
+# Valid levels are OFF, SEVERE, WARNING, NOTICE, INFO, CONFIG, DEBUG, TRACE, VERBOSE, ALL
+# FINE, FINER, and FINEST are also valid but discouraged because they're arbitrary.
 loglevel: INFO
+
+# Settings related to in-game functionality.
+game:
+  # Use %SERVER% as a placeholder for the player's current server.
+  tablist:
+    header: '&8- &5&lDragons &f&lOnline &8-'
+    footer: '&7You are currently connected to %SERVER%'

@@ -18,10 +18,17 @@ import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 
+/**
+ * Stores probabilities of an NPC dropping a certain item on death
+ * as a function of the region the NPC was located in.
+ * 
+ * @author Adam
+ *
+ */
 public class LootTable {
-	private static RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+	private static RegionLoader regionLoader = GameObjectType.REGION.getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+	private static ItemLoader itemLoader = GameObjectType.ITEM.getLoader();
 	
 	private Document lootTable;
 
@@ -29,6 +36,14 @@ public class LootTable {
 		lootTable = (Document) npcClass.getStorageAccess().get("lootTable");
 	}
 
+	/**
+	 * 
+	 * @param loc
+	 * @return The items the NPC dropped at a specified location.
+	 * 
+	 * @implNote Probabilities are factored in to this, so identical
+	 * 	calls may not produce identical results.
+	 */
 	public Set<Item> getDrops(Location loc) {
 		if (lootTable == null) {
 			return new HashSet<>();
@@ -53,6 +68,11 @@ public class LootTable {
 		return drops;
 	}
 
+	/**
+	 * 
+	 * @return The loot table as a nested map. Region names are mapped to 
+	 * a map of item names and drop changes.
+	 */
 	public Map<String, Map<String, Double>> asMap() {
 		if (lootTable == null) {
 			return new HashMap<>();
@@ -63,7 +83,7 @@ public class LootTable {
 			String regionName = regions.getKey();
 			Document chances = (Document) regions.getValue();
 			for (Entry<String, Object> itemChance : (Iterable<Entry<String, Object>>) chances.entrySet()) {
-				regionItemChances.put(itemChance.getKey(), Double.valueOf((double) itemChance.getValue()));
+				regionItemChances.put(itemChance.getKey(), (double) itemChance.getValue());
 			}
 			result.put(regionName, regionItemChances);
 		}

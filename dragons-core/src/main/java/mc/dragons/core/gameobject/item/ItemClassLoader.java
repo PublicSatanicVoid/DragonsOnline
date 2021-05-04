@@ -59,15 +59,20 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> implements Sing
 		lazyLoadAll();
 		LOGGER.trace("Registering new item class (" + className + ")");
 		Document data = new Document("_id", UUID.randomUUID()).append("className", className).append("name", name).append("nameColor", nameColor.name()).append("materialType", material.toString())
-				.append("lvMin", Integer.valueOf(levelMin)).append("cooldown", Double.valueOf(cooldown)).append("unbreakable", Boolean.valueOf(unbreakable))
-				.append("undroppable", Boolean.valueOf(undroppable)).append("damage", Double.valueOf(damage)).append("armor", Double.valueOf(armor)).append("speedBoost", Double.valueOf(speedBoost))
-				.append("lore", lore).append("maxStackSize", Integer.valueOf(maxStackSize)).append("addons", new ArrayList<String>()).append("gmlock", false);
+				.append("lvMin", levelMin).append("cooldown", cooldown).append("unbreakable", unbreakable)
+				.append("undroppable", undroppable).append("damage", damage).append("armor", armor).append("speedBoost", speedBoost)
+				.append("lore", lore).append("maxStackSize", maxStackSize).append("addons", new ArrayList<String>()).append("gmlock", false);
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.ITEM_CLASS, data);
 		ItemClass itemClass = new ItemClass(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(itemClass);
 		return itemClass;
 	}
 
+	/**
+	 * Load all item classes synchronously.
+	 * 
+	 * @param force Whether to load even if they have already been loaded.
+	 */
 	public void loadAll(boolean force) {
 		if (allLoaded && !force) {
 			return;
@@ -78,6 +83,9 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> implements Sing
 		storageManager.getAllStorageAccess(GameObjectType.ITEM_CLASS).stream().forEach(storageAccess -> masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));
 	}
 
+	/**
+	 * Load all item classes synchronously, if they have not already been loaded.
+	 */
 	public void lazyLoadAll() {
 		loadAll(false);
 	}

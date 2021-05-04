@@ -11,7 +11,6 @@ import mc.dragons.spells.spells.SpellRegistry;
 import mc.dragons.spells.spells.TestSpell;
 
 public class DragonsSpells extends DragonsJavaPlugin {
-	private Dragons dragons;
 	private SpellRegistry spellRegistry;
 
 	private SpellCastAddon spellCastAddon;
@@ -20,7 +19,7 @@ public class DragonsSpells extends DragonsJavaPlugin {
 	public void onLoad() {
 		enableDebugLogging();
 		
-		dragons = Dragons.getInstance();
+		Dragons dragons = getDragonsInstance();
 		
 		getLogger().info("Loading item addons...");
 		spellRegistry = new SpellRegistry();

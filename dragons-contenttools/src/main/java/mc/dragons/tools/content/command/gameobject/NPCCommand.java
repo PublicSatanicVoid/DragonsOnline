@@ -105,7 +105,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			startingWith = args[1];
 		}
 		sender.sendMessage(ChatColor.GREEN + "Listing all NPC classes" + (startingWith.length() > 0 ? (" starting with \"" + startingWith + "\"") : "") + ":");
-		for(GameObject gameObject : Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects(GameObjectType.NPC_CLASS)) {
+		for(GameObject gameObject : dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.NPC_CLASS)) {
 			NPCClass npcClass = (NPCClass) gameObject;
 			if(!npcClass.getClassName().startsWith(startingWith)) continue;
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + npcClass.getClassName() + " [Lv " + npcClass.getLevel() + "]",

@@ -27,8 +27,8 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 	
 	public void onEnable() {
 		enableDebugLogging();
-		
-		dragons = Dragons.getInstance();
+	
+		dragons = getDragonsInstance();
 		dragons.getLightweightLoaderRegistry().register(new StateLoader(dragons.getMongoConfig()));
 		
 		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand());
@@ -123,5 +123,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testnewfonts").setExecutor(experimentalCommands);
 		getCommand("testuserlookup").setExecutor(experimentalCommands);
 		getCommand("writelog").setExecutor(experimentalCommands);
+		getCommand("testheader").setExecutor(experimentalCommands);
+		getCommand("testfooter").setExecutor(experimentalCommands);
 	}
 }

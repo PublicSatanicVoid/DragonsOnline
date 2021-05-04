@@ -21,6 +21,19 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 
+/**
+ * Represents a named class of NPCs which share common base properties
+ * such as max health, entity type, display name, etc.
+ * 
+ * <p>All NPCs have an NPC class, and inherit most of their properties
+ * from that class.
+ * 
+ * <p>Addons are added at the NPC class level for better grouping of
+ * functionality.
+ * 
+ * @author Adam
+ *
+ */
 public class NPCClass extends GameObject {
 	private LootTable lootTable;
 	private NPCConditionalActions[] conditionals = new NPCConditionalActions[NPCTrigger.values().length];
@@ -75,6 +88,13 @@ public class NPCClass extends GameObject {
 		addons.forEach(addon -> addon.onDeath(npc));
 	}
 
+	/**
+	 * Run all conditional actions associated with the specified trigger.
+	 * 
+	 * @param trigger
+	 * @param user
+	 * @param npc
+	 */
 	public void executeConditionals(NPCTrigger trigger, User user, NPC npc) {
 		user.debug("Executing conditionals");
 		for(NPCConditionalActions conditionalAction : conditionals) {
@@ -84,6 +104,11 @@ public class NPCClass extends GameObject {
 		}
 	}
 
+	/**
+	 * 
+	 * @param trigger
+	 * @return All conditional actions associated with the specified trigger.
+	 */
 	public NPCConditionalActions getConditionalActions(NPCTrigger trigger) {
 		for(NPCConditionalActions conditionalAction : conditionals) {
 			if (conditionalAction.getTrigger() == trigger) {
@@ -93,6 +118,10 @@ public class NPCClass extends GameObject {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @return The loot table representing this NPC's drop chances on death.
+	 */
 	public LootTable getLootTable() {
 		return lootTable;
 	}

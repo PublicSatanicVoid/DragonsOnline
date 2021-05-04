@@ -15,7 +15,6 @@ import mc.dragons.core.storage.loader.WarpLoader;
 import mc.dragons.core.util.StringUtil;
 
 public class WarpCommands extends DragonsCommandExecutor {
-
 	private WarpLoader warpLoader = dragons.getLightweightLoaderRegistry().getLoader(WarpLoader.class);
 	
 	private Location getWarp(CommandSender sender, String warpName) {

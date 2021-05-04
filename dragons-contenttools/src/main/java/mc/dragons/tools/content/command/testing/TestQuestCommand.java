@@ -13,7 +13,6 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 
 public class TestQuestCommand extends DragonsCommandExecutor {
-
 	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	@Override

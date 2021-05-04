@@ -79,6 +79,11 @@ public class NPCClassLoader extends GameObjectLoader<NPCClass> implements Single
 		return npcClass;
 	}
 
+	/**
+	 * Load all NPC classes synchronously.
+	 * 
+	 * @param force Whether to load even if they have already been loaded.
+	 */
 	public void loadAll(boolean force) {
 		if (allLoaded && !force) {
 			return;
@@ -89,6 +94,9 @@ public class NPCClassLoader extends GameObjectLoader<NPCClass> implements Single
 		storageManager.getAllStorageAccess(GameObjectType.NPC_CLASS).stream().forEach(storageAccess -> masterRegistry.getRegisteredObjects().add(loadObject(storageAccess)));
 	}
 
+	/**
+	 * Load all item classes synchronously, if they have not already been loaded.
+	 */
 	public void lazyLoadAll() {
 		loadAll(false);
 	}

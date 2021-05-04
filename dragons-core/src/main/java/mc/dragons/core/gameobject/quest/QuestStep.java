@@ -9,6 +9,15 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
 
+/**
+ * A named stage of a quest. Once a user gets to this stage,
+ * the game waits for them to meet the trigger condition, and
+ * then the associated actions are executed and the user moves
+ * on to the next stage.
+ * 
+ * @author Adam
+ *
+ */
 public class QuestStep {
 	private QuestTrigger trigger;
 	private List<QuestAction> actions;
@@ -133,7 +142,7 @@ public class QuestStep {
 				shouldUpdateStage = false;
 				int resumeIndex = i + 1;
 				user.onDialogueComplete(u -> {
-					u.updateQuestAction(quest, resumeIndex); // TODO: Do we need this? (139-142)
+					u.updateQuestAction(quest, resumeIndex); // TODO: Do we need this?
 				});
 				break;
 			}

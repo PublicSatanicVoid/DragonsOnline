@@ -339,6 +339,18 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("Log entry written successfully");
 		}
 		
+		else if(label.equalsIgnoreCase("testheader")) {
+			player.setPlayerListHeader(user.tablistText(StringUtil.concatArgs(args, 0)));
+		}
+
+		else if(label.equalsIgnoreCase("testfooter")) {
+			player.setPlayerListFooter(user.tablistText(StringUtil.concatArgs(args, 0)));
+		}
+		
+		else {
+			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
+		}
+		
 		return true;
 	}
 

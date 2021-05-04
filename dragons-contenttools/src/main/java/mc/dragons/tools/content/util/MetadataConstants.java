@@ -31,7 +31,7 @@ import mc.dragons.core.util.StringUtil;
  */
 public class MetadataConstants {
 	
-	private static final UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private static final UserLoader userLoader = GameObjectType.USER.getLoader();
 	private static final CorrelationLogger CORRELATION = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
 	
 	public static final String METADATA_NAMESPACE = "x";

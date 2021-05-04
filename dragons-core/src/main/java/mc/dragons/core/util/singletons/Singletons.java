@@ -2,8 +2,14 @@ package mc.dragons.core.util.singletons;
 
 import java.util.function.Supplier;
 
+/**
+ * Central registry of Singleton instances.
+ * 
+ * @author Adam
+ *
+ */
 public class Singletons {
-	static ClassLocal<Object> singletons = new ClassLocal<>();
+	private static ClassLocal<Object> singletons = new ClassLocal<>();
 
 	@SuppressWarnings("unchecked")
 	public static <T> T getInstance(Class<T> clazz, Supplier<T> supplierIfAbsent) {

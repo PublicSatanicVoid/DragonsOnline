@@ -42,14 +42,22 @@ public class Item extends GameObject {
 	private ItemStack itemStack;
 	private ItemClass itemClass;
 
-
+	
 	public static boolean isWeapon(Material type) {
 		return type == Material.BOW || type == Material.DIAMOND_SWORD || type == Material.GOLDEN_SWORD || type == Material.IRON_SWORD || type == Material.STONE_SWORD 
 				|| type == Material.WOODEN_SWORD || type == Material.STICK;
 	}
 	
+	/**
+	 * 
+	 * @param data
+	 * @param customLore
+	 * @param uuid
+	 * @param custom
+	 * @param itemClass
+	 * @return The complete Bukkit lore of the item, generated from its custom data.
+	 */
 	public static List<String> getCompleteLore(Document data, String[] customLore, UUID uuid, boolean custom, ItemClass itemClass) {
-		//String dataTag = uuid == null ? "" : HiddenStringUtil.encodeString(uuid.toString());
 		List<String> lore = new ArrayList<>(Arrays.asList(new String[] { ChatColor.GRAY + "Lv Min: " + data.getInteger("lvMin") }));
 		if (customLore.length > 0) {
 			lore.add("");
@@ -122,6 +130,9 @@ public class Item extends GameObject {
 		getItemClass().getAddons().forEach(addon -> addon.initialize(this));
 	}
 
+	/**
+	 * Propagate changes to the item's configuration to its Bukkit item metadata.
+	 */
 	public void updateItemStackData() {
 		ItemMeta meta = itemStack.getItemMeta();
 		meta.setDisplayName(ChatColor.RESET + getDecoratedName());
@@ -132,64 +143,137 @@ public class Item extends GameObject {
 		itemStack.setAmount(getQuantity());
 	}
 
+	/**
+	 * 
+	 * @return Whether this item overrides attributes of its base item class.
+	 */
 	public boolean isCustom() {
 		return (boolean) getData("isCustom");
 	}
 
+	/**
+	 * Indicate whether this item overrides attributes of its base item class.
+	 * 
+	 * @param custom
+	 */
 	public void setCustom(boolean custom) {
 		setData("isCustom", custom);
 	}
 
+	/**
+	 * 
+	 * @return The internal (GM) name for this item's item class.
+	 */
 	public String getClassName() {
 		return (String) getData("className");
 	}
 
+	/**
+	 * 
+	 * @return The item class associated with this item.
+	 */
 	public ItemClass getItemClass() {
 		return itemClass;
 	}
 
+	/**
+	 * 
+	 * @return The quantity of this item.
+	 */
 	public int getQuantity() {
 		return (int) getData("quantity");
 	}
-
+	
+	/**
+	 * Set the quantity of this item.
+	 * 
+	 * @param quantity
+	 */
 	public void setQuantity(int quantity) {
 		setData("quantity", quantity);
 		itemStack.setAmount(quantity);
 	}
 
+	/**
+	 * Persist the live Bukkit item stack quantity to backend storage.
+	 */
 	public void resyncQuantityFromBukkit() {
 		setData("quantity", itemStack.getAmount());
 	}
 
+	/**
+	 * 
+	 * @return The raw configured display name of this item,
+	 * without decorations or modifiers.
+	 */
 	public String getName() {
 		return (String) getData("name");
 	}
 
+	/**
+	 * 
+	 * @return The default color of this item's display name.
+	 */
 	public ChatColor getNameColor() {
 		return ChatColor.valueOf((String) getData("nameColor"));
 	}
 
+	/**
+	 * Change the default color of this item's display name.
+	 * 
+	 * @param nameColor
+	 */
 	public void setNameColor(ChatColor nameColor) {
 		setData("nameColor", nameColor.name());
 	}
 
+	/**
+	 * Set the undecorated display name of this item.
+	 * 
+	 * @param name
+	 */
 	public void setName(String name) {
 		setData("name", name);
 	}
 
+	/**
+	 * 
+	 * @return The Bukkit walk speed modifier applied to players
+	 * holding this item.
+	 */
 	public double getSpeedBoost() {
 		return (double) getData("speedBoost");
 	}
 
+	/**
+	 * Set the Bukkit walk speed modifier applied to players
+	 * holding this item.
+	 * 
+	 * @param speedBoost
+	 */
 	public void setSpeedBoost(double speedBoost) {
 		setData("speedBoost", speedBoost);
 	}
 
+	/**
+	 * Update the name of this item persistently and locally.
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public ItemStack rename(String name) {
 		setName(name);
 		return localRename(name);
 	}
 
+	/**
+	 * Update the name of this item locally.
+	 * 
+	 * @implSpec Does not persist these changes.
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public ItemStack localRename(String name) {
 		ItemMeta itemMeta = itemStack.getItemMeta();
 		itemMeta.setDisplayName(name);
@@ -197,11 +281,30 @@ public class Item extends GameObject {
 		return itemStack;
 	}
 
+	/**
+	 * Update the <i>custom</i> lore of this item persistently and locally.
+	 * 
+	 * @apiNote Generic lore about damage, speed modifiers, etc. is generated
+	 * automatically.
+	 * 
+	 * @param lore
+	 * @return
+	 */
 	public ItemStack relore(String[] lore) {
 		setLore(Arrays.asList(lore));
 		return localRelore(lore);
 	}
 
+	/**
+	 * Update the <i>custom</i> lore of this item locally.
+	 * 
+	 * @apiNote Generic lore about damage, speed modifiers, etc. is generated 
+	 * automatically.
+	 * @implSpec Does not persist these changes.
+	 * 
+	 * @param lore
+	 * @return
+	 */
 	public ItemStack localRelore(String[] lore) {
 		ItemMeta itemMeta = itemStack.getItemMeta();
 		itemMeta.setLore(getCompleteLore(lore));
@@ -209,106 +312,245 @@ public class Item extends GameObject {
 		return itemStack;
 	}
 
+	/**
+	 * 
+	 * @return The fully decorated name of this item, excluding cooldowns.
+	 */
 	public String getDecoratedName() {
 		return getNameColor() + getName();
 	}
 
+	/**
+	 * 
+	 * @return The Bukkit type of this item.
+	 */
 	public Material getMaterial() {
 		return Material.valueOf((String) getData("materialType"));
 	}
 
+	/**
+	 * Set the Bukkit type of this item persistently and locally.
+	 * 
+	 * @param material
+	 */
 	public void setMaterial(Material material) {
 		setData("materialType", material.toString());
+		itemStack.setType(material);
 	}
 
+	/**
+	 * 
+	 * @return The minimum level required to use this item.
+	 * 
+	 * @apiNote If the minimum level is not met, no modifiers
+	 * will be applied from this item.
+	 */
 	public int getLevelMin() {
 		return (int) getData("lvMin");
 	}
 
+	/**
+	 * Update the minimum level required to use this item.
+	 * 
+	 * @param lvMin
+	 */
 	public void setLevelMin(int lvMin) {
 		setData("lvMin", Integer.valueOf(lvMin));
 	}
 
+	/**
+	 * 
+	 * @return The cooldown in seconds before this item can be used again.
+	 */
 	public double getCooldown() {
 		return (double) getData("cooldown");
 	}
 
+	/**
+	 * Update the cooldown in seconds before this item can be used again.
+	 * 
+	 * @param cooldown
+	 */
 	public void setCooldown(double cooldown) {
 		setData("cooldown", Double.valueOf(cooldown));
 	}
 
+	/**
+	 * 
+	 * @return Whether this item is unbreakable (has infinite durability).
+	 */
 	public boolean isUnbreakable() {
 		return (boolean) getData("unbreakable");
 	}
 
+	/**
+	 * Update this item's unbreakability status.
+	 * 
+	 * @param unbreakable
+	 */
 	public void setUnbreakable(boolean unbreakable) {
 		setData("unbreakable", unbreakable);
 	}
 
+	/**
+	 * 
+	 * @return Whether this item is undroppable.
+	 * 
+	 * @apiNote Staff members in creative mode override this restriction.
+	 */
 	public boolean isUndroppable() {
 		return (boolean) getData("undroppable");
 	}
 
+	/**
+	 * Update this item's undroppability status.
+	 * 
+	 * @apiNote Staff members in creative mode override this restriction.
+	 * 
+	 * @param undroppable
+	 */
 	public void setUndroppable(boolean undroppable) {
 		setData("undroppable", undroppable);
 	}
 
+	/**
+	 * 
+	 * @return The base damage of this item.
+	 */
 	public double getDamage() {
 		return (double) getData("damage");
 	}
 
+	/**
+	 * Update the base damage of this item.
+	 * 
+	 * @param damage
+	 */
 	public void setDamage(double damage) {
 		setData("damage", damage);
 	}
 
+	/**
+	 * 
+	 * @return The base armor (damage absorption) of this item.
+	 * 
+	 * @apiNote Armor is probabilistic, so an armor class of X
+	 * means that damage will be reduced by between 0 and X points.
+	 */
 	public double getArmor() {
 		return (double) getData("armor");
 	}
-
+	
+	/**
+	 * 
+	 * Update the base armor (damage absorption) of this item.
+	 * 
+	 * @apiNote Armor is probabilistic, so an armor class of X
+	 * means that damage will be reduced by between 0 and X points.
+	 */
 	public void setArmor(double armor) {
 		setData("armor", armor);
 	}
 
+	/**
+	 * 
+	 * @return The <i>custom</i> lore of this item, not including
+	 * any generic lore.
+	 */
 	@SuppressWarnings("unchecked")
 	public List<String> getLore() {
 		return (List<String>) getData("lore");
 	}
 
+	/**
+	 * Update the <i>custom</i> lore of this item, not including 
+	 * any generic lore.
+	 * 
+	 * @param lore
+	 */
 	public void setLore(List<String> lore) {
 		setData("lore", lore);
 	}
 
+	/**
+	 * 
+	 * @return The Bukkit item stack associated with this item.
+	 */
 	public ItemStack getItemStack() {
 		return itemStack;
 	}
 
+	/**
+	 * Change the Bukkit item stack associated with this item.
+	 * 
+	 * <p>May cause synchronization issues or duplication if the
+	 * previously associated item is not disposed of or unregistered
+	 * properly.
+	 * 
+	 * @param itemStack
+	 */
 	public void setItemStack(ItemStack itemStack) {
 		this.itemStack = itemStack;
 		updateItemStackData();
 	}
 
+	/**
+	 * Log a use of this item, for cooldown purposes.
+	 * 
+	 * @implSpec Currently not reflected in persistent data.
+	 */
 	public void registerUse() {
 		getLocalData().append("lastUsed", System.currentTimeMillis());
 	}
 
+	/**
+	 * 
+	 * @return The cooldown remaining in seconds until this item can
+	 * be used again.
+	 */
 	public double getCooldownRemaining() {
 		return Math.max(0.0D, getCooldown() - (System.currentTimeMillis() - (long)(getLocalData().getOrDefault("lastUsed", 0L))) / 1000.0D);
 	}
 
+	/**
+	 * 
+	 * @return Whether there is any cooldown remaining on this item.
+	 */
 	public boolean hasCooldownRemaining() {
 		return Math.abs(getCooldownRemaining()) > 0.001D;
 	}
 
+	/**
+	 * Persist the item quantity to the database.
+	 */
 	@Override
 	public void autoSave() {
 		super.autoSave();
 		setData("quantity", itemStack.getAmount());
 	}
 
+	/**
+	 * 
+	 * @return The maximum size this item can be stacked.
+	 * 
+	 * @apiNote This overrides any Bukkit defaults, meaning
+	 * that (for example) swords can be configured to be stackable
+	 * up to 64.
+	 * 
+	 */
 	public int getMaxStackSize() {
 		return (int) getData("maxStackSize");
 	}
 
+	/**
+	 * Update the maximum stack size of this item.
+	 * 
+	 * @apiNote This overrides any Bukkit defaults, meaning
+	 * that (for example) swords can be configured to be stackable
+	 * up to 64.
+	 * 
+	 * @param maxStackSize
+	 */
 	public void setMaxStackSize(int maxStackSize) {
 		setData("maxStackSize", maxStackSize);
 	}

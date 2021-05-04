@@ -21,9 +21,15 @@ import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.PathfindingUtil;
 
+/**
+ * A behavioral action that an NPC can execute.
+ * 
+ * @author Adam
+ *
+ */
 public class NPCAction {
-	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+	private static QuestLoader questLoader = GameObjectType.QUEST.getLoader();
 
 	private NPCActionType type;
 
@@ -181,6 +187,12 @@ public class NPCAction {
 		return result;
 	}
 
+	/**
+	 * Run the specified action on the specified user and NPC.
+	 * 
+	 * @param user
+	 * @param npc
+	 */
 	public void execute(final User user, NPC npc) {
 		switch (type) {
 		case BEGIN_QUEST:

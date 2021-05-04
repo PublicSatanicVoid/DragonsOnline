@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class PaperPathfindingUtil {
+	private static boolean pathfinderWarned = false;
 	
 	/**
 	 * Calls the Paper Pathfinding API to make the specified entity move to the
@@ -45,6 +46,14 @@ public class PaperPathfindingUtil {
 				}.runTaskTimer(plugin, 0L, 10L);
 				return true;
 			}
+			else if(!pathfinderWarned) {
+				plugin.getLogger().config("Could not pathfind using Paper API: Pathfinder#moveTo returned false");
+				pathfinderWarned = true;
+			}
+		}
+		if(!pathfinderWarned) {
+			plugin.getLogger().config("Could not pathfind using Paper API: Entity type " + entity.getType() + " is not supported");
+			pathfinderWarned = true;
 		}
 		return false;
 	}

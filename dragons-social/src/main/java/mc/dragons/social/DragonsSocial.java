@@ -12,13 +12,12 @@ import mc.dragons.social.messaging.PrivateMessageCommands;
 import mc.dragons.social.shout.ShoutCommand;
 
 public class DragonsSocial extends DragonsJavaPlugin {
-	private Dragons dragons;
 	private SocialUserHook socialHook;
 	
 	public void onEnable() {
 		enableDebugLogging();
 		
-		dragons = Dragons.getInstance();
+		Dragons dragons = getDragonsInstance();
 		dragons.getLightweightLoaderRegistry().register(new GuildLoader(dragons.getMongoConfig()));
 		socialHook = new SocialUserHook();
 		dragons.getUserHookRegistry().registerHook(socialHook);
@@ -41,10 +40,6 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		
 		getCommand("shout").setExecutor(new ShoutCommand());
 		getCommand("channel").setExecutor(new ChannelCommand());
-	}
-	
-	public Dragons getDragonsInstance() {
-		return dragons;
 	}
 	
 	public SocialUserHook getSocialHook() {

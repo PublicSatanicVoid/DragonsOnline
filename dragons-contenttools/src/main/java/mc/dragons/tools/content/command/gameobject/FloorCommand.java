@@ -41,7 +41,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 	
 	private static void pushFloor(Floor floor) {
 		Bukkit.getLogger().info("Pushing floor " + floor.getDisplayName());
-		String pushRoot = DragonsContentTools.PUSH_FOLDER + Dragons.getInstance().getServerName() + "\\";
+		String pushRoot = DragonsContentTools.PUSH_FOLDER;
 		File pushFolder = new File(pushRoot + floor.getWorldName());
 		pushFolder.mkdirs();
 		World world = floor.getWorld();

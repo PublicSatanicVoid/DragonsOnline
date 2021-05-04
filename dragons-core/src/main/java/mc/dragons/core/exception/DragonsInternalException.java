@@ -1,7 +1,6 @@
 package mc.dragons.core.exception;
 
 import java.util.UUID;
-import java.util.logging.Level;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.logging.DragonsLogger;
@@ -22,8 +21,6 @@ public class DragonsInternalException extends RuntimeException {
 	
 	public DragonsInternalException(String message, UUID correlationID) {
 		super(message);
-		LOGGER.log(correlationID, Level.SEVERE, "[EXCEPTION] " + message);
+		LOGGER.severe(correlationID, "[EXCEPTION] " + message);
 	}
-
-
 }

@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Ageable;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Damageable;
@@ -41,11 +42,35 @@ import mc.dragons.core.util.StringUtil;
  * <p>There is a many-to-many has-a relationship between
  * RPG NPC types and Minecraft NPC types.
  * 
+ * <p>In contrast to other RPGs, the term "NPC" is used here
+ * to refer to <i>any</i> custom entity which is registered
+ * to a game object. Thus, "mobs" and "characters" are both
+ * considered NPCs.
+ * 
+ * <p>The NPCTypes of HOSTILE and NEUTRAL refer to "mobs",
+ * while QUEST, SHOP, PERSISTENT, and COMPANION refer to
+ * "characters".
+ * 
+ * <p>Some NPCs may be persistent and only exist in one fixed
+ * place, while others may be non-persistent and spawn regularly
+ * in a given region. This all depends upon their function in
+ * the game.
+ * 
  * @author Adam
  *
  */
 public class NPC extends GameObject {
 
+	/**
+	 * The behavioral class of an NPC.
+	 * 
+	 * <p>Different types are associated with different
+	 * default settings for AI, vulnerability, persistence,
+	 * etc.
+	 * 
+	 * @author Adam
+	 *
+	 */
 	public enum NPCType {
 		HOSTILE(ChatColor.RED, "", false, false, true, false, false),
 		NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),
@@ -106,9 +131,19 @@ public class NPC extends GameObject {
 	protected boolean isDamageExternalized = false;
 
 	protected static GameObjectRegistry registry = Dragons.getInstance().getGameObjectRegistry();
-	protected static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+	protected static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
 	protected static EntityHider entityHider = Dragons.getInstance().getEntityHider();
 
+	/**
+	 * Lazy construction of the NPC. It will exist in memory but the NPC will not
+	 * be spawned until the async spawn handler is called.
+	 * 
+	 * @param loc The location to spawn the NPC at.
+	 * @param asyncSpawnHandler List of async spawn handlers to add this NPC's spawn
+	 * 	handler to.
+	 * @param storageManager
+	 * @param storageAccess
+	 */
 	public NPC(Location loc, List<BukkitRunnable> asyncSpawnHandler, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		asyncSpawnHandler.add(new BukkitRunnable() {
@@ -119,7 +154,7 @@ public class NPC extends GameObject {
 				initializeEntity();
 				initializeAddons();
 				long duration = System.currentTimeMillis() - start;
-				Bukkit.getLogger().finer("Spawned " + getUUID() + " - " + getNPCClass().getClassName() + " in " + duration + "ms");
+				LOGGER.verbose("Spawned " + getUUID() + " - " + getNPCClass().getClassName() + " in " + duration + "ms (" + StringUtil.entityToString(entity) + ")");
 			}
 		});
 	}
@@ -132,6 +167,9 @@ public class NPC extends GameObject {
 		initializeAddons();
 	}
 
+	/**
+	 * Call once when the backing Bukkit entity is set or changed.
+	 */
 	public void initializeEntity() {
 		entity.setCustomName(getDecoratedName());
 		entity.setCustomNameVisible(true);
@@ -139,6 +177,10 @@ public class NPC extends GameObject {
 		Dragons.getInstance().getBridge().setEntityAI(entity, getNPCClass().hasAI());
 		Dragons.getInstance().getBridge().setEntityInvulnerable(entity, isImmortal());
 		// TODO configurable baby status if ageable
+		if(entity instanceof Ageable) {
+			Ageable ageable = (Ageable) entity;
+			ageable.setAdult();
+		}
 		if (entity.isInsideVehicle()) {
 			entity.getVehicle().eject();
 		}
@@ -155,14 +197,26 @@ public class NPC extends GameObject {
 		entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
 	}
 	
+	/**
+	 * Call once during construction.
+	 */
 	public void initializeAddons() {
 		getNPCClass().getAddons().forEach(addon -> addon.initialize(this));
 	}
 
+	/**
+	 * 
+	 * @return Whether damage to this NPC comes from other entities.
+	 */
 	public boolean isDamageExternalized() {
 		return isDamageExternalized;
 	}
 
+	/**
+	 * Set whether damage to this NPC comes from other entities.
+	 * 
+	 * @param externalized
+	 */
 	public void setDamageExternalized(boolean externalized) {
 		isDamageExternalized = externalized;
 	}
@@ -179,7 +233,7 @@ public class NPC extends GameObject {
 		if (entity instanceof Attributable) {
 			Attributable attributable = (Attributable) entity;
 			attributable.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
-			setData("maxHealth", Double.valueOf(maxHealth));
+			setData("maxHealth", maxHealth);
 		}
 	}
 
@@ -235,9 +289,13 @@ public class NPC extends GameObject {
 	}
 
 	public boolean isImmortal() {
-		return ((Boolean) getData("immortal")).booleanValue();
+		return (boolean) getData("immortal");
 	}
 
+	/**
+	 * Specify an armor stand to show this NPC's health status.
+	 * @param indicator
+	 */
 	public void setExternalHealthIndicator(ArmorStand indicator) {
 		healthIndicator.setCustomNameVisible(false);
 		healthIndicator = indicator;
@@ -250,7 +308,7 @@ public class NPC extends GameObject {
 	}
 
 	public void updateHealthBar(double additionalDamage) {
-		healthIndicator.setCustomName(String.valueOf(getDecoratedName()) + (isImmortal() ? ChatColor.LIGHT_PURPLE + " [Immortal]"
+		healthIndicator.setCustomName(getDecoratedName() + (isImmortal() ? ChatColor.LIGHT_PURPLE + " [Immortal]"
 				: ChatColor.DARK_GRAY + " [" + ProgressBarUtil.getHealthBar(getHealth() - additionalDamage, getMaxHealth()) + ChatColor.DARK_GRAY + "]"));
 	}
 
@@ -259,7 +317,7 @@ public class NPC extends GameObject {
 	}
 
 	public String getDecoratedName() {
-		return String.valueOf(getNPCType().getPrefix()) + getNPCType().getNameColor() + getName() + ChatColor.GRAY + " Lv " + getLevel();
+		return getNPCType().getPrefix() + getNPCType().getNameColor() + getName() + ChatColor.GRAY + " Lv " + getLevel();
 	}
 
 	public NPCType getNPCType() {
@@ -296,6 +354,11 @@ public class NPC extends GameObject {
 		registry.removeFromDatabase(this);
 	}
 
+	/**
+	 * Only allow this NPC to appear to the specified player.
+	 * 
+	 * @param playerFor
+	 */
 	public void phase(Player playerFor) {
 		LOGGER.trace("Phasing NPC " + getIdentifier() + " for " + playerFor.getName());
 		for (Player p : Bukkit.getOnlinePlayers()) {
@@ -306,6 +369,11 @@ public class NPC extends GameObject {
 		entityHider.showEntity(playerFor, entity);
 	}
 
+	/**
+	 * Hide this NPC from the specified player.
+	 * 
+	 * @param playerFor
+	 */
 	public void unphase(Player playerFor) {
 		entityHider.hideEntity(playerFor, entity);
 	}

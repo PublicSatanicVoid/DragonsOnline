@@ -44,17 +44,11 @@ import mc.dragons.core.events.PlayerEventListeners;
 import mc.dragons.core.events.WorldEventListeners;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
-import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
-import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
-import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.quest.QuestLoader;
-import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.SidebarManager;
 import mc.dragons.core.gameobject.user.User;
@@ -228,7 +222,7 @@ public class Dragons extends DragonsJavaPlugin {
 
 	@Override
 	public void onEnable() {
-		getLogger().info("Removing unwanted entities...");
+		getLogger().info("Removing stale entities...");
 		boolean hasFixed = false;
 		for (Entity e : getEntities()) {
 			if(e.getPersistentDataContainer().has(FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
@@ -253,11 +247,11 @@ public class Dragons extends DragonsJavaPlugin {
 		// and regions cannot be loaded before their associated floors have been loaded.
 		
 		getLogger().info("Loading game objects...");
-		GameObjectType.FLOOR.<Floor, FloorLoader>getLoader().lazyLoadAll();
-		GameObjectType.REGION.<Region, RegionLoader>getLoader().lazyLoadAll();
-		GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader().lazyLoadAll();
-		GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader().lazyLoadAll();
-		GameObjectType.QUEST.<Quest, QuestLoader>getLoader().lazyLoadAll();
+		GameObjectType.getLoader(FloorLoader.class).lazyLoadAll();
+		GameObjectType.getLoader(RegionLoader.class).lazyLoadAll();
+		GameObjectType.getLoader(ItemClassLoader.class).lazyLoadAll();
+		GameObjectType.getLoader(NPCClassLoader.class).lazyLoadAll();
+		GameObjectType.getLoader(QuestLoader.class).lazyLoadAll();
 		
 		// If the server did not shut down gracefully (and sometimes if it did) there may be
 		// entities remaining from the previous instance which are no longer linked to a
@@ -267,7 +261,7 @@ public class Dragons extends DragonsJavaPlugin {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				GameObjectType.NPC.<NPC, NPCLoader>getLoader().lazyLoadAllPermanent();
+				GameObjectType.getLoader(NPCLoader.class).lazyLoadAllPermanent();
 				getLogger().info("Flushing invalid game objects from initial load...");
 				new BukkitRunnable() {
 					int i = 1;

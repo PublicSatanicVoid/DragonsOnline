@@ -60,4 +60,20 @@ public enum GameObjectType {
 		}
 		return null;
 	}
+	
+	/**
+	 * 
+	 * @param <GT>
+	 * @param <T>
+	 * @param clazz
+	 * @return The loader associated with the specified class.
+	 */
+	public static <GT extends GameObject, T extends GameObjectLoader<GT>> T getLoader(Class<? extends T> clazz) {
+		for(GameObjectType type : values()) {
+			if(type.getLoader().getClass().isAssignableFrom(clazz)) {
+				return type.getLoader();
+			}
+		}
+		return null;
+	}
 }

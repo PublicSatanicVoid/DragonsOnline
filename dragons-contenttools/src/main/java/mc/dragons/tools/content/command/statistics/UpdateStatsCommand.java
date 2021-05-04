@@ -34,20 +34,24 @@ public class UpdateStatsCommand extends DragonsCommandExecutor {
 			}
 			sender.sendMessage(ChatColor.GREEN + "Updated XP of " + target.getName());
 		}
+		
 		else if(args[1].equalsIgnoreCase("level")) {
 			int level = Integer.valueOf(args[2]);
 			double max = User.calculateMaxXPDecimal(level);
 			target.setXP((int) Math.ceil(max+1));
 			sender.sendMessage(ChatColor.GREEN + "Updated level of " + target.getName());
 		}
+		
 		else if(args[1].equalsIgnoreCase("gold")) {
 			target.setGold(Double.valueOf(args[2]));
 			sender.sendMessage(ChatColor.GREEN + "Updated gold balance of " + target.getName());
 		}
+		
 		else if(args[1].equalsIgnoreCase("health")) {
 			target.getPlayer().setHealth(Double.valueOf(args[2]));
 			sender.sendMessage(ChatColor.GREEN + "Updated health of " + target.getName());
 		}
+		
 		else if(args[1].equalsIgnoreCase("maxHealth")) {
 			if(target.getPlayer() == null) {
 				sender.sendMessage(ChatColor.RED + "The specified player must be online to set their max health.");
@@ -56,11 +60,13 @@ public class UpdateStatsCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Updated local max health of " + target.getName());
 			sender.sendMessage(ChatColor.YELLOW + "Warning: This change will only persist until the player rejoins.");
 		}
+		
 		else if(args[1].startsWith("skill.")) {
 			String skillName = args[1].replaceAll("skill.", "").toUpperCase();
 			SkillType skill = StringUtil.parseEnum(sender, SkillType.class, skillName);
 			target.setSkillProgress(skill, Double.valueOf(args[2]));
 		}
+		
 		else if(args[1].equalsIgnoreCase("savedLocation") && requirePlayer(sender)) {
 			if(!(sender instanceof Player)) {
 				sender.sendMessage(ChatColor.RED + "This sub-command requires that you be in-game.");
@@ -69,6 +75,7 @@ public class UpdateStatsCommand extends DragonsCommandExecutor {
 			target.setSavedLocation(player(sender).getLocation());
 			sender.sendMessage(ChatColor.GREEN + "Updated saved location of " + target.getName());
 		}
+		
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid usage! /updatestats");
 		}

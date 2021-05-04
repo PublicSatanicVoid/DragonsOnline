@@ -38,12 +38,20 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
+/**
+ * An action that can be executed as part of a quest stage.
+ * 
+ * @author Adam
+ *
+ */
 public class QuestAction {
-	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-	private static NPCLoader npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
-	private static ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+	private static NPCLoader npcLoader = GameObjectType.NPC.getLoader();
+	private static ItemLoader itemLoader = GameObjectType.ITEM.getLoader();
 
+	private QuestAction() {}
+	
 	private Quest quest;
 	private QuestActionType action;
 	private String npcClassShortName;
@@ -63,6 +71,16 @@ public class QuestAction {
 	private int waitTime;
 	private Map<String, Integer> choices;
 
+	/**
+	 * The result of executing a quest action.
+	 * 
+	 * <p>Indicates whether the quest progression needs
+	 * to be halted or if the normal stage progression
+	 * was overridden by the action logic.
+	 * 
+	 * @author Adam
+	 *
+	 */
 	public static class QuestActionResult {
 		private boolean stageModified;
 
@@ -395,6 +413,12 @@ public class QuestAction {
 		return choices;
 	}
 
+	/**
+	 * Run this action on the specified user.
+	 * 
+	 * @param user
+	 * @return The result of running this action.
+	 */
 	public QuestActionResult execute(final User user) {
 		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) return new QuestActionResult(false, false);
 		if (action == QuestActionType.TELEPORT_PLAYER) {

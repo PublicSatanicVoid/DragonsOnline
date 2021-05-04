@@ -8,8 +8,15 @@ import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.user.User;
 
+/**
+ * A condition, or a predicate on the user who initiated it, which must be fulfilled for
+ * one or more associated behavioral actions of the targeted NPC to be performed.
+ * 
+ * @author Adam
+ *
+ */
 public class NPCCondition {
-	private static QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+	private static QuestLoader questLoader = GameObjectType.QUEST.getLoader();
 	
 	private NPCConditionType type;
 	private boolean inverse;
@@ -116,6 +123,11 @@ public class NPCCondition {
 		return document;
 	}
 
+	/**
+	 * 
+	 * @param user
+	 * @return Whether this condition is fulfilled if triggered by the specified user.
+	 */
 	public boolean test(User user) {
 		QuestStep step;
 		boolean result = false;
