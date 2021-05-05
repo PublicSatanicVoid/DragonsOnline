@@ -22,6 +22,7 @@ import mc.dragons.dev.DragonsDev;
 import mc.dragons.dev.notifier.DiscordNotifier;
 import mc.dragons.dev.notifier.DiscordNotifier.DiscordRole;
 import mc.dragons.dev.tasks.TaskLoader.Task;
+import mc.dragons.dev.tasks.TaskLoader.TaskTag;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -108,6 +109,10 @@ public class TaskCommands extends DragonsCommandExecutor {
 		buildNotifier.sendNotification("[Tasks] " + ChatColor.stripColor(BaseComponent.toLegacyText(message)) + " " + buildNotifier.mentionRoles(roles));
 	}
 	
+	private void taskAlert(BaseComponent message, Task task) {
+		taskAlert(message, task.getNotifyRoles());
+	}
+	
 	private Task lookupTask(CommandSender sender, String idString) {
 		Integer id = parseInt(sender, idString);
 		if(id == null) return null;
@@ -129,8 +134,8 @@ public class TaskCommands extends DragonsCommandExecutor {
 			return;
 		}
 		boolean mgr = hasPermission(sender, SystemProfileFlag.TASK_MANAGER);
-		boolean dev = desc.contains("[Dev]");
-		boolean gm = desc.contains("[GM]");
+//		boolean dev = desc.contains("[Dev]");
+//		boolean gm = desc.contains("[GM]");
 		Task task = taskLoader.addTask(user(sender), desc);
 		if(mgr) {
 			task.setApproved(true, user(sender));
@@ -149,14 +154,17 @@ public class TaskCommands extends DragonsCommandExecutor {
 				u.getPlayer().spigot().sendMessage(options, approve, space, reject, space, view, space, go);
 			});
 		}
-		else if(dev) {
-			taskAlert(mentionTask(task, "A new development task has been created and auto-approved: " + ACCENT + data), DiscordRole.DEVELOPER);
-		}
-		else if(gm) {
-			taskAlert(mentionTask(task, "A new GM task has been created and auto-approved: " + ACCENT + data), DiscordRole.GAME_MASTER);
-		}
+//		else if(dev) {
+//			taskAlert(mentionTask(task, "A new development task has been created and auto-approved: " + ACCENT + data), DiscordRole.DEVELOPER);
+//		}
+//		else if(gm) {
+//			taskAlert(mentionTask(task, "A new GM task has been created and auto-approved: " + ACCENT + data), DiscordRole.GAME_MASTER);
+//		}
+//		else {
+//			taskAlert(mentionTask(task, "A new task has been created and auto-approved: " + ACCENT + data), DiscordRole.BUILDER);
+//		}
 		else {
-			taskAlert(mentionTask(task, "A new task has been created and auto-approved: " + ACCENT + data), DiscordRole.BUILDER);
+			taskAlert(mentionTask(task, "A new task has been created and auto-approved: " + ACCENT + data), task);
 		}
 		if(mgr) {
 			TextComponent selfAssign = selfAssignText(task.getId());
@@ -328,7 +336,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		task.setDone(false);
 		task.setApproved(true, user(sender));
 		sender.sendMessage(PREFIX + "Re-opened task " + ACCENT + "#" + args[0] + REGULAR + ".");
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + ", " + task.getName() + REGULAR + " was re-opened."), DiscordRole.BUILDER);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + ", " + task.getName() + REGULAR + " was re-opened."), task);
 	}
 	
 	private void deleteTaskCommand(CommandSender sender, String[] args) {
@@ -359,15 +367,16 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(target != null) {
 			target.sendMessage(PREFIX + "Your task " + ACCENT + "#" + args[0] + " (" + task.getName() + ") " + REGULAR + "was accepted!");
 		}
-		if(task.getName().contains("[Dev]")) {
-			taskAlert(mentionTask(task, "Development task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.DEVELOPER);
-		}
-		else if(task.getName().contains("[GM]")) {
-			taskAlert(mentionTask(task, "GM task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.GAME_MASTER);
-		}
-		else {
-			taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.BUILDER);
-		}
+//		if(task.getName().contains("[Dev]")) {
+//			taskAlert(mentionTask(task, "Development task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.DEVELOPER);
+//		}
+//		else if(task.getName().contains("[GM]")) {
+//			taskAlert(mentionTask(task, "GM task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.GAME_MASTER);
+//		}
+//		else {
+//			taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.BUILDER);
+//		}
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), task);
 		TextComponent selfAssign = selfAssignText(task.getId());
 		TextComponent otherAssign = assignText(task.getId());
 		TextComponent go = gotoText(task.getId());
@@ -394,7 +403,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(target != null) {
 			target.sendMessage(PREFIX + ChatColor.RED + "Your task #" + args[0] + " (" + task.getName() + ") was rejected.");
 		}
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was rejected."), DiscordRole.BUILDER);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was rejected."), task);
 	}
 	
 	private void assign(CommandSender sender, String[] args) {
@@ -452,7 +461,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		task.setClosed(true);
 		sender.sendMessage(PREFIX + "Marked task " + ACCENT + "#" + args[0] + REGULAR + " as closed.");
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was marked as closed"), DiscordRole.BUILDER);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was marked as closed"), task);
 	}
 	
 	private void taskLocCommand(CommandSender sender, String[] args) {
@@ -467,7 +476,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		task.setLocation(player(sender).getLocation());
 		sender.sendMessage(PREFIX + "Moved location of task " + ACCENT + "#" + args[0] + REGULAR + " to your current location.");
 		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was moved to " + ACCENT + StringUtil.locToString(task.getLocation()) + " in world " + task.getLocation().getWorld().getName()), 
-				DiscordRole.BUILDER);
+				task);
 	}
 	
 	private void taskNoteCommand(CommandSender sender, String[] args) {
@@ -579,7 +588,6 @@ public class TaskCommands extends DragonsCommandExecutor {
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GOLD + "[View My Tasks]", "/tasks my", "Click to view your open tasks"), space,
 					StringUtil.clickableHoverableText(ChatColor.GRAY + "[View In-Progress Tasks]", "/tasks approved", "Click to view all in-progress tasks"));
 		}
-		
 		return true;
 	}
 
@@ -597,8 +605,12 @@ public class TaskCommands extends DragonsCommandExecutor {
 	}
 	
 	private String formatName(Task task) {
-		return (getStrikethrough(task) + task.getName()).replaceAll(Pattern.quote("[Dev] "), ChatColor.AQUA + "[Dev] " + ACCENT + getStrikethrough(task))
-				.replaceAll(Pattern.quote("[GM] "), ChatColor.GREEN + "[GM] " + ACCENT + getStrikethrough(task));
+		String strike = getStrikethrough(task);
+		String formatted = strike + task.getName();
+		for(TaskTag tag : TaskTag.values()) {
+			formatted = formatted.replaceFirst(Pattern.quote("[" + tag.getName() + "]"), ChatColor.AQUA + "[" + tag.getName() + "]" + ChatColor.YELLOW + strike);
+		}
+		return formatted;
 	}
 	
 	private String format(Task task) {

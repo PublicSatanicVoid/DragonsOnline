@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.util.HttpUtil;
 import mc.dragons.dev.DragonsDev;
+import mc.dragons.dev.tasks.TaskLoader.Task;
 
 public class DiscordNotifier {
 	private static FileConfiguration config = JavaPlugin.getPlugin(DragonsDev.class).getConfig();
@@ -48,6 +49,10 @@ public class DiscordNotifier {
 	public void sendNotification(String message) {
 		if(!enabled) return;
 		HttpUtil.post(webhookUrl, Map.of("content", message));
+	}
+	
+	public void sendTaskNotification(Task task, String message) {
+		sendNotification(message + " " + mentionRoles(task.getNotifyRoles()));
 	}
 	
 	public boolean isEnabled() { return enabled; }

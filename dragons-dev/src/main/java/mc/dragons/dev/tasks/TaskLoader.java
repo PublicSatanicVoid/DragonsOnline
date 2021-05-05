@@ -2,6 +2,7 @@ package mc.dragons.dev.tasks;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
+import mc.dragons.dev.notifier.DiscordNotifier.DiscordRole;
 import mc.dragons.dev.tasks.TaskLoader.Task;
 
 public class TaskLoader extends AbstractLightweightLoader<Task> {
@@ -27,6 +29,52 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	
 	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
 	private static Map<Integer, Task> taskPool = new HashMap<>();
+	
+	public static enum TaskTag {
+		BUILD(DiscordRole.BUILDER, "Builder", true),
+		DEV(DiscordRole.DEVELOPER, "Dev", false),
+		GM(DiscordRole.GAME_MASTER, "GM", false),
+		META(DiscordRole.TASK_MANAGER, "Meta", false);
+		
+		private DiscordRole notifyRole;
+		private String name;
+		private boolean isDefault;
+		
+		TaskTag(DiscordRole notifyRole, String name, boolean isDefault) {
+			this.notifyRole = notifyRole;
+			this.name = name;
+			this.isDefault = isDefault;
+		}
+		
+		public DiscordRole getNotifyRole() {
+			return notifyRole;
+		}
+		
+		public String getName() {
+			return name;
+		}
+		
+		public boolean isDefault() {
+			return isDefault;
+		}
+		
+		public static TaskTag[] fromTaskName(String taskName) {
+			List<TaskTag> result = new ArrayList<>();
+			for(TaskTag tag : values()) {
+				if(taskName.contains(tag.getName())) {
+					result.add(tag);
+				}
+			}
+			if(result.isEmpty()) {
+				for(TaskTag tag : values()) {
+					if(tag.isDefault()) {
+						result.add(tag);
+					}
+				}
+			}
+			return result.toArray(new TaskTag[result.size()]);
+		}
+	}
 	
 	public static class Task {
 		private static TaskLoader taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
@@ -88,6 +136,14 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		public void setLocation(Location loc) {
 			data.append("location", StorageUtil.locToDoc(loc));
 			save();
+		}
+		
+		public TaskTag[] getTags() {
+			return TaskTag.fromTaskName(getName());
+		}
+		
+		public DiscordRole[] getNotifyRoles() {
+			return Arrays.stream(getTags()).map(tag -> tag.getNotifyRole()).collect(Collectors.toList()).toArray(new DiscordRole[] {});
 		}
 		
 		public Document toDocument() {
@@ -192,7 +248,6 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	
 	public void deleteTask(Task delete) {
 		collection.deleteOne(new Document("_id", delete.getId()));
-		
 	}
 	
 	public Task addTask(User by, String name) {
