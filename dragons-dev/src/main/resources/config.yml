@@ -22,5 +22,12 @@ staff-advice:
   
 # World backup settings
 backup:
+  # Root folder to which backups are saved.
   folder: 'C:\\DragonsBackups\\'
-  period-minutes: 30
+  
+  # How frequently backups are made.
+  period-minutes: 60
+  
+  # How long backups are kept before being deleted.
+  # Set to -1 to keep backups indefinitely.
+  retention-days: 30

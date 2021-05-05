@@ -46,24 +46,36 @@ public class LogLevel extends Level {
 	/**
 	 * Marshal between JUL and log4j levels.
 	 * 
-	 * @param level
-	 * @return
+	 * @param level The JUL level
+	 * @return The corresponding log4j level
 	 */
 	public static org.apache.logging.log4j.Level fromJUL(Level level) {
-		if (level == Level.ALL) {
-			return org.apache.logging.log4j.Level.ALL;
-		}
-		else if (level == Level.SEVERE) {
+		if (level == Level.SEVERE) {
 			return org.apache.logging.log4j.Level.ERROR;
 		}
 		else if (level == Level.WARNING) {
 			return org.apache.logging.log4j.Level.WARN;
 		}
-		else if (level == Level.INFO) {
-			return org.apache.logging.log4j.Level.INFO;
-		}
 		else {
 			return log4j(level.getName());
+		}
+	}
+	
+	/**
+	 * Marshal between JUL and log4j levels.
+	 * 
+	 * @param level The log4j level
+	 * @return The corresponding JUL level
+	 */
+	public static Level fromLog4j(org.apache.logging.log4j.Level level) {
+		if(level == org.apache.logging.log4j.Level.ERROR) {
+			return Level.SEVERE;
+		}
+		else if(level == org.apache.logging.log4j.Level.WARN) {
+			return Level.WARNING;
+		}
+		else {
+			return Level.parse(level.toString());
 		}
 	}
 	

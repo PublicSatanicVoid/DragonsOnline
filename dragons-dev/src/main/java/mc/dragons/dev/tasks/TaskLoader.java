@@ -27,7 +27,7 @@ import mc.dragons.dev.tasks.TaskLoader.Task;
 public class TaskLoader extends AbstractLightweightLoader<Task> {
 	private static final String TASK_COLLECTION = "tasks";
 	
-	private static UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private static UserLoader userLoader = GameObjectType.USER.getLoader();
 	private static Map<Integer, Task> taskPool = new HashMap<>();
 	
 	public static enum TaskTag {

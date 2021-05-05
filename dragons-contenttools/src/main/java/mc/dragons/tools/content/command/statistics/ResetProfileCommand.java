@@ -1,5 +1,7 @@
 package mc.dragons.tools.content.command.statistics;
 
+import java.util.logging.Level;
+
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
@@ -41,7 +43,8 @@ public class ResetProfileCommand extends DragonsCommandExecutor {
 		target.setChatSpy(false);
 		target.setGodMode(false);
 		target.setGameMode(GameMode.ADVENTURE, true);
-		target.setDebuggingErrors(false);
+//		target.setDebuggingErrors(false);
+		target.setStreamConsoleLevel(Level.OFF);
 		target.clearInventory();
 		for(SkillType skill: SkillType.values()) {
 			target.setSkillLevel(skill, 0);

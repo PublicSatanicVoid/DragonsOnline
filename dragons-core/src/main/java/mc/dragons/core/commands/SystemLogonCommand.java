@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -265,7 +266,8 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		if(args.length > 1 && args[1].equalsIgnoreCase("-clean")) {
 			player.teleport(user.getSavedLocation());
 			player.setGameMode(GameMode.ADVENTURE);
-			user.setDebuggingErrors(false);
+//			user.setDebuggingErrors(false);
+			user.setStreamConsoleLevel(Level.OFF);
 			user.setChatSpy(false);
 			user.setGodMode(false);
 			user.setVanished(false);

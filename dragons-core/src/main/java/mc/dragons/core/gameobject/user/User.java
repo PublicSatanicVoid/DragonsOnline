@@ -122,7 +122,8 @@ public class User extends GameObject {
 	private Map<Quest, QuestPauseState> questPauseStates;
 	private Map<Quest, UUID> questCorrelationIDs; // correlation IDs for logging related to quests
 	private List<CommandSender> currentlyDebugging; // List of users for which this user is currently receiving debug information.
-	private boolean debuggingErrors; // Whether the user will receive errors from the console in the game chat.
+//	private boolean debuggingErrors; // Whether the user will receive errors from the console in the game chat.
+	private Level streamConsoleLevel = Level.OFF; // Minimum level of log messages for the user to receive in the game chat.
 	private List<String> currentDialogueBatch; // Current NPC dialogue the player is reading.
 	private String currentDialogueSpeaker;
 	private int currentDialogueIndex;
@@ -261,12 +262,24 @@ public class User extends GameObject {
 		}
 	}
 
+	@Deprecated
 	public void setDebuggingErrors(boolean on) {
-		debuggingErrors = on;
+//		debuggingErrors = on;
+		setStreamConsoleLevel(Level.WARNING);
 	}
 	
+	@Deprecated
 	public boolean isDebuggingErrors() {
-		return debuggingErrors;
+//		return debuggingErrors;
+		return getStreamConsoleLevel().intValue() <= Level.WARNING.intValue();
+	}
+	
+	public void setStreamConsoleLevel(Level level) {
+		streamConsoleLevel = level;
+	}
+	
+	public Level getStreamConsoleLevel() {
+		return streamConsoleLevel;
 	}
 	
 	public void updateState() {

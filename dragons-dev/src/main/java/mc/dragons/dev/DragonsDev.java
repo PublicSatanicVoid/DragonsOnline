@@ -1,6 +1,13 @@
 package mc.dragons.dev;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -27,6 +34,7 @@ public class DragonsDev extends DragonsJavaPlugin {
 	private static int ADVICE_BROADCASTER_PERIOD_SECONDS;
 	private static String BACKUP_FOLDER;
 	private static int BACKUP_PERIOD_MINUTES;
+	private static int BACKUP_RETENTION_DAYS;
 	
 	private Dragons dragons;
 	private DiscordNotifier buildNotifier;
@@ -35,14 +43,15 @@ public class DragonsDev extends DragonsJavaPlugin {
 		enableDebugLogging();
 		saveDefaultConfig();
 		
-		dragons = Dragons.getInstance();
+		dragons = getDragonsInstance();
 		
 		buildNotifier = new DiscordNotifier(getConfig().getString("discord-notifier-webhook-url"));
 		buildNotifier.setEnabled(getConfig().getBoolean("discord-notifier-enabled"));
 		
 		ADVICE_BROADCASTER_PERIOD_SECONDS = getConfig().getInt("staff-advice.period-seconds", 60 * 2);
 		BACKUP_FOLDER = getConfig().getString("backup.folder", "C:\\DragonsBackups\\");
-		BACKUP_PERIOD_MINUTES = getConfig().getInt("backup.period-minutes", 30);
+		BACKUP_PERIOD_MINUTES = getConfig().getInt("backup.period-minutes", 60);
+		BACKUP_RETENTION_DAYS = getConfig().getInt("backup.retention-days", 30);
 		
 		dragons.getLightweightLoaderRegistry().register(new TaskLoader(dragons));
 		dragons.getUserHookRegistry().registerHook(new DevUserHook());
@@ -77,13 +86,9 @@ public class DragonsDev extends DragonsJavaPlugin {
 		}.runTaskTimer(this, 20L * 60 * BACKUP_PERIOD_MINUTES, 20L * 60 * BACKUP_PERIOD_MINUTES);
 	}
 	
-	public Dragons getDragonsInstance() {
-		return dragons;
-	}
-	
 	public void backupFloors() {
 		getLogger().info("Backing up all floors...");
-		String backupRoot = BACKUP_FOLDER + Dragons.getInstance().getServerName() + " " + StringUtil.dateFormatNow() + "\\";
+		String backupRoot = BACKUP_FOLDER + dragons.getServerName() + " " + StringUtil.dateFormatNow().replaceAll(Pattern.quote(":"), ".") + "\\";
 		for(World world : Bukkit.getWorlds()) {
 			Floor floor = FloorLoader.fromWorld(world);
 			if(floor == null) continue;
@@ -92,7 +97,37 @@ public class DragonsDev extends DragonsJavaPlugin {
 			File sourceFolder = world.getWorldFolder();
 			FileUtil.copyFolder(sourceFolder, backupFolder);
 		}
+		File folder = new File(BACKUP_FOLDER);
+		if(!folder.exists()) {
+			getLogger().warning("Configured backup folder (" + BACKUP_FOLDER + ") does not exist! Cannot inspect past backups to enforce retention policy.");
+		}
+		if(!folder.isDirectory()) {
+			getLogger().warning("Configured backup folder (" + BACKUP_FOLDER + ") is not a directory! Cannot inspect past backups to enforce retention policy.");
+		}
+		List<Path> purge = new ArrayList<>();
+		if(BACKUP_RETENTION_DAYS != -1) {
+			long now = System.currentTimeMillis();
+			try {
+				Files.walk(folder.toPath(), 1, FileVisitOption.FOLLOW_LINKS).forEach(backup -> {
+					int age = 0;
+					try {
+						age = (int) Math.floor((double) (now - Files.getLastModifiedTime(backup).toMillis()) / (1000 * 60 * 60 * 24));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					if(age > BACKUP_RETENTION_DAYS) {
+						purge.add(backup);
+					}
+				});
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			for(Path path : purge) {
+				FileUtil.deleteFolder(path.toFile());
+			}
+		}
 		Bukkit.broadcastMessage(ChatColor.GOLD + "[Dev Server] Automated backup completed successfully.");
+		getLogger().info(purge.size() + " old backups were purged.");
  	}
 	
 	public DiscordNotifier getBuildNotifier() {

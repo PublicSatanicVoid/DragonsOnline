@@ -4,7 +4,7 @@ import org.bukkit.command.CommandExecutor;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
-import mc.dragons.tools.dev.debug.DebugCommand;
+import mc.dragons.tools.dev.debug.DebugCommands;
 import mc.dragons.tools.dev.debug.StateCommands;
 import mc.dragons.tools.dev.debug.StateLoader;
 import mc.dragons.tools.dev.gameobject.AddonCommand;
@@ -33,7 +33,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		
 		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand());
 		getCommand("loglevel").setExecutor(new LogLevelCommand());
-		getCommand("debug").setExecutor(new DebugCommand());
+		
 		getCommand("lag").setExecutor(new LagCommand());
 		getCommand("reloadquests").setExecutor(new ReloadObjectsCommands());
 		getCommand("addon").setExecutor(new AddonCommand());
@@ -95,6 +95,10 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);
 		getCommand("setstate").setExecutor(stateCommands);
+		
+		CommandExecutor debugCommands = new DebugCommands();
+		getCommand("debug").setExecutor(debugCommands);
+		getCommand("streamconsole").setExecutor(debugCommands);
 		
 		CommandExecutor experimentalCommands = new ExperimentalCommands();
 		getCommand("helditemdata").setExecutor(experimentalCommands);

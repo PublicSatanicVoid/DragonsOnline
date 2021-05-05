@@ -145,3 +145,5 @@ commands:
     description: (ADMIN) Write directly to the server log.
   testheader:
   testfooter:
+  streamconsole:
+    description: (ADMIN) Receive console logs in the chat.
