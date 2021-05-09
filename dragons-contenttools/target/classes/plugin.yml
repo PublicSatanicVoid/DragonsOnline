@@ -67,3 +67,5 @@ commands:
   objmeta:
     description: (GM) View metadata about a game object.
     aliases: [obmeta, obmetadata]
+  deletenpc:
+    description: Internal command!

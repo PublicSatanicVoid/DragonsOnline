@@ -37,6 +37,14 @@ public interface Addon {
 	default void initialize(GameObject gameObject) { /* default */ }
 	
 	/**
+	 * Applies this add-on to all applicable game objects.
+	 * 
+	 * <p>Required if this add-on was registered after initial
+	 * load.
+	 */
+	default void apply() { /* default */ }
+	
+	/**
 	 * Called when the add-on is enabled at server start.
 	 */
 	default void onEnable() { /* default */ }

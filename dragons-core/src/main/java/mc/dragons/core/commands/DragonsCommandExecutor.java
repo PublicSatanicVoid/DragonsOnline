@@ -14,11 +14,9 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
-import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
-import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
@@ -47,14 +45,14 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	
 	protected Dragons dragons = Dragons.getInstance();
 	
-	protected UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-	protected FloorLoader floorLoader = GameObjectType.FLOOR.<Floor, FloorLoader>getLoader();
-	protected RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
-	protected NPCLoader npcLoader = GameObjectType.NPC.<NPC, NPCLoader>getLoader();
-	protected NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
-	protected ItemLoader itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
-	protected ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
-	protected QuestLoader questLoader = GameObjectType.QUEST.<Quest, QuestLoader>getLoader();
+	protected UserLoader userLoader = GameObjectType.USER.getLoader();
+	protected FloorLoader floorLoader = GameObjectType.FLOOR.getLoader();
+	protected RegionLoader regionLoader = GameObjectType.REGION.getLoader();
+	protected NPCLoader npcLoader = GameObjectType.NPC.getLoader();
+	protected NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
+	protected ItemLoader itemLoader = GameObjectType.ITEM.getLoader();
+	protected ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+	protected QuestLoader questLoader = GameObjectType.QUEST.getLoader();
 	
 	protected final DragonsLogger LOGGER = dragons.getLogger();
 	protected final GlobalVarLoader VAR = dragons.getLightweightLoaderRegistry().getLoader(GlobalVarLoader.class);
@@ -75,6 +73,7 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	public static final String ERR_NOT_BOOLEAN = ChatColor.RED + "Invalid input! Please specify 'true' or 'false'!";
 	public static final String ERR_NOT_UUID = ChatColor.RED + "Invalid input! Please specify a valid hyphenated UUID, e.g. " + UUID.randomUUID();
 	public static final String ERR_NO_RESULTS = ChatColor.RED + "No results were returned for this query.";
+	public static final String ERR_INTERNAL_ONLY = ChatColor.RED + "This command is for internal use only! Do not run it directly.";
 	
 	
 	/* Helper functions */

@@ -1,6 +1,5 @@
 package mc.dragons.social.friend;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.command.Command;
@@ -29,6 +28,136 @@ public class FriendCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.LIGHT_PURPLE + "/friend toggle" + ChatColor.AQUA + " toggle whether you can receive friend requests.");
 	}
 	
+	private void toggleSelfFriend(CommandSender sender) {
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return;
+		User user = user(sender);
+		user.getLocalData().append("canSelfFriend", !user.getLocalData().getBoolean("canSelfFriend", false));
+		sender.sendMessage(ChatColor.GREEN + "Toggled self-friend ability.");
+	}
+	
+	private void listFriends(CommandSender sender, String[] args) {
+		Integer page = 1;
+		if(args.length > 1) {
+			page = parseInt(sender, args[1]);
+			if(page == null) return;
+		}
+		User user = user(sender);
+		List<User> all = FriendUtil.getFriends(user);
+		List<User> result = PaginationUtil.paginateList(all, page, PAGE_SIZE);
+		sender.sendMessage(ChatColor.DARK_PURPLE + "You have " + all.size() + " friends. Showing page " + page + " of " + (int) Math.ceil((double) all.size() / PAGE_SIZE)); 
+		for(User friend : result) {
+			String status = user.getServer() == null ? ChatColor.DARK_GRAY + "OFFLINE" : ChatColor.GRAY + "ONLINE: " + user.getServer();
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.LIGHT_PURPLE + friend.getName() + ChatColor.GRAY + " - " + status, "/friend remove " + friend.getName(), 
+					ChatColor.RED + "Click to remove " + friend.getName() + " from your friends list."));
+		}
+	}
+	
+	private void removeFriend(CommandSender sender, String[] args) {
+		if(args.length == 1) {
+			sender.sendMessage(ChatColor.RED + "Specify a friend to remove! /friend remove <Player>");
+			return;
+		}
+		User user = user(sender);
+		User target = lookupUser(sender, args[1]);
+		if(target == null) return;
+		if(!FriendUtil.getFriends(user).contains(target)) {
+			sender.sendMessage(ChatColor.RED + "You're not friends with " + target.getName() + "!");
+			return;
+		}
+		boolean success = FriendUtil.removeFriend(user, target);
+		if(!success) {
+			sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
+			return;
+		}
+		sender.sendMessage(ChatColor.LIGHT_PURPLE + "Removed " + target.getName() + " from your friends list.");
+		friendHandler.pushRemove(user, target);
+	}
+	
+	private void ignoreRequest(CommandSender sender, String[] args) {
+		if(args.length == 1) {
+			sender.sendMessage(ChatColor.RED + "Specify a friend request to ignore! /friend ignore <Player>");
+			return;
+		}
+		User user = user(sender);
+		User target = lookupUser(sender, args[1]);
+		if(target == null) return;
+		if(!FriendUtil.getIncoming(user).contains(target)) {
+			sender.sendMessage(ChatColor.RED + "You don't have a friend request from " + target.getName() + "!");
+			return;
+		}
+		boolean success = FriendUtil.denyRequest(user, target);
+		if(!success) {
+			sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
+			return;
+		}
+		sender.sendMessage(ChatColor.LIGHT_PURPLE + "Ignored friend request from " + target.getName());
+		friendHandler.pushIgnore(user, target);
+	}
+	
+	private void listRequests(CommandSender sender, String[] args) {
+		Integer page = 1;
+		if(args.length > 1) {
+			page = parseInt(sender, args[1]);
+			if(page == null) return;
+		}
+		User user = user(sender);
+		List<User> all = FriendUtil.getIncoming(user);
+		List<User> result = PaginationUtil.paginateList(all, page, PAGE_SIZE);
+		sender.sendMessage(ChatColor.DARK_PURPLE + "You have " + all.size() + " incoming friend requests. Showing page " + page + " of " + (int) Math.ceil((double) all.size() / PAGE_SIZE)); 
+		for(User friend : result) {
+			TextComponent accept = StringUtil.clickableHoverableText(ChatColor.GREEN + "" + ChatColor.BOLD + "[ACCEPT] ", "/friend " + friend.getName(), ChatColor.GREEN + "Accept this request");
+			TextComponent reject = StringUtil.clickableHoverableText(ChatColor.GRAY + "" + ChatColor.BOLD + "[IGNORE]   ", "/friend ignore " + friend.getName(), ChatColor.GRAY + "Ignore this request");
+			sender.spigot().sendMessage(accept, reject, new TextComponent(ChatColor.LIGHT_PURPLE + friend.getName()));
+		}
+	}
+	
+	private void toggleRequests(CommandSender sender) {
+		User user = user(sender);
+		FriendUtil.toggleRequests(user);
+		sender.sendMessage(ChatColor.LIGHT_PURPLE + "Toggled incoming friend requests " + (FriendUtil.allowsRequests(user) ? "ON" : "OFF"));
+	}
+	
+	private void sendOrConfirm(CommandSender sender, String[] args) {
+		User user = user(sender);
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return;
+		else if(target.equals(user) && !user.getLocalData().getBoolean("canSelfFriend", false)) {
+			sender.sendMessage(ChatColor.RED + "You can't friend yourself!");
+			return;
+		}
+		else if(FriendUtil.getIncoming(user).contains(target)) {
+			boolean success = FriendUtil.acceptRequest(user, target);
+			if(!success) {
+				sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
+				return;
+			}
+			sender.sendMessage(SUCCESS_PREFIX + ChatColor.LIGHT_PURPLE + "You are now friends with " + target.getName() + "!");
+			friendHandler.pushAccept(user, target);
+		}
+		else if(FriendUtil.getOutgoing(user).contains(target)) {
+			sender.sendMessage(ChatColor.RED + "You've already sent a friend request to " + target.getName() + "!");
+			return;
+		}
+		else if(!FriendUtil.allowsRequests(target)) {
+			sender.sendMessage(ChatColor.RED + target.getName() + " does not allow friend requests!");
+		}
+		else if(target.getBlockedUsers().contains(user)) {
+			sender.sendMessage(ChatColor.RED + target.getName() + " has blocked you!");
+		}
+		else if(user.getBlockedUsers().contains(target)) {
+			sender.sendMessage(ChatColor.RED + "You can't send friend requests to a player you've blocked!");
+		}
+		else {
+			boolean success = FriendUtil.sendRequest(user, target);
+			if(!success) {
+				sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
+				return;
+			}
+			sender.sendMessage(SUCCESS_PREFIX + ChatColor.LIGHT_PURPLE + "Sent a friend request to " + target.getName());
+			friendHandler.pushRequest(user, target);
+		}
+	}
+	
 	public FriendCommand(DragonsSocial instance) {
 		friendHandler = new FriendMessageHandler(instance);
 	}
@@ -36,12 +165,9 @@ public class FriendCommand extends DragonsCommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePlayer(sender)) return true;
-		User user = user(sender);
 		
 		if(label.equalsIgnoreCase("toggleselffriend")) {
-			if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
-			user.getLocalData().append("canSelfFriend", !user.getLocalData().getBoolean("canSelfFriend", false));
-			sender.sendMessage(ChatColor.GREEN + "Toggled self-friend ability.");
+			toggleSelfFriend(sender);
 		}
 		
 		else if(args.length == 0) {
@@ -49,138 +175,27 @@ public class FriendCommand extends DragonsCommandExecutor {
 		}
 		
 		else if(args[0].equalsIgnoreCase("list")) {
-			Integer page = 1;
-			if(args.length > 1) {
-				page = parseInt(sender, args[1]);
-				if(page == null) return true;
-			}
-			List<User> all = FriendUtil.getFriends(user);
-			List<User> result = PaginationUtil.paginateList(all, page, PAGE_SIZE);
-			sender.sendMessage(ChatColor.DARK_PURPLE + "You have " + all.size() + " friends. Showing page " + page + " of " + (int) Math.ceil((double) all.size() / PAGE_SIZE)); 
-			for(User friend : result) {
-				String status = user.getServer() == null ? ChatColor.DARK_GRAY + "OFFLINE" : ChatColor.GRAY + "ONLINE: " + user.getServer();
-				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.LIGHT_PURPLE + friend.getName() + ChatColor.GRAY + " - " + status, "/friend remove " + friend.getName(), 
-						ChatColor.RED + "Click to remove " + friend.getName() + " from your friends list."));
-			}
+			listFriends(sender, args);
 		}
 		
 		else if(args[0].equalsIgnoreCase("remove")) {
-			if(args.length == 1) {
-				sender.sendMessage(ChatColor.RED + "Specify a friend to remove! /friend remove <Player>");
-				return true;
-			}
-			User target = lookupUser(sender, args[1]);
-			if(target == null) return true;
-			if(!FriendUtil.getFriends(user).contains(target)) {
-				sender.sendMessage(ChatColor.RED + "You're not friends with " + target.getName() + "!");
-				return true;
-			}
-			boolean success = FriendUtil.removeFriend(user, target);
-			if(!success) {
-				sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
-				return true;
-			}
-			sender.sendMessage(ChatColor.LIGHT_PURPLE + "Removed " + target.getName() + " from your friends list.");
-			friendHandler.pushRemove(user, target);
+			removeFriend(sender, args);
 		}
 		
 		else if(args[0].equalsIgnoreCase("ignore")) {
-			if(args.length == 1) {
-				sender.sendMessage(ChatColor.RED + "Specify a friend request to ignore! /friend ignore <Player>");
-				return true;
-			}
-			User target = lookupUser(sender, args[1]);
-			if(target == null) return true;
-			if(!FriendUtil.getIncoming(user).contains(target)) {
-				sender.sendMessage(ChatColor.RED + "You don't have a friend request from " + target.getName() + "!");
-				return true;
-			}
-			boolean success = FriendUtil.denyRequest(user, target);
-			if(!success) {
-				sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
-				return true;
-			}
-			sender.sendMessage(ChatColor.LIGHT_PURPLE + "Ignored friend request from " + target.getName());
-			friendHandler.pushIgnore(user, target);
+			ignoreRequest(sender, args);
 		}
 		
 		else if(args[0].equalsIgnoreCase("requests")) {
-			Integer page = 1;
-			if(args.length > 1) {
-				page = parseInt(sender, args[1]);
-				if(page == null) return true;
-			}
-			List<User> all = FriendUtil.getIncoming(user);
-			List<User> result = PaginationUtil.paginateList(all, page, PAGE_SIZE);
-			sender.sendMessage(ChatColor.DARK_PURPLE + "You have " + all.size() + " incoming friend requests. Showing page " + page + " of " + (int) Math.ceil((double) all.size() / PAGE_SIZE)); 
-			for(User friend : result) {
-				TextComponent accept = StringUtil.clickableHoverableText(ChatColor.GREEN + "" + ChatColor.BOLD + "[ACCEPT] ", "/friend " + friend.getName(), ChatColor.GREEN + "Accept this request");
-				TextComponent reject = StringUtil.clickableHoverableText(ChatColor.GRAY + "" + ChatColor.BOLD + "[IGNORE]   ", "/friend ignore " + friend.getName(), ChatColor.GRAY + "Ignore this request");
-				sender.spigot().sendMessage(accept, reject, new TextComponent(ChatColor.LIGHT_PURPLE + friend.getName()));
-			}
+			listRequests(sender, args);
 		}
 		
 		else if(args[0].equalsIgnoreCase("toggle")) {
-			FriendUtil.toggleRequests(user);
-			sender.sendMessage(ChatColor.LIGHT_PURPLE + "Toggled incoming friend requests " + (FriendUtil.allowsRequests(user) ? "ON" : "OFF"));
-		}
-		
-		else if(args[0].equalsIgnoreCase("dump")) {
-			if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
-			sender.sendMessage("Friends: " + StringUtil.parseList(FriendUtil.getFriends(user)));
-			sender.sendMessage(" - UUID: " + StringUtil.parseList(FriendUtil.getFriendsUUID(user)));
-			sender.sendMessage("Incoming: " + StringUtil.parseList(FriendUtil.getIncoming(user)));
-			sender.sendMessage(" - UUID: " + StringUtil.parseList(FriendUtil.getFriendsIncomingUUID(user)));
-			sender.sendMessage("Outgoing: " + StringUtil.parseList(FriendUtil.getOutgoing(user)));
-			sender.sendMessage(" - UUID: " + StringUtil.parseList(FriendUtil.getFriendsOutgoingUUID(user)));
-		}
-		
-		else if(args[0].equalsIgnoreCase("purge")) {
-			if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
-			user.getStorageAccess().set("friends", new ArrayList<>());
-			user.getStorageAccess().set("friendsIncoming", new ArrayList<>());
-			user.getStorageAccess().set("friendsOutgoing", new ArrayList<>());
-			sender.sendMessage("Purged all friend data");
+			toggleRequests(sender);
 		}
 		
 		else {
-			User target = lookupUser(sender, args[0]);
-			if(target == null) return true;
-			else if(target.equals(user) && !user.getLocalData().getBoolean("canSelfFriend", false)) {
-				sender.sendMessage(ChatColor.RED + "You can't friend yourself!");
-				return true;
-			}
-			else if(FriendUtil.getIncoming(user).contains(target)) {
-				boolean success = FriendUtil.acceptRequest(user, target);
-				if(!success) {
-					sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
-					return true;
-				}
-				sender.sendMessage(SUCCESS_PREFIX + ChatColor.LIGHT_PURPLE + "You are now friends with " + target.getName() + "!");
-				friendHandler.pushAccept(user, target);
-			}
-			else if(FriendUtil.getOutgoing(user).contains(target)) {
-				sender.sendMessage(ChatColor.RED + "You've already sent a friend request to " + target.getName() + "!");
-				return true;
-			}
-			else if(!FriendUtil.allowsRequests(target)) {
-				sender.sendMessage(ChatColor.RED + target.getName() + " does not allow friend requests!");
-			}
-			else if(target.getBlockedUsers().contains(user)) {
-				sender.sendMessage(ChatColor.RED + target.getName() + " has blocked you!");
-			}
-			else if(user.getBlockedUsers().contains(target)) {
-				sender.sendMessage(ChatColor.RED + "You can't send friend requests to a player you've blocked!");
-			}
-			else {
-				boolean success = FriendUtil.sendRequest(user, target);
-				if(!success) {
-					sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
-					return true;
-				}
-				sender.sendMessage(SUCCESS_PREFIX + ChatColor.LIGHT_PURPLE + "Sent a friend request to " + target.getName());
-				friendHandler.pushRequest(user, target);
-			}
+			sendOrConfirm(sender, args);
 		}
 		
 		return true;

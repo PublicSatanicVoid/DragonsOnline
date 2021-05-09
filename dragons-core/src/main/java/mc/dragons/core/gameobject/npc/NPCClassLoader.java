@@ -41,7 +41,13 @@ public class NPCClassLoader extends GameObjectLoader<NPCClass> implements Single
 	@Override
 	public NPCClass loadObject(StorageAccess storageAccess) {
 		lazyLoadAll();
-		LOGGER.trace("Loading NPC class " + storageAccess.getIdentifier());
+		LOGGER.trace("Loading NPC class " + storageAccess.getIdentifier());		
+		for(GameObject gameObject : masterRegistry.getRegisteredObjects(GameObjectType.NPC_CLASS)) {
+			NPCClass npcClass = (NPCClass) gameObject;
+			if(npcClass.getIdentifier().equals(storageAccess.getIdentifier())) {
+				return npcClass;
+			}
+		}
 		NPCClass npcClass = new NPCClass(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(npcClass);
 		cachedNPCClasses.put(npcClass.getClassName(), npcClass);

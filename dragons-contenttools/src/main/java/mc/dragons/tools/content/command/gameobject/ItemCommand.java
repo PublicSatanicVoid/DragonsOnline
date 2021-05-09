@@ -155,6 +155,9 @@ public class ItemCommand extends DragonsCommandExecutor {
 		for(String loreLine : itemClass.getLore()) {
 			sender.sendMessage(ChatColor.GREEN + " " + loreLine);
 		}
+		if(!itemClass.verifyAddons()) {
+			sender.sendMessage(ChatColor.RED + "Item class add-on verification failed!");
+		}
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Receive Item] ", "/item give " + itemClass.getClassName(), true, "Click to receive this item"),
 				ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.ITEM_CLASS, itemClass.getUUID()));
 	}

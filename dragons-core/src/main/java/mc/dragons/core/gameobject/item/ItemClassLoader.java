@@ -38,6 +38,12 @@ public class ItemClassLoader extends GameObjectLoader<ItemClass> implements Sing
 	@Override
 	public ItemClass loadObject(StorageAccess storageAccess) {
 		LOGGER.trace("Loading item class " + storageAccess.getIdentifier());
+		for(GameObject gameObject : masterRegistry.getRegisteredObjects(GameObjectType.ITEM_CLASS)) {
+			ItemClass itemClass = (ItemClass) gameObject;
+			if(itemClass.getIdentifier().equals(storageAccess.getIdentifier())) {
+				return itemClass;
+			}
+		}
 		ItemClass itemClass = new ItemClass(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(itemClass);
 		return itemClass;

@@ -49,7 +49,7 @@ public class CustomLoggingProvider {
 				logger.removeAppender(appender);
 			}
 		}
-		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", logFilter, new CustomLayout(Charset.defaultCharset()), false);
+		TerminalConsoleAppender appender = TerminalConsoleAppender.createAppender("TerminalConsole", logFilter, new CustomLayout(dragons, Charset.defaultCharset()), false);
 		appender.initialize();
 		appender.start();
 		logger.addAppender(appender);

@@ -5,6 +5,8 @@ import java.util.logging.Level;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
+import mc.dragons.core.util.StringUtil;
+
 /**
  * Custom log levels for Dragons Online.
  * 
@@ -17,14 +19,14 @@ public class LogLevel extends Level {
 	 */
 	private static final long serialVersionUID = 3411290874107041049L;
 
-	private LogLevel(String name, int value) {
-		super(name, value);
-	}
-
 	public static final Level NOTICE = new LogLevel("NOTICE", 850);
 	public static final Level DEBUG = new LogLevel("DEBUG", 600);
 	public static final Level TRACE = new LogLevel("TRACE", 550);
 	public static final Level VERBOSE = new LogLevel("VERBOSE", 100);
+
+	private LogLevel(String name, int value) {
+		super(name, value);
+	}
 	
 	public static void setupLog4jParallels() {
 		registerLevel("NOTICE", 350);
@@ -84,7 +86,7 @@ public class LogLevel extends Level {
 			return Level.parse(level);
 		}
 		catch(Exception e) {
-			sender.sendMessage(ChatColor.RED + "Invalid log level!");
+			sender.sendMessage(ChatColor.RED + "Invalid log level! Valid levels are " + StringUtil.parseList(getApprovedLevels(), ", "));
 			return null;
 		}
 	}

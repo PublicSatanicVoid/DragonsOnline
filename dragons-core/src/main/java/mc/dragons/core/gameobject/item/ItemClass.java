@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.addon.Addon;
 import mc.dragons.core.addon.ItemAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.user.User;
@@ -21,12 +22,23 @@ import mc.dragons.core.util.PermissionUtil;
 public class ItemClass extends GameObject {
 	private List<ItemAddon> addons;
 
-	@SuppressWarnings("unchecked")
 	public ItemClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
-		LOGGER.verbose("Constrcting item class (" + storageManager + ", " + storageAccess + ")");
+		LOGGER.verbose("Constructing item class (" + storageManager + ", " + storageAccess + ")");
+		reloadAddons();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void reloadAddons() {
 		addons = ((List<String>) getData("addons")).stream()
 				.map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
+	}
+	
+	public boolean verifyAddons() {
+		for(Addon addon : getAddons()) {
+			if(addon == null) return false;
+		}
+		return true;
 	}
 	
 	private void saveAddons() {

@@ -34,7 +34,7 @@ public class Identifier {
 
 	@Override
 	public String toString() {
-		return String.valueOf(getType().toString()) + "#" + getUUID().toString();
+		return getType().toString() + "#" + getUUID().toString();
 	}
 
 	@Override

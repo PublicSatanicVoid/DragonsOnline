@@ -13,6 +13,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.addon.Addon;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC.NPCType;
@@ -39,7 +40,6 @@ public class NPCClass extends GameObject {
 	private NPCConditionalActions[] conditionals = new NPCConditionalActions[NPCTrigger.values().length];
 	private List<NPCAddon> addons;
 
-	@SuppressWarnings("unchecked")
 	public NPCClass(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
 		LOGGER.trace("Constructing NPC Class (" + storageManager + ", " + storageAccess + ")");
@@ -49,11 +49,22 @@ public class NPCClass extends GameObject {
 			conditionals[i] = new NPCConditionalActions(trigger, this);
 			i++;
 		}
-		addons = ((List<String>) getData("addons")).stream()
-				.map(addonName -> (NPCAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName))
-				.collect(Collectors.toList());
+		reloadAddons();
 	}
-
+	
+	@SuppressWarnings("unchecked")
+	public void reloadAddons() {
+		addons = ((List<String>) getData("addons")).stream()
+				.map(addonName -> (NPCAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
+	}
+	
+	public boolean verifyAddons() {
+		for(Addon addon : getAddons()) {
+			if(addon == null) return false;
+		}
+		return true;
+	}
+	
 	private void saveAddons() {
 		setData("addons", addons.stream().map(a -> a.getName()).collect(Collectors.toList()));
 	}

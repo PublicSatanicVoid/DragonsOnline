@@ -169,6 +169,9 @@ public class NPCCommand extends DragonsCommandExecutor {
 			heldItemTypeName = heldItemType.toString();
 		}
 		sender.sendMessage(ChatColor.GRAY + "Holding: " + ChatColor.GREEN + heldItemTypeName);
+		if(!npcClass.verifyAddons()) {
+			sender.sendMessage(ChatColor.RED + "NPC class add-on verification failed!");
+		}
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Spawn] ", "/npc spawn " + npcClass.getClassName(), true, "Click to Spawn"),
 				ObjectMetadataCommand.getClickableMetadataLink(GameObjectType.NPC_CLASS, npcClass.getUUID()));
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "/npc " + npcClass.getClassName() + " loot" + ChatColor.YELLOW + " to view loot table",

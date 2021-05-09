@@ -1,11 +1,18 @@
 package mc.dragons.core.addon;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 
+import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.logging.DragonsLogger;
+import mc.dragons.core.storage.StorageManager;
 
 /**
  * Item addons are bound to a specific item class.
@@ -29,6 +36,10 @@ public abstract class ItemAddon implements Addon {
 	private Map<User, String> combos;
 	private Map<User, Long> comboStartTimes;
 
+	private ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+	private StorageManager storageManager = Dragons.getInstance().getPersistentStorageManager();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
+	
 	@Override
 	public final AddonType getType() {
 		return AddonType.ITEM;
@@ -37,6 +48,17 @@ public abstract class ItemAddon implements Addon {
 	protected ItemAddon() {
 		combos = new HashMap<>();
 		comboStartTimes = new HashMap<>();
+	}
+	
+	@Override
+	public void apply() {
+		storageManager.getAllStorageAccess(GameObjectType.ITEM_CLASS, new Document("addons", new Document("$in", List.of(getName()))))
+			.stream()
+			.map(storageAccess -> itemClassLoader.loadObject(storageAccess))
+			.forEach(itemClass -> {
+				LOGGER.debug("Applying item add-on " + getName() + " to item class " + itemClass.getClassName());
+				itemClass.reloadAddons();
+			});
 	}
 
 	/**
@@ -47,11 +69,11 @@ public abstract class ItemAddon implements Addon {
 	public void onLeftClick(User user) {
 		user.debug("ItemAddon received left click");
 		if (comboStartTimes.containsKey(user)) {
-			if (System.currentTimeMillis() - comboStartTimes.get(user).longValue() > MAX_COMBO_TIME_MS) {
+			if (System.currentTimeMillis() - comboStartTimes.get(user) > MAX_COMBO_TIME_MS) {
 				resetCombo(user);
 				return;
 			}
-			combos.put(user, String.valueOf(combos.get(user)) + "L");
+			combos.put(user, combos.get(user) + "L");
 			onPrepareCombo(user, combos.get(user));
 			if (combos.get(user).length() == 3) {
 				onCombo(user, combos.get(user));
@@ -68,12 +90,12 @@ public abstract class ItemAddon implements Addon {
 	public void onRightClick(User user) {
 		user.debug("ItemAddon received right click");
 		if (!comboStartTimes.containsKey(user)) {
-			comboStartTimes.put(user, Long.valueOf(System.currentTimeMillis()));
+			comboStartTimes.put(user, System.currentTimeMillis());
 		}
-		if (System.currentTimeMillis() - comboStartTimes.get(user).longValue() > MAX_COMBO_TIME_MS) {
+		if (System.currentTimeMillis() - comboStartTimes.get(user)> MAX_COMBO_TIME_MS) {
 			resetCombo(user);
 		}
-		combos.put(user, String.valueOf(combos.getOrDefault(user, "")) + "R");
+		combos.put(user, combos.getOrDefault(user, "") + "R");
 		onPrepareCombo(user, combos.get(user));
 		if (combos.get(user).length() == COMBO_LENGTH) {
 			onCombo(user, combos.get(user));
@@ -90,10 +112,10 @@ public abstract class ItemAddon implements Addon {
 		String result = "";
 		int i = 0;
 		for (; i < combo.toCharArray().length; i++) {
-			result = String.valueOf(result) + ChatColor.LIGHT_PURPLE + combo.charAt(i) + "   ";
+			result += "" + ChatColor.LIGHT_PURPLE + combo.charAt(i) + "   ";
 		}
 		for (; i < COMBO_LENGTH; i++) {
-			result = String.valueOf(result) + ChatColor.DARK_PURPLE + ChatColor.MAGIC + "_" + ChatColor.RESET + "   ";
+			result += "" + ChatColor.DARK_PURPLE + ChatColor.MAGIC + "_" + ChatColor.RESET + "   ";
 		}
 		return result.trim();
 	}

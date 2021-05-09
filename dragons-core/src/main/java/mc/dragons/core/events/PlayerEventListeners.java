@@ -34,6 +34,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
@@ -76,7 +79,8 @@ public class PlayerEventListeners implements Listener {
 
 	private UserLoader userLoader;
 	private ItemLoader itemLoader;
-
+	
+	private Table<User, NPC, Long> interacts = HashBasedTable.create();
 
 	public PlayerEventListeners(Dragons instance) {
 		plugin = instance;
@@ -244,6 +248,16 @@ public class PlayerEventListeners implements Listener {
 		user.debug("Right-click");
 		NPC npc = NPCLoader.fromBukkit(event.getRightClicked());
 		if (npc != null) {
+			Long lastAccess = interacts.get(user, npc);
+			if(lastAccess == null) lastAccess = 0L;
+			long now = System.currentTimeMillis();
+			
+			if(now - lastAccess <= 1L) {
+				LOGGER.debug("-Duplicate interact event, ignoring");
+				return;
+			}
+			interacts.put(user, npc, now);
+			
 			user.debug("- Clicked an NPC");
 			Item item = ItemLoader.fromBukkit(user.getPlayer().getInventory().getItemInMainHand());
 			if (item != null) {
@@ -268,6 +282,7 @@ public class PlayerEventListeners implements Listener {
 			}
 			npc.getNPCClass().executeConditionals(NPCConditionalActions.NPCTrigger.CLICK, user, npc);
 			npc.getNPCClass().getAddons().forEach(addon -> addon.onInteract(npc, user));
+			item.getItemClass().handleRightClick(user); // TODO verify that this works
 		}
 		user.updateQuests(event);
 	}
@@ -354,7 +369,7 @@ public class PlayerEventListeners implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					Arrays.<ItemStack>asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
+					Arrays.asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
 							.map(i -> ItemLoader.fromBukkit(i)).filter(Objects::nonNull).filter(i -> i.getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME))
 							.forEach(i -> {
 								player.getInventory().remove(i.getItemStack());

@@ -1,8 +1,6 @@
 package mc.dragons.tools.content.util;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -45,12 +43,6 @@ public class MetadataConstants {
 	public static final String LASTPUSHEDREV_TAG = "lastPushedRev";
 	public static final String AUDITLOG_TAG = "auditLog";
 	
-	public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z");
-	
-	public static final String getDateFormatNow() {
-		return DATE_FORMATTER.format(new Date());
-	}
-	
 	/**
 	 * Add a metadata tag to the specified game object.
 	 * Initializes based on current datetime and specified
@@ -68,9 +60,9 @@ public class MetadataConstants {
 			metadata.append(CREATEDBY_TAG, creator.getUUID().toString());
 		}
 		metadata.append(AUDITLOG_TAG, new ArrayList<>());
-		metadata.append(CREATEDON_TAG, getDateFormatNow());
+		metadata.append(CREATEDON_TAG, StringUtil.dateFormatNow());
 		metadata.append(REVISIONS_TAG, 0);
-		metadata.append(LASTREVISEDON_TAG, getDateFormatNow());
+		metadata.append(LASTREVISEDON_TAG, StringUtil.dateFormatNow());
 		storageAccess.set(METADATA_NAMESPACE, metadata);
 	}
 	
@@ -92,7 +84,7 @@ public class MetadataConstants {
 		if(user != null) {
 			metadata.append(LASTREVISEDBY_TAG, user.getUUID().toString());
 		}
-		metadata.append(LASTREVISEDON_TAG, getDateFormatNow());
+		metadata.append(LASTREVISEDON_TAG, StringUtil.dateFormatNow());
 		storageAccess.set(METADATA_NAMESPACE, metadata);
 	}
 	
@@ -117,7 +109,7 @@ public class MetadataConstants {
 		baseSafe.remove(METADATA_NAMESPACE);
 		Document newSafe = Document.parse(obj.getData().toJson());
 		newSafe.remove(METADATA_NAMESPACE);
-		auditLog.add(StorageUtil.getDelta(newSafe, baseSafe).append("by", user == null ? null : user.getUUID().toString()).append("on", getDateFormatNow()).append("desc", line));
+		auditLog.add(StorageUtil.getDelta(newSafe, baseSafe).append("by", user == null ? null : user.getUUID().toString()).append("on", StringUtil.dateFormatNow()).append("desc", line));
 		storageAccess.set(METADATA_NAMESPACE, metadata);
 	}
 	
@@ -138,7 +130,7 @@ public class MetadataConstants {
 		Document metadata = storageAccess.getDocument().get(METADATA_NAMESPACE, new Document());
 		List<Document> auditLog = metadata.getList(AUDITLOG_TAG, Document.class);
 		if(auditLog == null) auditLog = new ArrayList<>();
-		auditLog.add(new Document("+", new Document()).append("-", new ArrayList<>()).append("by", user == null ? null : user.getUUID().toString()).append("on", getDateFormatNow()).append("desc", line));
+		auditLog.add(new Document("+", new Document()).append("-", new ArrayList<>()).append("by", user == null ? null : user.getUUID().toString()).append("on", StringUtil.dateFormatNow()).append("desc", line));
 	}
 	
 	/**
@@ -151,7 +143,7 @@ public class MetadataConstants {
 		Document metadata = storageAccess.getDocument().get(METADATA_NAMESPACE, new Document());
 		Integer revision = metadata.getInteger(REVISIONS_TAG, 0);
 		revision++;
-		metadata.append(LASTPUSHEDON_TAG, getDateFormatNow());
+		metadata.append(LASTPUSHEDON_TAG, StringUtil.dateFormatNow());
 		metadata.append(LASTPUSHEDREV_TAG, revision);
 		metadata.append(REVISIONS_TAG, revision);
 		storageAccess.set(METADATA_NAMESPACE, metadata);

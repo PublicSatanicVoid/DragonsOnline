@@ -11,6 +11,30 @@ import mc.dragons.social.friend.FriendUtil;
 
 public class BlockCommands extends DragonsCommandExecutor {
 
+	private void toggleSelfBlock(CommandSender sender) {
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return;
+		User user = user(sender);
+		user.getLocalData().append("canSelfBlock", !user.getLocalData().getBoolean("canSelfBlock", false));
+		sender.sendMessage(ChatColor.GREEN + "Toggled self-block ability.");
+	}
+	
+	private void doBlock(CommandSender sender, User user, User target, boolean block) {
+		if(block) {
+			user.blockUser(target);
+			sender.sendMessage(ChatColor.GREEN + "Blocked " + target.getName() + " successfully. You will no longer see their messages and they cannot send you friend requests.");
+			if(FriendUtil.getOutgoing(user).contains(target)) {
+				FriendUtil.denyRequest(user, target);
+			}
+			if(FriendUtil.getIncoming(user).contains(target)) {
+				FriendUtil.denyRequest(target, user);
+			}
+		}
+		else {
+			user.unblockUser(target);
+			sender.sendMessage(ChatColor.GREEN + "Un-blocked " + target.getName() + " successfully.");
+		}
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		boolean block = label.equalsIgnoreCase("block");
@@ -19,9 +43,7 @@ public class BlockCommands extends DragonsCommandExecutor {
 		User user = user(sender);
 		
 		if(label.equalsIgnoreCase("toggleselfblock")) {
-			if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
-			user.getLocalData().append("canSelfBlock", !user.getLocalData().getBoolean("canSelfBlock", false));
-			sender.sendMessage(ChatColor.GREEN + "Toggled self-block ability.");
+			toggleSelfBlock(sender);
 			return true;
 		}
 		
@@ -42,20 +64,7 @@ public class BlockCommands extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		if(block) {
-			user.blockUser(target);
-			sender.sendMessage(ChatColor.GREEN + "Blocked " + target.getName() + " successfully. You will no longer see their messages and they cannot send you friend requests.");
-			if(FriendUtil.getOutgoing(user).contains(target)) {
-				FriendUtil.denyRequest(user, target);
-			}
-			if(FriendUtil.getIncoming(user).contains(target)) {
-				FriendUtil.denyRequest(target, user);
-			}
-		}
-		else {
-			user.unblockUser(target);
-			sender.sendMessage(ChatColor.GREEN + "Un-blocked " + target.getName() + " successfully.");
-		}
+		doBlock(sender, user, target, block);
 		
 		return true;
 	}

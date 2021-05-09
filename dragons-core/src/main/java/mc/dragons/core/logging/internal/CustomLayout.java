@@ -7,8 +7,9 @@ import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
-import org.apache.logging.log4j.util.ReadOnlyStringMap;
+import org.bukkit.configuration.ConfigurationSection;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.logging.LogLevel;
 import mc.dragons.core.util.StringUtil;
@@ -31,15 +32,22 @@ public class CustomLayout extends AbstractStringLayout {
 	private final int THREAD_TRUNC_LENGTH = 20;
 	
 	private boolean hideEmpty = true;
-	private boolean hideMinecraft = true;
-	private boolean truncatePackageNames = true;
-	private boolean truncateThreadNames = true;
-	private boolean specialPackageNames = true;
-	private String formatWithLogger = "[%t %j/%l] [%s] %m";
-	private String formatWithoutLogger = "[%t %j/%l] %m";
+	private boolean hideMinecraft;
+	private boolean truncatePackageNames;
+	private boolean truncateThreadNames;
+	private boolean specialPackageNames;
+	private String formatWithLogger;
+	private String formatWithoutLogger;
 
-	public CustomLayout(Charset charset) {
+	public CustomLayout(Dragons instance, Charset charset) {
 		super(charset);
+		ConfigurationSection config = instance.getConfig().getConfigurationSection("log-format");
+		formatWithLogger = config.getString("with-logger", "[%t %j/%l] [%s] %m");
+		formatWithoutLogger = config.getString("without-logger", "[%t %j/%l] %m");
+		truncateThreadNames = config.getBoolean("truncate-thread-names", true);
+		truncatePackageNames = config.getBoolean("truncate-logger-names", true);
+		specialPackageNames = config.getBoolean("special-logger-names", true);
+		hideMinecraft = config.getBoolean("anonymize-minecraft-internal", true);
 	}
 
 	private String format(String pattern, String date, String time, String level, String thread, String source, String message) {
@@ -49,12 +57,11 @@ public class CustomLayout extends AbstractStringLayout {
 
 	@Override
 	public String toSerializable(LogEvent logEvent) {
-		ReadOnlyStringMap ctx = logEvent.getContextData();
 		String thread = logEvent.getThreadName();
 		if(truncateThreadNames) {
 			thread = StringUtil.truncateWithEllipsis(thread, THREAD_TRUNC_LENGTH);
 		}
-		String level = ctx.containsKey("OriginalLevel") ? ctx.getValue("OriginalLevel") : logEvent.getLevel().toString();
+		String level = logEvent.getLevel().toString();
 		String loggerName = logEvent.getLoggerName();
 		if (loggerName.contains(".")) {
 			int lastIndex = loggerName.lastIndexOf(".");

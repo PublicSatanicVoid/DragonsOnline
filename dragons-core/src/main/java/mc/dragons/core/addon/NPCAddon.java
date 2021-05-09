@@ -1,17 +1,40 @@
 package mc.dragons.core.addon;
 
+import java.util.List;
+
+import org.bson.Document;
 import org.bukkit.Location;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.logging.DragonsLogger;
+import mc.dragons.core.storage.StorageManager;
 
 public abstract class NPCAddon implements Addon {
+	private NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
+	private StorageManager storageManager = Dragons.getInstance().getPersistentStorageManager();
+	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
+	
 	@Override
 	public final AddonType getType() {
 		return AddonType.NPC;
 	}
 
+	@Override
+	public void apply() {
+		storageManager.getAllStorageAccess(GameObjectType.NPC_CLASS, new Document("addons", new Document("$in", List.of(getName()))))
+			.stream()
+			.map(storageAccess -> npcClassLoader.loadObject(storageAccess))
+			.forEach(npcClass -> {
+				LOGGER.debug("Applying NPC add-on " + getName() + " to NPC class " + npcClass.getClassName());
+				npcClass.reloadAddons();
+			});
+	}
+	
 	/**
 	 * Called whenever an NPC with this add-on moves.
 	 * 

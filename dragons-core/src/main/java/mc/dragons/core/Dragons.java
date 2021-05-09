@@ -127,7 +127,7 @@ public class Dragons extends DragonsJavaPlugin {
 	private RemoteAdminMessageHandler remoteAdminHandler;
 	private StaffAlertMessageHandler staffAlertHandler;
 	
-	private BukkitRunnable autoSaveRunnable;
+	private AutoSaveTask autoSaveRunnable;
 	private BukkitRunnable spawnEntityRunnable;
 	private VerifyGameIntegrityTask verifyGameIntegrityRunnable;
 	private LagMeter lagMeter;
@@ -341,7 +341,7 @@ public class Dragons extends DragonsJavaPlugin {
 
 	@Override
 	public void onDisable() {
-		((AutoSaveTask) autoSaveRunnable).run(true);
+		autoSaveRunnable.run(true);
 		User.getConnectionMessageHandler().clearServerEntries();
 		UUID logToken = customLoggingProvider.getCustomLogFilter().getLogEntryUUID();
 		getLogger().info("As a reminder, this session's log token is " + logToken);
@@ -537,7 +537,7 @@ public class Dragons extends DragonsJavaPlugin {
 	 * 
 	 * @param runnable
 	 */
-	public void setAutoSaveRunnable(BukkitRunnable runnable) {
+	public void setAutoSaveRunnable(AutoSaveTask runnable) {
 		autoSaveRunnable = runnable;
 	}
 

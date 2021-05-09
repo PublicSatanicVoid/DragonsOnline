@@ -30,6 +30,30 @@ debug: false
 # FINE, FINER, and FINEST are also valid but discouraged because they're arbitrary.
 loglevel: INFO
 
+# Custom log output format to the console.
+# Placeholders:
+#   %t      time HH:mm:ss
+#   %d      date yyyy-MM-dd
+#   %j      thread name
+#   %l      log level
+#   %s      logger name
+#   %m      log message
+log-format:
+  with-logger: '[%t %j/%l] [%s] %m'
+  without-logger: '[%t %j/%l] %m'
+  
+  # Logger names over 20 characters will be truncated
+  truncate-logger-names: true
+  
+  # Certain loggers, such as CraftBukkit and NMS, are further abbreviated for readability
+  special-logger-names: true
+  
+  # Thread names over 20 characters will be truncated
+  truncate-thread-names: true
+  
+  # Log messages internal to Minecraft will be displayed as if from an empty logger
+  anonymize-minecraft-internal: true
+
 # Settings related to in-game functionality.
 game:
   # Use %SERVER% as a placeholder for the player's current server.

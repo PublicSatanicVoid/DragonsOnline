@@ -149,6 +149,13 @@ public class EntityDamageListener implements Listener {
 			}
 		}
 		
+		if(userDamager != null && npcTarget != null) {
+			Item item = ItemLoader.fromBukkit(((Player) damager).getInventory().getItemInMainHand());
+			if(item != null) {
+				item.getItemClass().handleLeftClick(userDamager); // TODO verify this
+			}
+		}
+		
 		/*
 		 * When a player is talking to a quest NPC, they cannot interact with other entities.
 		 */

@@ -8,6 +8,7 @@ C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\co
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\PlaceholderCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\event\PlayerChangedWorldListener.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\util\MetadataConstants.java
+C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\internal\DeleteNPCCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\testing\TestQuestCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\statistics\RestatCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\gameobject\RegionCommand.java
@@ -16,6 +17,7 @@ C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\co
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\statistics\RenameCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\builder\SpeedCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\builder\GamemodeCommand.java
+C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\addon\NPCIdentifierAddon.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\gameobject\FloorCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\gameobject\ObjectMetadataCommand.java
 C:\Users\User\git\dragons\dragons-contenttools\src\main\java\mc\dragons\tools\content\command\statistics\ResetProfileCommand.java
