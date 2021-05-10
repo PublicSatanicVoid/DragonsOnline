@@ -170,7 +170,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 				.append("quests", new Document())
 				.append("vanished", false)
 				.append("punishmentHistory", new ArrayList<>())
-				.append("chatChannels", List.of(ChatChannel.LOCAL.toString()))
+				.append("chatChannels", List.of(ChatChannel.LOCAL.toString(), ChatChannel.PARTY.toString(), ChatChannel.GUILD.toString()))
 				.append("speakingChannel", ChatChannel.LOCAL.toString())
 				.append("gamemode", GameMode.ADVENTURE.toString())
 				.append("lastReadChangeLog", 0)

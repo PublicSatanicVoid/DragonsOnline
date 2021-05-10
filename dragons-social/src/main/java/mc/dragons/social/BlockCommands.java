@@ -1,5 +1,7 @@
 package mc.dragons.social;
 
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -7,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.friend.FriendUtil;
 
 public class BlockCommands extends DragonsCommandExecutor {
@@ -49,6 +52,14 @@ public class BlockCommands extends DragonsCommandExecutor {
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "Specify a player to " + action + "! /" + label + " <Player>");
+			List<User> blockedUsers = user.getBlockedUsers();
+			if(!block && blockedUsers.size() > 0) {
+				sender.sendMessage(ChatColor.GRAY + "Click a user below to unblock them:");
+				for(User blocked : blockedUsers) {
+					sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + ChatColor.RESET + blocked.getName(),
+							"/unblock " + blocked.getName(), "Click to un-block " + blocked.getName()));
+				}
+			}
 			return true;
 		}
 		

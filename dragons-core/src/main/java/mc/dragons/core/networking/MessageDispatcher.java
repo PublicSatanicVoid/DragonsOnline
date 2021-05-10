@@ -33,18 +33,18 @@ public class MessageDispatcher {
 	private ChangeStreamIterable<Document> watcher;
 	private MongoCollection<Document> messages;
 	
+	private String streamDestField = MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD;
+	private String streamOrigField = MessageConstants.STREAM_PREFIX + MessageConstants.ORIG_FIELD;
+	
 	public MessageDispatcher(Dragons instance) {
 		LOGGER = instance.getLogger();
+		String server = instance.getServerName();
 		handlers = new HashMap<>();
 		debug = false;
 		active = true;
 		messages = instance.getMongoConfig().getDatabase().getCollection(MessageConstants.MESSAGE_COLLECTION);
-		watcher = messages.watch(List.of(Aggregates.match(
-				// type=what we're looking for, AND ( dest=this server OR (dest=all AND origin =/= this server ) )
-				//Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.TYPE_FIELD, handler.getMessageType()), 
-						Filters.or(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, instance.getServerName()), 
-								Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, MessageConstants.DEST_ALL),
-										Filters.ne(MessageConstants.STREAM_PREFIX + MessageConstants.ORIG_FIELD, instance.getServerName()))))));
+		watcher = messages.watch(List.of(Aggregates.match(Filters.or(Filters.eq(streamDestField, server), 
+			Filters.and(Filters.eq(streamDestField, MessageConstants.DEST_ALL), Filters.ne(streamOrigField, server))))));
 		BukkitUtil.async(() -> {
 			watcher.forEach((Consumer<ChangeStreamDocument<Document>>) d -> {
 				if(!active) return;

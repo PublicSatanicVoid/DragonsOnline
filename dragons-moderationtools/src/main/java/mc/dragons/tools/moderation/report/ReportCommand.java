@@ -15,7 +15,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ReportCommand extends DragonsCommandExecutor {
-
 	public static String[][] GENERIC_REASONS = {
 			{ "Suspected Hacking or Cheating", "Modded game client or other non-Vanilla behavior" },
 			{ "Residence Content Violation", "A residence owned by this user does not follow community standards" },
@@ -97,6 +96,8 @@ public class ReportCommand extends DragonsCommandExecutor {
 		reportLoader.fileUserReport(target, reporter, reason);
 		sender.sendMessage(ChatColor.GREEN + "Your report against " + target.getName() + " was filed successfully. We will review it as soon as possible." + 
 				(reporter.isVerified() ? " As a verified user, your reports are prioritized for review." : ""));
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " [Click to Block Player]", "/block " + target.getName(), "Click to block " + target.getName()));
+				
 		
 		return true;
 	}

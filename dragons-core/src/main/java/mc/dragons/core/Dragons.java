@@ -176,6 +176,9 @@ public class Dragons extends DragonsJavaPlugin {
 			return;
 		}
 		
+		serverName = getConfig().getString("serverName");
+		getLogger().info("Server instance name is " + serverName);
+		
 		getLogger().info("Initializing storage and registries...");
 		saveDefaultConfig();
 		mongoConfig = new MongoConfig(this);
@@ -211,9 +214,6 @@ public class Dragons extends DragonsJavaPlugin {
 			getLogger().warning("GAME INTEGRITY WILL NOT BE VERIFIED AFTER INITIAL LOAD.");
 			getLogger().warning("==========================================================");
 		}
-		
-		serverName = getConfig().getString("serverName");
-		getLogger().info("Server instance name is " + serverName);
 		
 		customLoggingProvider.enableCustomLogging();
 		enableDebugLogging();

@@ -27,7 +27,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
  *
  */
 public class ChatMessageHandler extends MessageHandler {
-	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private UserLoader userLoader = GameObjectType.USER.getLoader();
 	private ChatMessageRegistry registry = Dragons.getInstance().getChatMessageRegistry();
 	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	

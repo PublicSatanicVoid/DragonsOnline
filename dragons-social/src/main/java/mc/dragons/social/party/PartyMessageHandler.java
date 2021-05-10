@@ -73,6 +73,7 @@ public class PartyMessageHandler extends MessageHandler {
 		case "invite":
 			message = party.getOwner().getName() + " invited you to their party! To accept, do /party " + party.getOwner().getName();
 			targetOnly = true;
+			break;
 		default:
 			break;
 		}

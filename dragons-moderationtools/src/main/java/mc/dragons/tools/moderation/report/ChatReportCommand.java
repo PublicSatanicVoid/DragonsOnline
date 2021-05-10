@@ -58,6 +58,7 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 		
 		reportLoader.fileChatReport(messageData.getSender(), reporter, messageData);
 		sender.sendMessage(ChatColor.GREEN + "Chat report filed successfully. A staff member will review it as soon as possible.");
+		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " [Click to Block Player]", "/block " + messageData.getSender().getName(), "Click to block " + messageData.getSender().getName()));
 		
 		return true;
 	}

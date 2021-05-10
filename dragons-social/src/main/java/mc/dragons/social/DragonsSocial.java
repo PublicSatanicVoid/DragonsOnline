@@ -10,6 +10,7 @@ import mc.dragons.social.guild.GuildChannelHandler;
 import mc.dragons.social.guild.GuildCommand;
 import mc.dragons.social.guild.GuildLoader;
 import mc.dragons.social.messaging.PrivateMessageCommands;
+import mc.dragons.social.party.PartyChannelHandler;
 import mc.dragons.social.party.PartyCommand;
 import mc.dragons.social.party.PartyLoader;
 import mc.dragons.social.shout.ShoutCommand;
@@ -26,7 +27,8 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		socialHook = new SocialUserHook();
 		dragons.getUserHookRegistry().registerHook(socialHook);
 		
-		ChatChannel.GUILD.setHandler(new GuildChannelHandler());
+		ChatChannel.GUILD.setHandler(new GuildChannelHandler(dragons));
+		ChatChannel.PARTY.setHandler(new PartyChannelHandler(dragons));
 		
 		getCommand("guild").setExecutor(new GuildCommand());
 		getCommand("guildadmin").setExecutor(new GuildAdminCommand());

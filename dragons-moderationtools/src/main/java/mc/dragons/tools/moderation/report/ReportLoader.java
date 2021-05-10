@@ -238,7 +238,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("priority", 0)
 				.append("data", reportData);
 		Report report = fileReport(data);
-		reportNotify(report.getId(), target.getName() + " was reported internally. ");
+		reportNotify(report.getId(), target.getName() + " was reported internally.");
 	}
 	
 	public void fileUserReport(User target, User by, String reason) {
