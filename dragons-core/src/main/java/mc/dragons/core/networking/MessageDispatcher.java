@@ -1,13 +1,11 @@
 package mc.dragons.core.networking;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.bson.Document;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import com.mongodb.client.ChangeStreamIterable;
 import com.mongodb.client.MongoCollection;
@@ -18,6 +16,7 @@ import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.logging.LogLevel;
+import mc.dragons.core.util.BukkitUtil;
 
 /**
  * Interfaces with MongoDB to handle inter-server messaging.
@@ -26,21 +25,39 @@ import mc.dragons.core.logging.LogLevel;
  *
  */
 public class MessageDispatcher {
-	private Dragons instance;
 	private DragonsLogger LOGGER;
 	private boolean debug;
 	private boolean active;
 	private Map<String, MessageHandler> handlers;
 	
+	private ChangeStreamIterable<Document> watcher;
 	private MongoCollection<Document> messages;
 	
 	public MessageDispatcher(Dragons instance) {
-		this.instance = instance;
 		LOGGER = instance.getLogger();
 		handlers = new HashMap<>();
 		debug = false;
 		active = true;
 		messages = instance.getMongoConfig().getDatabase().getCollection(MessageConstants.MESSAGE_COLLECTION);
+		watcher = messages.watch(List.of(Aggregates.match(
+				// type=what we're looking for, AND ( dest=this server OR (dest=all AND origin =/= this server ) )
+				//Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.TYPE_FIELD, handler.getMessageType()), 
+						Filters.or(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, instance.getServerName()), 
+								Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, MessageConstants.DEST_ALL),
+										Filters.ne(MessageConstants.STREAM_PREFIX + MessageConstants.ORIG_FIELD, instance.getServerName()))))));
+		BukkitUtil.async(() -> {
+			watcher.forEach((Consumer<ChangeStreamDocument<Document>>) d -> {
+				if(!active) return;
+				LOGGER.log(debug ? LogLevel.INFO : LogLevel.DEBUG, "Message Received from " + d.getFullDocument().getString(MessageConstants.ORIG_FIELD)
+						+ d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class).toJson());
+				MessageHandler handler = handlers.get(d.getFullDocument().getString(MessageConstants.TYPE_FIELD));
+				if(handler == null) {
+					LOGGER.severe("Could not receive message " + d.getFullDocument().toJson() + ": no handler for this message type exists!");
+					return;
+				}
+				handler.receive(d.getFullDocument().getString(MessageConstants.ORIG_FIELD), d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class));
+			});
+		});
 	}
 	
 	public void setDebug(boolean debug) { this.debug = debug; }
@@ -57,24 +74,7 @@ public class MessageDispatcher {
 	 * @param handler The handler to register
 	 */
 	protected void registerHandler(MessageHandler handler) {
+		LOGGER.debug("Registering message handler for messages of type: " + handler.getMessageType());
 		handlers.put(handler.getMessageType(), handler);
-		new BukkitRunnable() {
-			@Override public void run() {
-				ChangeStreamIterable<Document> watcher = messages.watch(List.of(Aggregates.match(
-						// type=what we're looking for, AND ( dest=this server OR (dest=all AND origin =/= this server ) )
-						Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.TYPE_FIELD, handler.getMessageType()), 
-								Filters.or(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, instance.getServerName()), 
-										Filters.and(Filters.eq(MessageConstants.STREAM_PREFIX + MessageConstants.DEST_FIELD, MessageConstants.DEST_ALL),
-												Filters.ne(MessageConstants.STREAM_PREFIX + MessageConstants.ORIG_FIELD, instance.getServerName())))))));
-				watcher.forEach((Consumer<ChangeStreamDocument<Document>>) d -> {
-					if(!active) return;
-					long latency = new Date().getTime() - d.getFullDocument().getLong("timestamp");
-					LOGGER.log(debug ? LogLevel.INFO : LogLevel.DEBUG, "Message Received from " + d.getFullDocument().getString(MessageConstants.ORIG_FIELD) 
-							+ " (" + latency + "ms) into " + handler.getClass().getSimpleName() + ": " 
-							+ d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class).toJson());
-					handler.receive(d.getFullDocument().getString(MessageConstants.ORIG_FIELD), d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class));
-				});
-			}
-		}.runTaskAsynchronously(instance);
 	}
 }

@@ -50,3 +50,5 @@ commands:
     description: (ADMIN) Toggle your ability to block/unblock yourself. No other players are affected.
   togglemsg:
     description: Toggle whether you can be messaged by everyone or by friends only.
+  toggleselfparty:
+    description: (ADMIN) Toggle your ability to add yourself to a party. No other players are affected.

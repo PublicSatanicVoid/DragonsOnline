@@ -10,6 +10,8 @@ import mc.dragons.social.guild.GuildChannelHandler;
 import mc.dragons.social.guild.GuildCommand;
 import mc.dragons.social.guild.GuildLoader;
 import mc.dragons.social.messaging.PrivateMessageCommands;
+import mc.dragons.social.party.PartyCommand;
+import mc.dragons.social.party.PartyLoader;
 import mc.dragons.social.shout.ShoutCommand;
 
 public class DragonsSocial extends DragonsJavaPlugin {
@@ -20,6 +22,7 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		
 		Dragons dragons = getDragonsInstance();
 		dragons.getLightweightLoaderRegistry().register(new GuildLoader(dragons.getMongoConfig()));
+		dragons.getLightweightLoaderRegistry().register(new PartyLoader(dragons));
 		socialHook = new SocialUserHook();
 		dragons.getUserHookRegistry().registerHook(socialHook);
 		
@@ -48,6 +51,10 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		FriendCommand friendCommand = new FriendCommand(this);
 		getCommand("friend").setExecutor(friendCommand);
 		getCommand("toggleselffriend").setExecutor(friendCommand);
+		
+		PartyCommand partyCommand = new PartyCommand(dragons);
+		getCommand("party").setExecutor(partyCommand);
+		getCommand("toggleselfparty").setExecutor(partyCommand);
 		
 		getCommand("shout").setExecutor(new ShoutCommand());
 		getCommand("channel").setExecutor(new ChannelCommand());
