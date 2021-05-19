@@ -1,13 +1,16 @@
 package mc.dragons.tools.moderation.report;
 
+import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
+import mc.dragons.core.gameobject.user.StateLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
@@ -24,6 +27,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class ViewReportCommand extends DragonsCommandExecutor {
 	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	private HoldLoader holdLoader = dragons.getLightweightLoaderRegistry().getLoader(HoldLoader.class);
+	private StateLoader stateLoader = dragons.getLightweightLoaderRegistry().getLoader(StateLoader.class);
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -94,13 +98,30 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.GRAY + "- " + entry.getKey() + ChatColor.GRAY + ": " + ChatColor.RESET + entry.getValue());
 				}
 			}
+			if(report.getData().containsKey("states")) {
+				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Snapshots]", "/viewreport " + id + " snapshots", "Click to view snapshots of the reported player(s)"));
+			}
 			if(report.getNotes().size() > 0) {
-				sender.sendMessage(ChatColor.GRAY + "Notes: ");
+				sender.sendMessage(ChatColor.GRAY + "Notes:");
 				for(String note : report.getNotes()) {
 					sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.RESET + note);
 				}
 			}
 			return true;
+		}
+		else if(args[1].equalsIgnoreCase("snapshots")) {
+			sender.sendMessage(ChatColor.GRAY + "User Snapshots:");
+			for(String token : report.getData().getList("states", String.class)) {
+				UUID uuid = UUID.fromString(token);
+				Document data = stateLoader.getState(uuid);
+				if(data == null) {
+					sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.RED + "Could not load snapshot " + uuid);
+					continue;
+				}
+				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + ChatColor.RESET + userLoader.loadObject(UUID.fromString(data.getString("originalUser"))).getName() 
+						+ ChatColor.GRAY + " (" + data.getString("originalTime") + ")",
+					"/setstate " + uuid, true, "Click to go to this snapshot"));
+			}
 		}
 		else if(args[1].equalsIgnoreCase("confirm")) {
 			if(!canEdit) {
@@ -207,12 +228,26 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 				return true;
 			}
 			ReportStatus status = StringUtil.parseEnum(sender, ReportStatus.class, args[2]);
+			ReportType type = report.getType();
 			if(status == null) return true;
 			report.setStatus(status);
 			report.addNote("Status set to " + status + " by " + sender.getName());
 			if(status != ReportStatus.OPEN) {
-				report.setReviewedBy(user(sender));
+				report.setReviewedBy(user(sender));	
 			}
+			
+			if(type == ReportType.HOLD) {
+				if(status == ReportStatus.NO_ACTION) {
+					holdLoader.getHoldById(report.getData().getInteger("holdId")).setStatus(HoldStatus.CLOSED_NOACTION);
+				}
+				else if(status == ReportStatus.ACTION_TAKEN) {
+					holdLoader.getHoldById(report.getData().getInteger("holdId")).setStatus(HoldStatus.CLOSED_ACTION);
+				}
+				else if(status == ReportStatus.OPEN) {
+					holdLoader.getHoldById(report.getData().getInteger("holdId")).setStatus(HoldStatus.PENDING);
+				}
+			}
+			
 			sender.sendMessage(ChatColor.GREEN + "Status changed successfully.");
 			return true;
 		}

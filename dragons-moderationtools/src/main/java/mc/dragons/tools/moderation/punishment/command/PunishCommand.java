@@ -56,7 +56,21 @@ public class PunishCommand extends DragonsCommandExecutor {
 				handler.forwardPunishment(target, type, reason, duration);
 			}
 			
-			sender.sendMessage(ChatColor.GREEN + "Punishment applied to " + target.getName() + ": " + code.getName());
+			String punishment = "Punished";
+			if(type == PunishmentType.BAN) {
+				punishment = "Banned";
+			}
+			else if(type == PunishmentType.MUTE) {
+				punishment = "Muted";
+			}
+			else if(type == PunishmentType.KICK) {
+				punishment = "Kicked";
+			}
+			else if(type == PunishmentType.WARNING) {
+				punishment = "Warned";
+			}
+			
+			sender.sendMessage(ChatColor.GREEN + "Punishment applied to " + target.getName() + ": " + punishment + " for " + code.getName());
 		}
 		else {
 			// Generate escalation report

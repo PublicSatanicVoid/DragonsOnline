@@ -11,13 +11,13 @@ public enum PunishmentCode {
 	/* Language */
 	RUDE("RU", "Rude", "Being disrespectful or rude to another server member", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 1, false),
 	SPAM("SP", "Spamming", "Repeatedly sending irrelevant messages to disturb the chat", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 1, false),
-	ADVERTISING("AD", "Advertising", "Intentionally advertising unauthorized servers, giveaways, or other media", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 1, false),
 	MISLEADING("MI", "Misleading", "Misleading others to disrupt gameplay", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 1, false),
+	ADVERTISING("AD", "Advertising", "Intentionally advertising unauthorized servers, giveaways, or other media", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
 	INSTIGATION_1("IN1", "Instigation 1", "Promoting rule breaking to benefit yourself or others", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
 	SWEARING("SW", "Swearing", "Targeted use of vulgar or explicit phrases", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
 	IMPERSONATION("IM", "Impersonation", "Impersonating a staff member or another player", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
-	DISCRIMINATION("DI", "Discrimination", "Discrimination against another user or group of users", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 3, false),
 	INAPPROPRIATE_1("IC1", "Inappropriate 1", "Using or discussing inappropriate concepts in the server chat", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 3, false),
+	DISCRIMINATION("DI", "Discrimination", "Discrimination against another user or group of users", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),
 	THREAT_HARM("TH", "Threatening/Harmful", "Sending threatening or harmful messages", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),
 	OFFENSIVE_POLITICS("OP", "Offensive Political Speech", "Offensive political speech", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),
 	INAPPROPRIATE_2("IC2", "Inappropriate 2", "Using or distributing inappropriate concepts or websites", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),
@@ -33,12 +33,14 @@ public enum PunishmentCode {
 	EXPLOITING_1("EX1", "Exploiting 1", "Exploiting gameplay features for personal advantage", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 2, false),
 	EXPLOITING_2("EX2", "Exploiting 2", "Exploiting gameplay features to affect other players", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 3, false),
 	CHEATING("CH", "Cheating", "Cheating through the use of blacklisted client modifications", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 4, false),
-	CHEATING_WARNING("CHW", "Cheating Warning", "Detected use of blacklisted client modifications. Continued use will result in a ban", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 0, true),
+	CHEATING_WARNING("CHW", "Cheating Warning", "Detected use of blacklisted client modifications. Continued use will result in a ban", StandingLevelType.BAN, PermissionLevel.ADMIN, 0, true),
 	COMPROMISED("BOT", "Compromised", "Your account is compromised or stolen. Please create an appeal after taking the necessary steps to secure your account", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 10, false),
 	SPECIAL_COMPROMISED("SBOT", "Special Compromised", "Please contact a staff manager for further information", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 10, false),
 	AC_BAN("ACB", "Anticheat Ban", "Cheating through the use of blacklisted client modifications [DAC]", StandingLevelType.BAN, PermissionLevel.ADMIN, 4, true),
 	STAFF_ABUSE("SA", "Staff Abuse", "Abuse of staff privileges", StandingLevelType.BAN, PermissionLevel.ADMIN, 10, false),
-	BAD_DEV("BD", "Bad Developer", "You are a terrible developer", StandingLevelType.BAN, PermissionLevel.ADMIN, 0, true), // This is a self-own
+	BAD_DEV("BD", "Bad Developer", "You are a terrible developer", StandingLevelType.BAN, PermissionLevel.ADMIN, 1, true), // This is a self-own
+	GENERIC_MUTE("GM", "Generic Mute", "Muted", StandingLevelType.MUTE, PermissionLevel.ADMIN, 10, true),
+	GENERIC_BAN("GB", "Generic Ban", "Banned", StandingLevelType.BAN, PermissionLevel.ADMIN, 10, true),
 	SUSPEND("SUS", "Suspended", "Your account has been suspended", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 10, false);
 	
 	private String code;

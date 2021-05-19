@@ -27,11 +27,11 @@ commands:
   ipscan:
     description: (MODERATOR) Search for alt accounts based on known IP.
   unmute:
-    description: (MODERATOR) Unmute a player. The mute stays on the player's record.
+    description: (HELPER) Unmute a player. The mute stays on the player's record. Helpers can only unmute players they have muted.
   unban:
-    description: (MODERATOR) Unban a player. The ban stays on the player's record.
+    description: (HELPER) Unban a player. The ban stays on the player's record. Helpers can only unban players they have banned.
   removepunishment:
-    description: (ADMIN) Expunge a punishment from a player's record.
+    description: (MODERATOR) Expunge a punishment from a player's record. Must be a member of the appeals team.
   setverification:
     description: (MODERATOR) Set a player's community verification status.
   viewpunishments:
@@ -68,4 +68,3 @@ commands:
     aliases: setsl
   purgepunishments:
     description: (ADMIN) Purge a player's punishment history
-

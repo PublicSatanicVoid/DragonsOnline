@@ -2,11 +2,8 @@ package mc.dragons.tools.dev;
 
 import org.bukkit.command.CommandExecutor;
 
-import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.tools.dev.debug.DebugCommands;
-import mc.dragons.tools.dev.debug.StateCommands;
-import mc.dragons.tools.dev.debug.StateLoader;
 import mc.dragons.tools.dev.gameobject.AddonCommand;
 import mc.dragons.tools.dev.gameobject.ObjectCommands;
 import mc.dragons.tools.dev.gameobject.ReloadObjectsCommands;
@@ -23,13 +20,8 @@ import mc.dragons.tools.dev.monitor.PingCommand;
 import mc.dragons.tools.dev.monitor.VerifyGameIntegrityCommand;
 
 public class DragonsDevTools extends DragonsJavaPlugin {
-	private Dragons dragons;
-	
 	public void onEnable() {
 		enableDebugLogging();
-	
-		dragons = getDragonsInstance();
-		dragons.getLightweightLoaderRegistry().register(new StateLoader(dragons.getMongoConfig()));
 		
 		getCommand("verifygameintegrity").setExecutor(new VerifyGameIntegrityCommand());
 		getCommand("loglevel").setExecutor(new LogLevelCommand());
@@ -94,10 +86,6 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("printnetworkmessages").setExecutor(performanceCommands);
 		getCommand("manifest").setExecutor(performanceCommands);
 		getCommand("getsystemproperties").setExecutor(performanceCommands);
-		
-		CommandExecutor stateCommands = new StateCommands();
-		getCommand("getstate").setExecutor(stateCommands);
-		getCommand("setstate").setExecutor(stateCommands);
 		
 		CommandExecutor debugCommands = new DebugCommands();
 		getCommand("debug").setExecutor(debugCommands);

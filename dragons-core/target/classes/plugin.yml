@@ -31,7 +31,11 @@ commands:
   respawn:
     description: (TESTER) Skip the death countdown and respawn instantly.
   heal:
-    description: (MODERATOR) Heal yourself or another player.
+    description: (MOD) Heal yourself or another player.
+  getstate:
+    description: (MOD) Get a state token from the specified player.
+  setstate:
+    description: (MOD) Set your state to the specified state token.
   newsmanager:
     description: (GM) Manage announcements and changelogs.
   rank:

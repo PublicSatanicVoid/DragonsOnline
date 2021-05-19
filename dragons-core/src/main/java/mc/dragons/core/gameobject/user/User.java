@@ -108,6 +108,7 @@ public class User extends GameObject {
 	private static ConnectionMessageHandler connectionMessageHandler = new ConnectionMessageHandler();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
+	private static StateLoader stateLoader = instance.getLightweightLoaderRegistry().getLoader(StateLoader.class);
 	private static FileConfiguration config = instance.getConfig();
 	
 	private Player player; // The underlying Bukkit player associated with this User, or null if the user is offline.
@@ -677,7 +678,7 @@ public class User extends GameObject {
 		}
 		if (!getSpeakingChannel().canHear(this, this)) {
 			player.sendMessage(ChatColor.RED + "Could not deliver message: You can't hear yourself! "
-				+ "Make sure you're listening to the channel you're speaking on (/c l " + getSpeakingChannel().getAbbreviation().toLowerCase() + ")");
+				+ "Make sure you're listening to the channel you're speaking on (/cl" + getSpeakingChannel().getAbbreviation().toLowerCase() + ")");
 			return;
 		}
 		
@@ -1519,8 +1520,8 @@ public class User extends GameObject {
 		// Native Commands
 		player.addAttachment(instance, "minecraft.command.teleport", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
 		player.addAttachment(instance, "minecraft.command.tp", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
-		player.addAttachment(instance, "minecraft.command.give", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
-		player.addAttachment(instance, "minecraft.command.summon", permissionLevel.ordinal() >= PermissionLevel.BUILDER.ordinal() || flags.hasFlag(SystemProfileFlag.CMD));
+		player.addAttachment(instance, "minecraft.command.give", flags.hasFlag(SystemProfileFlag.BUILD) || flags.hasFlag(SystemProfileFlag.CMD));
+		player.addAttachment(instance, "minecraft.command.summon", flags.hasFlag(SystemProfileFlag.BUILD) || flags.hasFlag(SystemProfileFlag.CMD));
 		player.addAttachment(instance, "minecraft.command.setworldspawn", permissionLevel.ordinal() >= PermissionLevel.GM.ordinal());
 		
 		boolean wasOp = player.isOp();
@@ -1591,6 +1592,66 @@ public class User extends GameObject {
 		return ((Document) getData("skillProgress")).getDouble(type.toString());
 	}
 
+	/*
+	 * State Tokens
+	 */
+	
+	public UUID getState() {
+		Document state = new Document("loc", StorageUtil.locToDoc(player.getLocation()))
+				.append("health", player.getHealth())
+				.append("gamemode", player.getGameMode().toString())
+				.append("quests", getData().get("quests", Document.class))
+				.append("deathCountdown", getDeathCountdownRemaining())
+				.append("speaking", getSpeakingChannel().toString())
+				.append("listening", getActiveChatChannels().stream().map(ch -> ch.toString()).collect(Collectors.toList()))
+				.append("inventory", getInventoryAsDocument())
+				.append("xp", getXP())
+				.append("gold", getGold())
+				.append("godMode", isGodMode())
+				.append("skills", getData().get("skills", Document.class))
+				.append("skillProgress", getData().get("skillProgress", Document.class))
+				.append("lastRes", getData().getInteger("lastResId"))
+				.append("resExitTo", getData().get("resExitTo", Document.class))
+				.append("originalUser", getUUID().toString())
+				.append("originalTime", StringUtil.dateFormatNow());
+		return stateLoader.registerStateToken(state);
+	}
+	
+	public UUID setState(UUID token) {
+		UUID backup = getState();
+		Document state = stateLoader.getState(token);
+		if(state == null || state.isEmpty()) return backup;
+		player.teleport(StorageUtil.docToLoc(state.get("loc", Document.class)));
+		player.setHealth(state.getDouble("health"));
+		player.setGameMode(GameMode.valueOf(state.getString("gamemode")));
+		loadQuests(null, state.get("quests", Document.class));
+		if(state.getInteger("deathCountdown", 0) != 0) {
+			setDeathCountdown(state.getInteger("deathCountdown"));
+		}
+		setSpeakingChannel(ChatChannel.valueOf(state.getString("speaking")));
+		List<ChatChannel> ch = new ArrayList<>(getActiveChatChannels());
+		for(ChatChannel c : ch) {
+			removeActiveChatChannel(c);
+		}
+		for(String c : state.getList("listening", String.class)) {
+			addActiveChatChannel(ChatChannel.valueOf(c));
+		}
+		clearInventory();
+		loadInventory(null, state.get("inventory", Document.class));
+		setXP(state.getInteger("xp"));
+		setGold(state.getDouble("gold"), false);
+		getData().append("skills", state.get("skills", Document.class));
+		getData().append("skillProgress", state.get("skillProgress", Document.class));
+		getData().append("lastResId", state.getInteger("lastRes"));
+		if(state.getBoolean("resExitTo") != null) {
+			getData().append("resExitTo", StorageUtil.docToLoc(state.get("resExitTo", Document.class)));
+		}
+		Bukkit.getScheduler().runTaskLater(instance, () -> {
+			sendActionBar(ChatColor.GRAY + "Your state was updated (" + token + ")");
+		}, 5L);
+		return backup;
+	}
+	
 	/*
 	 * Saving and Syncing
 	 */

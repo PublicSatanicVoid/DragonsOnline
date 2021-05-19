@@ -2,12 +2,14 @@ package mc.dragons.tools.moderation.report;
 
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -20,7 +22,7 @@ public class ReportCommand extends DragonsCommandExecutor {
 			{ "Residence Content Violation", "A residence owned by this user does not follow community standards" },
 			{ "Guild Content Violation", "A guild owned by this user does not follow community standards" },
 			{ "Trolling or Abuse", "Misusing game features to harass others or ruin the gameplay experience" },
-			{ "Language or Spamming", ChatColor.RED + "Please click on the message that is in violation instead!" },
+			{ "Language or Spamming", "Inappropriate, offensive, or spam messages" },
 			{ "Other Violation", ChatColor.RED + "Please use /report <player> <reason for reporting> instead!" }
 	};
 	
@@ -67,7 +69,7 @@ public class ReportCommand extends DragonsCommandExecutor {
 		String reason = StringUtil.concatArgs(args, 1);
 		
 		if(reason.equalsIgnoreCase("Language or Spamming")) {
-			sender.sendMessage(ChatColor.RED + "To report chat abuse, please click on the message that is in violation!");
+			Bukkit.dispatchCommand(sender, "chatreport " + args[0]);
 			return true;
 		}
 		
@@ -93,7 +95,15 @@ public class ReportCommand extends DragonsCommandExecutor {
 		
 		reason = reason.replaceAll(Pattern.quote(CONFIRMATION_FLAG), "");
 		
-		reportLoader.fileUserReport(target, reporter, reason);
+		boolean escalated = false;
+		if(hasPermission(sender, SystemProfileFlag.HELPER)) {
+			if(reportLoader.fileStaffReport(target, reporter, reason, "") != null) {
+				escalated = true;
+			}
+		}
+		if(!escalated) {
+			reportLoader.fileUserReport(target, reporter, reason);
+		}
 		sender.sendMessage(ChatColor.GREEN + "Your report against " + target.getName() + " was filed successfully. We will review it as soon as possible." + 
 				(reporter.isVerified() ? " As a verified user, your reports are prioritized for review." : ""));
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " [Click to Block Player]", "/block " + target.getName(), "Click to block " + target.getName()));

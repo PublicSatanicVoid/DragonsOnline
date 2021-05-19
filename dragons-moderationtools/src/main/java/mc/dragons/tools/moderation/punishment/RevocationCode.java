@@ -7,7 +7,9 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 
 public enum RevocationCode {
 	WRONG_PLAYER("WP", "Wrong player", SystemProfileFlag.HELPER),
+	WRONG_REASON("WR", "Wrong reason", SystemProfileFlag.HELPER),
 	ISSUE_RESOLVED("IR", "Issue resolved", SystemProfileFlag.APPEALS_TEAM),
+	SECOND_CHANCE("SC", "Second chance", SystemProfileFlag.APPEALS_TEAM),
 	INSUFFICIENT_EVIDENCE("IE", "Insufficient evidence", SystemProfileFlag.APPEALS_TEAM);
 	
 	private String code;

@@ -7,7 +7,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.DragonsModerationTools;
@@ -19,7 +18,7 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationTools.class).getPunishMessageHandler();
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.APPEALS_TEAM)) return true;
 		
 		if(args.length < 3) {
 			sender.sendMessage(ChatColor.RED + "/removepunishment <player> <#> <revocation code> [-delete]");

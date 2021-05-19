@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
@@ -32,6 +33,7 @@ import mc.dragons.core.commands.QuestDialogueCommands;
 import mc.dragons.core.commands.RankCommand;
 import mc.dragons.core.commands.RespawnCommand;
 import mc.dragons.core.commands.RestartInstanceCommand;
+import mc.dragons.core.commands.StateCommands;
 import mc.dragons.core.commands.StuckQuestCommand;
 import mc.dragons.core.commands.SystemLogonCommand;
 import mc.dragons.core.events.EntityCombustListener;
@@ -51,6 +53,7 @@ import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.SidebarManager;
+import mc.dragons.core.gameobject.user.StateLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
@@ -297,6 +300,7 @@ public class Dragons extends DragonsJavaPlugin {
 		lightweightLoaderRegistry.register(new CorrelationLogger(mongoConfig));
 		lightweightLoaderRegistry.register(new SystemProfileLoader(this));
 		lightweightLoaderRegistry.register(new GlobalVarLoader(mongoConfig));
+		lightweightLoaderRegistry.register(new StateLoader(mongoConfig));
 		
 		UserLoader.lazyLoadGlobalVarLoader();
 		
@@ -325,7 +329,10 @@ public class Dragons extends DragonsJavaPlugin {
 		getCommand("myquests").setExecutor(new MyQuestsCommand());
 		getCommand("help").setExecutor(new HelpCommand());
 		getCommand("stuckquest").setExecutor(new StuckQuestCommand());
-		getCommand("restartinstance").setExecutor(new RestartInstanceCommand());
+		getCommand("restartinstance").setExecutor(new RestartInstanceCommand());		
+		CommandExecutor stateCommands = new StateCommands();
+		getCommand("getstate").setExecutor(stateCommands);
+		getCommand("setstate").setExecutor(stateCommands);
 		QuestDialogueCommands questDialogueCommands = new QuestDialogueCommands();
 		getCommand("fastforwarddialogue").setExecutor(questDialogueCommands);
 		getCommand("questchoice").setExecutor(questDialogueCommands);

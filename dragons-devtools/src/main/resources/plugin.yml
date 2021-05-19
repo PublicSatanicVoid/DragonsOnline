@@ -99,10 +99,6 @@ commands:
     description: (ADMIN) Crash the server after dumping data about the current state.
   testcorrelationlogging:
   testbase64encoding:
-  getstate:
-    description: (MOD) Get a state token from the specified player.
-  setstate:
-    description: (MOD) Set your state to the specified state token.
   getservername:
     description: (ADMIN) View the name of the current server you're connected to.
   tickperformance:

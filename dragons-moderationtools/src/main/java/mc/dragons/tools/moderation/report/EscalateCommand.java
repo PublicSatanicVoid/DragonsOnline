@@ -30,7 +30,10 @@ public class EscalateCommand extends DragonsCommandExecutor {
 		String extraInfo = StringUtil.concatArgs(args, 1);
 		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
 		
-		if(reportLoader.fileStaffReport(target, reporter, reason, "") != null) {
+		if(reportLoader.fileStaffReport(target, reporter, reason, "") == null) {
+			sender.sendMessage(ChatColor.RED + "You have nobody to escalate this report to!");
+		}
+		else {
 			sender.sendMessage(ChatColor.GREEN + "Escalated issue successfully.");
 		}
 		

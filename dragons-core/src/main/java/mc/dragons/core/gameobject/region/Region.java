@@ -11,7 +11,6 @@ import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 import mc.dragons.core.gameobject.GameObject;
-import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.storage.StorageAccess;
@@ -122,8 +121,8 @@ public class Region extends GameObject {
 			max = Vector.getMaximum(vec1, vec2).toLocation(world);
 			area = (max.getX() - min.getX()) * (max.getZ() - min.getZ());
 			spawnRates = new HashMap<>();
-			for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) ((Document) Region.this.getData("spawnRates")).entrySet()) {
-				spawnRates.put(entry.getKey(), Double.valueOf((double) entry.getValue()));
+			for (Entry<String, Object> entry : ((Document) storageAccess.get("spawnRates")).entrySet()) {
+				spawnRates.put(entry.getKey(), (double) entry.getValue());
 			}
 		}
 
@@ -145,7 +144,7 @@ public class Region extends GameObject {
 	}
 
 	public Region(StorageManager storageManager, StorageAccess storageAccess) {
-		super(GameObjectType.REGION, storageAccess.getIdentifier().getUUID(), storageManager);
+		super(storageManager, storageAccess);
 		LOGGER.verbose("Constructing region (" + storageManager + ", " + storageAccess + ")");
 		regionData = new CachedRegionData(storageAccess);
 		floor = FloorLoader.fromWorld(getWorld());

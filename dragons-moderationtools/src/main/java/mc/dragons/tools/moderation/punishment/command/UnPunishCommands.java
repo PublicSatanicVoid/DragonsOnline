@@ -9,7 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.DragonsModerationTools;
@@ -24,7 +23,7 @@ public class UnPunishCommands extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.HELPER)) return true;
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "Specify a player and code! /" + label + " <player> <revocation code>");

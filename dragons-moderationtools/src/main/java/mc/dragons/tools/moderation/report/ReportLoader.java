@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.bukkit.ChatColor;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
@@ -194,7 +193,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	}
 	
 	public PaginatedResult<Report> getReportsByTarget(User target, int page) {
-		return parseResults(collection.find(new Document("target", new Document("$in", target.getUUID().toString()))), page);
+		return parseResults(collection.find(new Document("target", new Document("$in", List.of(target.getUUID().toString())))), page);
 	}
 	
 	public PaginatedResult<Report> getUnreviewedReports(int page) {
@@ -206,6 +205,10 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 			new Document("$or", List.of(new Document("data.permissionReq", null), 
 				new Document("data.permissionReq", new Document("$in", PermissionUtil.getAllowedLevels(editLevelMax).stream().map(level -> level.toString()).collect(Collectors.toList())))))))),
 			page);
+	}
+	
+	private List<String> getStateTokens(List<User> users) {
+		return users.stream().map(u -> u.getState().toString()).collect(Collectors.toList());
 	}
 	
 	private Report fileReport(Document data) {
@@ -230,7 +233,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", by.isVerified() ? 1 : 0)
 				.append("filedBy", by.getUUID().toString())
-				.append("data", new Document("message", message.getMessage()));
+				.append("data", new Document("message", message.getMessage()).append("states", getStateTokens(List.of(target))));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
 		return report;
@@ -238,7 +241,6 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	
 	public Report fileStaffReport(User target, User staff, String message, String confirmCommand) {
 		if(staff.getActivePermissionLevel().ordinal() == PermissionLevel.SYSOP.ordinal()) {
-			staff.getPlayer().sendMessage(ChatColor.RED + "You have nobody to escalate this report to as you are already the highest permission level!");
 			return null;
 		}
 		PermissionLevel permissionReq = null;
@@ -253,7 +255,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", 1)
 				.append("filedBy", staff.getUUID().toString())
-				.append("data", new Document("message", message).append("confirmCommand", confirmCommand).append("permissionReq", permissionReq.toString()));
+				.append("data", new Document("message", message).append("confirmCommand", confirmCommand).append("permissionReq", permissionReq.toString()).append("states", getStateTokens(List.of(target))));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + target.getName() + ": " + message);
 		return report;
@@ -265,7 +267,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("target", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()))
 				.append("priority", 1)
 				.append("filedBy", staff.getUUID().toString())
-				.append("data", new Document("reason", reason).append("holdId", holdId));
+				.append("data", new Document("reason", reason).append("holdId", holdId).append("states", getStateTokens(targets)));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), staff.getName() + " placed a hold on " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + reason);
 		return report;
@@ -276,7 +278,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("type", ReportType.AUTOMATED.toString())
 				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", 0)
-				.append("data", reportData);
+				.append("data", reportData.append("states", getStateTokens(List.of(target))));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), target.getName() + " was reported internally.");
 		return report;
@@ -288,7 +290,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", by.isVerified() ? 1 : 0)
 				.append("filedBy", by.getUUID().toString())
-				.append("data", new Document("reason", reason));
+				.append("data", new Document("reason", reason).append("states", getStateTokens(List.of(target))));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
 		return report;
