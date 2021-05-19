@@ -28,6 +28,25 @@ public class PartyCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Toggled self-party ability.");
 	}
 	
+	private void dumpPartyData(CommandSender sender) {
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return;
+		User user = user(sender);
+		Party party = partyLoader.of(user);
+		List<Party> invites = partyLoader.invitesWith(user);
+		if(party == null) {
+			sender.sendMessage("No party");
+		}
+		else {
+			sender.sendMessage("Your Party: " + party.getId() + " (" + party.getOwner().getName() + " - " + party.getOwner().getServer() + ")");
+		}
+		for(Party p : invites) {
+			sender.sendMessage("Invite: " + p.getId() + " (" + p.getOwner().getName() + " - " + p.getOwner().getServer() + ")");
+		}
+		for(Party p : partyLoader.all()) {
+			sender.sendMessage("Active: " + p.getId() + " (" + p.getOwner().getName() + " - " + p.getOwner().getServer() + ")");
+		}
+	}
+	
 	private void showHelp(CommandSender sender) {
 		User user = user(sender);
 		Party party = partyLoader.of(user);
@@ -103,7 +122,7 @@ public class PartyCommand extends DragonsCommandExecutor {
 		List<Party> invites = partyLoader.invitesWith(user);
 		for(Party p : invites) {
 			if(p.getInvites().contains(user) && (p.getOwner().equals(target) || p.getMembers().contains(target))) {
-				p.join(user);
+				partyLoader.join(party, user);
 				sender.sendMessage(ChatColor.GREEN + "Joined " + p.getOwner().getName() + "'s party successfully! To speak in party chat, do /c s p");
 				return;
 			}
@@ -120,8 +139,8 @@ public class PartyCommand extends DragonsCommandExecutor {
 			return;
 		}
 		if(party == null) {
-				party = partyLoader.newParty(user);
-				sender.sendMessage(ChatColor.DARK_GREEN + "Created a new party! Invite others with /party <Player>");
+			party = partyLoader.newParty(user);
+			sender.sendMessage(ChatColor.DARK_GREEN + "Created a new party! Invite others with /party <Player>");
 		}
 		if(party.getInvites().contains(target)) {
 			sender.sendMessage(ChatColor.RED + "You've already invited " + target.getName() + "!");
@@ -139,6 +158,10 @@ public class PartyCommand extends DragonsCommandExecutor {
 		
 		if(label.equalsIgnoreCase("toggleselfparty")) {
 			toggleSelfParty(sender);
+		}
+		
+		else if(label.equalsIgnoreCase("dumpParties")) {
+			dumpPartyData(sender);
 		}
 		
 		else if(args.length == 0) {

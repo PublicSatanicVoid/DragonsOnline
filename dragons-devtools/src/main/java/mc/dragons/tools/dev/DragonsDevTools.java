@@ -35,11 +35,14 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("loglevel").setExecutor(new LogLevelCommand());
 		
 		getCommand("lag").setExecutor(new LagCommand());
-		getCommand("reloadquests").setExecutor(new ReloadObjectsCommands());
 		getCommand("addon").setExecutor(new AddonCommand());
 		getCommand("ping").setExecutor(new PingCommand());
 		getCommand("mongo").setExecutor(new MongoCommand());
 		getCommand("correlation").setExecutor(new CorrelationCommand());
+		
+		CommandExecutor reloadObjectsCommands = new ReloadObjectsCommands();
+		getCommand("reloadquests").setExecutor(reloadObjectsCommands);
+		getCommand("resyncuserdata").setExecutor(reloadObjectsCommands);
 		
 		CommandExecutor pluginManagementCommands = new PluginManagementCommands();
 		getCommand("enableplugin").setExecutor(pluginManagementCommands);

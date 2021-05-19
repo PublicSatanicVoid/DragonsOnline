@@ -12,11 +12,17 @@ import mc.dragons.tools.moderation.analysis.IPHistoryCommand;
 import mc.dragons.tools.moderation.analysis.IPScanCommand;
 import mc.dragons.tools.moderation.analysis.InfoCommand;
 import mc.dragons.tools.moderation.analysis.LocateCommand;
-import mc.dragons.tools.moderation.punishment.PunishCommands;
+import mc.dragons.tools.moderation.hold.HoldCommand;
+import mc.dragons.tools.moderation.hold.HoldLoader;
+import mc.dragons.tools.moderation.hold.HoldMessageHandler;
 import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
-import mc.dragons.tools.moderation.punishment.RemovePunishmentCommand;
-import mc.dragons.tools.moderation.punishment.UnPunishCommands;
-import mc.dragons.tools.moderation.punishment.ViewPunishmentsCommand;
+import mc.dragons.tools.moderation.punishment.command.PunishCodesCommand;
+import mc.dragons.tools.moderation.punishment.command.PunishCommand;
+import mc.dragons.tools.moderation.punishment.command.PurgePunishmentsCommand;
+import mc.dragons.tools.moderation.punishment.command.RemovePunishmentCommand;
+import mc.dragons.tools.moderation.punishment.command.StandingLevelCommand;
+import mc.dragons.tools.moderation.punishment.command.UnPunishCommands;
+import mc.dragons.tools.moderation.punishment.command.ViewPunishmentsCommand;
 import mc.dragons.tools.moderation.report.ChatReportCommand;
 import mc.dragons.tools.moderation.report.EscalateCommand;
 import mc.dragons.tools.moderation.report.ModQueueCommand;
@@ -29,14 +35,18 @@ import mc.dragons.tools.moderation.report.ViewReportCommand;
 public class DragonsModerationTools extends DragonsJavaPlugin {
 	private Dragons dragons;
 	private PunishMessageHandler punishMessageHandler;
+	private HoldMessageHandler holdMessageHandler;
+	private PunishCommand punishCommand;
 	
 	public void onEnable() {
 		enableDebugLogging();
 		
 		dragons = Dragons.getInstance();
-		dragons.getLightweightLoaderRegistry().register(new ReportLoader(dragons.getMongoConfig()));
-		dragons.getUserHookRegistry().registerHook(new ModUserHook());
 		
+		holdMessageHandler = new HoldMessageHandler(dragons);
+		dragons.getLightweightLoaderRegistry().register(new ReportLoader(dragons.getMongoConfig()));
+		dragons.getLightweightLoaderRegistry().register(new HoldLoader(this));
+		dragons.getUserHookRegistry().registerHook(new ModUserHook(dragons));
 		punishMessageHandler = new PunishMessageHandler();
 		
 		getCommand("info").setExecutor(new InfoCommand());
@@ -52,6 +62,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("escalate").setExecutor(new EscalateCommand());
 		getCommand("chatreport").setExecutor(new ChatReportCommand());
 		getCommand("reports").setExecutor(new ReportsCommand());
+		getCommand("hold").setExecutor(new HoldCommand());
 
 		getCommand("viewreport").setExecutor(new ViewReportCommand());
 		getCommand("modqueue").setExecutor(new ModQueueCommand());
@@ -60,11 +71,11 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("toggleselfreport").setExecutor(reportAdminCommands);
 		getCommand("deletereport").setExecutor(reportAdminCommands);
 		
-		CommandExecutor punishCommands = new PunishCommands();
-		getCommand("ban").setExecutor(punishCommands);
-		getCommand("mute").setExecutor(punishCommands);
-		getCommand("kick").setExecutor(punishCommands);
-		getCommand("warn").setExecutor(punishCommands);
+		punishCommand = new PunishCommand(this);
+		getCommand("punish").setExecutor(punishCommand);
+		getCommand("punishcodes").setExecutor(new PunishCodesCommand());
+		getCommand("setstandinglevel").setExecutor(new StandingLevelCommand());
+		getCommand("purgepunishments").setExecutor(new PurgePunishmentsCommand());
 		
 		CommandExecutor unPunishCommands = new UnPunishCommands();
 		getCommand("unban").setExecutor(unPunishCommands);
@@ -79,5 +90,13 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 	
 	public PunishMessageHandler getPunishMessageHandler() {
 		return punishMessageHandler;
+	}
+
+	public HoldMessageHandler getHoldMessageHandler() {
+		return holdMessageHandler;
+	}
+	
+	public PunishCommand getPunishCommand() {
+		return punishCommand;
 	}
 }

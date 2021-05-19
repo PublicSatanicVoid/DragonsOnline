@@ -48,14 +48,19 @@ public class MessageDispatcher {
 		BukkitUtil.async(() -> {
 			watcher.forEach((Consumer<ChangeStreamDocument<Document>>) d -> {
 				if(!active) return;
-				LOGGER.log(debug ? LogLevel.INFO : LogLevel.DEBUG, "Message Received from " + d.getFullDocument().getString(MessageConstants.ORIG_FIELD)
-						+ d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class).toJson());
-				MessageHandler handler = handlers.get(d.getFullDocument().getString(MessageConstants.TYPE_FIELD));
-				if(handler == null) {
-					LOGGER.severe("Could not receive message " + d.getFullDocument().toJson() + ": no handler for this message type exists!");
-					return;
+				try {
+					LOGGER.log(debug ? LogLevel.INFO : LogLevel.DEBUG, "Message Received from " + d.getFullDocument().getString(MessageConstants.ORIG_FIELD)
+							+ d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class).toJson());
+					MessageHandler handler = handlers.get(d.getFullDocument().getString(MessageConstants.TYPE_FIELD));
+					if(handler == null) {
+						LOGGER.severe("Could not receive message " + d.getFullDocument().toJson() + ": no handler for this message type exists!");
+						return;
+					}
+					handler.receive(d.getFullDocument().getString(MessageConstants.ORIG_FIELD), d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class));
+				} catch(Exception e) {
+					LOGGER.warning("Exception in message dispatcher receive thread!");
+					e.printStackTrace();
 				}
-				handler.receive(d.getFullDocument().getString(MessageConstants.ORIG_FIELD), d.getFullDocument().get(MessageConstants.DATA_FIELD, Document.class));
 			});
 		});
 	}

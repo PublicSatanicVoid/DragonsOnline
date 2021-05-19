@@ -3,7 +3,6 @@ package mc.dragons.core.gameobject.user;
 import static mc.dragons.core.util.BukkitUtil.async;
 import static mc.dragons.core.util.BukkitUtil.sync;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -57,8 +56,6 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
@@ -95,6 +92,7 @@ public class User extends GameObject {
 	// Increasing this will theoretically decrease server load
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
 	
+	// Avoid re-allocating the same object a gazillion times
 	private static final String DASH_PATTERN_QUOTED = Pattern.quote("-");
 	
 	private static Dragons instance = Dragons.getInstance();
@@ -106,7 +104,7 @@ public class User extends GameObject {
 	private static UserLoader userLoader = GameObjectType.USER.getLoader();
 
 	private static UserHookRegistry userHookRegistry = instance.getUserHookRegistry();
-	private static ChatMessageHandler chatMessageHandler = new ChatMessageHandler();
+	private static ChatMessageHandler chatMessageHandler = new ChatMessageHandler(instance);
 	private static ConnectionMessageHandler connectionMessageHandler = new ConnectionMessageHandler();
 	private static ChangeLogLoader changeLogLoader = instance.getLightweightLoaderRegistry().getLoader(ChangeLogLoader.class);
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
@@ -115,7 +113,7 @@ public class User extends GameObject {
 	private Player player; // The underlying Bukkit player associated with this User, or null if the user is offline.
 	private Set<Region> cachedRegions; // Last-known occupied regions.
 	private Location cachedLocation; // Last-known location.
-	private PermissionLevel activePermissionLevel;
+	private PermissionLevel activePermissionLevel = PermissionLevel.USER;
 	private SystemProfile profile; // System profile the user is logged into, or null if none.
 	private Map<Quest, QuestStep> questProgress;
 	private Map<Quest, Integer> questActionIndices;
@@ -128,7 +126,7 @@ public class User extends GameObject {
 	private String currentDialogueSpeaker;
 	private int currentDialogueIndex;
 	private long whenBeganDialogue;
-	private List<Consumer<User>> currentDialogueCompletionHandlers;
+	private List<Consumer<User>> currentDialogueCompletionHandlers; // Handlers that fire when the current dialogue batch is completed
 	private boolean isOverridingWalkSpeed;
 	private String lastReceivedMessageFrom;
 	private boolean chatSpy; // Whether the user can see others' private messages.
@@ -221,7 +219,7 @@ public class User extends GameObject {
 				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
 			});
 			if(initErrorOccurred) {
-				LOGGER.warning(initCorrelationID, "An error occurred during initialization.");
+				LOGGER.warning(initCorrelationID, "An error occurred during initialization of user " + getIdentifier());
 			}
 			else {
 				LOGGER.discardCID(initCorrelationID);
@@ -616,21 +614,18 @@ public class User extends GameObject {
 	 * Chat management
 	 */
 
-	@SuppressWarnings("unchecked")
 	public List<ChatChannel> getActiveChatChannels() {
-		return ((List<String>) getData("chatChannels")).stream().map(ch -> ChatChannel.valueOf(ch)).collect(Collectors.toList());
+		return getData().getList("chatChannels", String.class).stream().map(ch -> ChatChannel.valueOf(ch)).collect(Collectors.toList());
 	}
 
-	@SuppressWarnings("unchecked")
 	public void addActiveChatChannel(ChatChannel channel) {
-		List<String> channels = (List<String>) getData("chatChannels");
+		List<String> channels = getData().getList("chatChannels", String.class);
 		channels.add(channel.toString());
 		setData("chatChannels", channels);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void removeActiveChatChannel(ChatChannel channel) {
-		List<String> channels = (List<String>) getData("chatChannels");
+		List<String> channels = getData().getList("chatChannels", String.class);
 		channels.remove(channel.toString());
 		setData("chatChannels", channels);
 	}
@@ -674,13 +669,11 @@ public class User extends GameObject {
 			player.sendMessage(ChatColor.RED + "Chat is unavailable while in NPC dialogue!");
 			return;
 		}
-		PunishmentData muteData = getActivePunishmentData(PunishmentType.MUTE);
-		if (muteData != null) {
-			player.sendMessage(ChatColor.RED + "You are muted!" + (muteData.getReason().equals("") ? "" : " (" + muteData.getReason() + ")"));
-			if(!muteData.isPermanent()) {
-				player.sendMessage(ChatColor.RED + "Expires " + muteData.getExpiry().toString());
+		for(UserHook hook : instance.getUserHookRegistry().getHooks()) {
+			if(!hook.checkAllowChat(this, message)) {
+				LOGGER.debug("Blocked " + getName() + " from sending chat message \"" + message + "\"" + " due to policy from user hook " + hook);
+				return;
 			}
-			return;
 		}
 		if (!getSpeakingChannel().canHear(this, this)) {
 			player.sendMessage(ChatColor.RED + "Could not deliver message: You can't hear yourself! "
@@ -882,8 +875,6 @@ public class User extends GameObject {
 		}
 		if(error) {
 			player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
-		}
-		if(error) {
 			initErrorOccurred();
 		}
 		return error;
@@ -974,8 +965,7 @@ public class User extends GameObject {
 		String ip = player.getAddress().getAddress().getHostAddress();
 		setData("ip", ip);
 		
-		@SuppressWarnings("unchecked")
-		List<String> ipHistory = (List<String>) getData("ipHistory");
+		List<String> ipHistory = getData().getList("ipHistory", String.class);
 		if(!ipHistory.contains(ip)) {
 			ipHistory.add(ip);
 		}
@@ -998,7 +988,7 @@ public class User extends GameObject {
 		if (profile != null && instance.isEnabled()) {
 			systemProfileLoader.logoutProfile(profile.getProfileName());
 			setActivePermissionLevel(PermissionLevel.USER);
-			setSystemProfile((SystemProfile) null);
+			setSystemProfile(null);
 		}
 		player.getInventory().clear();
 		player.getInventory().setArmorContents(new ItemStack[4]);
@@ -1007,6 +997,7 @@ public class User extends GameObject {
 		if(removeFromLocalRegistry) {
 			userLoader.removeStalePlayer(player);
 		}
+		player = null;
 	}
 
 	public void handleMove() {
@@ -1044,9 +1035,8 @@ public class User extends GameObject {
 		return (String) getData("ip");
 	}
 	
-	@SuppressWarnings("unchecked")
 	public List<String> getIPHistory() {
-		return (List<String>) getData("ipHistory");
+		return getData().getList("ipHistory", String.class);
 	}
 
 	public Rank getRank() {
@@ -1600,103 +1590,17 @@ public class User extends GameObject {
 	public double getSkillProgress(SkillType type) {
 		return ((Document) getData("skillProgress")).getDouble(type.toString());
 	}
-	
-	
+
 	/*
-	 * Punishment management
-	 */	
-
-	@SuppressWarnings("unchecked")
-	public List<PunishmentData> getPunishmentHistory() {
-		List<PunishmentData> history = new ArrayList<>();
-		List<Document> results = (List<Document>) getData("punishmentHistory");
-		for (Document entry : results) {
-			history.add(PunishmentData.fromDocument(entry));
-		}
-		return history;
-	}
-
-	public void punish(PunishmentType punishmentType, String reason) {
-		punish(punishmentType, reason, -1L);
-	}
-
-	public void savePunishment(PunishmentType punishmentType, String reason, long durationSeconds) {
-		long now = Instant.now().getEpochSecond();
-		Document punishment = new Document("type", punishmentType.toString()).append("reason", reason).append("duration", durationSeconds).append("banDate", now);
-		setData(punishmentType.getDataHeader(), punishment);
-		
-		@SuppressWarnings("unchecked")
-		List<Document> punishmentHistory = (List<Document>) getData("punishmentHistory");
-		punishmentHistory.add(punishment);
-		setData("punishmentHistory", punishmentHistory);
-	}
-	
-	public void applyPunishmentLocally(PunishmentType punishmentType, String reason, long durationSeconds) {
-		long now = Instant.now().getEpochSecond();
-		String expiry = durationSeconds == -1L ? "Never" : new Date(1000L * (now + durationSeconds)).toString();
-		
-		if (player != null) {
-			if (punishmentType == PunishmentType.BAN) {
-				player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n"
-						+ (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + ChatColor.WHITE + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE + expiry);
-			} else if (punishmentType == PunishmentType.KICK) {
-				player.kickPlayer(ChatColor.DARK_RED + "You were kicked!\n\n" + (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + "\n\n") + ChatColor.YELLOW
-						+ "Repeated kicks may result in a ban.");
-			} else if (punishmentType == PunishmentType.WARNING) {
-				player.sendMessage(" ");
-				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have received a warning.");
-				if (!reason.equals(" ")) {
-					player.sendMessage(ChatColor.RED + "Reason: " + reason);
-				}
-				player.sendMessage(ChatColor.GRAY + "Repeated warnings may result in a mute or ban.");
-				player.sendMessage("");
-			} else if (punishmentType == PunishmentType.MUTE) {
-				player.sendMessage(" ");
-				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been muted.");
-				if (!reason.equals("")) {
-					player.sendMessage(ChatColor.RED + "Reason: " + reason);
-				}
-				player.sendMessage(ChatColor.RED + "Expires: " + expiry);
-				player.sendMessage(" ");
-			}
-		}
-	}
-	
-	public void punish(PunishmentType punishmentType, String reason, long durationSeconds) {
-		savePunishment(punishmentType, reason, durationSeconds);
-		applyPunishmentLocally(punishmentType, reason, durationSeconds);
-	}
-
-	public void saveUnpunishment(PunishmentType punishmentType) {
-		setData(punishmentType.getDataHeader(), null);
-	}
-	
-	public void applyUnpunishmentLocally(PunishmentType punishmentType) {
-		if (player != null && punishmentType == PunishmentType.MUTE) {
-			player.sendMessage("");
-			player.sendMessage(ChatColor.DARK_GREEN + "Your mute has been revoked.");
-			player.sendMessage("");
-		}
-	}
-	
-	public void unpunish(PunishmentType punishmentType) {
-		saveUnpunishment(punishmentType);
-		applyUnpunishmentLocally(punishmentType);
-	}
-
-	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {
-		PunishmentData data = PunishmentData.fromDocument((Document) getData(punishmentType.getDataHeader()));
-		if(data != null && data.hasExpired()) {
-			removeData(punishmentType.getDataHeader());
-			return null;
-		}
-		return data;
-	}
-
-	
-	/*
-	 * Auto-saving
+	 * Saving and Syncing
 	 */
+
+	public void resyncData() {
+		if(player != null) {
+			LOGGER.warning("Resyncing data while user is online: " + getName() + " - this may overwrite local changes.");
+		}
+		storageAccess = storageManager.getStorageAccess(GameObjectType.USER, getUUID());
+	}
 	
 	@Override
 	public void autoSave() {

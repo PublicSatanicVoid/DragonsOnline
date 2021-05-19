@@ -1,4 +1,4 @@
-package mc.dragons.tools.moderation.punishment;
+package mc.dragons.tools.moderation.punishment.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -9,8 +9,9 @@ import org.bukkit.entity.Player;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
+import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.punishment.PunishmentData;
+import mc.dragons.tools.moderation.punishment.PunishmentType;
 
 public class ViewPunishmentsCommand extends DragonsCommandExecutor {
 	
@@ -28,21 +29,23 @@ public class ViewPunishmentsCommand extends DragonsCommandExecutor {
 		
 		if(targetUser == null) return true;
 
-		PunishmentData banData = targetUser.getActivePunishmentData(PunishmentType.BAN);
-		PunishmentData muteData = targetUser.getActivePunishmentData(PunishmentType.MUTE);
+		WrappedUser wrapped = WrappedUser.of(targetUser);
+		
+		PunishmentData banData = wrapped.getActivePunishmentData(PunishmentType.BAN);
+		PunishmentData muteData = wrapped.getActivePunishmentData(PunishmentType.MUTE);
 		
 		sender.sendMessage(ChatColor.GOLD + "Punishment History for User " + targetUser.getName());
 		if(targetPlayer == null) {
 			sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.ITALIC + "This player is offline. Showing cached data.");
 		}
 		sender.sendMessage(ChatColor.YELLOW + "Active Punishments:");
-		if(banData == null || banData.hasExpired()) {
+		if(banData == null || banData.hasExpired() || banData.isRevoked()) {
 			sender.sendMessage(ChatColor.WHITE + "- Not banned");
 		}
 		else {
 			sender.sendMessage(ChatColor.WHITE + "- Banned: " + banData.getReason() + " (" + (banData.isPermanent() ? "Permanent" : "Until " + banData.getExpiry().toString()) + ")");
 		}
-		if(muteData == null || banData.hasExpired()) {
+		if(muteData == null || muteData.hasExpired() || banData.isRevoked()) {
 			sender.sendMessage(ChatColor.WHITE + "- Not muted");
 		}
 		else {
@@ -52,11 +55,18 @@ public class ViewPunishmentsCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "Past Punishments:");
 		
 		int i = 1;
-		for(PunishmentData entry : targetUser.getPunishmentHistory()) {
+		for(PunishmentData entry : wrapped.getPunishmentHistory()) {
 			String duration = "";
 			if(entry.isPermanent()) duration = "(Permanent)";
 			else if(entry.getExpiry() != null) duration = "(Until " + entry.getExpiry().toString() + ")";
-			sender.sendMessage(ChatColor.DARK_GREEN + "#" + i + ": " + ChatColor.RED + entry.getType() + ": " + ChatColor.WHITE + entry.getReason() + " " + duration);
+			String removed = "";
+			if(entry.hasExpired()) {
+				removed = ChatColor.GREEN + " (Expired)";
+			}
+			else if(entry.isRevoked()) {
+				removed = ChatColor.AQUA + " (Revoked: " + entry.getRevocationCode().getDescription() + ")";
+			}
+			sender.sendMessage(ChatColor.DARK_GREEN + "#" + i + ": " + ChatColor.RED + entry.getType() + ": " + ChatColor.WHITE + entry.getReason() + " " + duration + removed);
 			i++;
 		}
 		

@@ -35,6 +35,25 @@ public class FriendCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Toggled self-friend ability.");
 	}
 	
+	private void dumpFriendData(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return;
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.RED + "/dumpFriends <Player>");
+			return;
+		}
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return;
+		for(User friend : FriendUtil.getFriends(target)) {
+			sender.sendMessage("Friend: " + friend.getName() + " - " + friend.getServer());
+		}
+		for(User out : FriendUtil.getOutgoing(target)) {
+			sender.sendMessage("Out: " + out.getName() + " - " + out.getServer());
+		}
+		for(User in : FriendUtil.getIncoming(target)) {
+			sender.sendMessage("In: " + in.getName() + " - " + in.getServer());
+		}
+	}
+	
 	private void listFriends(CommandSender sender, String[] args) {
 		Integer page = 1;
 		if(args.length > 1) {
@@ -46,6 +65,7 @@ public class FriendCommand extends DragonsCommandExecutor {
 		List<User> result = PaginationUtil.paginateList(all, page, PAGE_SIZE);
 		sender.sendMessage(ChatColor.DARK_PURPLE + "You have " + all.size() + " friends. Showing page " + page + " of " + (int) Math.ceil((double) all.size() / PAGE_SIZE)); 
 		for(User friend : result) {
+			if(friend.getPlayer() == null) friend.resyncData(); // make sure we have up-to-date information about location
 			String status = user.getServer() == null ? ChatColor.DARK_GRAY + "OFFLINE" : ChatColor.GRAY + "ONLINE: " + user.getServer();
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.LIGHT_PURPLE + friend.getName() + ChatColor.GRAY + " - " + status, "/friend remove " + friend.getName(), 
 					ChatColor.RED + "Click to remove " + friend.getName() + " from your friends list."));
@@ -148,6 +168,13 @@ public class FriendCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You can't send friend requests to a player you've blocked!");
 		}
 		else {
+			if(target.getPlayer() == null) {
+				target.resyncData();
+				if(target.getServer() == null) {
+					sender.sendMessage(ChatColor.RED + "Could not send request: " + target.getName() + " is not online on any servers!");
+					return;
+				}
+			}
 			boolean success = FriendUtil.sendRequest(user, target);
 			if(!success) {
 				sender.sendMessage(ChatColor.RED + "Something went wrong. Please try again later.");
@@ -168,6 +195,10 @@ public class FriendCommand extends DragonsCommandExecutor {
 		
 		if(label.equalsIgnoreCase("toggleselffriend")) {
 			toggleSelfFriend(sender);
+		}
+		
+		else if(label.equalsIgnoreCase("dumpFriends")) {
+			dumpFriendData(sender, args);
 		}
 		
 		else if(args.length == 0) {

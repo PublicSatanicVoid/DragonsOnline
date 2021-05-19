@@ -57,7 +57,7 @@ public abstract class GameObject {
 	 * @param key
 	 * @param value
 	 */
-	protected void setData(String key, Object value) {
+	public void setData(String key, Object value) {
 		storageAccess.set(key, value);
 		LOGGER.verbose("Set data on " + this + ": " + key + "=" + value);
 	}

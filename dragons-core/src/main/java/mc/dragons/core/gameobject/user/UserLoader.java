@@ -180,6 +180,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 				.append("currentServer", dragons.getServerName())
 				.append("verified", false)
 				.append("blockedUsers", new ArrayList<>());
+		dragons.getUserHookRegistry().getHooks().forEach(h -> h.onCreateStorageAccess(data));
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
 		User user = new User(player, storageManager, storageAccess);
 		assign(player, user);

@@ -21,7 +21,6 @@ import mc.dragons.core.gameobject.user.UserLoader;
 
 public class MoveListener implements Listener {
 	private DragonsAntiCheat plugin;
-	private static final Vector Z_AXIS = new Vector(0, 0, 1);
 	
 	private static final double IMPULSE_STRAIGHT = 0.350001;
 	private static final double IMPULSE_DIAGONAL = 0.357147;
@@ -35,12 +34,6 @@ public class MoveListener implements Listener {
 	private static double rad(double deg) {
 		return deg * Math.PI / 180;
 	}
-	
-	/*
-	private static double deg(double rad) {
-		return rad * 180 / Math.PI;
-	}
-	*/
 	
 	private static boolean in(double x, double a, double b) {
 		return a <= x && x <= b || b <= x && x <= a;
@@ -93,12 +86,12 @@ public class MoveListener implements Listener {
 		}
 	}
 	
-	private class MoveEntry {
-		public double dx;
-		public double dy;
-		public double dz;
-		public float pitch;
-		public float yaw;
+	public class MoveEntry {
+		private double dx;
+		private double dy;
+		private double dz;
+		private float pitch;
+		private float yaw;
 		public MoveEntry(double dx, double dy, double dz, float pitch, float yaw) {
 			this.dx = dx;
 			this.dy = dy;
@@ -109,12 +102,20 @@ public class MoveListener implements Listener {
 		public double dxz() {
 			return Math.sqrt(dx * dx + dz * dz);
 		}
+		public double dx() { return dx; }
+		public double dy() { return dy; }
+		public double dz() { return dz; }
+		public double pitch() { return pitch; }
+		public double yaw() { return yaw; }
 	}
 	
 	
-	private class MoveContext {
-		public MoveType moveType;
-		public List<MoveEntry> moveHistory = new ArrayList<>();
+	public class MoveContext {
+		private List<MoveEntry> moveHistory = new ArrayList<>();
+		
+		public MoveContext() {}
+		
+		public void addEntry(MoveEntry entry) { moveHistory.add(entry); }
 		
 		public double calculateRecentFactor() {
 			if(moveHistory.size() < 3) return 0.0;
@@ -140,31 +141,8 @@ public class MoveListener implements Listener {
 		plugin = instance;
 	}
 	
-	private class Heading {
-		public double x;
-		public double z;
-		
-		public Heading(double rot, double dX, double dZ) {
-			double cos = Math.cos(rot);
-			double sin = Math.sin(rot);
-			
-			x = dX * cos - dZ * sin;
-			z = dX * sin + dZ * cos;
-		}
-	}
-	
-	private Vector transformRelative(Vector look, Vector move) {
-		return rotateXZ(move, getSignedAngleXZ(Z_AXIS, move));
-	}
-	
 	private double getSignedAngleXZ(Vector u, Vector v) {
 		return Math.atan2(v.getZ(), v.getX()) - Math.atan2(u.getZ(), u.getX());
-	}
-	
-	private Vector rotateXZ(Vector v, double angle) {
-		double cos = Math.cos(angle);
-		double sin = Math.asin(angle);
-		return new Vector(v.getX() * cos - v.getZ() - sin, v.getY(), v.getX() * sin + v.getY() * cos);
 	}
 	
 	@EventHandler
@@ -182,10 +160,6 @@ public class MoveListener implements Listener {
 		MoveContext context = contextMap.computeIfAbsent(user, u -> new MoveContext());
 				
 		Vector eyes = player.getEyeLocation().getDirection();
-		double ex = eyes.getX();
-		double ey = eyes.getY();
-		double ez = eyes.getZ();
-		
 		Vector move = to.subtract(from).toVector();
 		double dx = move.getX();
 		double dy = move.getY();
@@ -207,7 +181,6 @@ public class MoveListener implements Listener {
 		double da = a - prev_a;
 		double db = b - prev_b;
 		
-		double lookAngle = getSignedAngleXZ(Z_AXIS, eyes);
 		double moveAngle = getSignedAngleXZ(eyes, move);
 		
 		plugin.debug(player, round(moveAngle) + " " + getKeyCombo(moveAngle) + " | " + /* round(dx, 5) + ", " + round(dz, 5) + " | " + */ round(dy, 5) + ", " + round(dxz, 5) + " | a=" + round(a, 5) + ", b=" + round(b, 5) + " | da=" + round(da, 5) + ", db=" + round(db, 5));

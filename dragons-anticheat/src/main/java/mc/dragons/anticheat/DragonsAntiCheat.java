@@ -23,6 +23,8 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		getCommand("acflushlog").setExecutor(ac);
 		getCommand("acstartlog").setExecutor(ac);
 		getCommand("acblockdata").setExecutor(ac);
+		getCommand("acban").setExecutor(ac);
+		getCommand("ackick").setExecutor(ac);
 		
 		moveListener = new MoveListener(this);
 		

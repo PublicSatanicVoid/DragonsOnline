@@ -26,14 +26,6 @@ commands:
     description: (ADMIN) View all IP addresses a player has used.
   ipscan:
     description: (MODERATOR) Search for alt accounts based on known IP.
-  warn:
-    description: (HELPER) Issue a warning to a player.
-  kick:
-    description: (HELPER) Kick a player from the server.
-  mute:
-    description: (MODERATOR) Mute a player, optionally for a specified duration.
-  ban:
-    description: (MODERATOR) Ban a player, optionally for a specified duration.
   unmute:
     description: (MODERATOR) Unmute a player. The mute stays on the player's record.
   unban:
@@ -64,4 +56,16 @@ commands:
   modnotifications:
     description: (MODERATOR) Manage your moderation-related notification settings.
     aliases: [modnotifs, modn, mn]
+  hold:
+    description: (MODERATOR) Place a hold on one or more players
+  punish:
+    description: (HELPER) Apply a punishment to a player
+  punishcodes:
+    description: (HELPER) List all punishment codes
+    aliases: pcodes
+  setstandinglevel:
+    description: (ADMIN) Change a player's standing level
+    aliases: setsl
+  purgepunishments:
+    description: (ADMIN) Purge a player's punishment history
 

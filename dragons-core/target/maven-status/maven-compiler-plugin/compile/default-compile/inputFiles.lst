@@ -69,7 +69,6 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\tasks\LagMo
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\dataholder\ReusableDataMap.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\region\RegionLoader.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\quest\Quest.java
-C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\punishment\PunishmentType.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\mongo\pagination\PaginatedResult.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\HologramUtil.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\singletons\Singleton.java
@@ -112,7 +111,6 @@ C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\util\single
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\addon\ItemAddon.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\chat\channel_handlers\TradeChannelHandler.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\events\PlayerEventListeners.java
-C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\punishment\PunishmentData.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\storage\StorageManager.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\tasks\AutoSaveTask.java
 C:\Users\User\git\dragons\dragons-core\src\main\java\mc\dragons\core\gameobject\user\SidebarManager.java

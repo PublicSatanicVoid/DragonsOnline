@@ -8,6 +8,7 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.moderation.punishment.PunishmentCode;
 
 public class EscalateCommand extends DragonsCommandExecutor {
 	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);;
@@ -18,15 +19,20 @@ public class EscalateCommand extends DragonsCommandExecutor {
 		User reporter = user(sender);
 		
 		if(args.length < 2) {
-			sender.sendMessage(ChatColor.RED + "Specify a player and reason! /escalate <player> <reason>");
+			sender.sendMessage(ChatColor.RED + "Specify a player and code! /escalate <player> <code> [extra info]");
 			return true;
 		}
 		
 		User target = lookupUser(sender, args[0]);
-		if(target == null) return true;
+		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
+		if(target == null || code == null) return true;
 		
-		reportLoader.fileStaffReport(target, reporter, StringUtil.concatArgs(args, 1));
-		sender.sendMessage(ChatColor.GREEN + "Escalated issue successfully.");
+		String extraInfo = StringUtil.concatArgs(args, 1);
+		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
+		
+		if(reportLoader.fileStaffReport(target, reporter, reason, "") != null) {
+			sender.sendMessage(ChatColor.GREEN + "Escalated issue successfully.");
+		}
 		
 		return true;
 	}

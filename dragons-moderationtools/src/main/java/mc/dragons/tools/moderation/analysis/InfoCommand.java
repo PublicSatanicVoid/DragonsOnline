@@ -15,10 +15,12 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.punishment.PunishmentData;
+import mc.dragons.tools.moderation.punishment.PunishmentType;
+import mc.dragons.tools.moderation.punishment.StandingLevelType;
 
 public class InfoCommand extends DragonsCommandExecutor {
 	
@@ -34,6 +36,10 @@ public class InfoCommand extends DragonsCommandExecutor {
 		User targetUser = lookupUser(sender, args[0]);
 		if(targetUser == null) return true;
 		
+		WrappedUser wrapped = WrappedUser.of(targetUser);
+		
+		boolean goodStanding = true;
+		
 		String skills = Arrays.stream(SkillType.values()).map(s -> s.toString() + " (" + targetUser.getSkillLevel(s) + ")").reduce((a,b) -> a + ", " + b).get();
 		
 		/*String skills = "";
@@ -42,8 +48,8 @@ public class InfoCommand extends DragonsCommandExecutor {
 		}
 		skills = skills.substring(0, skills.length() - 2);*/
 		
-		PunishmentData banData = targetUser.getActivePunishmentData(PunishmentType.BAN);
-		PunishmentData muteData = targetUser.getActivePunishmentData(PunishmentType.MUTE);
+		PunishmentData banData = wrapped.getActivePunishmentData(PunishmentType.BAN);
+		PunishmentData muteData = wrapped.getActivePunishmentData(PunishmentType.MUTE);
 		
 		sender.sendMessage(ChatColor.GOLD + "Report for User " + targetUser.getName());
 		if(targetPlayer == null) {
@@ -59,6 +65,7 @@ public class InfoCommand extends DragonsCommandExecutor {
 		}
 		else {
 			sender.sendMessage(ChatColor.WHITE + "- Banned: " + banData.getReason() + " (" + (banData.isPermanent() ? "Permanent" : "Until " + banData.getExpiry().toString()) + ")");
+			goodStanding = false;
 		}
 		
 		if(muteData == null) {
@@ -66,6 +73,15 @@ public class InfoCommand extends DragonsCommandExecutor {
 		}
 		else {
 			sender.sendMessage(ChatColor.WHITE + "- Muted: " + muteData.getReason() + " (" + (muteData.isPermanent() ? "Permanent" : "Until " + muteData.getExpiry().toString()) + ")");
+			goodStanding = false;
+		}
+		wrapped.updateStandingLevels();
+		sender.sendMessage(ChatColor.YELLOW + "Standing Levels: " + ChatColor.RESET + Arrays.stream(StandingLevelType.values())
+			.map(t -> t.toString() + " (" + wrapped.getStandingLevel(t) + ")").reduce((a,b)-> a + ", " + b).get());
+		for(StandingLevelType level : StandingLevelType.values()) {
+			if(wrapped.getStandingLevel(level) > 1) {
+				goodStanding = false;
+			}
 		}
 		sender.sendMessage(ChatColor.YELLOW + "XP: " + ChatColor.RESET + targetUser.getXP() + " [Level " + targetUser.getLevel() + "] (" + MathUtil.round(targetUser.getLevelProgress() * 100) + "%)");
 		sender.sendMessage(ChatColor.YELLOW + "Rank: " + ChatColor.RESET + targetUser.getRank().getRankName());
@@ -93,6 +109,13 @@ public class InfoCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "First Join: " + ChatColor.RESET + targetUser.getFirstJoined().toString());
 		sender.sendMessage(ChatColor.YELLOW + "Last Join: " + ChatColor.RESET + targetUser.getLastJoined().toString());
 		sender.sendMessage(ChatColor.YELLOW + "Last Seen: " + ChatColor.RESET + targetUser.getLastSeen().toString());
+		
+		if(goodStanding) {
+			sender.sendMessage(ChatColor.GREEN + "User is in good standing");
+		}
+		else {
+			sender.sendMessage(ChatColor.RED + "User is not in good standing");
+		}
 		
 		if(targetPlayer == null) {
 			// User was only constructed for querying purposes. Since they're not really online, remove them from local registry

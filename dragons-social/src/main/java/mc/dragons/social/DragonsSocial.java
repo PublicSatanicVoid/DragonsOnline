@@ -22,8 +22,13 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		enableDebugLogging();
 		
 		Dragons dragons = getDragonsInstance();
+		
+		PartyLoader partyLoader = new PartyLoader(dragons);
+		dragons.getLightweightLoaderRegistry().register(partyLoader);
+		partyLoader.loadMessenger();
+		
 		dragons.getLightweightLoaderRegistry().register(new GuildLoader(dragons.getMongoConfig()));
-		dragons.getLightweightLoaderRegistry().register(new PartyLoader(dragons));
+		
 		socialHook = new SocialUserHook();
 		dragons.getUserHookRegistry().registerHook(socialHook);
 		
@@ -53,10 +58,12 @@ public class DragonsSocial extends DragonsJavaPlugin {
 		FriendCommand friendCommand = new FriendCommand(this);
 		getCommand("friend").setExecutor(friendCommand);
 		getCommand("toggleselffriend").setExecutor(friendCommand);
+		getCommand("dumpFriends").setExecutor(friendCommand);
 		
 		PartyCommand partyCommand = new PartyCommand(dragons);
 		getCommand("party").setExecutor(partyCommand);
 		getCommand("toggleselfparty").setExecutor(partyCommand);
+		getCommand("dumpParties").setExecutor(partyCommand);
 		
 		getCommand("shout").setExecutor(new ShoutCommand());
 		getCommand("channel").setExecutor(new ChannelCommand());

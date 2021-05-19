@@ -13,12 +13,68 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.StringUtil;
 
 public class ChannelCommand extends DragonsCommandExecutor {
+	private boolean handleAlias(CommandSender sender, String label, String[] args) {
+		String command = "";
+		switch(label) {
+		case "csa":
+			command = "c s a";
+			break;
+		case "csl":
+			command = "c s l";
+			break;
+		case "csg":
+			command = "c s g";
+			break;
+		case "csp":
+			command = "c s p";
+			break;
+		case "cst":
+			command = "c s t";
+			break;
+		case "csh":
+			command = "c s h";
+			break;
+		case "css":
+			command = "c s s";
+			break;
+		case "cla":
+			command = "c l a";
+			break;
+		case "cll":
+			command = "c l l";
+			break;
+		case "clg":
+			command = "c l g";
+			break;
+		case "clp":
+			command = "c l p";
+			break;
+		case "clt":
+			command = "c l t";
+			break;
+		case "clh":
+			command = "c l h";
+			break;
+		case "cls":
+			command = "c l s";
+			break;
+		default:
+			break;
+		}
+		if(!command.isEmpty()) {
+			player(sender).performCommand(command);
+			return true;
+		}
+		return false;
+	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePlayer(sender)) return true;
 		User user = user(sender);
 		boolean staff = hasPermission(sender, PermissionLevel.BUILDER);
+		
+		if(handleAlias(sender, label, args)) return true;
 		
 		if (args.length < 2) {
 			sender.sendMessage(ChatColor.RED + "/channel <speak|listen>"

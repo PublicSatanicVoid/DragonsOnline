@@ -58,14 +58,14 @@ public class StringUtil {
 	}
 
 	public static String concatArgs(String[] args, int startIndex, int endIndex) {
-		if (endIndex <= startIndex) {
+		if (endIndex <= startIndex && endIndex != -1) {
 			return "";
 		}
 		if (startIndex >= args.length) {
 			return "";
 		}
 		String result = "";
-		for (int i = startIndex; i < Math.min(endIndex, args.length); i++) {
+		for (int i = startIndex; i < Math.min(endIndex == -1 ? args.length : endIndex, args.length); i++) {
 			result = result + args[i] + " ";
 		}
 		return result.trim();
@@ -291,6 +291,7 @@ public class StringUtil {
 	}
 	
 	public static String truncateWithEllipsis(String text, int length) {
+		if(text == null) return "";
 		if(text.length() <= length) return text;
 		return text.substring(0, length - 3) + "...";
 	}

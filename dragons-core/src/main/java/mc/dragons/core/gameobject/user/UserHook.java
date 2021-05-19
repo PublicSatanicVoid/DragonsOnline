@@ -15,6 +15,13 @@ import mc.dragons.core.gameobject.user.chat.ChatChannel;
 public interface UserHook {
 	
 	/**
+	 * Called when a user's data is initialized for the first time.
+	 * 
+	 * @param user
+	 */
+	default void onCreateStorageAccess(Document data) { /* default */ }
+	
+	/**
 	 * Called when the user object is constructed.
 	 * 
 	 * @param user
@@ -79,4 +86,16 @@ public interface UserHook {
 	 * @param user
 	 */
 	default void onQuit(User user) { /* default */ }
+
+	/**
+	 * Called whenever the user attempts to send a message.
+	 * 
+	 * @param user
+	 * @param message
+	 * @return Whether the user is allowed to send this message.
+	 * 
+	 * @apiNote If any hook returns false, the user is blocked from
+	 * sending the message.
+	 */
+	default boolean checkAllowChat(User user, String message) { return true; }
 }

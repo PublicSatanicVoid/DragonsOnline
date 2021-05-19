@@ -79,6 +79,7 @@ import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.singletons.SingletonReInstantiationException;
 import mc.dragons.core.util.singletons.Singletons;
 
 /**
@@ -140,15 +141,19 @@ public class Dragons extends DragonsJavaPlugin {
 	private String serverName;
 
 	private long started;
+	private boolean joinable;
 
 	/**
 	 * Only intended for use by the Bukkit API plugin loader.
 	 * 
 	 * @apiNote This needs to be public for Bukkit to load it.
 	 * 
+	 * @throws SingletonReInstantiationException, if an instance
+	 * of Dragons already exists.
+	 * 
 	 */
 	public Dragons() {
-		super();
+		super(); // Re-instantiation checked here
 	}
 	
 	/**
@@ -175,6 +180,9 @@ public class Dragons extends DragonsJavaPlugin {
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
+
+		joinable = false;
+		getLogger().info("Disabled player joins until Dragons startup completes");
 		
 		serverName = getConfig().getString("serverName");
 		getLogger().info("Server instance name is " + serverName);
@@ -274,6 +282,8 @@ public class Dragons extends DragonsJavaPlugin {
 							cancel();
 							getLogger().info("... flush complete. Entity count: " + getEntities().size());
 							System.gc();
+							joinable = true;
+							getLogger().info("Server is now joinable");
 						}
 					}
 				}.runTaskTimer(Dragons.this, 20L, 20L);
@@ -385,6 +395,14 @@ public class Dragons extends DragonsJavaPlugin {
 			entities.addAll(w.getEntities());
 		}
 		return entities;
+	}
+	
+	/**
+	 * 
+	 * @return Whether the server is ready for players to join.
+	 */
+	public boolean isJoinable() {
+		return joinable;
 	}
 	
 	/**

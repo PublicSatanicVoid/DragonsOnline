@@ -147,3 +147,5 @@ commands:
   testfooter:
   streamconsole:
     description: (ADMIN) Receive console logs in the chat.
+  resyncuserdata:
+    description: (ADMIN) Resync all user data from the database. Some data caches may not be updated.

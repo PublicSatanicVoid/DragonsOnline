@@ -1,4 +1,4 @@
-package mc.dragons.core.gameobject.user.punishment;
+package mc.dragons.tools.moderation.punishment;
 
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 

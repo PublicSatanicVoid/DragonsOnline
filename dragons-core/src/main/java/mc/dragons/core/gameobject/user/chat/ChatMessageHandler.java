@@ -31,8 +31,8 @@ public class ChatMessageHandler extends MessageHandler {
 	private ChatMessageRegistry registry = Dragons.getInstance().getChatMessageRegistry();
 	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	
-	public ChatMessageHandler() {
-		super(Dragons.getInstance(), "chat");
+	public ChatMessageHandler(Dragons instance) {
+		super(instance, "chat");
 	}
 
 	private void doLocalSend(User user, ChatChannel channel, String message) {
@@ -67,7 +67,7 @@ public class ChatMessageHandler extends MessageHandler {
 		TextComponent messageComponent = new TextComponent(user.getRank().getChatColor() + message);
 		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 				new Text(ChatColor.YELLOW + "Click to report this message")));
-		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId()));
+		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId() + " --id"));
 		registry.register(messageData);
 		for (User test: UserLoader.allUsers()) {
 			LOGGER.verbose("-Checking if " + user.getName() + " can receive");

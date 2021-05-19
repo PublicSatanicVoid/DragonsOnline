@@ -1,10 +1,13 @@
 package mc.dragons.core.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.ChatColor;
 
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.gameobject.user.permission.SystemProfile;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 
 /**
  * Used primarily in commands to verify a user's access to sensitive functionality or data.
@@ -26,7 +29,7 @@ public class PermissionUtil {
 		return true;
 	}
 
-	public static boolean verifyActiveProfileFlag(User user, SystemProfile.SystemProfileFlags.SystemProfileFlag flag, boolean notify) {
+	public static boolean verifyActiveProfileFlag(User user, SystemProfileFlag flag, boolean notify) {
 		if(user == null) {
 			return false;
 		}
@@ -38,5 +41,15 @@ public class PermissionUtil {
 			user.getPlayer().sendMessage(ChatColor.RED + "This requires profile flag " + ChatColor.ITALIC + flag.toString().toLowerCase() + ChatColor.RED + ".");
 		}
 		return hasFlag;
+	}
+	
+	public static List<PermissionLevel> getAllowedLevels(PermissionLevel max) {
+		List<PermissionLevel> result = new ArrayList<>();
+		for(PermissionLevel level : PermissionLevel.values()) {
+			if(level.ordinal() <= max.ordinal()) {
+				result.add(level);
+			}
+		}
+		return result;
 	}
 }

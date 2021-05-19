@@ -33,6 +33,10 @@ public abstract class MessageHandler {
 	 * @param destServer The server to send it to, or <code>MessageConstants.DEST_ALL</code> for all servers
 	 */
 	public void send(Document data, String destServer) {
+		if(destServer == null) {
+			instance.getLogger().warning("Tried to send a message of type " + type.toString() + " to a null server");
+			return;
+		}
 		if(destServer.equals(instance.getServerName())) {
 			receive(instance.getServerName(), data);
 			return;

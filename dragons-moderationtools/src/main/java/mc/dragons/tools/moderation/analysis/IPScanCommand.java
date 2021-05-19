@@ -11,10 +11,11 @@ import org.bukkit.command.CommandSender;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.punishment.PunishmentData;
+import mc.dragons.tools.moderation.punishment.PunishmentType;
 
 public class IPScanCommand extends DragonsCommandExecutor {
 	private StorageManager storageManager = dragons.getPersistentStorageManager();
@@ -40,9 +41,10 @@ public class IPScanCommand extends DragonsCommandExecutor {
 		
 		sender.sendMessage(ChatColor.DARK_GREEN + "" + alts.size() + " possible alt accounts found for user " + target.getName());
 		for(User alt : alts) {
+			WrappedUser wrapped = WrappedUser.of(alt);
 			List<String> flags = new ArrayList<>();
-			PunishmentData ban = alt.getActivePunishmentData(PunishmentType.BAN);
-			PunishmentData mute = alt.getActivePunishmentData(PunishmentType.MUTE);
+			PunishmentData ban = wrapped.getActivePunishmentData(PunishmentType.BAN);
+			PunishmentData mute = wrapped.getActivePunishmentData(PunishmentType.MUTE);
 			if(ban != null) {
 				flags.add("Banned");
 			}
@@ -50,10 +52,9 @@ public class IPScanCommand extends DragonsCommandExecutor {
 				flags.add("Muted");
 			}
 			String data = flags.size() == 0 ? "" : ChatColor.RED + " (" + StringUtil.parseList(flags) + ")";
-			sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.WHITE + alt.getName() + ChatColor.GRAY + " (" + alt.getPunishmentHistory().size() + " punishments)" + data);
+			sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.WHITE + alt.getName() + ChatColor.GRAY + " (" + wrapped.getPunishmentHistory().size() + " punishments)" + data);
 		}
 		
 		return true;
 	}
-
 }

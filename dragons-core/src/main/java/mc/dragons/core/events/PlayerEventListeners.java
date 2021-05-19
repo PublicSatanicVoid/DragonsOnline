@@ -49,14 +49,11 @@ import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCConditionalActions;
 import mc.dragons.core.gameobject.npc.NPCLoader;
-import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
@@ -290,10 +287,16 @@ public class PlayerEventListeners implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		LOGGER.debug("Join event on " + event.getPlayer().getName());
+		event.setJoinMessage(null);
 		Player player = event.getPlayer();
+		if(!plugin.isJoinable()) {
+			event.getPlayer().kickPlayer(ChatColor.YELLOW + "This server (" + plugin.getServerName() + ") is still loading and is not joinable yet.\n"
+					+ "Please try again in a few minutes.\n\n"
+					+ "This is not a punishment-related kick.");
+			return;
+		}
 		UUID uuid = player.getUniqueId();
 		User user = userLoader.loadObject(uuid);
-		event.setJoinMessage(null);
 		boolean firstJoin = false;
 		if (user == null) {
 			firstJoin = true;
@@ -304,21 +307,15 @@ public class PlayerEventListeners implements Listener {
 				user.giveItem(itemLoader.registerNew(itemClass), true, false, true);
 			}
 		}
-		PunishmentData banData = user.getActivePunishmentData(PunishmentType.BAN);
-		if (banData != null) {
-			player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You are banned.\n\n"
-					+ (banData.getReason().equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + banData.getReason() + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE
-					+ (banData.isPermanent() ? "Never" : banData.getExpiry().toString()));
-			return;
-		}
 		Floor floor = FloorLoader.fromLocation(player.getLocation());
 		if(floor.isPlayerLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
-			player.kickPlayer(ChatColor.RED + "This floor (#" + floor.getLevelMin() + " " + floor.getDisplayName() + ") is currently locked for maintenance.\n\n"
-					+ "You will be allowed to re-join once the maintenance completes.\n"
+			player.kickPlayer(ChatColor.RED + "This floor (#" + floor.getLevelMin() + " " + floor.getDisplayName() + ") is currently locked for maintenance.\n"
+					+ "You will be allowed to re-join once the maintenance completes.\n\n"
 					+ "This is not a punishment-related kick.\n\n"
 					+ new SimpleDateFormat("yyyy MM dd HH:mm z").format(new Date()));
+			return;
 		}
-		if (user.getRank().ordinal() >= Rank.TRIAL_BUILDER.ordinal()) {
+		if (user.getRank().isStaff()) {
 			GameMode restoreTo = user.getSavedGameMode();
 			user.setGameMode(GameMode.ADVENTURE, true);
 			user.setGameMode(restoreTo, false);
@@ -392,6 +389,7 @@ public class PlayerEventListeners implements Listener {
 	public void onQuit(PlayerQuitEvent event) {
 		LOGGER.debug("Quit event on " + event.getPlayer().getName());
 		User user = UserLoader.fromPlayer(event.getPlayer());
+		if(user == null) return;
 		user.handleQuit();
 		event.setQuitMessage(null);
 	}

@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.bukkit.ChatColor;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
@@ -19,10 +21,12 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.chat.MessageData;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
+import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 
@@ -51,8 +55,8 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 			return ReportStatus.valueOf(data.getString("status"));
 		}
 		
-		public User getTarget() {
-			return userLoader.loadObject(UUID.fromString(data.getString("target")));
+		public List<User> getTargets() {
+			return data.getList("target", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList());
 		}
 		
 		public User getFiledBy() {
@@ -79,6 +83,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				return "\"" + getData().getString("message") + "\"";
 			case REGULAR:
 			case STAFF_ESCALATION:
+			case HOLD:
 				return getData().getString("reason");
 			case AUTOMATED:
 				return "Auto-generated user report";
@@ -127,6 +132,9 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		
 		/* When a lower-ranked staff member escalates an issue for a higher-ranked staff member to take action on. */
 		STAFF_ESCALATION,
+		
+		/* When one or more users are placed in an account hold. */
+		HOLD,
 		
 		/* When a user reports a chat message. */
 		CHAT,
@@ -186,11 +194,18 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	}
 	
 	public PaginatedResult<Report> getReportsByTarget(User target, int page) {
-		return parseResults(collection.find(new Document("target", target.getUUID().toString())), page);
+		return parseResults(collection.find(new Document("target", new Document("$in", target.getUUID().toString()))), page);
 	}
 	
 	public PaginatedResult<Report> getUnreviewedReports(int page) {
 		return parseResults(collection.find(new Document("reviewedBy", null)), page);
+	}
+	
+	public PaginatedResult<Report> getAuthorizedUnreviewedReports(int page, PermissionLevel editLevelMax, UUID uuid) {
+		return parseResults(collection.find(new Document("$and", List.of(new Document("reviewedBy", null), new Document("filedBy", new Document("$ne", uuid.toString())),
+			new Document("$or", List.of(new Document("data.permissionReq", null), 
+				new Document("data.permissionReq", new Document("$in", PermissionUtil.getAllowedLevels(editLevelMax).stream().map(level -> level.toString()).collect(Collectors.toList())))))))),
+			page);
 	}
 	
 	private Report fileReport(Document data) {
@@ -209,47 +224,74 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		Dragons.getInstance().getStaffAlertHandler().sendReportMessage(id, message);
 	}
 	
-	public void fileChatReport(User target, User by, MessageData message) {
+	public Report fileChatReport(User target, User by, MessageData message) {
 		Document data = new Document()
 				.append("type", ReportType.CHAT.toString())
-				.append("target", target.getUUID().toString())
+				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", by.isVerified() ? 1 : 0)
 				.append("filedBy", by.getUUID().toString())
 				.append("data", new Document("message", message.getMessage()));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
+		return report;
 	}
 	
-	public void fileStaffReport(User target, User staff, String message) {
+	public Report fileStaffReport(User target, User staff, String message, String confirmCommand) {
+		if(staff.getActivePermissionLevel().ordinal() == PermissionLevel.SYSOP.ordinal()) {
+			staff.getPlayer().sendMessage(ChatColor.RED + "You have nobody to escalate this report to as you are already the highest permission level!");
+			return null;
+		}
+		PermissionLevel permissionReq = null;
+		for(PermissionLevel level : PermissionLevel.values()) {
+			if(level.ordinal() == staff.getActivePermissionLevel().ordinal() + 1) {
+				permissionReq = level;
+				break;
+			}
+		}
 		Document data = new Document()
 				.append("type", ReportType.STAFF_ESCALATION.toString())
-				.append("target", target.getUUID().toString())
+				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", 1)
 				.append("filedBy", staff.getUUID().toString())
-				.append("data", new Document("message", message));
+				.append("data", new Document("message", message).append("confirmCommand", confirmCommand).append("permissionReq", permissionReq.toString()));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + target.getName() + ": " + message);
+		return report;
 	}
 	
-	public void fileInternalReport(User target, Document reportData) {
+	public Report fileHoldReport(List<User> targets, User staff, String reason, int holdId) {
+		Document data = new Document()
+				.append("type", ReportType.HOLD.toString())
+				.append("target", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()))
+				.append("priority", 1)
+				.append("filedBy", staff.getUUID().toString())
+				.append("data", new Document("reason", reason).append("holdId", holdId));
+		Report report = fileReport(data);
+		reportNotify(report.getId(), staff.getName() + " placed a hold on " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + reason);
+		return report;
+	}
+	
+	public Report fileInternalReport(User target, Document reportData) {
 		Document data = new Document()
 				.append("type", ReportType.AUTOMATED.toString())
-				.append("target", target.getUUID().toString())
+				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", 0)
 				.append("data", reportData);
 		Report report = fileReport(data);
 		reportNotify(report.getId(), target.getName() + " was reported internally.");
+		return report;
 	}
 	
-	public void fileUserReport(User target, User by, String reason) {
+	public Report fileUserReport(User target, User by, String reason) {
 		Document data = new Document()
 				.append("type", ReportType.REGULAR.toString())
-				.append("target", target.getUUID().toString())
+				.append("target", List.of(target.getUUID().toString()))
 				.append("priority", by.isVerified() ? 1 : 0)
 				.append("filedBy", by.getUUID().toString())
 				.append("data", new Document("reason", reason));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
+		return report;
 	}
 	
 	public boolean deleteReport(int id) {

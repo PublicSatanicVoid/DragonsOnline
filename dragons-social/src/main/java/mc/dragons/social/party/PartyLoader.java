@@ -165,5 +165,10 @@ public class PartyLoader extends AbstractLightweightLoader<Party> {
 		loadMessenger();
 		messenger.sendDisband(party.getId(), party.getOwner());
 		sync(() -> collection.deleteOne(new Document("_id", party.getId())), 20);
+	}
+
+	public List<Party> all() {
+		FindIterable<Document> party = collection.find();
+		return party.map(d -> fromDocument(d)).into(new ArrayList<>());
 	}	
 }

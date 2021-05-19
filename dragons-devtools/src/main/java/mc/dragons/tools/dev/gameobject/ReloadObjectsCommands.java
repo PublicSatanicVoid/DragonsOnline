@@ -7,13 +7,15 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
+import mc.dragons.core.gameobject.GameObject;
+import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 
 public class ReloadObjectsCommands extends DragonsCommandExecutor  {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.GM)) return true;
+		if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
 		
 		if(label.equalsIgnoreCase("reloadquests")) {
 			sender.sendMessage(ChatColor.GREEN + "Reloading quests...");
@@ -24,6 +26,16 @@ public class ReloadObjectsCommands extends DragonsCommandExecutor  {
 		}
 		else if(label.equalsIgnoreCase("reloadregions")) {
 			sender.sendMessage(ChatColor.GREEN + "Reloading regions...");
+		}
+		else if(label.equalsIgnoreCase("resyncuserdata")) {
+			sender.sendMessage(ChatColor.GREEN + "Resyncing user data...");
+			int n = 0;
+			for(GameObject obj : dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER)) {
+				obj.replaceStorageAccess(dragons.getPersistentStorageManager().getStorageAccess(GameObjectType.USER, obj.getUUID()));
+				n++;
+			}
+			sender.sendMessage(ChatColor.GREEN + "Resynced " + n + " users");
+			return true;
 		}
 		
 		new BukkitRunnable() {

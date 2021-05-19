@@ -59,6 +59,7 @@ commands:
     description: (BUILDER) Delete a warp point.
   resetprofile:
     description: (TESTER) Reset your game statistics. Punishment and IP history is not affected.
+    aliases: [statswipe]
   placeholder:
     description: (GM) Set a placeholder which can be used in lengthy content commands.
     aliases: ph

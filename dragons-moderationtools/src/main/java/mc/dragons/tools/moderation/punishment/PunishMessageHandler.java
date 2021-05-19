@@ -9,8 +9,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.networking.MessageHandler;
+import mc.dragons.tools.moderation.WrappedUser;
 
 public class PunishMessageHandler extends MessageHandler {
 	public PunishMessageHandler() {
@@ -21,15 +21,14 @@ public class PunishMessageHandler extends MessageHandler {
 		send(new Document("uuid", user.getUUID().toString()).append("action", "punish").append("punishmentType", type.toString()).append("reason", reason).append("duration", duration), user.getServer());
 	}
 	
-	public void forwardUnpunishment(User user, PunishmentType type) {
-		send(new Document("uuid", user.getUUID().toString()).append("action", "unpunish").append("punishmentType", type.toString()), user.getServer());
+	public void forwardUnpunishment(User user, int id) {
+		send(new Document("uuid", user.getUUID().toString()).append("action", "unpunish").append("punishmentId", id), user.getServer());
 	}
 	
 	@Override
 	public void receive(String serverFrom, Document data) {
 		UUID uuid = UUID.fromString(data.getString("uuid"));
 		String action = data.getString("action");
-		PunishmentType type = PunishmentType.valueOf(data.getString("punishmentType"));
 		
 		User user = UserLoader.fromPlayer(Bukkit.getPlayer(uuid));
 		if(user == null) {
@@ -37,15 +36,19 @@ public class PunishMessageHandler extends MessageHandler {
 			return;
 		}
 		
+		WrappedUser wrapped = WrappedUser.of(user);
+		
 		new BukkitRunnable() {
 			@Override public void run() {
 				if(action.equals("punish")) {
+					PunishmentType type = PunishmentType.valueOf(data.getString("punishmentType"));
 					String reason = data.getString("reason");
 					long duration = data.getLong("duration");
-					user.applyPunishmentLocally(type, reason, duration);
+					wrapped.applyPunishmentLocally(type, reason, duration);
 				}
 				else if(action.equals("unpunish")) {
-					user.applyUnpunishmentLocally(type);
+					int id = data.getInteger("punishmentId");
+					wrapped.applyUnpunishmentLocally(id);
 				}
 			}
 		}.runTask(Dragons.getInstance());

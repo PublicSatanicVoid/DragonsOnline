@@ -1,10 +1,5 @@
-package mc.dragons.tools.moderation.punishment;
+package mc.dragons.tools.moderation.punishment.command;
 
-import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-
-import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -14,8 +9,11 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
+import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.DragonsModerationTools;
+import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
+import mc.dragons.tools.moderation.punishment.RevocationCode;
 
 public class RemovePunishmentCommand extends DragonsCommandExecutor {
 	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationTools.class).getPunishMessageHandler();
@@ -23,36 +21,37 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 		
-		if(args.length < 2) {
-			sender.sendMessage(ChatColor.RED + "Specify a player and the punishment number! /removepunishment <player> <#>");
-			sender.sendMessage(ChatColor.RED + "You can view the list of a player's punishments and numbers with /viewpunishments <player>");
+		if(args.length < 3) {
+			sender.sendMessage(ChatColor.RED + "/removepunishment <player> <#> <revocation code> [-delete]");
+			sender.sendMessage(ChatColor.RED + "View a player's punishments with /viewpunishments <player>");
 			return true;
 		}
 		
 		User targetUser = lookupUser(sender, args[0]);
 		Integer punishmentNo = parseInt(sender, args[1]);
-		if(targetUser == null || punishmentNo == null) return true;
+		RevocationCode code = RevocationCode.parseCode(sender, args[2]);
+		if(targetUser == null || punishmentNo == null || code == null) return true;
 		punishmentNo--;
 		
-		if(punishmentNo < 0 || punishmentNo >= targetUser.getPunishmentHistory().size()) {
+		WrappedUser wrapped = WrappedUser.of(targetUser);
+		
+		boolean deletePermanently = StringUtil.getFlagIndex(args, "-delete", 3) != -1;
+		
+		if(punishmentNo < 0 || punishmentNo >= wrapped.getPunishmentHistory().size()) {
 			sender.sendMessage(ChatColor.RED + "Invalid punishment number! Use /viewpunishments " + targetUser.getName() + " to see their punishment records.");
 			return true;
 		}
 		
-		PunishmentData record = targetUser.getPunishmentHistory().get(punishmentNo);
+		if(deletePermanently) {
+			wrapped.deletePunishment(punishmentNo);
+		}
+		else {
+			wrapped.unpunish(punishmentNo, code, user(sender));
+		}
 		
-		@SuppressWarnings("unchecked")
-		List<Document> rawHistory = (List<Document>) targetUser.getStorageAccess().get("punishmentHistory");
-		rawHistory.remove((int) punishmentNo);
-		targetUser.getStorageAccess().set("punishmentHistory", rawHistory);
-		
-		sender.sendMessage(ChatColor.GREEN + "Removed punishment #" + args[1] + " from " + targetUser.getName());
-		if(record.getExpiry().after(Date.from(Instant.now())) || record.isPermanent()) {
-			targetUser.unpunish(record.getType());
-			// Check if we need to tell a different server to immediately revoke the punishment
-			if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
-				handler.forwardUnpunishment(targetUser, record.getType());
-			}
+		sender.sendMessage(ChatColor.GREEN + (deletePermanently ? "Deleted" : "Revoked") + " punishment #" + args[1] + " from " + targetUser.getName());
+		if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
+			handler.forwardUnpunishment(targetUser, punishmentNo);
 		}
 		
 		if(targetUser.getPlayer() == null) {

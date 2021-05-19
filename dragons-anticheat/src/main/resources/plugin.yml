@@ -2,7 +2,7 @@ name: DragonsAntiCheat
 main: mc.dragons.anticheat.DragonsAntiCheat
 version: 1.0.0
 author: DragonRider747
-depend: [DragonsCore]
+depend: [DragonsCore, DragonsModerationTools]
 api-version: 1.16
 description: (EXPERIMENTAL) Enforces vanilla gameplay behavior and detects illegal client modifications.
 commands:
@@ -11,3 +11,5 @@ commands:
   acflushlog:
   acstartlog:
   acblockdata:
+  acban:
+  ackick:

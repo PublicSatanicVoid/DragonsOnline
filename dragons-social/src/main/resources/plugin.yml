@@ -32,7 +32,7 @@ commands:
     aliases: f
   channel:
     description: Set speaking and listening chat channels.
-    aliases: [c, ch, chat]
+    aliases: [c, ch, chat, csa, csl, csg, csp, cst, csh, css, cla, cll, clg, clp, clt, clh, cls]
   duel:
     description: Request to 1v1 a player.
   listallduelstatus:
@@ -52,3 +52,7 @@ commands:
     description: Toggle whether you can be messaged by everyone or by friends only.
   toggleselfparty:
     description: (ADMIN) Toggle your ability to add yourself to a party. No other players are affected.
+  dumpParties:
+    description: (ADMIN) Dump diagnostic information about active parties.
+  dumpFriends:
+    description: (ADMIN) Dump diagnostic information about your friend status.

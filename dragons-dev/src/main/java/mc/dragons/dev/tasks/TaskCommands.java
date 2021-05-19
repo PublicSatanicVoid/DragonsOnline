@@ -287,6 +287,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 				.stream()
 				.map(u -> StringUtil.clickableHoverableText(ACCENT + u.getName() + REGULAR + " [X], ", "/unassign " + task.getId() + " " + u.getName(), "Click to un-assign " + u.getName()))
 				.collect(Collectors.toList()));
+		assignees.add(StringUtil.clickableHoverableText(ChatColor.AQUA + "[+]", "/assign " + task.getId() + " ", true, "Click to assign another player"));
 		sender.spigot().sendMessage(assignees.toArray(new BaseComponent[] {}));
 		sender.sendMessage(ChatColor.GRAY + "Notes: ");
 		for(String line : task.getNotes()) {
@@ -308,7 +309,8 @@ public class TaskCommands extends DragonsCommandExecutor {
 			task.setClosed(true);
 		}
 		sender.sendMessage(PREFIX + "Marked task " + ACCENT + "#" + args[0] + REGULAR + " as done." + (mgr ? " Since you're a task manager, it was auto-closed." : " It will be reviewed shortly."));
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + REGULAR + ", " + task.getName() + " was marked as done" + (mgr ? " and was auto-closed." : " and is awaiting review.")), DiscordRole.TASK_MANAGER);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + REGULAR + ", " + task.getName() + " was marked as done" + (mgr ? " and was auto-closed." : " and is awaiting review.") + " (by " + sender.getName() + ")"), 
+			DiscordRole.TASK_MANAGER);
 		TextComponent reopen = reopenText(task.getId());
 		TextComponent close = closeText(task.getId());
 		TextComponent go = gotoText(task.getId());
@@ -336,7 +338,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		task.setDone(false);
 		task.setApproved(true, user(sender));
 		sender.sendMessage(PREFIX + "Re-opened task " + ACCENT + "#" + args[0] + REGULAR + ".");
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + ", " + task.getName() + REGULAR + " was re-opened."), task);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + ", " + task.getName() + REGULAR + " was re-opened by " + sender.getName()), task);
 	}
 	
 	private void deleteTaskCommand(CommandSender sender, String[] args) {
@@ -365,7 +367,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		sender.sendMessage(PREFIX + "Approved task " + ACCENT + "#" + args[0] + REGULAR + " successfully.");
 		Player target = Bukkit.getPlayerExact(task.getBy().getName());
 		if(target != null) {
-			target.sendMessage(PREFIX + "Your task " + ACCENT + "#" + args[0] + " (" + task.getName() + ") " + REGULAR + "was accepted!");
+			target.sendMessage(PREFIX + "Your task " + ACCENT + "#" + args[0] + " (" + task.getName() + ") " + REGULAR + "was accepted by " + sender.getName() + "!");
 		}
 //		if(task.getName().contains("[Dev]")) {
 //			taskAlert(mentionTask(task, "Development task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.DEVELOPER);
@@ -376,7 +378,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 //		else {
 //			taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), DiscordRole.BUILDER);
 //		}
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted."), task);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was accepted by " + sender.getName() + "!"), task);
 		TextComponent selfAssign = selfAssignText(task.getId());
 		TextComponent otherAssign = assignText(task.getId());
 		TextComponent go = gotoText(task.getId());
@@ -401,9 +403,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		sender.sendMessage(PREFIX + "Rejected task " + ACCENT + "#" + args[0] + REGULAR + " successfully.");
 		Player target = Bukkit.getPlayerExact(task.getBy().getName());
 		if(target != null) {
-			target.sendMessage(PREFIX + ChatColor.RED + "Your task #" + args[0] + " (" + task.getName() + ") was rejected.");
+			target.sendMessage(PREFIX + ChatColor.RED + "Your task #" + args[0] + " (" + task.getName() + ") was rejected by " + sender.getName());
 		}
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was rejected."), task);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was rejected by " + sender.getName()), task);
 	}
 	
 	private void assign(CommandSender sender, String[] args) {
@@ -423,7 +425,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null || target == null) return;
 		task.addAssignee(target);
 		sender.sendMessage(PREFIX + "Assigned " + ACCENT + target.getName() + REGULAR + " to task " + ACCENT + "#" + task.getId() + REGULAR + ".");
-		taskAlert(mentionTask(task, ACCENT + target.getName() + REGULAR + " was assigned to task " + ACCENT + "#" + task.getId() + " " + task.getName()), DiscordRole.TASK_MANAGER);
+		taskAlert(mentionTask(task, ACCENT + target.getName() + REGULAR + " was assigned to task " + ACCENT + "#" + task.getId() + " " + task.getName() + " (by " + sender.getName() + ")"), DiscordRole.TASK_MANAGER);
 	}
 	
 	private void unassign(CommandSender sender, String[] args) {
@@ -443,7 +445,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null || target == null) return;
 		task.removeAssignee(target);
 		sender.sendMessage(PREFIX + "Un-assigned " + ACCENT + target.getName() + REGULAR + " from task " + ACCENT + "#" + task.getId() + REGULAR + ".");
-		taskAlert(mentionTask(task, ACCENT + target.getName() + REGULAR + " was un-assigned from task " + ACCENT + "#" + task.getId() + " " + task.getName()), DiscordRole.TASK_MANAGER);
+		taskAlert(mentionTask(task, ACCENT + target.getName() + REGULAR + " was un-assigned from task " + ACCENT + "#" + task.getId() + " " + task.getName() + " (by " + sender.getName() + ")"), DiscordRole.TASK_MANAGER);
 	}
 	
 	private void close(CommandSender sender, String[] args) {
@@ -461,7 +463,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		task.setClosed(true);
 		sender.sendMessage(PREFIX + "Marked task " + ACCENT + "#" + args[0] + REGULAR + " as closed.");
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was marked as closed"), task);
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was marked as closed by " + sender.getName()), task);
 	}
 	
 	private void taskLocCommand(CommandSender sender, String[] args) {
@@ -475,7 +477,8 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(task == null) return;
 		task.setLocation(player(sender).getLocation());
 		sender.sendMessage(PREFIX + "Moved location of task " + ACCENT + "#" + args[0] + REGULAR + " to your current location.");
-		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was moved to " + ACCENT + StringUtil.locToString(task.getLocation()) + " in world " + task.getLocation().getWorld().getName()), 
+		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was moved to " + ACCENT + 
+				StringUtil.locToString(task.getLocation()) + " in world " + task.getLocation().getWorld().getName() + " (by " + sender.getName() + ")"), 
 				task);
 	}
 	

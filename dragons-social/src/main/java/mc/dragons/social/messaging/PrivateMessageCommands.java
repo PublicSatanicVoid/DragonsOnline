@@ -6,10 +6,9 @@ import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.gameobject.user.punishment.PunishmentData;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.social.DragonsSocial;
 import mc.dragons.social.friend.FriendUtil;
@@ -36,12 +35,9 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 		else if (user.getBlockedUsers().contains(target)) {
 			user.getPlayer().sendMessage(ChatColor.RED + "You can't send messages to players you've blocked.");
 		}
-		else if (!FriendUtil.getFriends(user).contains(target)) {
-			boolean all = user.getData().getBoolean("messageFriendsOnly", false);
-			if(!all && !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
+		else if (!FriendUtil.getFriends(user).contains(target) && !user.getData().getBoolean("messageFriendsOnly", false) 
+			&& !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
 				user.getPlayer().sendMessage(ChatColor.RED + "You can't send or receive messages from non-friends. Use /togglemsg to change this.");
-				return;
-			}
 		}
 		else {
 			handler.send(user, target, message);
@@ -57,14 +53,14 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You are not joined yet!");
 			return true;
 		}
-		PunishmentData mute = user.getActivePunishmentData(PunishmentType.MUTE);
-		if (mute != null) {
-			sender.sendMessage(ChatColor.RED + "You are muted!" + (mute.getReason().equals("") ? "" : " (" + mute.getReason() + ")"));
-			if(!mute.isPermanent()) {
-				sender.sendMessage(ChatColor.RED + "Expires " + mute.getExpiry().toString());
+		
+		String message = StringUtil.concatArgs(args, 1);
+		for(UserHook hook : dragons.getUserHookRegistry().getHooks()) {
+			if(!hook.checkAllowChat(user, message)) {
+				return true;
 			}
-			return true;
 		}
+		
 		if (user.hasActiveDialogue()) {
 			sender.sendMessage(ChatColor.RED + "Chat is unavailable while in active dialogue!");
 			return true;
@@ -78,7 +74,6 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "/msg <player> <message>");
 				return true;
 			}
-			String message = StringUtil.concatArgs(args, 1);
 			privateMessageCommand(user, args[0], message);
 			return true;
 		}
@@ -96,7 +91,6 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "You don't have anyone to reply to!");
 				return true;
 			}
-			String message = StringUtil.concatArgs(args, 0);
 			privateMessageCommand(user, target, message);
 			return true;
 		}

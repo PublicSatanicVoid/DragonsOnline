@@ -1,15 +1,21 @@
 package mc.dragons.tools.moderation.report;
 
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.gameobject.user.punishment.PunishmentType;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.hold.HoldLoader;
+import mc.dragons.tools.moderation.hold.HoldLoader.HoldStatus;
+import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
@@ -17,7 +23,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class ViewReportCommand extends DragonsCommandExecutor {
 	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
-
+	private HoldLoader holdLoader = dragons.getLightweightLoaderRegistry().getLoader(HoldLoader.class);
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
@@ -34,26 +41,54 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		if(report == null) {
 			sender.sendMessage(ChatColor.RED + "No report with ID " + args[0] + " was found!");
 			return true;
+		}			
+		
+		PermissionLevel req = PermissionLevel.MODERATOR;
+		if(report.getData().containsKey("permissionReq")) {
+			req = PermissionLevel.valueOf(report.getData().getString("permissionReq"));
 		}
+		boolean canEdit = hasPermission(sender, req);
+		boolean closed = report.getStatus() != ReportStatus.OPEN;
 		
 		if(args.length == 1) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "Report #" + report.getId() + ": " + report.getType() + "/" + report.getStatus());
-			TextComponent confirm = StringUtil.clickableHoverableText(ChatColor.GREEN + "[Confirm] ", "/viewreport " + id + " confirm", "Confirm report and apply punishment");
-			TextComponent insufficient = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Insufficient] ", "/viewreport " + id + " insufficient", "Insufficient evidence to confirm report");
-			TextComponent escalate = StringUtil.clickableHoverableText(ChatColor.GOLD + "[Escalate] ", "/viewreport " + id + " escalate", "Escalate report for review by a senior staff member");
-			TextComponent noAction = StringUtil.clickableHoverableText(ChatColor.GRAY + "[No Action] ", "/viewreport " + id + " status NO_ACTION", "Take no action on this report");
-			TextComponent addNote = StringUtil.clickableHoverableText(ChatColor.WHITE + "" + ChatColor.ITALIC + "   [+Add Note]", "/viewreport " + id + " note ", true, "Add a note to this report");
-			sender.spigot().sendMessage(confirm, insufficient, escalate, noAction, addNote);
-			sender.sendMessage(ChatColor.GRAY + "Filed Against: " + ChatColor.RESET + report.getTarget().getName());
-			sender.sendMessage(ChatColor.GRAY + "Filed By: " + ChatColor.RESET + report.getFiledBy().getName());
+
+			if(canEdit) {
+				if(closed) {
+					sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Re-Open]", "/viewreport " + id + " status OPEN", "Re-open this report for further action or review"));
+				}
+				else {
+					TextComponent confirm = StringUtil.clickableHoverableText(ChatColor.GREEN + "[Confirm] ", "/viewreport " + id + " confirm", "Confirm report and apply punishment");
+					TextComponent insufficient = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Insufficient] ", "/viewreport " + id + " insufficient", "Insufficient evidence to confirm report");
+					TextComponent escalate = StringUtil.clickableHoverableText(ChatColor.GOLD + "[Escalate] ", "/viewreport " + id + " escalate", "Escalate report for review by a senior staff member");
+					TextComponent noAction = StringUtil.clickableHoverableText(ChatColor.GRAY + "[No Action] ", "/viewreport " + id + " status NO_ACTION", "Take no action on this report");
+					TextComponent addNote = StringUtil.clickableHoverableText(ChatColor.WHITE + "" + ChatColor.ITALIC + "   [+Add Note]", "/viewreport " + id + " note ", true, "Add a note to this report");
+					sender.spigot().sendMessage(confirm, insufficient, escalate, noAction, addNote);
+				}
+			}
+			else {
+				sender.sendMessage(ChatColor.GRAY + "- You do not have sufficient permission to modify this report -");
+			}
+			sender.sendMessage(ChatColor.GRAY + "Filed Against: " + ChatColor.RESET + StringUtil.parseList(report.getTargets().stream().map(u -> u.getName()).collect(Collectors.toList())));
+			if(report.getFiledBy() != null) {
+				sender.sendMessage(ChatColor.GRAY + "Filed By: " + ChatColor.RESET + report.getFiledBy().getName());
+			}
 			sender.sendMessage(ChatColor.GRAY + "Filing Date: " + ChatColor.RESET + report.getFiledOn());
+			if(!hasPermission(sender, SystemProfileFlag.DEVELOPMENT)) {
+				if(report.getData().containsKey("message")) {
+					sender.sendMessage(ChatColor.GRAY + "Message: " + ChatColor.RESET + report.getData().getString("message"));
+				}
+				else if(report.getData().containsKey("reason")) {
+					sender.sendMessage(ChatColor.GRAY + "Reason: " + ChatColor.RESET + report.getData().getString("reason"));
+				}
+			}
 			if(report.getReviewedBy() != null) {
 				sender.sendMessage(ChatColor.GRAY + "Primary Reviewer: " + ChatColor.RESET + report.getReviewedBy().getName());
 			}
 			else {
 				sender.sendMessage(ChatColor.GRAY + "Unreviewed.");
 			}
-			if(report.getData().size() > 0) {
+			if(report.getData().size() > 0 && hasPermission(sender, SystemProfileFlag.DEVELOPMENT)) {
 				sender.sendMessage(ChatColor.GRAY + "Data: ");
 				for(Entry<String, Object> entry : report.getData().entrySet()) {
 					sender.sendMessage(ChatColor.GRAY + "- " + entry.getKey() + ChatColor.GRAY + ": " + ChatColor.RESET + entry.getValue());
@@ -68,78 +103,92 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		else if(args[1].equalsIgnoreCase("confirm")) {
-			if(report.getType() == ReportType.CHAT) {
-				TextComponent language = StringUtil.clickableHoverableText(ChatColor.RED + "[Language] ", "/viewreport " + id + " punish Chat Violation: Language", "Language violation");
-				TextComponent spam = StringUtil.clickableHoverableText(ChatColor.RED + "[Spamming] ", "/viewreport " + id + " punish Chat Violation: Spam", "Spamming");
-				TextComponent scam = StringUtil.clickableHoverableText(ChatColor.RED + "[Scamming] ", "/viewreport " + id + " punish Chat Violation: Scamming", "Scamming or Attempted Fraud");
-				TextComponent advert = StringUtil.clickableHoverableText(ChatColor.RED + "[Advertising] ", "/viewreport " + id + " punish Chat Violation: Advertising", "Advertising Unauthorized Third-Party Content");
-				TextComponent unspecified = StringUtil.clickableHoverableText(ChatColor.GRAY + "[Unspecified]", "/viewreport " + id + " punish Chat Violation", "Unspecified / Other");
-				sender.spigot().sendMessage(language, spam, scam, advert, unspecified);
-			}
-			else {
-				TextComponent cheating = StringUtil.clickableHoverableText(ChatColor.RED + "[Cheating] ", "/viewreport " + id + " punish Rule Violation: Cheating or Related", "Cheating or Related");
-				TextComponent content = StringUtil.clickableHoverableText(ChatColor.RED + "[Content] ", "/viewreport " + id + " punish Rule Violation: Unauthorized Content", "Unauthorized Content (Residence, etc)");
-				TextComponent trolling = StringUtil.clickableHoverableText(ChatColor.RED + "[Trolling] ", "/viewreport " + id + " punish Rule Violation: Trolling or Related", "Trolling or Related");
-				TextComponent comp = StringUtil.clickableHoverableText(ChatColor.RED + "[Compromised Account] ", "/viewreport " + id + " punish Compromised Account", "Compromised Account");
-				TextComponent unspecified = StringUtil.clickableHoverableText(ChatColor.GRAY + "[Unspecified]", "/viewreport " + id + " punish Rule Violation", "Compromised Account");
-				sender.spigot().sendMessage(cheating, content, trolling,  comp, unspecified);
-			}
-		}
-		else if(args[1].equalsIgnoreCase("insufficient")) {
-			report.addNote("Insufficient evidence");
-			report.setStatus(ReportStatus.NO_ACTION);
-			report.setReviewedBy(user(sender));
-			sender.sendMessage(ChatColor.GREEN + "Marked report #" + report.getId() + " as insufficient evidence.");
-		}
-		else if(args[1].equalsIgnoreCase("escalate")) {
-			report.addNote("Staff escalation by " + sender.getName());
-			report.setStatus(ReportStatus.OPEN);
-			report.setReviewedBy(null);
-			sender.sendMessage(ChatColor.GREEN + "Marked report #" + report.getId() + " as escalated. It will remain in the report queue.");
-		}
-		else if(args[1].equalsIgnoreCase("punish")) {
-			String reason = StringUtil.concatArgs(args, 2);
-			TextComponent warn = StringUtil.clickableHoverableText(ChatColor.WHITE + "[Warn] ", "/viewreport " + id + " apply WARNING " + reason, "Warning");
-			TextComponent kick = StringUtil.clickableHoverableText(ChatColor.YELLOW + " [Kick] ", "/viewreport " + id + " apply KICK" + reason, "Kick");
-			TextComponent mute = StringUtil.clickableHoverableText(ChatColor.GOLD + " [Mute] ", "/viewreport " + id + " duration MUTE " + reason, "Mute (you will be prompted for duration)");
-			TextComponent ban = StringUtil.clickableHoverableText(ChatColor.RED + "[Ban] ", "/viewreport " + id + " duration BAN " + reason, "Ban (you will be prompted for duration)");
-			sender.spigot().sendMessage(warn, kick, mute, ban);
-		}
-		else if(args[1].equalsIgnoreCase("duration")) {
-			String reason = StringUtil.concatArgs(args, 3);
-			TextComponent hr1 = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[1 Hour] ", "/viewreport " + id + " apply " + args[2] + " 1h " + reason, "1 Hour");
-			TextComponent hr6 = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[6 Hours] ", "/viewreport " + id + " apply " + args[2] + " 6h " + reason, "6 Hours");
-			TextComponent day1 = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[1 Day] ", "/viewreport " + id + " apply " + args[2] + " 1d " + reason, "1 Day");
-			TextComponent day7 = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[7 Days] ", "/viewreport " + id + " apply " + args[2] + " 7d " + reason, "7 Days");
-			TextComponent month1 = StringUtil.clickableHoverableText(ChatColor.GOLD + " [1 Month] ", "/viewreport " + id + " apply " + args[2] + " 30d " + reason, "1 Month");
-			TextComponent month3 = StringUtil.clickableHoverableText(ChatColor.YELLOW + "[3 Months] ", "/viewreport " + id + " apply " + args[2] + " 90d " + reason, "3 Months");
-			TextComponent permanent = StringUtil.clickableHoverableText(ChatColor.RED + " [Permanent] ", "/viewreport " + id + " apply " + args[2] + " permanent " + reason, "Permanent");
-			sender.spigot().sendMessage(hr1, hr6, day1, day7, month1, month3, permanent);
-		}
-		else if(args[1].equalsIgnoreCase("apply")) {
-			PunishmentType type = PunishmentType.valueOf(args[2]);
-			if(!hasPermission(sender, type.getRequiredFlagToApply())) {
-				sender.sendMessage(ChatColor.RED + "Applying this punishment (" + type + ") requires permission flag " + type.getRequiredFlagToApply().getName());
+			if(!canEdit) {
+				sender.sendMessage(ChatColor.RED + "You do not have sufficient permission to edit this report");
 				return true;
 			}
-			String reason = StringUtil.concatArgs(args, 4);
-			report.addNote("Punishment applied: " + type + " (" + args[3] + ") by " + sender.getName());
-			report.addNote("  User-facing reason: " + reason);
-			report.setStatus(ReportStatus.ACTION_TAKEN);
-			report.setReviewedBy(user(sender));
-			boolean duration = false;
-			if(type.hasDuration()) {
-				if(!args[3].equalsIgnoreCase("permanent")) {
-					report.getTarget().punish(type, reason, StringUtil.parseTimespanToSeconds(args[3]));
-					duration = true;
+			if(closed) {
+				sender.sendMessage(ChatColor.RED + "This report is closed!");
+				return true;
+			}
+			if(report.getData().containsKey("confirmCommand") && !report.getData().getString("confirmCommand").isEmpty()) {
+				player(sender).performCommand(report.getData().getString("confirmCommand"));
+			}
+			else {
+				sender.sendMessage(ChatColor.DARK_GREEN + "Select a punishment code to apply:");
+				for(PunishmentCode code : PunishmentCode.values()) {
+					if(code.isHidden()) continue;
+					sender.spigot().sendMessage(StringUtil.clickableHoverableText(" " + code.getCode() + ChatColor.GRAY + " - " + code.getName(), "/viewreport " + id + " apply " + code.getCode(), 
+						new String[] {
+							ChatColor.YELLOW + "" + ChatColor.BOLD + code.getName(),
+							ChatColor.GRAY + code.getDescription(),
+							"",
+							ChatColor.DARK_GRAY + "Level " + code.getStandingLevel() + " - " + code.getType()
+						}));
 				}
 			}
-			if(!duration) {
-				report.getTarget().punish(type, reason);
+		}
+		else if(args[1].equalsIgnoreCase("escalate")) {
+			if(!canEdit) {
+				sender.sendMessage(ChatColor.RED + "You do not have sufficient permission to edit this report");
+				return true;
 			}
-			sender.sendMessage(ChatColor.GREEN + "Punishment applied successfully. Report #" + report.getId() + " is now closed.");
+			if(closed) {
+				sender.sendMessage(ChatColor.RED + "This report is closed!");
+				return true;
+			}
+			report.addNote("Escalated for further action (by " + sender.getName() + ")");
+			sender.sendMessage(ChatColor.GREEN + "Escalated this report for further action by a senior staff member.");
+		}
+		else if(args[1].equalsIgnoreCase("insufficient")) {
+			if(!canEdit) {
+				sender.sendMessage(ChatColor.RED + "You do not have sufficient permission to edit this report");
+				return true;
+			}
+			if(closed) {
+				sender.sendMessage(ChatColor.RED + "This report is closed!");
+				return true;
+			}
+			report.addNote("Marked as insufficient evidence (by " + sender.getName() + ")");
+			report.setStatus(ReportStatus.NO_ACTION);
+			if(report.getType() == ReportType.HOLD) { 
+				holdLoader.getHoldById(report.getData().getInteger("holdId")).setStatus(HoldStatus.CLOSED_NOACTION);
+			}
+			report.setReviewedBy(user(sender));
+			sender.sendMessage(ChatColor.GREEN + "Marked report as insufficient evidence.");
+		}
+		else if(args[1].equalsIgnoreCase("apply")) {
+			if(!canEdit) {
+				sender.sendMessage(ChatColor.RED + "You do not have sufficient permission to edit this report");
+				return true;
+			}
+			if(closed) {
+				sender.sendMessage(ChatColor.RED + "This report is closed!");
+				return true;
+			}
+			PunishmentCode code = PunishmentCode.parseCode(sender, args[2]);
+			if(code == null) return true;
+			for(User target : report.getTargets()) {
+				WrappedUser.of(target).punish(code.getType().getPunishmentType(), code, code.getStandingLevel(), "Report #" + report.getId(), user(sender));
+			}
+			report.setStatus(ReportStatus.ACTION_TAKEN);
+			report.setReviewedBy(user(sender));
+			if(report.getType() == ReportType.HOLD) {
+				int holdId = report.getData().getInteger("holdId");
+				holdLoader.getHoldById(holdId).setStatus(HoldStatus.CLOSED_ACTION);
+			}
+			sender.sendMessage(ChatColor.GREEN + "This report has been marked as closed.");
+			WrappedUser.of(report.getFiledBy()).setReportHandled(true);
 		}
 		else if(args[1].equalsIgnoreCase("note")) {
+			if(!canEdit) {
+				sender.sendMessage(ChatColor.RED + "You do not have sufficient permission to edit this report");
+				return true;
+			}
+			if(closed) {
+				sender.sendMessage(ChatColor.RED + "This report is closed!");
+				return true;
+			}
 			if(args.length == 2) {
 				sender.sendMessage(ChatColor.RED + "/vrep <ID> note <Note>");
 				return true;
@@ -149,6 +198,10 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		else if(args[1].equalsIgnoreCase("status")) {
+			if(!canEdit) {
+				sender.sendMessage(ChatColor.RED + "You do not have sufficient permission to edit this report");
+				return true;
+			}
 			if(args.length == 2) {
 				sender.sendMessage(ChatColor.RED + "/vrep <ID> status <OPEN|NO_ACTION|ACTION_TAKEN>");
 				return true;

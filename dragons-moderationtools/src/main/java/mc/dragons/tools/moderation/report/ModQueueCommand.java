@@ -15,10 +15,10 @@ public class ModQueueCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
+		if(!requirePlayer(sender) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 		
-		if(!requirePlayer(sender)) return true;
-		PaginatedResult<Report> waiting = reportLoader.getUnreviewedReports(1);
+		PaginatedResult<Report> waiting = reportLoader.getAuthorizedUnreviewedReports(1, user(sender).getActivePermissionLevel(), user(sender).getUUID());
+		
 		if(waiting.getTotal() == 0) {
 			sender.sendMessage(ChatColor.GRAY + "Moderation queue is empty! ^-^");
 		}

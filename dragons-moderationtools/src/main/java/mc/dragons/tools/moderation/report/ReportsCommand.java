@@ -94,9 +94,13 @@ public class ReportsCommand extends DragonsCommandExecutor {
 		String dataPrefix = ChatColor.GRAY + "";
 		
 		for(Report report : results.getPage()) {
+			String targets = report.getTargets().get(0).getName();
+			if(report.getTargets().size() > 1) {
+				targets += " +" + (report.getTargets().size() - 1);
+			}
 			tg.addRowEx("/viewreport " + report.getId(), ChatColor.GRAY + "Click to view report #" + report.getId(), 
 					idPrefix + "#" + report.getId(), 
-					dataPrefix + report.getTarget().getName(), 
+					dataPrefix + targets, 
 					dataPrefix + StringUtil.truncateWithEllipsis(report.getPreview(), 30),
 					dataPrefix + report.getType(), 
 					dataPrefix + report.getStatus(), 

@@ -1,5 +1,6 @@
 package mc.dragons.tools.content.command.statistics;
 
+import java.util.HashSet;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
@@ -23,18 +24,14 @@ public class ResetProfileCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.TESTER)) return true;
 		
 		User target = user(sender);
-		if(args.length != 0 && requirePermission(sender, PermissionLevel.GM)) {
-			target = userLoader.loadObject(args[0]);
+		if(args.length != 0 && requirePermission(sender, PermissionLevel.ADMIN)) {
+			target = lookupUser(sender, args[0]);
 		}
 		
-		if(target == null) {
-			sender.sendMessage(ChatColor.RED + "That user does not exist!");
-			return true;
-		}
-		
+		if(target == null) return true;
 		boolean resetRank = false;
 		if(args.length > 1) {
-			resetRank = hasPermission(sender, PermissionLevel.GM) && (args[1].equalsIgnoreCase("-r") || args[1].equalsIgnoreCase("-resetrank"));
+			resetRank = hasPermission(sender, PermissionLevel.ADMIN) && (args[1].equalsIgnoreCase("-r") || args[1].equalsIgnoreCase("-resetrank"));
 		}
 		
 		target.setXP(0);
@@ -50,7 +47,7 @@ public class ResetProfileCommand extends DragonsCommandExecutor {
 			target.setSkillLevel(skill, 0);
 			target.setSkillProgress(skill, 0.0);
 		}
-		for(Quest quest : target.getQuestProgress().keySet()) {
+		for(Quest quest : new HashSet<>(target.getQuestProgress().keySet())) {
 			target.updateQuestProgress(quest, null);
 		}
 		target.sendToFloor("BeginnerTown");
@@ -60,14 +57,14 @@ public class ResetProfileCommand extends DragonsCommandExecutor {
 		if(resetRank) {
 			target.setRank(Rank.DEFAULT);
 		}
-		target.getPlayer().sendTitle(ChatColor.DARK_RED + "RESET", ChatColor.RED + "Your profile has been reset!", 10, 70, 20);
-		target.sendActionBar(ChatColor.DARK_RED + "- Your profile has been reset! -");
+		target.getPlayer().sendTitle(ChatColor.DARK_RED + "RESET", ChatColor.RED + "Your stats have been wiped!", 10, 70, 20);
+		target.sendActionBar(ChatColor.DARK_RED + "- Your stats have been wiped! -");
 		target.debug("Profile forcibly reset");
 		if(target.equals(user(sender))) {
-			sender.sendMessage(ChatColor.GREEN + "Reset your profile.");
+			sender.sendMessage(ChatColor.GREEN + "Wiped your stats.");
 		}
 		else {
-			sender.sendMessage(ChatColor.GREEN + "Reset " + target.getName() + "'s profile.");
+			sender.sendMessage(ChatColor.GREEN + "Wiped " + target.getName() + "'s stats.");
 		}
 		
 		return true;

@@ -1,5 +1,6 @@
 mc\dragons\tools\moderation\report\ReportLoader$ReportStatus.class
 mc\dragons\tools\moderation\analysis\IPHistoryCommand.class
+mc\dragons\tools\moderation\hold\HoldLoader$1.class
 mc\dragons\tools\moderation\report\ReportsCommand.class
 mc\dragons\tools\moderation\report\ReportCommand.class
 mc\dragons\tools\moderation\analysis\InfoCommand.class
@@ -9,15 +10,12 @@ mc\dragons\tools\moderation\punishment\PunishMessageHandler$1.class
 mc\dragons\tools\moderation\report\ChatReportCommand.class
 mc\dragons\tools\moderation\report\EscalateCommand.class
 mc\dragons\tools\moderation\report\ViewReportCommand.class
-mc\dragons\tools\moderation\punishment\PunishCommands.class
 mc\dragons\tools\moderation\analysis\LocateCommand.class
-mc\dragons\tools\moderation\punishment\ViewPunishmentsCommand.class
-mc\dragons\tools\moderation\punishment\UnPunishCommands.class
+mc\dragons\tools\moderation\report\ReportLoader$1.class
 mc\dragons\tools\moderation\SetVerificationCommand.class
 mc\dragons\tools\moderation\report\ReportAdminCommands.class
 mc\dragons\tools\moderation\analysis\IPScanCommand.class
 mc\dragons\tools\moderation\report\ReportLoader$Report.class
-mc\dragons\tools\moderation\punishment\RemovePunishmentCommand.class
 mc\dragons\tools\moderation\ModUserHook.class
 mc\dragons\tools\moderation\abilities\FlyCommand.class
 mc\dragons\tools\moderation\report\ReportLoader$ReportType.class
