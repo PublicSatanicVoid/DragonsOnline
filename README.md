@@ -4,6 +4,8 @@
 
 Dragons Online is a Minecraft-based MMORPG created by Adam Priebe (UniverseCraft) and licensed under the GNU GPL v2.
  
+**If you'd like to redistribute all or part of this repository under a more restrictive license, please contact me privately via Discord and we may be able to come to an agreement: DragonRider747#8995**
+ 
 ## Where to dive in
 If you're new to the repository, here are the most important files to check out (in this order!)
 - `dragons-core: mc.dragons.core.Dragons` is the main class and the entry point. It contains all the high-level object managers, service providers, loaders, and configuration data necessary to start a server instance.
@@ -114,6 +116,37 @@ Dragons Online implements a robust tasks system to allow developers, builders, a
 The task lifecycle is as follows: First, a task is created. Then, a staff member with the `SystemProfileFlag.TASK_MANAGER` flag can approve or deny the task. If denied, no further action is taken. If approved, the task must then be assigned to one or more members. This can be carried out by a task manager or on individual initiative through self-assignment. Once the task is completed, an assignee marks it as done. A task manager reviews it and either re-opens the task if more work is needed, or closes it if the task is satisfactorily completed. Erroneous tasks can be permanently deleted, but closed tasks are not automatically deleted so they can be referenced later.
 
 **For proper searching behavior within tasks, a text index must be created on the tasks collection on the columns `name` and optionally `notes`.**
+
+## Moderation System
+Dragons Online features an extensive moderation system, mostly contained within the `dragons-moderationtools` module. The system integrates thoroughly with other areas of the codebase, taking snapshots of user data when a report is filed and implementing strict permission requirements to compartmentalize access. It is also depended on by the anticheat to issue and track automated violations.
+
+Violations are classified into different codes, which can be viewed with the `/pcodes` command. A standing level system is used to apply stricter punishments the more times a player breaks a rule.
+
+### Central Entry Point for Moderation Actions ###
+There are different ways to initiate a moderation action. Regular players can use the `/report <player> <reason>` command, or `/chatreport <player>`. This files a central report which is placed in a moderation queue for review. Authorized staff members can use `/report <player1 [player2 ...] <code> [extra info]` to report one or more players at once. Staff-issued reports guide the issuer through a process of choosing the appropriate action to take.
+
+### Types of Moderation Actions ###
+Moderation actions can be initiated more directly with `/hold <players ...> <code> [extra info]`, which files a report and places a 48-hour suspension on the targeted accounts. This suspension takes the form of either a temporary mute or ban, depending on the code specified.
+
+If a staff member does not want to take any immediate action and needs a senior staff member to review the issue, they can use `/escalate <players ...> <code> [extra info]`. A report will be filed and flagged for senior staff review.
+
+A player can be placed on the watchlist if there is insufficient evidence but high suspicion. This generates a report and notifies staff members when the player joins. Watchlist reports are automatically closed if the player is banned, and can also be closed manually.
+
+An punishment can be applied instantly with `/punish <players ...> <code> [extra info]`, which immediately applies a punishment if possible. If the issuing staff member does not have permission to apply the specified code, an escalation report is applied instead and a hold is placed. Punishments of permanent duration also generate an escalation report, but are applied immediately if authorized.
+
+If a staff member is uncertain which moderation action to take, they should use `/report` which will guide them through the process of choosing one.
+
+### Reviewing Moderation Actions ###
+Moderation actions can then be reviewed with the `/modqueue` command, which shows the staff member the next report in the queue. Helpers can only view or take action on chat reports. The report is displayed, along with clickable options to confirm the report, mark it as insufficient evidence, escalate for senior staff review, skip the report, etc.
+
+### Administration of Reports and Punishments ###
+A punishment can be revoked for various reasons, each of which is given a revocation code. Helpers and moderators can revoke punishments that they have issued; appeals team staff and admins can revoke any punishment.
+
+A player's punishment history can be viewed with `/viewpunishments <player>`. A punishment can be removed with `/removepunishment <player> <id> <revocation code>`. The punishment ID can be found by viewing the punishment history.
+
+Admins have access to purge a player's punishment history and permanently delete reports or punishments.
+
+There are many other features of the moderation system which are too numerous to cover here. All moderation commands can be found in the `plugin.yml` of `dragons-moderationtools`.
 
 ## Custom Logging
 The default Java logging system provides many options for extension. Unfortunately, the underlying framework of CraftBukkit and its reliance upon log4j as a backend breaks much of this functionality, in particular debug logging. To address this, we provide numerous logging utilities which replace many key components of the logging system to enable debug logging and implement custom, more intuitive log levels. This is managed through a `CustomLoggingProvider` within `DragonsJavaPlugin`, and the `DragonsLogger` class is provided to allow easy access to these additional logging facilities.
