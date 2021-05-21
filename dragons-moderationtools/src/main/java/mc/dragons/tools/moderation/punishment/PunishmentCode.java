@@ -1,10 +1,17 @@
 package mc.dragons.tools.moderation.punishment;
 
+import java.util.regex.Pattern;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.StringUtil;
 
 public enum PunishmentCode {
 	
@@ -88,6 +95,11 @@ public enum PunishmentCode {
 		return hidden;
 	}
 	
+	public boolean canApply(User user) {
+		return PermissionUtil.verifyActivePermissionLevel(user, getRequiredPermissionToApply(), false)
+			&& PermissionUtil.verifyActiveProfileFlag(user, getRequiredFlagToApply(), false);
+	}
+	
 	public StandingLevelType getType() {
 		return type;
 	}
@@ -123,12 +135,31 @@ public enum PunishmentCode {
 		PunishmentCode result = getByCode(code);
 		if(result == null) {
 			sender.sendMessage(ChatColor.RED + "Invalid punishment code! Valid codes are:");
-			for(PunishmentCode pc : values()) {
-				if(pc.isHidden()) continue;
-				sender.sendMessage(" " + pc.getCode() + ChatColor.GRAY + " - " + pc.getName() + " (Level " + pc.getStandingLevel() + ")");
-			}
+			showPunishmentCodes(sender);
 		}
 		return result;
+	}
+	
+	public static void showPunishmentCodes(CommandSender sender) {
+		showPunishmentCodes(sender, null);
+	}
+	
+	public static void showPunishmentCodes(CommandSender sender, String suggestCommand) {
+		if(!(sender instanceof Player)) sender.sendMessage(ChatColor.RED + "/pcodes");
+		for(PunishmentCode code : PunishmentCode.values()) {
+			if(code.isHidden()) continue;
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(" " + code.getCode() + ChatColor.GRAY + " - " + code.getName(), 
+				suggestCommand == null ? null : suggestCommand.replaceAll(Pattern.quote("<code>"), code.getCode()), 
+				true,
+				new String[] {
+					ChatColor.YELLOW + "" + ChatColor.BOLD + code.getName(),
+					ChatColor.GRAY + code.getDescription(),
+					"",
+					ChatColor.DARK_GRAY + "Level " + code.getStandingLevel() + " - " + code.getType(),
+					code.canApply(UserLoader.fromPlayer((Player) sender)) ? ChatColor.DARK_GRAY + "Can Be Applied Immediately" : ChatColor.RED + "Requires review by a senior staff member",
+					ChatColor.DARK_GRAY + "" + ChatColor.UNDERLINE + "Click to Select " + code.getCode()
+				}));
+		}
 	}
 	
 	public static String formatReason(PunishmentCode code, String extra) {

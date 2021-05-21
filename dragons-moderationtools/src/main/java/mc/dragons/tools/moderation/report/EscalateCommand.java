@@ -7,8 +7,8 @@ import org.bukkit.command.CommandSender;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.moderation.punishment.PunishmentCode;
+import mc.dragons.tools.moderation.util.CmdUtil;
+import mc.dragons.tools.moderation.util.CmdUtil.CmdData;
 
 public class EscalateCommand extends DragonsCommandExecutor {
 	private ReportLoader reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);;
@@ -19,18 +19,14 @@ public class EscalateCommand extends DragonsCommandExecutor {
 		User reporter = user(sender);
 		
 		if(args.length < 2) {
-			sender.sendMessage(ChatColor.RED + "Specify a player and code! /escalate <player> <code> [extra info]");
+			sender.sendMessage(ChatColor.RED + "Specify a player and code! /escalate <player1 [player2 ...]> <code> [extra info]");
 			return true;
 		}
 		
-		User target = lookupUser(sender, args[0]);
-		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
-		if(target == null || code == null) return true;
+		CmdData data = CmdUtil.parse(sender, "/escalate <players> <code> ", args);
+		if(data == null) return true;
 		
-		String extraInfo = StringUtil.concatArgs(args, 1);
-		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
-		
-		if(reportLoader.fileStaffReport(target, reporter, reason, "") == null) {
+		if(reportLoader.fileStaffReport(data.targets, reporter, data.formatInternalReason(), "") == null) {
 			sender.sendMessage(ChatColor.RED + "You have nobody to escalate this report to!");
 		}
 		else {
@@ -39,5 +35,4 @@ public class EscalateCommand extends DragonsCommandExecutor {
 		
 		return true;
 	}
-
 }

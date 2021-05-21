@@ -1,7 +1,9 @@
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\util\CmdUtil.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\analysis\IPHistoryCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\abilities\GodModeCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\abilities\UnVanishCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\command\ViewPunishmentsCommand.java
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\hold\ReleaseHoldCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\PunishMessageHandler.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\ReportCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\command\UnPunishCommands.java
@@ -17,6 +19,7 @@ C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\PunishmentCode.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\ReportAdminCommands.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\command\PunishCommand.java
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\WatchlistCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\WrappedUser.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\RevocationCode.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\ChatReportCommand.java
@@ -26,7 +29,9 @@ C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\command\PunishCodesCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\DragonsModerationTools.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\command\StandingLevelCommand.java
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\PeriodicNotificationTask.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\command\PurgePunishmentsCommand.java
+C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\hold\ViewHoldsCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\ModUserHook.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\report\EscalateCommand.java
 C:\Users\User\git\dragons\dragons-moderationtools\src\main\java\mc\dragons\tools\moderation\punishment\PunishmentData.java

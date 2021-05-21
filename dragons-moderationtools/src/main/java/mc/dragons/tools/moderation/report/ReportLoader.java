@@ -58,9 +58,25 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 			return data.getList("target", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList());
 		}
 		
-		public User getFiledBy() {
-			if(data.getString("filedBy") == null) return null;
-			return userLoader.loadObject(UUID.fromString(data.getString("filedBy")));
+		public List<User> getFiledBy() {
+			if(data.getList("filedBy", String.class) == null) return new ArrayList<>();
+			return data.getList("filedBy", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList());
+		}
+		
+		public void addFiledBy(User by) {
+			List<String> filedBy = data.getList("filedBy", String.class);
+			if(filedBy.contains(by.getUUID().toString())) return;
+			filedBy.add(by.getUUID().toString());
+			data.append("filedBy", filedBy);
+			save();
+		}
+		
+		public void addSkippedBy(User by) {
+			List<String> skippedBy = data.getList("skippedBy", String.class);
+			if(skippedBy.contains(by.getUUID().toString())) return;
+			skippedBy.add(by.getUUID().toString());
+			data.append("skippedBy", skippedBy);
+			save();
 		}
 		
 		public User getReviewedBy() {
@@ -68,8 +84,8 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 			return userLoader.loadObject(UUID.fromString(data.getString("reviewedBy")));
 		}
 		
-		public String getFiledOn() {
-			return data.getString("filedOn");
+		public Date getFiledOn() {
+			return new Date(data.getLong("filedOn") * 1000);
 		}
 		
 		public Document getData() {
@@ -95,8 +111,20 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 			return data.getList("notes", String.class);
 		}
 		
+		public int getPriority() {
+			return data.getInteger("priority");
+		}
+		
+		public void setPriority(int priority) {
+			data.append("priority", priority);
+			save();
+		}
+		
 		public void setStatus(ReportStatus status) {
 			data.append("status", status.toString());
+			if(status != ReportStatus.OPEN) {
+				data.append("priority", 0);
+			}
 			save();
 		}
 		
@@ -121,7 +149,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 			return data;
 		}
 		
-		private void save() {
+		public void save() {
 			collection.updateOne(new Document("_id", getId()), new Document("$set", data));
 		}
 		
@@ -141,6 +169,9 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		/* When the system internally reports a player (e.g. hacking violation that needs manual review */
 		AUTOMATED,
 		
+		/* When a report is closed for insufficient evidence but there is still high suspicion on the player */
+		WATCHLIST,
+		
 		/* A regular report filed by a user. */
 		REGULAR
 	}
@@ -148,7 +179,8 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	public static enum ReportStatus {
 		OPEN,
 		NO_ACTION,
-		ACTION_TAKEN
+		ACTION_TAKEN,
+		SUSPENDED
 	}
 	
 	public ReportLoader(MongoConfig config) {
@@ -188,12 +220,42 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return parseResults(collection.find(new Document("type", type.toString()).append("status", status.toString())), page);
 	}
 	
+	public PaginatedResult<Report> getReportsByTypeAndStatus(ReportType type, List<ReportStatus> status, int page) {
+		return parseResults(collection.find(new Document("type", type.toString()).append("status", new Document("$in", status.stream().map(s -> s.toString())
+				.collect(Collectors.toList())))), page);
+	}
+	
+	public PaginatedResult<Report> getRecentReportsByTypeMessageAndTarget(ReportType type, String message, User target, long relativeTime, int excludeId, int page) {
+		return parseResults(collection.find(new Document("type", type.toString()).append("target", new Document("$in", List.of(target.getUUID().toString())))
+				.append("data.message", message).append("filedOn", new Document("$gt", relativeTime - 60 * 60)).append("_id", new Document("$ne", excludeId))), page);
+	}
+	
+	public PaginatedResult<Report> getRecentReportsByTypeReasonAndTarget(ReportType type, String reason, User target, long relativeTime, int excludeId, int page) {
+		return parseResults(collection.find(new Document("type", type.toString()).append("target", new Document("$in", List.of(target.getUUID().toString())))
+				.append("data.reason", reason).append("filedOn", new Document("$gt", relativeTime - 60 * 60)).append("_id", new Document("$ne", excludeId))), page);
+	}
+
+	public PaginatedResult<Report> getReportsByTypeStatusAndTarget(ReportType type, ReportStatus status, User target, int page) {
+		return parseResults(collection.find(new Document("type", type.toString()).append("target", new Document("$in", List.of(target.getUUID().toString())))
+				.append("status", status.toString())), page);
+	}
+
+	public PaginatedResult<Report> getReportsByTypeStatusAndTarget(ReportType type, List<ReportStatus> status, User target, int page) {
+		return parseResults(collection.find(new Document("type", type.toString()).append("target", new Document("$in", List.of(target.getUUID().toString())))
+				.append("status", new Document("$in", status.stream().map(s -> s.toString()).collect(Collectors.toList())))), page);
+	}
+	
 	public PaginatedResult<Report> getReportsByFiler(User filer, int page) {
-		return parseResults(collection.find(new Document("filedBy", filer.getUUID().toString())), page);
+		return parseResults(collection.find(new Document("filedBy", new Document("$in", List.of(filer.getUUID().toString())))), page);
 	}
 	
 	public PaginatedResult<Report> getReportsByTarget(User target, int page) {
 		return parseResults(collection.find(new Document("target", new Document("$in", List.of(target.getUUID().toString())))), page);
+	}
+	
+	public PaginatedResult<Report> getRecentReportsByTargets(List<User> targets, long relativeTime, int excludeId, int page) {
+		return parseResults(collection.find(new Document("target", new Document("$in", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList())))
+				.append("filedOn", new Document("$gt", relativeTime - 60 * 60)).append("_id", new Document("$ne", excludeId))), page);
 	}
 	
 	public PaginatedResult<Report> getUnreviewedReports(int page) {
@@ -201,20 +263,27 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	}
 	
 	public PaginatedResult<Report> getAuthorizedUnreviewedReports(int page, PermissionLevel editLevelMax, UUID uuid) {
-		return parseResults(collection.find(new Document("$and", List.of(new Document("reviewedBy", null), new Document("filedBy", new Document("$ne", uuid.toString())),
-			new Document("$or", List.of(new Document("data.permissionReq", null), 
-				new Document("data.permissionReq", new Document("$in", PermissionUtil.getAllowedLevels(editLevelMax).stream().map(level -> level.toString()).collect(Collectors.toList())))))))),
-			page);
+		Document filter = new Document("$and", new ArrayList<>(List.of(new Document("status", ReportStatus.OPEN.toString()), new Document("filedBy", new Document("$nin", List.of(uuid.toString()))), 
+				new Document("target", new Document("$nin", List.of(uuid.toString()))),
+				new Document("reviewedBy", null),
+				new Document("skippedBy", new Document("$nin", List.of(uuid.toString()))),
+				new Document("$or", List.of(new Document("data.permissionReq", null), 
+						new Document("data.permissionReq", new Document("$in", PermissionUtil.getAllowedLevels(editLevelMax).stream().map(level -> level.toString()).collect(Collectors.toList()))))))));
+		if(editLevelMax == PermissionLevel.HELPER) {
+			filter.getList("$and", Document.class).add(new Document("type", ReportType.CHAT.toString())); // Helpers can only manage chat reports
+		}
+		return parseResults(collection.find(filter), page);
 	}
 	
 	private List<String> getStateTokens(List<User> users) {
-		return users.stream().map(u -> u.getState().toString()).collect(Collectors.toList());
+		return users.stream().filter(u -> u.getPlayer() != null).map(u -> u.getState().toString()).collect(Collectors.toList());
 	}
 	
 	private Report fileReport(Document data) {
 		Document fullData = new Document(data);
 		fullData.append("_id", reserveNextId())
-			.append("filedOn", StringUtil.DATE_FORMAT.format(Date.from(Instant.now())))
+			.append("filedOn", Instant.now().getEpochSecond())
+			.append("skippedBy", new ArrayList<>())
 			.append("status", ReportStatus.OPEN.toString())
 			.append("notes", new ArrayList<>());
 		Report report = new Report(fullData);
@@ -228,18 +297,33 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 	}
 	
 	public Report fileChatReport(User target, User by, MessageData message) {
-		Document data = new Document()
-				.append("type", ReportType.CHAT.toString())
-				.append("target", List.of(target.getUUID().toString()))
-				.append("priority", by.isVerified() ? 1 : 0)
-				.append("filedBy", by.getUUID().toString())
-				.append("data", new Document("message", message.getMessage()).append("states", getStateTokens(List.of(target))));
-		Report report = fileReport(data);
-		reportNotify(report.getId(), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
-		return report;
+		PaginatedResult<Report> existing = getRecentReportsByTypeMessageAndTarget(ReportType.CHAT, message.getMessage(), target, Instant.now().getEpochSecond(), -1, 1);
+		if(existing.getTotal() == 0) {
+			Document data = new Document()
+					.append("type", ReportType.CHAT.toString())
+					.append("target", List.of(target.getUUID().toString()))
+					.append("priority", by.isVerified() ? 1 : 0)
+					.append("filedBy", List.of(by.getUUID().toString()))
+					.append("data", new Document("message", message.getMessage()).append("states", getStateTokens(List.of(target))));
+			Report report = fileReport(data);
+			reportNotify(report.getId(), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
+			return report;
+		}
+		else {
+			Report report = existing.getPage().get(0);
+			if(!report.getFiledBy().contains(by)) {
+				report.addFiledBy(by);
+				report.setPriority(report.getPriority() + 1);
+			}
+			return report;
+		}
 	}
 	
 	public Report fileStaffReport(User target, User staff, String message, String confirmCommand) {
+		return fileStaffReport(List.of(target), staff, message, confirmCommand);
+	}
+	
+	public Report fileStaffReport(List<User> targets, User staff, String message, String confirmCommand) {
 		if(staff.getActivePermissionLevel().ordinal() == PermissionLevel.SYSOP.ordinal()) {
 			return null;
 		}
@@ -252,22 +336,33 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		}
 		Document data = new Document()
 				.append("type", ReportType.STAFF_ESCALATION.toString())
-				.append("target", List.of(target.getUUID().toString()))
-				.append("priority", 1)
-				.append("filedBy", staff.getUUID().toString())
-				.append("data", new Document("message", message).append("confirmCommand", confirmCommand).append("permissionReq", permissionReq.toString()).append("states", getStateTokens(List.of(target))));
+				.append("target", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()))
+				.append("priority", 100) // Escalations go to the very tippity top of the queue
+				.append("filedBy", List.of(staff.getUUID().toString()))
+				.append("data", new Document("message", message).append("confirmCommand", confirmCommand).append("permissionReq", permissionReq.toString()).append("states", getStateTokens(targets)));
 		Report report = fileReport(data);
-		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + target.getName() + ": " + message);
+		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + message);
 		return report;
 	}
 	
-	public Report fileHoldReport(List<User> targets, User staff, String reason, int holdId) {
+	public Report fileHoldReport(List<User> targets, User staff, String reason, int holdId, boolean escalate) {
+		Document internalData = new Document("reason", reason).append("holdId", holdId).append("states", getStateTokens(targets));
+		if(escalate) {
+			PermissionLevel permissionReq = null;
+			for(PermissionLevel level : PermissionLevel.values()) {
+				if(level.ordinal() == staff.getActivePermissionLevel().ordinal() + 1) {
+					permissionReq = level;
+					break;
+				}
+			}
+			internalData.append("permissionReq", permissionReq.toString());
+		}
 		Document data = new Document()
 				.append("type", ReportType.HOLD.toString())
 				.append("target", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()))
-				.append("priority", 1)
-				.append("filedBy", staff.getUUID().toString())
-				.append("data", new Document("reason", reason).append("holdId", holdId).append("states", getStateTokens(targets)));
+				.append("priority", escalate ? 100 : 0) // Escalations go to the very tippity top of the queue
+				.append("filedBy", List.of(staff.getUUID().toString()))
+				.append("data", internalData);
 		Report report = fileReport(data);
 		reportNotify(report.getId(), staff.getName() + " placed a hold on " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + reason);
 		return report;
@@ -284,16 +379,47 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return report;
 	}
 	
+	public Report fileWatchlistReport(User target, User by, String reason) {
+		PaginatedResult<Report> existing = getReportsByTypeStatusAndTarget(ReportType.WATCHLIST, ReportStatus.OPEN, target, 1);
+		if(existing.getTotal() == 0) {
+			Document data = new Document()
+					.append("type", ReportType.WATCHLIST.toString())
+					.append("target", List.of(target.getUUID().toString()))
+					.append("priority", 1)
+					.append("filedBy", List.of(by.getUUID().toString()))
+					.append("data", new Document("reason", reason).append("states", getStateTokens(List.of(target))));
+			Report report = fileReport(data);
+			reportNotify(report.getId(), target.getName() + " was added to the watchlist.");
+			return report;
+		}
+		else {
+			Report report = existing.getPage().get(0);
+			report.addFiledBy(by);
+			return report;
+		}
+	}
+	
 	public Report fileUserReport(User target, User by, String reason) {
-		Document data = new Document()
-				.append("type", ReportType.REGULAR.toString())
-				.append("target", List.of(target.getUUID().toString()))
-				.append("priority", by.isVerified() ? 1 : 0)
-				.append("filedBy", by.getUUID().toString())
-				.append("data", new Document("reason", reason).append("states", getStateTokens(List.of(target))));
-		Report report = fileReport(data);
-		reportNotify(report.getId(), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
-		return report;
+		PaginatedResult<Report> existing = getRecentReportsByTypeReasonAndTarget(ReportType.REGULAR, reason, target, Instant.now().getEpochSecond(), -1, 1);
+		if(existing.getTotal() == 0) {
+			Document data = new Document()
+					.append("type", ReportType.REGULAR.toString())
+					.append("target", List.of(target.getUUID().toString()))
+					.append("priority", by.isVerified() ? 3 : 2)
+					.append("filedBy", List.of(by.getUUID().toString()))
+					.append("data", new Document("reason", reason).append("states", getStateTokens(List.of(target))));
+			Report report = fileReport(data);
+			reportNotify(report.getId(), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
+			return report;
+		}
+		else {
+			Report report = existing.getPage().get(0);
+			if(!report.getFiledBy().contains(by)) {
+				report.addFiledBy(by);
+				report.setPriority(report.getPriority() + 1);
+			}
+			return report;
+		}
 	}
 	
 	public boolean deleteReport(int id) {

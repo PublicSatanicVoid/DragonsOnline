@@ -52,6 +52,15 @@ public class StaffAlertMessageHandler extends MessageHandler {
 	}
 	
 	/**
+	 * Sends a staff alert notifying moderation of a suspicious join.
+	 * 
+	 * @param message A short description of the suspicious join
+	 */
+	public void sendSuspiciousJoinMessage(String message) {
+		sendAll(new Document("permissionLevel", PermissionLevel.MODERATOR.toString()).append("subtype", "susjoin").append("message", message));
+	}
+	
+	/**
 	 * Sends a staff alert with the given message, to be displayed to
 	 * all staff with permission level greater than or equal to the
 	 * specified level.
@@ -82,6 +91,9 @@ public class StaffAlertMessageHandler extends MessageHandler {
 			message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to view report #" + data.getInteger("reportId"))));
 			message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/viewreport " + data.getInteger("reportId")));
 		}
+		else if(subtype.equals("susjoin")) {
+			message = new TextComponent(data.getString("message"));
+		}
 		else {
 			message = new TextComponent("[" + serverFrom + "] Unrecognized staff alert message: " + data.toJson());
 			level = PermissionLevel.DEVELOPER;
@@ -91,6 +103,7 @@ public class StaffAlertMessageHandler extends MessageHandler {
 		
 		UserLoader.allUsers().stream().filter(u -> PermissionUtil.verifyActivePermissionLevel(u, fLevel, false)).forEach(u -> {
 			if(subtype.equals("report") && (!PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false) || !u.getData().getEmbedded(Arrays.asList("modnotifs", "reports"), true))) return;
+			if(subtype.equals("susjoin") && (!PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false) || !u.getData().getEmbedded(Arrays.asList("modnotifs", "susjoin"), true))) return;
 			u.getPlayer().spigot().sendMessage(new TextComponent(ChatColor.RED + "" + ChatColor.BOLD + "Staff Alert: " + ChatColor.RESET), message);
 		});
 	}

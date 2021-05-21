@@ -89,11 +89,16 @@ public class PartyCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You're not the host of this party!");
 		}
 		else {
+			boolean found = false;
 			for(User member : party.getMembers()) {
 				if(member.getName().equalsIgnoreCase(args[1])) {
-					partyLoader.kick(party, member);
+					partyLoader.kick(party, member, true);
+					found = true;
 					break;
 				}
+			}
+			if(!found) {
+				sender.sendMessage(ChatColor.RED + "Could not kick " + args[1] + " from the party");
 			}
 		}
 	}
@@ -108,7 +113,7 @@ public class PartyCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You're not the host of this party!");
 		}
 		else {
-			partyLoader.disband(party);
+			partyLoader.disband(party, true);
 		}
 	}
 	
@@ -122,8 +127,8 @@ public class PartyCommand extends DragonsCommandExecutor {
 		List<Party> invites = partyLoader.invitesWith(user);
 		for(Party p : invites) {
 			if(p.getInvites().contains(user) && (p.getOwner().equals(target) || p.getMembers().contains(target))) {
-				partyLoader.join(party, user);
-				sender.sendMessage(ChatColor.GREEN + "Joined " + p.getOwner().getName() + "'s party successfully! To speak in party chat, do /c s p");
+				partyLoader.join(p, user, true);
+				sender.sendMessage(ChatColor.GREEN + "Joined " + p.getOwner().getName() + "'s party successfully! To speak in party chat, do /csp");
 				return;
 			}
 		}
@@ -146,7 +151,7 @@ public class PartyCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You've already invited " + target.getName() + "!");
 		}
 		else {
-			partyLoader.invite(party, target);
+			partyLoader.invite(party, target, true);
 			sender.sendMessage(ChatColor.GREEN + "Invitation sent to " + target.getName() + " successfully");
 		}
 	}

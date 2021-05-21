@@ -52,6 +52,7 @@ public class FriendMessageHandler extends MessageHandler {
 		UUID fromUUID = data.get("from", UUID.class);
 		String from = data.getString("fromName");
 		boolean local = serverFrom.equals(toUser.getServer());
+		toUser.safeResyncData();
 		if (action.equalsIgnoreCase("request")) {
 			to.sendMessage(ChatColor.LIGHT_PURPLE + from + " sent you a friend request!");
 			TextComponent accept = StringUtil.clickableHoverableText(ChatColor.GREEN + " [ACCEPT] ", "/friend " + from, ChatColor.GREEN + "Accept friend request");

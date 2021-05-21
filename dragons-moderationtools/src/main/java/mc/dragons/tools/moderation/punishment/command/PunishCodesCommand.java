@@ -16,13 +16,10 @@ public class PunishCodesCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.HELPER)) return true;
 		
 		sender.sendMessage(ChatColor.DARK_GREEN + "Listing all punishment codes:");
-		for(PunishmentCode code : PunishmentCode.values()) {
-			if(code.isHidden()) continue;
-			sender.sendMessage(" " + code.getCode() + ChatColor.GRAY + " - " + code.getName());
-		}
+		PunishmentCode.showPunishmentCodes(sender);
 		
 		if(hasPermission(sender, SystemProfileFlag.HELPER)) {
-			sender.sendMessage(ChatColor.ITALIC + "Do /punish <player> <code> to apply a punishment");
+			sender.sendMessage(ChatColor.ITALIC + "Do /punish <player1 [player2 ...]> <code> to apply a punishment");
 		}
 		
 		return true;

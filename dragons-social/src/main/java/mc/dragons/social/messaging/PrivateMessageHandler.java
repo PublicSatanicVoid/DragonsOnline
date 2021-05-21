@@ -44,12 +44,16 @@ public class PrivateMessageHandler extends MessageHandler {
 		to.getPlayer().spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GOLD + "[" + from.getName() + " -> " + to.getName() + "] " + ChatColor.GRAY + message, 
 			"/chatreport " + messageData.getId() + " --id", ChatColor.YELLOW + "Click to report this message"));
 		to.setLastReceivedMessageFrom(from.getName());
+		to.getSeenMessages().add(messageData);
 	}
 	
 	public void send(User from, User to, String message) {
 		if(from.getPlayer() != null) doLocalSend(from, to.getName(), message);
 		informLocalSpies(from.getName(), to.getName(), message);
-		if(to.getPlayer() == null) send(new Document("from", from.getUUID().toString()).append("to", to.getUUID().toString()).append("message", message), to.getServer());
+		if(to.getPlayer() == null) {
+			to.safeResyncData();
+			send(new Document("from", from.getUUID().toString()).append("to", to.getUUID().toString()).append("message", message), to.getServer());
+		}
 		else doLocalReceive(to, from, message);
 	}
 	

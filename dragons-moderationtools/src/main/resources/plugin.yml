@@ -20,7 +20,7 @@ commands:
   godmode:
     description: (MODERATOR) Activate or deactivate invincibility status.
   info:
-    description: (MODERATOR) View a summary of a player's data.
+    description: (HELPER) View a summary of a player's data.
     aliases: userinfo
   iphistory:
     description: (ADMIN) View all IP addresses a player has used.
@@ -51,13 +51,13 @@ commands:
   locate:
     description: (HELPER) Find the server a player is connected to.
   modqueue:
-    description: (MODERATOR) Get the next report to review.
+    description: (HELPER) Get the next open report that you are authorized to review.
     aliases: [modq, mq, nextreport, nr]
   modnotifications:
     description: (MODERATOR) Manage your moderation-related notification settings.
     aliases: [modnotifs, modn, mn]
   hold:
-    description: (MODERATOR) Place a hold on one or more players
+    description: (HELPER) Place a hold on one or more players
   punish:
     description: (HELPER) Apply a punishment to a player
   punishcodes:
@@ -68,3 +68,10 @@ commands:
     aliases: setsl
   purgepunishments:
     description: (ADMIN) Purge a player's punishment history
+  viewholds:
+    description: (MODERATOR) View all holds on a player
+  releasehold:
+    description: (MODERATOR) Release a hold on a player
+  watchlist:
+    description: (MODERATOR) Manage the watchlist
+  

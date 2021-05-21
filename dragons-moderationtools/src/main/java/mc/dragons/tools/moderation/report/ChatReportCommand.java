@@ -33,11 +33,13 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 			User target = lookupUser(sender, args[0]);
 			if(target == null) return true;
 			int i = 0;
-			for(MessageData message : chatMessageRegistry.getAllBy(target, reporter)) {
-				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + ChatColor.RESET + message.getMessage() + (message.isPrivate() ? ChatColor.GRAY + " (Private)" : ""), 
-						"/chatreport " + message.getId() + " --id", "Click to report this message"));
-				i++;
-				if(i >= 10) break;
+			for(MessageData message : reporter.getSeenMessages()) {
+				if(message.getSender().equals(target) && (!message.isPrivate() || message.isPrivate() && message.getTo().equals(reporter))) {
+					sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + ChatColor.RESET + message.getMessage() + (message.isPrivate() ? ChatColor.GRAY + " (Private)" : ""), 
+							"/chatreport " + message.getId() + " --id", "Click to report this message"));
+					i++;
+					if(i >= 10) break;
+				}
 			}
 			if(i == 0) {
 				sender.sendMessage(ChatColor.RED + "There are no messages by that user to report!");
@@ -63,7 +65,7 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		if(args.length < 2 || !args[1].equals(CONFIRMATION_FLAG)) {
+		if(args.length < 3 || !args[2].equals(CONFIRMATION_FLAG)) {
 			sender.sendMessage(" ");
 			sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Please review your chat report before submitting.");
 			sender.sendMessage(ChatColor.GREEN + "Reporting: " + ChatColor.GRAY + messageData.getSender().getName());
@@ -71,7 +73,7 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Type: " + ChatColor.GRAY + (messageData.isPrivate() ? "Private Message" : "Public Chat"));
 			sender.sendMessage(" ");
 			sender.spigot().sendMessage(
-					StringUtil.clickableHoverableText(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]", "/chatreport " + args[0] + " " + CONFIRMATION_FLAG,
+					StringUtil.clickableHoverableText(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[Submit]", "/chatreport " + args[0] + " --id " + CONFIRMATION_FLAG,
 						"By submitting, you confirm that this report is accurate to the best of your knowledge."), 
 					new TextComponent(" "),
 					StringUtil.hoverableText(ChatColor.GRAY + "" + ChatColor.BOLD + "[Cancel]", "You can always create a new chat report by clicking on a chat message."));

@@ -1,6 +1,7 @@
 package mc.dragons.tools.moderation.analysis;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -15,17 +16,22 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.SkillType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.hold.HoldLoader;
+import mc.dragons.tools.moderation.hold.HoldLoader.HoldEntry;
 import mc.dragons.tools.moderation.punishment.PunishmentData;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
 import mc.dragons.tools.moderation.punishment.StandingLevelType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class InfoCommand extends DragonsCommandExecutor {
+	private HoldLoader holdLoader = dragons.getLightweightLoaderRegistry().getLoader(HoldLoader.class);
 	
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.MODERATOR)) return true;
+		if(!requirePermission(sender, PermissionLevel.HELPER)) return true;
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "Specify a player! /userinfo <player>");
@@ -36,51 +42,71 @@ public class InfoCommand extends DragonsCommandExecutor {
 		User targetUser = lookupUser(sender, args[0]);
 		if(targetUser == null) return true;
 		
+		boolean helper = hasPermission(sender, SystemProfileFlag.HELPER);
+		boolean mod = hasPermission(sender, SystemProfileFlag.MODERATION);
+		
+		targetUser.safeResyncData();
 		WrappedUser wrapped = WrappedUser.of(targetUser);
 		
 		boolean goodStanding = true;
 		
 		String skills = Arrays.stream(SkillType.values()).map(s -> s.toString() + " (" + targetUser.getSkillLevel(s) + ")").reduce((a,b) -> a + ", " + b).get();
 		
-		/*String skills = "";
-		for(SkillType skill : SkillType.values()) {
-			skills += skill.toString() + " (" + targetUser.getSkillLevel(skill) + "), ";
-		}
-		skills = skills.substring(0, skills.length() - 2);*/
-		
 		PunishmentData banData = wrapped.getActivePunishmentData(PunishmentType.BAN);
 		PunishmentData muteData = wrapped.getActivePunishmentData(PunishmentType.MUTE);
+		
+		TextComponent report = StringUtil.clickableHoverableText(ChatColor.GRAY + "[Report] ", "/report " + targetUser.getName() + " ", true, "Click to report this user");
+		TextComponent hold = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Place Hold] ", "/hold " + targetUser.getName() + " ", true, 
+			"Click to suspend this account for " + HoldLoader.HOLD_DURATION_HOURS + " hours pending review");
+		TextComponent punish = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Punish] ", "/punish " + targetUser.getName(), "Click to punish this user");
+		TextComponent escalate = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Escalate] ", "/escalate " + targetUser.getName() + " ", 
+			"Click to escalate an issue with this user", "for review by a senior staff member");
+		TextComponent watchlist = !mod ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Watchlist] ", "/watchlist add " + targetUser.getName() + " ", true, 
+			"Click to add this user to the watch list.", "You will be prompted to enter a reason.");
+		TextComponent reports = !mod ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[View Reports] ", "/reports on " + targetUser.getName(), 
+			"Click to view reports filed against this user");
+		TextComponent phistory = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[View Punishments]", 
+			"/viewpunishments " + targetUser.getName(), "Click to view this user's full punishment history");
 		
 		sender.sendMessage(ChatColor.GOLD + "Report for User " + targetUser.getName());
 		if(targetPlayer == null) {
 			sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.ITALIC + "This player is offline. Showing cached data.");
 		}
+		sender.spigot().sendMessage(report, hold, punish, escalate, watchlist, reports, phistory);
 		sender.sendMessage(ChatColor.YELLOW + "UUID: " + ChatColor.RESET + targetUser.getIdentifier().getUUID().toString());
-		if(hasPermission(sender, PermissionLevel.ADMIN)) {
-			sender.sendMessage(ChatColor.YELLOW + "Last IP: " + ChatColor.RESET + targetUser.getLastIP());
+		if(targetUser.getServer() != null) {
+			sender.sendMessage(ChatColor.YELLOW + "Current Server: " + ChatColor.RESET + targetUser.getServer());
 		}
-		sender.sendMessage(ChatColor.YELLOW + "Active Punishments:");
-		if(banData == null) {
-			sender.sendMessage(ChatColor.WHITE + "- Not banned");
-		}
-		else {
-			sender.sendMessage(ChatColor.WHITE + "- Banned: " + banData.getReason() + " (" + (banData.isPermanent() ? "Permanent" : "Until " + banData.getExpiry().toString()) + ")");
-			goodStanding = false;
-		}
-		
-		if(muteData == null) {
-			sender.sendMessage(ChatColor.WHITE + "- Not muted");
-		}
-		else {
-			sender.sendMessage(ChatColor.WHITE + "- Muted: " + muteData.getReason() + " (" + (muteData.isPermanent() ? "Permanent" : "Until " + muteData.getExpiry().toString()) + ")");
-			goodStanding = false;
-		}
-		wrapped.updateStandingLevels();
-		sender.sendMessage(ChatColor.YELLOW + "Standing Levels: " + ChatColor.RESET + Arrays.stream(StandingLevelType.values())
-			.map(t -> t.toString() + " (" + wrapped.getStandingLevel(t) + ")").reduce((a,b)-> a + ", " + b).get());
-		for(StandingLevelType level : StandingLevelType.values()) {
-			if(wrapped.getStandingLevel(level) > 1) {
+		if(mod) {
+			sender.sendMessage(ChatColor.YELLOW + "Active Punishments:");
+			if(banData == null) {
+				sender.sendMessage(ChatColor.WHITE + "- Not banned");
+			}
+			else {
+				sender.sendMessage(ChatColor.WHITE + "- Banned: " + banData.getReason() + " (" + (banData.isPermanent() ? "Permanent" : "Until " + StringUtil.DATE_FORMAT.format(banData.getExpiry()) + ")"));
 				goodStanding = false;
+			}
+			
+			if(muteData == null) {
+				sender.sendMessage(ChatColor.WHITE + "- Not muted");
+			}
+			else {
+				sender.sendMessage(ChatColor.WHITE + "- Muted: " + muteData.getReason() + " (" + (muteData.isPermanent() ? "Permanent" : "Until " + StringUtil.DATE_FORMAT.format(muteData.getExpiry()) + ")"));
+				goodStanding = false;
+			}
+			List<HoldEntry> holds = holdLoader.getActiveHoldsByUser(targetUser);
+			if(holds.size() > 0) {
+				sender.spigot().sendMessage(StringUtil.plainText(ChatColor.WHITE + "- " + holds.size() + " holds have been placed on this account. "),
+					StringUtil.clickableHoverableText(ChatColor.GRAY + "[View Holds]", "/viewholds " + targetUser.getName(), "Click to view active holds on this user"));
+				goodStanding = false;
+			}
+			wrapped.updateStandingLevels();
+			sender.sendMessage(ChatColor.YELLOW + "Standing Levels: " + ChatColor.RESET + Arrays.stream(StandingLevelType.values())
+				.map(t -> t.toString() + " (" + wrapped.getStandingLevel(t) + ")").reduce((a,b)-> a + ", " + b).get());
+			for(StandingLevelType level : StandingLevelType.values()) {
+				if(wrapped.getStandingLevel(level) > 1) {
+					goodStanding = false;
+				}
 			}
 		}
 		sender.sendMessage(ChatColor.YELLOW + "XP: " + ChatColor.RESET + targetUser.getXP() + " [Level " + targetUser.getLevel() + "] (" + MathUtil.round(targetUser.getLevelProgress() * 100) + "%)");
@@ -96,8 +122,10 @@ public class InfoCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "Health: " + ChatColor.RESET + targetUser.getSavedHealth() + " / " + targetUser.getSavedMaxHealth());
 		}
 		else {
-			if(targetUser.getSystemProfile() != null) {
-				sender.sendMessage(ChatColor.YELLOW + "System Profile: " + ChatColor.RESET + targetUser.getSystemProfile().getProfileName());
+			if(mod) {
+				if(targetUser.getSystemProfile() != null) {
+					sender.sendMessage(ChatColor.YELLOW + "System Profile: " + ChatColor.RESET + targetUser.getSystemProfile().getProfileName());
+				}
 			}
 			sender.sendMessage(ChatColor.YELLOW + "Active Permission Level: " + ChatColor.RESET + targetUser.getActivePermissionLevel().toString());
 			sender.sendMessage(ChatColor.YELLOW + "Location: " + ChatColor.RESET + StringUtil.locToString(targetPlayer.getLocation()) + " in " + targetPlayer.getWorld().getName());
@@ -110,11 +138,13 @@ public class InfoCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "Last Join: " + ChatColor.RESET + targetUser.getLastJoined().toString());
 		sender.sendMessage(ChatColor.YELLOW + "Last Seen: " + ChatColor.RESET + targetUser.getLastSeen().toString());
 		
-		if(goodStanding) {
-			sender.sendMessage(ChatColor.GREEN + "User is in good standing");
-		}
-		else {
-			sender.sendMessage(ChatColor.RED + "User is not in good standing");
+		if(mod) {
+			if(goodStanding) {
+				sender.sendMessage(ChatColor.GREEN + "User is in good standing");
+			}
+			else {
+				sender.sendMessage(ChatColor.RED + "User is not in good standing");
+			}
 		}
 		
 		if(targetPlayer == null) {

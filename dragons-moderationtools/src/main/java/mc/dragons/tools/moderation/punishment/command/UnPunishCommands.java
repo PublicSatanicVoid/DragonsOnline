@@ -27,7 +27,7 @@ public class UnPunishCommands extends DragonsCommandExecutor {
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.RED + "Specify a player and code! /" + label + " <player> <revocation code>");
-			sender.sendMessage(ChatColor.GRAY + "Warning: It is recommended to use /removepunishment to remove a specific punishment. This command revokes only the first applicable punishment.");
+//			sender.sendMessage(ChatColor.GRAY + "Warning: It is recommended to use /removepunishment to remove a specific punishment. This command revokes only the first applicable punishment.");
 			return true;
 		}
 		

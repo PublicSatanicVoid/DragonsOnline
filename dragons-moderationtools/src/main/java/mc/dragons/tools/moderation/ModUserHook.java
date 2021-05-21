@@ -1,6 +1,7 @@
 package mc.dragons.tools.moderation;
 
-import java.util.Arrays;
+import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,22 +11,32 @@ import org.bukkit.ChatColor;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
-import mc.dragons.core.gameobject.user.UserLoader;
-import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
-import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.networking.StaffAlertMessageHandler;
+import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
+import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.analysis.IPAnalysisUtil;
 import mc.dragons.tools.moderation.hold.HoldLoader;
 import mc.dragons.tools.moderation.hold.HoldLoader.HoldEntry;
 import mc.dragons.tools.moderation.hold.HoldLoader.HoldStatus;
+import mc.dragons.tools.moderation.hold.HoldLoader.HoldType;
 import mc.dragons.tools.moderation.punishment.PunishmentData;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
 import mc.dragons.tools.moderation.punishment.StandingLevelType;
+import mc.dragons.tools.moderation.punishment.command.PunishCommand;
+import mc.dragons.tools.moderation.report.ReportLoader;
+import mc.dragons.tools.moderation.report.ReportLoader.Report;
+import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
+import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
 
 public class ModUserHook implements UserHook {
 	private HoldLoader holdLoader;
+	private ReportLoader reportLoader;
+	private StaffAlertMessageHandler alertHandler;
 	
 	public ModUserHook(Dragons instance) {
 		holdLoader = instance.getLightweightLoaderRegistry().getLoader(HoldLoader.class);
+		reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+		alertHandler = instance.getStaffAlertHandler();
 	}
 	
 	@Override
@@ -45,14 +56,17 @@ public class ModUserHook implements UserHook {
 		if(user.getPlayer() != null) {
 			PunishmentData banData = wrapped.getActivePunishmentData(PunishmentType.BAN);
 			if (banData != null) {
-				user.getPlayer().kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You are banned.\n\n"
-						+ (banData.getReason().equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + banData.getReason() + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE
-						+ (banData.isPermanent() ? "Never" : banData.getExpiry().toString()));
+				String reasons = StringUtil.parseList(wrapped.getPunishmentHistory().stream()
+					.filter(p -> p.getType() == PunishmentType.BAN && !p.hasExpired() && !p.isRevoked())
+					.map(p -> ChatColor.RED + p.getReason() + ChatColor.GRAY + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"))
+					.collect(Collectors.toList()), "\n\n");
+				user.getPlayer().kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You are banned.\n\n" + reasons);
 				return;
 			}
-			HoldEntry entry = holdLoader.getHoldByUser(user);
-			if(entry != null && entry.getStatus() == HoldStatus.PENDING) {
-				user.getPlayer().kickPlayer(ChatColor.RED + "Your account was flagged for suspicious activity and is suspended pending review.");
+			HoldEntry entry = holdLoader.getHoldByUser(user, HoldType.SUSPEND);
+			if(entry != null && entry.getStatus() == HoldStatus.PENDING && (Instant.now().getEpochSecond() - entry.getStartedOn()) < 60 * 60 * HoldLoader.HOLD_DURATION_HOURS) {
+				user.getPlayer().kickPlayer(ChatColor.RED + "Your account was flagged for suspicious activity and is suspended pending review.\n"
+					+ "This suspension will be resolved in at most " + entry.getMaxExpiry());
 			}
 		}
 	}
@@ -62,10 +76,14 @@ public class ModUserHook implements UserHook {
 		WrappedUser wrapped = WrappedUser.of(user);
 		PunishmentData muteData = wrapped.getActivePunishmentData(PunishmentType.MUTE);
 		if (muteData != null) {
-			user.getPlayer().sendMessage(ChatColor.RED + "You are muted!" + (muteData.getReason().equals("") ? "" : " (" + muteData.getReason() + ")"));
-			if(!muteData.isPermanent()) {
-				user.getPlayer().sendMessage(ChatColor.RED + "Expires " + muteData.getExpiry().toString());
-			}
+			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.BOLD + "You are muted" + ChatColor.RED + ".");
+			wrapped.showActiveMuteReasons();
+			return false;
+		}
+		HoldEntry entry = holdLoader.getHoldByUser(user, HoldType.MUTE);
+		if(entry != null && entry.getStatus() == HoldStatus.PENDING && (Instant.now().getEpochSecond() - entry.getStartedOn()) < 60 * 60 * HoldLoader.HOLD_DURATION_HOURS) {
+			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + "Your account was flagged for suspicious activity.");
+			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "This suspension will be resolved in at most " + entry.getMaxExpiry());
 			return false;
 		}
 		return true;
@@ -79,19 +97,28 @@ public class ModUserHook implements UserHook {
 				.filter(u -> WrappedUser.of(u).getActivePunishmentData(PunishmentType.BAN) != null)
 				.collect(Collectors.toSet());
 		if(alts.size() > 0) {
-			UserLoader.allUsers()
-				.stream()
-				.filter(u -> PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.MODERATION, false))
-				.filter(u -> u.getData().getEmbedded(Arrays.asList("modnotifs", "susjoin"), true))
-				.forEach(u -> {
-					u.getPlayer().sendMessage(ChatColor.GRAY + "[" + ChatColor.RED + "Join Alert" + ChatColor.GRAY + "] User " 
-						+ user.getName() + " shares an IP address with " + alts.size() + " currently banned user" + (alts.size() > 1 ? "s" : ""));
-				});
+			alertHandler.sendSuspiciousJoinMessage(ChatColor.GRAY + "[" + ChatColor.RED + "Join" + ChatColor.GRAY + "] User " 
+					+ user.getName() + " shares an IP address with " + alts.size() + " currently banned user" + (alts.size() > 1 ? "s" : ""));
+		}
+		
+		PaginatedResult<Report> watchlist = reportLoader.getReportsByTypeStatusAndTarget(ReportType.WATCHLIST, List.of(ReportStatus.OPEN, ReportStatus.SUSPENDED), user, 1);
+		if(watchlist.getTotal() > 0) {
+			watchlist.getPage().get(0).setStatus(ReportStatus.OPEN);
+			alertHandler.sendSuspiciousJoinMessage(ChatColor.GRAY + "[" + ChatColor.RED + "Join" + ChatColor.GRAY + "] User " 
+					+ user.getName() + " is currently on the watchlist (Report #" + watchlist.getPage().get(0).getId() + ")");
 		}
 		
 		if(wrapped.reportWasHandled()) {
 			user.getPlayer().sendMessage(ChatColor.GOLD + "" + ChatColor.ITALIC + "Your recent report was handled and closed. Thank you!");
 			wrapped.setReportHandled(false);
+		}
+	}
+	
+	@Override
+	public void onQuit(User user) {
+		PaginatedResult<Report> watchlist = reportLoader.getReportsByTypeStatusAndTarget(ReportType.WATCHLIST, List.of(ReportStatus.OPEN, ReportStatus.SUSPENDED), user, 1);
+		if(watchlist.getTotal() > 0) {
+			watchlist.getPage().get(0).setStatus(ReportStatus.SUSPENDED);
 		}
 	}
 	

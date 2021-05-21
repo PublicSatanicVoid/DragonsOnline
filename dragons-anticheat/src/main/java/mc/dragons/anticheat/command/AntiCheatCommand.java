@@ -6,7 +6,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.core.commands.DragonsCommandExecutor;
@@ -14,7 +13,6 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.moderation.DragonsModerationTools;
 import mc.dragons.tools.moderation.WrappedUser;
 import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
@@ -28,12 +26,10 @@ import net.minecraft.server.v1_16_R3.IBlockData;
 public class AntiCheatCommand extends DragonsCommandExecutor {
 	private DragonsAntiCheat plugin;
 	private ReportLoader reportLoader;
-	private DragonsModerationTools modToolsPlugin;
 	
 	public AntiCheatCommand(DragonsAntiCheat instance) {
 		plugin = instance;
 		reportLoader = dragons.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
-		modToolsPlugin = JavaPlugin.getPlugin(DragonsModerationTools.class);
 	}
 	
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -89,7 +85,7 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			Report report = reportLoader.fileInternalReport(target, new Document("type", "ac_ban").append("info", info));
 			report.addNote("Action automatically taken on this report");
 			report.setStatus(ReportStatus.ACTION_TAKEN);
-			modToolsPlugin.getPunishCommand().punish(sender, target, PunishmentCode.AC_BAN, "ID " + report.getId());
+			WrappedUser.of(target).punish(PunishmentType.BAN, PunishmentCode.AC_BAN, PunishmentCode.AC_BAN.getStandingLevel(), "ID " + report.getId(), user(sender));
 			sender.sendMessage(ChatColor.GREEN + "Anticheat ban executed successfully. Correlated Report ID: " + report.getId());
 		}
 		

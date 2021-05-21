@@ -76,6 +76,7 @@ public class ChatMessageHandler extends MessageHandler {
 			// For now, we allow X's blocked users to see X's PUBLIC messages, but not the other way around
 			if (!channel.canHear(test, user) && !test.hasChatSpy()) continue;
 			LOGGER.verbose("  -Yes!");
+			test.getSeenMessages().add(messageData);
 			test.sendMessage(channel, user, new BaseComponent[] { messageInfoComponent, messageComponent });
 		}
 		LOGGER.info("[" + user.getServer() + "/" + channel.getAbbreviation() + "/" + loc.getWorld().getName() + "] [" + user.getName() + "] " + message);

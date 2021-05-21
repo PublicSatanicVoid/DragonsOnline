@@ -12,7 +12,7 @@ commands:
   guildadmin:
     description: (ADMIN) Manage guilds.
   chatspy:
-    description: (MOD) View other players' private messages.
+    description: (ADMIN) View other players' private messages.
   shout:
     description: (MOD) Broadcast to the entire server.
     aliases: [broadcast, bc]    

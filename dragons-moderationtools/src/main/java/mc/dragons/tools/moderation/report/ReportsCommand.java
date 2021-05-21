@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
@@ -30,7 +31,8 @@ public class ReportsCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 		
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.RED + "/reports <all|all-open|escalation|chat|internal|regular|by <player>|on <player>> [-page <#>]");
+			sender.sendMessage(ChatColor.RED + "/reports <all|all-open|escalation|chat|internal|regular|hold|watchlist|by <player>|on <player>> [-page <#>]");
+			sender.sendMessage(ChatColor.GRAY + "Note: Moderators can only use /reports <watchlist|by|on>");
 			return true;
 		}
 		
@@ -40,6 +42,8 @@ public class ReportsCommand extends DragonsCommandExecutor {
 			page = parseInt(sender, args[++pageFlagIndex]);
 			if(page == null) return true;
 		}
+		
+		SystemProfileFlag req = SystemProfileFlag.APPEALS_TEAM;
 		
 		PaginatedResult<Report> results = null;
 		if(args[0].equalsIgnoreCase("all-open")) {
@@ -60,6 +64,13 @@ public class ReportsCommand extends DragonsCommandExecutor {
 		else if(args[0].equalsIgnoreCase("regular")) {
 			results = reportLoader.getReportsByType(ReportType.REGULAR, page);
 		}
+		else if(args[0].equalsIgnoreCase("hold")) {
+			results = reportLoader.getReportsByType(ReportType.HOLD, page);
+		}
+		else if(args[0].equalsIgnoreCase("watchlist")) {
+			req = SystemProfileFlag.MODERATION;
+			results = reportLoader.getReportsByTypeAndStatus(ReportType.WATCHLIST, ReportStatus.OPEN, page);
+		}
 		else if(args[0].equalsIgnoreCase("by")) {
 			if(args.length == 1) {
 				sender.sendMessage(ChatColor.RED + "/reports by <player>");
@@ -70,18 +81,25 @@ public class ReportsCommand extends DragonsCommandExecutor {
 			results = reportLoader.getReportsByFiler(filter, page);
 		}
 		else if(args[0].equalsIgnoreCase("on")) {
+			req = SystemProfileFlag.MODERATION;
 			if(args.length == 1) {
 				sender.sendMessage(ChatColor.RED + "/reports on <player>");
 				return true;
 			}
 			User filter = lookupUser(sender, args[1]);
 			if(filter == null) return true;
+			if(filter.equals(user(sender)) && !hasPermission(sender, PermissionLevel.ADMIN)) {
+				sender.sendMessage(ChatColor.RED + "You cannot look up reports on yourself!");
+				return true;
+			}
 			results = reportLoader.getReportsByTarget(filter, page);
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid usage!");
 			return true;
 		}
+		
+		if(!hasPermission(sender, PermissionLevel.ADMIN) && !requirePermission(sender, req)) return true;
 		
 		if(results.getTotal() == 0) {
 			sender.sendMessage(ChatColor.RED + "No results returned for this query!");
@@ -98,13 +116,20 @@ public class ReportsCommand extends DragonsCommandExecutor {
 			if(report.getTargets().size() > 1) {
 				targets += " +" + (report.getTargets().size() - 1);
 			}
+			String by = "";
+			if(report.getFiledBy().size() > 0) {
+				by = report.getFiledBy().get(0).getName();
+			}
+			if(report.getFiledBy().size() > 1) {
+				by += " +" + (report.getFiledBy().size() - 1);
+			}
 			tg.addRowEx("/viewreport " + report.getId(), ChatColor.GRAY + "Click to view report #" + report.getId(), 
 					idPrefix + "#" + report.getId(), 
 					dataPrefix + targets, 
 					dataPrefix + StringUtil.truncateWithEllipsis(report.getPreview(), 30),
 					dataPrefix + report.getType(), 
 					dataPrefix + report.getStatus(), 
-					dataPrefix + report.getFiledBy().getName());
+					dataPrefix + by);
 		}
 
 		sender.sendMessage(ChatColor.GREEN + "Page " + page + " of " + results.getPages() + " (" + results.getTotal() + " results)");

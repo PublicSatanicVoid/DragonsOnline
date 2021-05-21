@@ -15,6 +15,8 @@ import mc.dragons.tools.moderation.analysis.LocateCommand;
 import mc.dragons.tools.moderation.hold.HoldCommand;
 import mc.dragons.tools.moderation.hold.HoldLoader;
 import mc.dragons.tools.moderation.hold.HoldMessageHandler;
+import mc.dragons.tools.moderation.hold.ReleaseHoldCommand;
+import mc.dragons.tools.moderation.hold.ViewHoldsCommand;
 import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
 import mc.dragons.tools.moderation.punishment.command.PunishCodesCommand;
 import mc.dragons.tools.moderation.punishment.command.PunishCommand;
@@ -31,6 +33,7 @@ import mc.dragons.tools.moderation.report.ReportCommand;
 import mc.dragons.tools.moderation.report.ReportLoader;
 import mc.dragons.tools.moderation.report.ReportsCommand;
 import mc.dragons.tools.moderation.report.ViewReportCommand;
+import mc.dragons.tools.moderation.report.WatchlistCommand;
 
 public class DragonsModerationTools extends DragonsJavaPlugin {
 	private Dragons dragons;
@@ -49,6 +52,8 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		dragons.getUserHookRegistry().registerHook(new ModUserHook(dragons));
 		punishMessageHandler = new PunishMessageHandler();
 		
+		new PeriodicNotificationTask(dragons).runTaskTimer(this, 20L, 20L * 60 * 10);
+		
 		getCommand("info").setExecutor(new InfoCommand());
 		getCommand("iphistory").setExecutor(new IPHistoryCommand());
 		getCommand("ipscan").setExecutor(new IPScanCommand());
@@ -62,8 +67,12 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("escalate").setExecutor(new EscalateCommand());
 		getCommand("chatreport").setExecutor(new ChatReportCommand());
 		getCommand("reports").setExecutor(new ReportsCommand());
+		getCommand("watchlist").setExecutor(new WatchlistCommand());
+		
 		getCommand("hold").setExecutor(new HoldCommand());
-
+		getCommand("viewholds").setExecutor(new ViewHoldsCommand());
+		getCommand("releasehold").setExecutor(new ReleaseHoldCommand());
+		
 		getCommand("viewreport").setExecutor(new ViewReportCommand());
 		getCommand("modqueue").setExecutor(new ModQueueCommand());
 		

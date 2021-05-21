@@ -7,18 +7,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.DragonsModerationTools;
 import mc.dragons.tools.moderation.WrappedUser;
 import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
+import mc.dragons.tools.moderation.punishment.PunishmentData;
 import mc.dragons.tools.moderation.punishment.RevocationCode;
 
 public class RemovePunishmentCommand extends DragonsCommandExecutor {
 	private PunishMessageHandler handler = JavaPlugin.getPlugin(DragonsModerationTools.class).getPunishMessageHandler();
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, SystemProfileFlag.APPEALS_TEAM)) return true;
+		if(!requirePermission(sender, SystemProfileFlag.HELPER)) return true;
 		
 		if(args.length < 3) {
 			sender.sendMessage(ChatColor.RED + "/removepunishment <player> <#> <revocation code> [-delete]");
@@ -35,9 +37,19 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 		WrappedUser wrapped = WrappedUser.of(targetUser);
 		
 		boolean deletePermanently = StringUtil.getFlagIndex(args, "-delete", 3) != -1;
+		if(!hasPermission(sender, SystemProfileFlag.APPEALS_TEAM) && !hasPermission(sender, PermissionLevel.ADMIN) && deletePermanently) {
+			sender.sendMessage(ChatColor.RED + "You must be a member of the appeals team to permanently delete a punishment!");
+			return true;
+		}
 		
 		if(punishmentNo < 0 || punishmentNo >= wrapped.getPunishmentHistory().size()) {
 			sender.sendMessage(ChatColor.RED + "Invalid punishment number! Use /viewpunishments " + targetUser.getName() + " to see their punishment records.");
+			return true;
+		}
+		
+		PunishmentData data = wrapped.getPunishmentHistory().get(punishmentNo);
+		if(!hasPermission(sender, SystemProfileFlag.APPEALS_TEAM) && !hasPermission(sender, PermissionLevel.ADMIN) && !data.getIssuedBy().equals(user(sender))) {
+			sender.sendMessage(ChatColor.RED + "You must be a member of the appeals team to revoke a punishment you did not issue!");
 			return true;
 		}
 		

@@ -4,6 +4,7 @@ import static mc.dragons.core.util.BukkitUtil.async;
 import static mc.dragons.core.util.BukkitUtil.sync;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,7 @@ import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.gameobject.user.chat.ChatMessageHandler;
+import mc.dragons.core.gameobject.user.chat.MessageData;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags;
@@ -135,6 +137,7 @@ public class User extends GameObject {
 	private boolean joined; // If the user has joined and authenticated yet.
 	private boolean initErrorOccurred;
 	private boolean initialized = false;
+	private List<MessageData> seenMessages;
 	
 	public static ConnectionMessageHandler getConnectionMessageHandler() {
 		return connectionMessageHandler;
@@ -212,6 +215,7 @@ public class User extends GameObject {
 			questActionIndices = new HashMap<>();
 			questPauseStates = new HashMap<>();
 			questCorrelationIDs = new HashMap<>();
+			seenMessages = Collections.synchronizedList(new ArrayList<>());
 			loadQuests(initCorrelationID, (Document) getData("quests"));
 			cachedRegions = new HashSet<>();
 			activePermissionLevel = PermissionLevel.USER;
@@ -615,6 +619,10 @@ public class User extends GameObject {
 	 * Chat management
 	 */
 
+	public synchronized List<MessageData> getSeenMessages() {
+		return seenMessages;
+	}
+	
 	public List<ChatChannel> getActiveChatChannels() {
 		return getData().getList("chatChannels", String.class).stream().map(ch -> ChatChannel.valueOf(ch)).collect(Collectors.toList());
 	}
@@ -1622,6 +1630,7 @@ public class User extends GameObject {
 		Document state = stateLoader.getState(token);
 		if(state == null || state.isEmpty()) return backup;
 		player.teleport(StorageUtil.docToLoc(state.get("loc", Document.class)));
+		setXP(state.getInteger("xp"));
 		player.setHealth(state.getDouble("health"));
 		player.setGameMode(GameMode.valueOf(state.getString("gamemode")));
 		loadQuests(null, state.get("quests", Document.class));
@@ -1638,7 +1647,6 @@ public class User extends GameObject {
 		}
 		clearInventory();
 		loadInventory(null, state.get("inventory", Document.class));
-		setXP(state.getInteger("xp"));
 		setGold(state.getDouble("gold"), false);
 		getData().append("skills", state.get("skills", Document.class));
 		getData().append("skillProgress", state.get("skillProgress", Document.class));
@@ -1661,6 +1669,12 @@ public class User extends GameObject {
 			LOGGER.warning("Resyncing data while user is online: " + getName() + " - this may overwrite local changes.");
 		}
 		storageAccess = storageManager.getStorageAccess(GameObjectType.USER, getUUID());
+	}
+	
+	public void safeResyncData() {
+		if(player == null) {
+			resyncData();
+		}
 	}
 	
 	@Override

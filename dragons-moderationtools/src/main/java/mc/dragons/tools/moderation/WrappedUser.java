@@ -7,17 +7,26 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
+import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.punishment.PunishmentData;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
-import mc.dragons.tools.moderation.punishment.StandingLevelType;
 import mc.dragons.tools.moderation.punishment.RevocationCode;
+import mc.dragons.tools.moderation.punishment.StandingLevelType;
+import mc.dragons.tools.moderation.punishment.command.PunishCommand;
+import mc.dragons.tools.moderation.report.ReportLoader;
+import mc.dragons.tools.moderation.report.ReportLoader.Report;
+import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
+import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
 
 /**
  * Wrapper for Users to extend functionality for moderation.
@@ -27,6 +36,7 @@ import mc.dragons.tools.moderation.punishment.RevocationCode;
  */
 public class WrappedUser {
 	private static Map<User, WrappedUser> wrappers = Collections.synchronizedMap(new HashMap<>());
+	private static ReportLoader reportLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	
 	public static long STANDING_LEVEL_DECAY_PERIOD = 60 * 60 * 24 * 7;
 	
@@ -81,38 +91,52 @@ public class WrappedUser {
 	}
 	
 	public void applyPunishmentLocally(PunishmentType punishmentType, String reason, long durationSeconds) {
-		long now = Instant.now().getEpochSecond();
-		String expiry = durationSeconds == -1L ? "Never" : new Date(1000L * (now + durationSeconds)).toString();
 		Player player = user.getPlayer();
-		
 		if (player != null) {
 			if (punishmentType == PunishmentType.BAN) {
-				player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n"
-						+ (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + ChatColor.WHITE + "\n") + ChatColor.GRAY + "Expires: " + ChatColor.WHITE + expiry);
+				player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n" + getActiveBanReasons());
 			} else if (punishmentType == PunishmentType.KICK) {
 				player.kickPlayer(ChatColor.DARK_RED + "You were kicked!\n\n" + (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + "\n\n") + ChatColor.YELLOW
 						+ "Repeated kicks may result in a ban.");
 			} else if (punishmentType == PunishmentType.WARNING) {
 				player.sendMessage(" ");
-				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have received a warning.");
+				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.BOLD + "You have received a warning.");
 				if (!reason.equals(" ")) {
-					player.sendMessage(ChatColor.RED + "Reason: " + reason);
+					player.sendMessage(PunishCommand.RECEIVE_PREFIX + "Reason: " + reason);
 				}
-				player.sendMessage(ChatColor.GRAY + "Repeated warnings may result in a mute or ban.");
+				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "Repeated warnings may result in a mute or ban.");
 				player.sendMessage("");
 			} else if (punishmentType == PunishmentType.MUTE) {
 				player.sendMessage(" ");
-				player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You have been muted.");
-				if (!reason.equals("")) {
-					player.sendMessage(ChatColor.RED + "Reason: " + reason);
-				}
-				player.sendMessage(ChatColor.RED + "Expires: " + expiry);
+				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.BOLD + "You have been muted.");
+				showActiveMuteReasons();
 				player.sendMessage(" ");
 			}
 		}
 	}
 	
+	public String getActiveBanReasons() {
+		return StringUtil.parseList(getPunishmentHistory().stream()
+				.filter(p -> p.getType() == PunishmentType.BAN && !p.hasExpired() && !p.isRevoked())
+				.map(p -> ChatColor.RED + p.getReason() + ChatColor.GRAY + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"))
+				.collect(Collectors.toList()), "\n\n");
+	}
+	
+	public void showActiveMuteReasons() {
+		for(PunishmentData p : getPunishmentHistory()) {
+			if(p.getType() != PunishmentType.MUTE || p.hasExpired() || p.isRevoked()) continue;
+			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + "- " + p.getReason());
+			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "  " + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"));
+		}
+	}
+	
 	public void punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
+		if(punishmentType == PunishmentType.BAN) { // Banned users are automatically removed from the watchlist
+			PaginatedResult<Report> watchlist = reportLoader.getReportsByTypeStatusAndTarget(ReportType.WATCHLIST, ReportStatus.OPEN, user, 1);
+			if(watchlist.getTotal() > 0) {
+				watchlist.getPage().get(0).setStatus(ReportStatus.ACTION_TAKEN);
+			}
+		}
 		savePunishment(punishmentType, code, standingLevelChange, extra, by, durationSeconds);
 		applyPunishmentLocally(punishmentType, PunishmentCode.formatReason(code, extra), durationSeconds);
 	}
@@ -144,7 +168,7 @@ public class WrappedUser {
 		Player player = user.getPlayer();
 		if (player != null && data.getType() == PunishmentType.MUTE && !data.hasExpired()) {
 			player.sendMessage("");
-			player.sendMessage(ChatColor.DARK_GREEN + "Your mute has been revoked.");
+			player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.DARK_GREEN + "Your mute has been revoked.");
 			player.sendMessage("");
 		}
 	}

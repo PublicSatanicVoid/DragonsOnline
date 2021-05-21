@@ -51,20 +51,24 @@ public class PartyMessageHandler extends MessageHandler {
 		int id = data.getInteger("party");
 		Party party = partyLoader.get(id);
 		User user = userLoader.loadObject(data.get("member", UUID.class));
+		user.safeResyncData();
 		boolean local = server.equals(serverFrom);
 		boolean targetOnly = false;
 		switch(action) {
 		case "join":
 			message = user.getName() + " joined the party!";
-			if(!local) partyLoader.join(party, user);
+			if(!local) partyLoader.join(party, user, false);
 			break;
 		case "leave":
 			message = user.getName() + " left the party!";
-			if(!local) partyLoader.leave(party, user);
+			if(!local) partyLoader.leave(party, user, false);
 			break;
 		case "kick":
 			message = user.getName() + " was kicked from the party!";
-			if(!local) partyLoader.leave(party, user);
+			if(user.getPlayer() != null) {
+				user.getPlayer().sendMessage(ChatColor.LIGHT_PURPLE + "You were kicked from " + party.getOwner().getName() + "'s party!");
+			}
+			if(!local) partyLoader.leave(party, user, false);
 			break;
 		case "disband":
 			message = user.getName() + " disbanded the party!";

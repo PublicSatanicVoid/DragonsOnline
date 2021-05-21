@@ -15,7 +15,7 @@ public class ModQueueCommand extends DragonsCommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePlayer(sender) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
+		if(!requirePlayer(sender) || !requirePermission(sender, SystemProfileFlag.HELPER)) return true;
 		
 		PaginatedResult<Report> waiting = reportLoader.getAuthorizedUnreviewedReports(1, user(sender).getActivePermissionLevel(), user(sender).getUUID());
 		

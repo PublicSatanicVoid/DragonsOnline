@@ -105,7 +105,7 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 		}
 		
 		else if (label.equalsIgnoreCase("chatspy")) {
-			if(!requirePlayer(sender) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
+			if(!requirePlayer(sender)|| !requirePermission(sender, PermissionLevel.ADMIN) || !requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
 			user.setChatSpy(!user.hasChatSpy());
 			sender.sendMessage(ChatColor.GREEN + "Chat spy " + (user.hasChatSpy() ? "enabled" : "disabled"));
 			return true;

@@ -1,5 +1,6 @@
 package mc.dragons.tools.moderation.punishment;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ import org.bson.Document;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.util.StringUtil;
 
 /**
  * Record about a punishment applied to a user.
@@ -46,6 +48,10 @@ public class PunishmentData {
 
 	public Date getExpiry() {
 		return new Date(1000L * (data.getLong("issuedOn") + getDuration()));
+	}
+	
+	public String getTimeToExpiry() {
+		return StringUtil.parseSecondsToTimespan(getExpiry().toInstant().getEpochSecond() - Instant.now().getEpochSecond());
 	}
 	
 	public Date getIssuedDate() {

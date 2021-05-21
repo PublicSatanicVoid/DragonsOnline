@@ -31,7 +31,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
  *
  */
 public class StringUtil {
-	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy hh:mm a z");
 	
 	public static String locToString(Location loc) {
 		return String.valueOf(MathUtil.round(loc.getX())) + ", " + MathUtil.round(loc.getY()) + ", " + MathUtil.round(loc.getZ());
@@ -272,6 +272,7 @@ public class StringUtil {
 	}
 	
 	public static TextComponent clickableHoverableText(String text, String command, boolean suggestCommandOnly, String... hover) {
+		if(command == null) return hoverableText(text, hover);
 		TextComponent tc = new TextComponent(text);
 		Text hoverText = new Text(StringUtil.parseList(hover, "\n"));
 		tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
@@ -288,6 +289,10 @@ public class StringUtil {
 		TextComponent tc = new TextComponent(text);
 		tc.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(StringUtil.parseList(hover, "\n"))));
 		return tc;
+	}
+
+	public static TextComponent plainText(String text) {
+		return new TextComponent(text);
 	}
 	
 	public static String truncateWithEllipsis(String text, int length) {

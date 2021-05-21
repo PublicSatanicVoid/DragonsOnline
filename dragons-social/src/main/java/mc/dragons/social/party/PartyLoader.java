@@ -43,8 +43,10 @@ public class PartyLoader extends AbstractLightweightLoader<Party> {
 			this.data = data;
 		}
 		
-		private void save() {
-			collection.updateOne(new Document("_id", getId()), new Document("$set", data));
+		private void save(boolean sync) {
+			if(sync) {
+				collection.updateOne(new Document("_id", getId()), new Document("$set", data));
+			}
 		}
 		
 		public int getId() {
@@ -59,38 +61,38 @@ public class PartyLoader extends AbstractLightweightLoader<Party> {
 			return data.getList("invites", UUID.class).stream().map(uuid -> userLoader.loadObject(uuid)).collect(Collectors.toList());
 		}
 		
-		public void invite(User user) {
+		public void invite(User user, boolean sync) {
 			data.getList("invites", UUID.class).add(user.getUUID());
-			save();
+			save(sync);
 		}
 		
-		public void uninvite(User user) {
+		public void uninvite(User user, boolean sync) {
 			data.getList("invites", UUID.class).remove(user.getUUID());
-			save();
+			save(sync);
 		}
 		
 		public boolean hasUser(User user) {
 			return getMembers().contains(user) || getOwner().equals(user);
 		}
 		
-		public void leave(User user) {
+		public void leave(User user, boolean sync) {
 			data.getList("members", UUID.class).remove(user.getUUID());
-			save();
+			save(sync);
 		}
 		
-		public void join(User user) {
+		public void join(User user, boolean sync) {
 			data.getList("members", UUID.class).add(user.getUUID());
-			uninvite(user);
-			save();
+			uninvite(user, sync);
+			save(sync);
 		}
 		
 		public User getOwner() {
 			return userLoader.loadObject(data.get("owner", UUID.class));
 		}
 		
-		public void setOwner(User user) {
+		public void setOwner(User user, boolean sync) {
 			data.append("owner", UUID.class);
-			save();
+			save(sync);
 		}
 		
 		public long getCreatedOn() {
@@ -132,39 +134,41 @@ public class PartyLoader extends AbstractLightweightLoader<Party> {
 		return party.map(d -> fromDocument(d)).into(new ArrayList<>());
 	}
 	
-	public void kick(Party party, User member) {
+	public void kick(Party party, User member, boolean sync) {
 		loadMessenger();
-		party.leave(member);
-		messenger.sendKick(party.getId(), member);
+		party.leave(member, sync);
+		if(sync) messenger.sendKick(party.getId(), member);
 	}
 	
-	public void invite(Party party, User target) {
+	public void invite(Party party, User target, boolean sync) {
 		loadMessenger();
-		party.invite(target);
-		messenger.sendInvite(party.getId(), target);
+		party.invite(target, sync);
+		if(sync) messenger.sendInvite(party.getId(), target);
 	}
 	
-	public void join(Party party, User member) {
+	public void join(Party party, User member, boolean sync) {
 		loadMessenger();
-		party.join(member);
-		party.uninvite(member);
-		messenger.sendJoin(party.getId(), member);
+		party.join(member, sync);
+		party.uninvite(member, sync);
+		if(sync) messenger.sendJoin(party.getId(), member);
 	}
 	
-	public void leave(Party party, User member) {
+	public void leave(Party party, User member, boolean sync) {
 		loadMessenger();
-		party.leave(member);
-		messenger.sendLeave(party.getId(), member);
+		party.leave(member, sync);
+		if(sync) messenger.sendLeave(party.getId(), member);
 	}
 	
 	public void unpool(int id) {
 		partyPool.remove(id);
 	}
 	
-	public void disband(Party party) {
+	public void disband(Party party, boolean sync) {
 		loadMessenger();
-		messenger.sendDisband(party.getId(), party.getOwner());
-		sync(() -> collection.deleteOne(new Document("_id", party.getId())), 20);
+		if(sync) {
+			messenger.sendDisband(party.getId(), party.getOwner());
+			sync(() -> collection.deleteOne(new Document("_id", party.getId())), 20);
+		}
 	}
 
 	public List<Party> all() {
