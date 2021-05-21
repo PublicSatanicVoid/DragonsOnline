@@ -38,9 +38,9 @@ public class NPCIdentifierAddon extends ItemAddon {
 	}
 	
 	@Override
-	public void onPrepareCombo(User user, String combo) {}
+	public void onPrepareCombo(User user, String combo) { /* do nothing */ }
 
 	@Override
-	public void onCombo(User user, String combo) {}
+	public void onCombo(User user, String combo) { /* do nothing */ }
 
 }

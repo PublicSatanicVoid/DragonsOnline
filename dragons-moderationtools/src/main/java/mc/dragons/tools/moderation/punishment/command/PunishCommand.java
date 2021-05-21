@@ -111,22 +111,17 @@ public class PunishCommand extends DragonsCommandExecutor {
 				"punish " + StringUtil.parseList(data.targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()), " ") 
 					+ " " + data.code.getCode() + (data.extraInfo.isBlank() ? "" : " " + data.extraInfo)+ " -uuid");
 			boolean held = false;
-			if(r != null) {
-				if(minEffectiveLevel > 1) {
-					held = true;
-					HoldEntry hold = holdLoader.newHold(data.targets, user(sender), data.formatInternalReason(), r, true, data.code.getType() == StandingLevelType.BAN ? HoldType.SUSPEND : HoldType.MUTE);
-					r.getData().append("holdId", hold.getId());
-					r.save();
-				}
+			if(r != null && minEffectiveLevel > 1) {
+				held = true;
+				HoldEntry hold = holdLoader.newHold(data.targets, user(sender), data.formatInternalReason(), r, true, data.code.getType() == StandingLevelType.BAN ? HoldType.SUSPEND : HoldType.MUTE);
+				r.getData().append("holdId", hold.getId());
+				r.save();
 			}
 			sender.sendMessage(ChatColor.GREEN + (held ? "Placed a " + HoldLoader.HOLD_DURATION_HOURS + "-hour hold and escalated" : "Escalated") + " this issue for review by a senior staff member.");
 		}
 		
-		if(level >= 10 && canApply) {
-			// Generate escalation report
-			if(reportLoader.fileStaffReport(data.targets, user(sender), "Post Review: " + data.formatInternalReason(), "") != null) {
-				sender.sendMessage(ChatColor.GRAY + " A senior staff member will review this punishment.");
-			}
+		if(level >= 10 && canApply && reportLoader.fileStaffReport(data.targets, user(sender), "Post Review: " + data.formatInternalReason(), "") != null) {
+			sender.sendMessage(ChatColor.GRAY + " A senior staff member will review this punishment.");
 		}
 		
 		return true;

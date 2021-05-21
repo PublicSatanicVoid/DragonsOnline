@@ -39,12 +39,13 @@ public class WrappedUser {
 	private static ReportLoader reportLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	
 	public static long STANDING_LEVEL_DECAY_PERIOD = 60 * 60 * 24 * 7;
+
+	private User user;
 	
 	public static WrappedUser of(User user) {
 		return wrappers.computeIfAbsent(user, u -> new WrappedUser(u));
 	}
 	
-	private User user;
 	
 	private WrappedUser(User user) {
 		this.user = user;

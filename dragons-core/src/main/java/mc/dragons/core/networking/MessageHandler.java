@@ -34,7 +34,7 @@ public abstract class MessageHandler {
 	 */
 	public void send(Document data, String destServer) {
 		if(destServer == null) {
-			instance.getLogger().warning("Tried to send a message of type " + type.toString() + " to a null server");
+			instance.getLogger().warning("Tried to send a message of type " + type + " to a null server");
 			return;
 		}
 		if(destServer.equals(instance.getServerName())) {

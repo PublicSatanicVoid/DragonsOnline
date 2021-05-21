@@ -113,8 +113,6 @@ public class MoveListener implements Listener {
 	public class MoveContext {
 		private List<MoveEntry> moveHistory = new ArrayList<>();
 		
-		public MoveContext() {}
-		
 		public void addEntry(MoveEntry entry) { moveHistory.add(entry); }
 		
 		public double calculateRecentFactor() {

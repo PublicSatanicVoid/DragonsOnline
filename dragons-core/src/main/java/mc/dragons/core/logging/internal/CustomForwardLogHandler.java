@@ -39,8 +39,8 @@ public class CustomForwardLogHandler extends ConsoleHandler {
 	}
 
 	@Override
-	public void flush() {}
+	public void flush() { /* does nothing */ }
 
 	@Override
-	public void close() throws SecurityException {}
+	public void close() throws SecurityException { /* does nothing */ }
 }

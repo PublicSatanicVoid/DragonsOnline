@@ -121,11 +121,9 @@ public class InfoCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "Cached Regions: " + ChatColor.RESET + regionLoader.getRegionsByLocation(targetUser.getSavedLocation()).stream().map(r -> r.getFlags().getString("fullname")).collect(Collectors.joining(", ")));
 			sender.sendMessage(ChatColor.YELLOW + "Health: " + ChatColor.RESET + targetUser.getSavedHealth() + " / " + targetUser.getSavedMaxHealth());
 		}
-		else {
-			if(mod) {
-				if(targetUser.getSystemProfile() != null) {
-					sender.sendMessage(ChatColor.YELLOW + "System Profile: " + ChatColor.RESET + targetUser.getSystemProfile().getProfileName());
-				}
+		else if(mod) {
+			if(targetUser.getSystemProfile() != null) {
+				sender.sendMessage(ChatColor.YELLOW + "System Profile: " + ChatColor.RESET + targetUser.getSystemProfile().getProfileName());
 			}
 			sender.sendMessage(ChatColor.YELLOW + "Active Permission Level: " + ChatColor.RESET + targetUser.getActivePermissionLevel().toString());
 			sender.sendMessage(ChatColor.YELLOW + "Location: " + ChatColor.RESET + StringUtil.locToString(targetPlayer.getLocation()) + " in " + targetPlayer.getWorld().getName());

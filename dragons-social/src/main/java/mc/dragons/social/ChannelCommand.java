@@ -13,7 +13,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.StringUtil;
 
 public class ChannelCommand extends DragonsCommandExecutor {
-	private boolean handleAlias(CommandSender sender, String label, String[] args) {
+	private boolean handleAlias(CommandSender sender, String label) {
 		String command = "";
 		switch(label) {
 		case "csa":
@@ -74,7 +74,7 @@ public class ChannelCommand extends DragonsCommandExecutor {
 		User user = user(sender);
 		boolean staff = hasPermission(sender, PermissionLevel.BUILDER);
 		
-		if(handleAlias(sender, label, args)) return true;
+		if(handleAlias(sender, label)) return true;
 		
 		if (args.length < 2) {
 			sender.sendMessage(ChatColor.RED + "/channel <speak|listen>"

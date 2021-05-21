@@ -122,10 +122,10 @@ Dragons Online features an extensive moderation system, mostly contained within 
 
 Violations are classified into different codes, which can be viewed with the `/pcodes` command. A standing level system is used to apply stricter punishments the more times a player breaks a rule.
 
-### Central Entry Point for Moderation Actions ###
+### Central Entry Point for Moderation Actions
 There are different ways to initiate a moderation action. Regular players can use the `/report <player> <reason>` command, or `/chatreport <player>`. This files a central report which is placed in a moderation queue for review. Authorized staff members can use `/report <player1 [player2 ...] <code> [extra info]` to report one or more players at once. Staff-issued reports guide the issuer through a process of choosing the appropriate action to take.
 
-### Types of Moderation Actions ###
+### Types of Moderation Actions
 Moderation actions can be initiated more directly with `/hold <players ...> <code> [extra info]`, which files a report and places a 48-hour suspension on the targeted accounts. This suspension takes the form of either a temporary mute or ban, depending on the code specified.
 
 If a staff member does not want to take any immediate action and needs a senior staff member to review the issue, they can use `/escalate <players ...> <code> [extra info]`. A report will be filed and flagged for senior staff review.
@@ -136,10 +136,10 @@ An punishment can be applied instantly with `/punish <players ...> <code> [extra
 
 If a staff member is uncertain which moderation action to take, they should use `/report` which will guide them through the process of choosing one.
 
-### Reviewing Moderation Actions ###
+### Reviewing Moderation Actions
 Moderation actions can then be reviewed with the `/modqueue` command, which shows the staff member the next report in the queue. Helpers can only view or take action on chat reports. The report is displayed, along with clickable options to confirm the report, mark it as insufficient evidence, escalate for senior staff review, skip the report, etc.
 
-### Administration of Reports and Punishments ###
+### Administration of Reports and Punishments
 A punishment can be revoked for various reasons, each of which is given a revocation code. Helpers and moderators can revoke punishments that they have issued; appeals team staff and admins can revoke any punishment.
 
 A player's punishment history can be viewed with `/viewpunishments <player>`. A punishment can be removed with `/removepunishment <player> <id> <revocation code>`. The punishment ID can be found by viewing the punishment history.
