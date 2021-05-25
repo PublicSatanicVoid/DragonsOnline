@@ -34,13 +34,13 @@ public class CmdUtil {
 		int uuidFlagIndex = StringUtil.getFlagIndex(args, "-uuid", 0);
 		int reasonIndex = 0;
 		data.targets = new ArrayList<>();
+		List<String> targetUserErrors = new ArrayList<>();
 		for(int i = 0; i < args.length; i++) {
 			PunishmentCode test = PunishmentCode.getByCode(args[i]);
 			if(test == null) {
 				User target = uuidFlagIndex == -1 ? userLoader.loadObject(args[i]) : userLoader.loadObject(UUID.fromString(args[i]));
 				if(target == null) {
-					sender.sendMessage(DragonsCommandExecutor.ERR_USER_NOT_FOUND + " (\"" + args[i] + "\")");
-					return null;
+					targetUserErrors.add(DragonsCommandExecutor.ERR_USER_NOT_FOUND + " (\"" + args[i] + "\")");
 				}
 				data.targets.add(target);
 				reasonIndex = i + 1;
@@ -54,6 +54,15 @@ public class CmdUtil {
 				reasonIndex = i + 1;
 				break;
 			}
+		}
+		if(data.code != null && targetUserErrors.size() > 0) {
+			for(String error : targetUserErrors) {
+				sender.sendMessage(error);
+			}
+			return null;
+		}
+		if(targetUserErrors.size() > 0) {
+			return null;
 		}
 		if(data.code == null) {
 			sender.sendMessage(ChatColor.RED + "Invalid punishment code! Valid codes are:");

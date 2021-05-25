@@ -1061,6 +1061,7 @@ public class User extends GameObject {
 
 	public void setRank(Rank rank) {
 		setData("rank", rank.toString());
+		updateListName();
 	}
 
 	public Set<Region> getRegions() {

@@ -112,6 +112,12 @@ public class ModUserHook implements UserHook {
 			user.getPlayer().sendMessage(ChatColor.GOLD + "" + ChatColor.ITALIC + "Your recent report was handled and closed. Thank you!");
 			wrapped.setReportHandled(false);
 		}
+		
+
+		PaginatedResult<Report> waiting = reportLoader.getAuthorizedUnreviewedReports(1, user.getActivePermissionLevel(), user.getUUID());
+		if(waiting.getTotal() > 0) {
+			user.getPlayer().sendMessage(ChatColor.LIGHT_PURPLE + "There are " + waiting.getTotal() + " reports in your moderation queue! To get started, do " + ChatColor.DARK_PURPLE + "/modqueue");
+		}
 	}
 	
 	@Override

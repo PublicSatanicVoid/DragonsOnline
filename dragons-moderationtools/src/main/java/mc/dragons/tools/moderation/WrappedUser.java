@@ -86,6 +86,7 @@ public class WrappedUser {
 			.append("issuedBy", by == null ? null : by.getUUID())
 			.append("duration", durationSeconds)
 			.append("revoked", false);
+		user.getStorageAccess().pull("punishmentHistory", List.class);
 		List<Document> punishmentHistory = user.getData().getList("punishmentHistory", Document.class);
 		punishmentHistory.add(punishment);
 		user.setData("punishmentHistory", punishmentHistory);
@@ -148,6 +149,7 @@ public class WrappedUser {
 
 	public void saveUnpunishment(int id, RevocationCode code, User by) {
 		PunishmentData data = getPunishmentHistory().get(id);
+		user.getStorageAccess().pull("punishmentHistory", List.class);
 		List<Document> rawHistory = user.getData().getList("punishmentHistory", Document.class);
 		rawHistory.get(id).append("revoked", true)
 			.append("revokedCode", code.toString())
@@ -159,6 +161,7 @@ public class WrappedUser {
 	
 	public void deletePunishment(int id) {
 		applyUnpunishmentLocally(id);
+		user.getStorageAccess().pull("punishmentHistory", List.class);
 		List<Document> rawHistory = user.getData().getList("punishmentHistory", Document.class);
 		rawHistory.remove(id);
 		user.getStorageAccess().set("punishmentHistory", rawHistory);
@@ -181,6 +184,7 @@ public class WrappedUser {
 
 	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {
 		PunishmentData active = null;
+		user.getStorageAccess().pull("punishmentHistory", List.class);
 		for(PunishmentData data : getPunishmentHistory()) {
 			if(data.getType() == punishmentType && !data.hasExpired() && !data.isRevoked() && (active == null || data.getExpiry().before(active.getExpiry()))) {
 				active = data;
@@ -194,6 +198,7 @@ public class WrappedUser {
 	}
 	
 	public void setStandingLevel(StandingLevelType type, int level) {
+		user.getStorageAccess().pull("standingLevel", Document.class);
 		Document standingLevel = user.getData().get("standingLevel", Document.class);
 		Document sub = standingLevel.get(type.toString(), Document.class);
 		sub.append("level", Math.max(0, level));
@@ -202,6 +207,7 @@ public class WrappedUser {
 	}
 	
  	public void raiseStandingLevel(StandingLevelType type, int amount) {
+		user.getStorageAccess().pull("standingLevel", Document.class);
 		Document standingLevel = user.getData().get("standingLevel", Document.class);
 		Document sub = standingLevel.get(type.toString(), Document.class);
 		sub.append("level", Math.max(0, getStandingLevel(type) + amount));
@@ -210,6 +216,7 @@ public class WrappedUser {
 	}
 	
 	public void updateStandingLevel(StandingLevelType type) {
+		user.getStorageAccess().pull("standingLevel", Document.class);
 		Document standingLevel = user.getData().get("standingLevel", new Document());
 		Document sub = standingLevel.get(type.toString(), new Document());
 		long last = sub.getLong("on");

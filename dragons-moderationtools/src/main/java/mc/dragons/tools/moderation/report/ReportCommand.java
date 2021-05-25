@@ -51,15 +51,16 @@ public class ReportCommand extends DragonsCommandExecutor {
 		User reporter = user(sender);
 		
 		CmdData data = null;
+		boolean regular = true;
 		if(helper) {
 			data = CmdUtil.parse(sender, "/report <players> <code> ", args);
-			if(data == null) return true;
+			if(data != null) regular = false;
 		}
-		else {
+		if(regular) {
 			data = new CmdData();
 			User target = userLoader.loadObject(args[0]);
 			if(target == null) return true;
-			data.targets.add(target);
+			data.targets = List.of(target);
 		}
 		
 		if(data.targets.contains(reporter) && !reporter.getLocalData().getBoolean("canSelfReport", false)) {
@@ -103,7 +104,7 @@ public class ReportCommand extends DragonsCommandExecutor {
 		// which helpers are encouraged to use if they don't know exactly what to do
 		// in a given situation
 
-		if(helper) {		
+		if(helper && !regular) {		
 			List<WrappedUser> wrapped = data.targets.stream().map(u -> WrappedUser.of(u)).collect(Collectors.toList());
 			String targetsString = StringUtil.parseList(data.targets.stream().map(u -> u.getName()).collect(Collectors.toList()), " ");
 			String targetsCommas = StringUtil.parseList(data.targets.stream().map(u -> u.getName()).collect(Collectors.toList()));
