@@ -120,5 +120,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("writelog").setExecutor(experimentalCommands);
 		getCommand("testheader").setExecutor(experimentalCommands);
 		getCommand("testfooter").setExecutor(experimentalCommands);
+		getCommand("testinvisibleslimes").setExecutor(experimentalCommands);
+		getCommand("testrevealslimes").setExecutor(experimentalCommands);
 	}
 }

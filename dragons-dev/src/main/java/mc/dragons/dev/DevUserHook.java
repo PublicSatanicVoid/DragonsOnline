@@ -18,12 +18,13 @@ import net.md_5.bungee.api.ChatColor;
 public class DevUserHook implements UserHook {
 	private TaskLoader taskLoader;
 	private DiscordNotifier buildNotifier;
+	private boolean loadedTasks = false;
 	
 	public DevUserHook() {
 		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
 		buildNotifier = JavaPlugin.getPlugin(DragonsDev.class).getBuildNotifier();
 	}
-
+	
 	@Override
 	public void onVerifiedJoin(User user) {
 		/* Remind of any outstanding tasks */
@@ -41,6 +42,30 @@ public class DevUserHook implements UserHook {
 		if(rank == Rank.BUILDER || rank == Rank.BUILDER_CMD || rank == Rank.BUILD_MANAGER
 				|| rank == Rank.HEAD_BUILDER || rank == Rank.NEW_BUILDER) {
 			buildNotifier.sendNotification("[Builder Join] " + rank.getRankName() + " " + user.getName() + " joined the server!");
+		}
+		
+		/* Set star count, if not already set */
+		if(!user.getData().containsKey("stars")) {
+			user.getStorageAccess().set("stars", 0);
+		}
+		user.getPlayer().sendMessage(ChatColor.GOLD + "You are have " + user.getData().getInteger("stars", 0) + " stars in your balance");
+		
+		/* Lazy-load task markers */
+		if(!loadedTasks) {
+			taskLoader.getAllInProgressTasks();
+			loadedTasks = true;
+		}
+	}
+	
+	public static int getStars(User user) {
+		return user.getData().get("stars", 0);
+	}
+	
+	public static void addStars(User user, int stars) {
+		user.getStorageAccess().pull("stars", Integer.class);
+		user.getStorageAccess().set("stars", getStars(user) + stars);
+		if(user.getPlayer() != null) {
+			user.getPlayer().sendMessage(ChatColor.GOLD + "You received " + stars + " stars!");
 		}
 	}
 }

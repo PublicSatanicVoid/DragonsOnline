@@ -2,13 +2,18 @@ package mc.dragons.core.util;
 
 import static mc.dragons.core.util.BukkitUtil.sync;
 
+import java.util.function.Consumer;
+
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Slime;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.events.PlayerEventListeners;
+import mc.dragons.core.gameobject.user.User;
 
 /**
  * Generates holograms, implemented using invisible armor stands.
@@ -31,6 +36,33 @@ public class HologramUtil {
 		return hologram;
 	}
 
+	// Uses Slimes for clickable region - idea from filoghost's HolographicDisplays plugin
+	public static ArmorStand clickableHologram(String text, Location loc, Consumer<User> onClick) {
+		ArmorStand hologram = makeHologram(text, loc);
+		Slime click = (Slime) loc.getWorld().spawnEntity(loc.clone().add(0, 1, 0), EntityType.SLIME);
+		click.setInvisible(true);
+		click.setSize(2);
+		click.setGravity(false);
+		click.setAI(false);
+		click.setInvulnerable(true);
+		click.setCollidable(false);
+		click.teleport(loc);
+		PlayerEventListeners.addRightClickHandler(click, Dragons.getInstance(), onClick);
+		return hologram;
+	}
+	
+	public static Slime clickableSlime(String text, Location loc, Consumer<User> onClick) {
+		Slime click = (Slime) loc.getWorld().spawnEntity(loc, EntityType.SLIME);
+		click.setInvisible(true);
+		click.setSize(2);
+		click.setGravity(false);
+		click.setAI(false);
+		click.setInvulnerable(true);
+		click.setCollidable(false);
+		PlayerEventListeners.addRightClickHandler(click, Dragons.getInstance(), onClick);
+		return click;
+	}
+	
 	public static ArmorStand makeArmorStandNameTag(final Entity entity, String nameTag, double xOffset, double yOffset, double zOffset, final boolean bind) {
 		final Entity nameTagFix = entity.getWorld().spawnEntity(entity.getWorld().getSpawnLocation().add(0.0D, -5.0D, 0.0D), EntityType.ARMOR_STAND);
 		nameTagFix.setGravity(false);

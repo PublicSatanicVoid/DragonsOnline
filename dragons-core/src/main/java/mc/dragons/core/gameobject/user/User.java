@@ -1,6 +1,7 @@
 package mc.dragons.core.gameobject.user;
 
-import static mc.dragons.core.util.BukkitUtil.async;
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
+import static mc.dragons.core.util.BukkitUtil.rollingSync;
 import static mc.dragons.core.util.BukkitUtil.sync;
 
 import java.util.ArrayList;
@@ -196,6 +197,12 @@ public class User extends GameObject {
 		UUID initCorrelationID = LOGGER.newCID();
 		LOGGER.trace(initCorrelationID, "Initializing user " + this + " on player " + player);
 		
+		if(!Thread.currentThread().getName().contains("Rolling Async") && !Thread.currentThread().getName().contains("Server thread")) {
+			LOGGER.warning("User " + getName() + " is being initialized on an unexpected thread (" + Thread.currentThread().getName() + ")");
+			LOGGER.warning("Stack trace follows:");
+			Thread.dumpStack();
+		}
+		
 		this.player = player;
 		sendActionBar(ChatColor.GRAY + "Loading your profile...");
 		if (player != null) {
@@ -209,7 +216,7 @@ public class User extends GameObject {
 			}
 		}
 		
-		async(() -> {
+		rollingAsync(() -> {
 			loadInventory(initCorrelationID, (Document) getData("inventory"));
 			questProgress = new HashMap<>();
 			questActionIndices = new HashMap<>();
@@ -219,7 +226,7 @@ public class User extends GameObject {
 			loadQuests(initCorrelationID, (Document) getData("quests"));
 			cachedRegions = new HashSet<>();
 			activePermissionLevel = PermissionLevel.USER;
-			sync(() -> {
+			rollingSync(() -> {
 				instance.getSidebarManager().createScoreboard(player);
 				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
 			});

@@ -8,11 +8,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
 import org.bson.Document;
@@ -46,7 +45,7 @@ import mc.dragons.core.util.singletons.Singletons;
 public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	private static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
 	private static GlobalVarLoader VAR;
-	private static Set<User> users = Collections.synchronizedSet(new HashSet<>());
+	private static Set<User> users = new CopyOnWriteArraySet<>();
 	private static Dragons dragons;
 	
 	private GameObjectRegistry masterRegistry;

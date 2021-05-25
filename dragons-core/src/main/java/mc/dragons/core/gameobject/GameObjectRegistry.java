@@ -1,9 +1,8 @@
 package mc.dragons.core.gameobject;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
 import mc.dragons.core.Dragons;
@@ -28,7 +27,7 @@ public class GameObjectRegistry {
 	public GameObjectRegistry(Dragons instance, StorageManager persistentStorageManager) {
 		plugin = instance;
 		storageManager = persistentStorageManager;
-		registeredObjects = Collections.synchronizedSet(new HashSet<>());
+		registeredObjects = new CopyOnWriteArraySet<>();
 	}
 
 	/**

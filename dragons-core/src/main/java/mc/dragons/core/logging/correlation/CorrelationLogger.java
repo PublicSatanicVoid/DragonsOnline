@@ -1,5 +1,8 @@
 package mc.dragons.core.logging.correlation;
 
+import static mc.dragons.core.util.BukkitUtil.async;
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +18,6 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.logging.correlation.CorrelationLogger.CorrelationLogEntry;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.storage.mongo.MongoConfig;
-import mc.dragons.core.util.BukkitUtil;
 import mc.dragons.core.util.StringUtil;
 
 /**
@@ -105,7 +107,7 @@ public class CorrelationLogger extends AbstractLightweightLoader<CorrelationLogE
 			return;
 		}
 		Bukkit.getLogger().log(level, "[" + correlationID.toString().substring(0, 5) + "] " + message);
-		BukkitUtil.async(() -> collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", level.getName())
+		rollingAsync(() -> collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", level.getName())
 				.append("timestamp", StringUtil.dateFormatNow()).append("message", message)
 				.append("instance", Dragons.getInstance().getServerName())));
 	}
@@ -116,7 +118,7 @@ public class CorrelationLogger extends AbstractLightweightLoader<CorrelationLogE
 	 * @param correlationID
 	 */
 	public void discard(UUID correlationID) {
-		BukkitUtil.async(() -> collection.deleteMany(new Document("correlationID", correlationID.toString())));
+		async(() -> collection.deleteMany(new Document("correlationID", correlationID.toString())));
 	}
 	
 	/**

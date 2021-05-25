@@ -80,6 +80,7 @@ import mc.dragons.core.tasks.LagMonitorTask;
 import mc.dragons.core.tasks.SpawnEntityTask;
 import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
+import mc.dragons.core.util.BukkitUtil;
 import mc.dragons.core.util.EntityHider;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.singletons.SingletonReInstantiationException;
@@ -233,6 +234,8 @@ public class Dragons extends DragonsJavaPlugin {
 
 	@Override
 	public void onEnable() {
+		BukkitUtil.initRollingSync();
+		
 		getLogger().info("Removing stale entities...");
 		boolean hasFixed = false;
 		for (Entity e : getEntities()) {

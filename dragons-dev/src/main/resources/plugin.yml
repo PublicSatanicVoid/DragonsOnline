@@ -46,3 +46,13 @@ commands:
     description: View commands for tasks.
   reopen:
     description: Re-open a closed task.
+  reloadtasks:
+    description: (ADMIN) Reload all tasks from the database.
+  stars:
+    description: Set the number of stars on a task.
+  takestars:
+    description: (ADMIN) Remove stars from a player.
+  givestars:
+    description: (ADMIN) Give stars to a player.
+  getstars:
+    description: View a player's stars.

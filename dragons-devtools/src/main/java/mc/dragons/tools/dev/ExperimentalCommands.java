@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Slime;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -143,7 +145,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			int n_fullscan = 0;
 			for(GameObject gameObject : Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER)) {
 				User u = (User) gameObject;
-				sender.sendMessage("- Here's a user: " + u);
+				sender.sendMessage("- User: " + u);
 				sender.sendMessage("    - name=" + u.getName());
 				sender.sendMessage("    - player=" + u.getPlayer());
 				n_fullscan++;
@@ -151,7 +153,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			int n_cached = 0;
 			sender.sendMessage(ChatColor.YELLOW + "METHOD TWO (UserLoader cache):");
 			for(User test : UserLoader.allUsers()) {
-				sender.sendMessage("- Here's a user: " + test);
+				sender.sendMessage("- User: " + test);
 				sender.sendMessage("    - name=" + test.getName());
 				sender.sendMessage("    - player=" + test.getPlayer());
 				n_cached++;
@@ -345,6 +347,35 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 
 		else if(label.equalsIgnoreCase("testfooter")) {
 			player.setPlayerListFooter(user.tablistText(StringUtil.concatArgs(args, 0)));
+		}
+		
+		else if(label.equalsIgnoreCase("testinvisibleslimes")) {
+			boolean allOK = true;
+			for(Entity entity : player.getWorld().getEntities()) {
+				if(entity instanceof Slime) {
+					Slime slime = (Slime) entity;
+					if(!slime.isInvisible()) {
+						sender.sendMessage(ChatColor.RED + "SLIME #" + slime.getEntityId() + " is NOT invisible (" + StringUtil.locToString(slime.getLocation()) + ")");
+						allOK = false;
+					}
+					else {
+						sender.sendMessage(ChatColor.GREEN + "SLIME #" + slime.getEntityId() + " IS invisible (" + StringUtil.locToString(slime.getLocation()) + ")");
+					}
+				}
+			}
+			if(!allOK) {
+				sender.sendMessage(ChatColor.RED + "-- One or more slimes in this world are visible --");
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("testrevealslimes")) {
+			for(Entity entity : player.getWorld().getEntities()) {
+				if(entity instanceof Slime) {
+					Slime slime = (Slime) entity;
+					slime.setInvisible(false);
+					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
+				}
+			}
 		}
 		
 		else {

@@ -1,5 +1,7 @@
 package mc.dragons.dev;
 
+import static mc.dragons.core.util.BukkitUtil.syncPeriodic;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -13,7 +15,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
@@ -35,6 +36,9 @@ public class DragonsDev extends DragonsJavaPlugin {
 	private static String BACKUP_FOLDER;
 	private static int BACKUP_PERIOD_MINUTES;
 	private static int BACKUP_RETENTION_DAYS;
+
+	public static int MAX_STARS;
+	public static int MAX_ASSIGN_STARS;
 	
 	private Dragons dragons;
 	private DiscordNotifier buildNotifier;
@@ -52,8 +56,11 @@ public class DragonsDev extends DragonsJavaPlugin {
 		BACKUP_FOLDER = getConfig().getString("backup.folder", "C:\\DragonsBackups\\");
 		BACKUP_PERIOD_MINUTES = getConfig().getInt("backup.period-minutes", 60);
 		BACKUP_RETENTION_DAYS = getConfig().getInt("backup.retention-days", 30);
+		MAX_STARS = getConfig().getInt("stars.max-stars", 5);
+		MAX_ASSIGN_STARS = getConfig().getInt("stars.max-assign-stars", 10);
 		
-		dragons.getLightweightLoaderRegistry().register(new TaskLoader(dragons));
+		TaskLoader taskLoader = new TaskLoader(dragons);
+		dragons.getLightweightLoaderRegistry().register(taskLoader);
 		dragons.getUserHookRegistry().registerHook(new DevUserHook());
 		
 		CommandExecutor taskCommands = new TaskCommands(this);
@@ -74,16 +81,21 @@ public class DragonsDev extends DragonsJavaPlugin {
 		getCommand("deletetask").setExecutor(taskCommands);
 		getCommand("taskhelp").setExecutor(taskCommands);
 		getCommand("reopen").setExecutor(taskCommands);
+		getCommand("reloadtasks").setExecutor(taskCommands);
+		getCommand("stars").setExecutor(taskCommands);
+		getCommand("takestars").setExecutor(taskCommands);
+		getCommand("givestars").setExecutor(taskCommands);
+		getCommand("getstars").setExecutor(taskCommands);
 		getCommand("backup").setExecutor(new BackupCommand(this));
 		getCommand("starttrial").setExecutor(new StartTrialCommand());
 		getCommand("tips").setExecutor(new TipsCommand());
 		
 		new AdviceBroadcaster().runTaskTimer(this, 20L * ADVICE_BROADCASTER_PERIOD_SECONDS, 20L * ADVICE_BROADCASTER_PERIOD_SECONDS);
-		new BukkitRunnable() {
-			@Override public void run() {
+		syncPeriodic(() -> {
+			if(Bukkit.getOnlinePlayers().size() > 0) {
 				backupFloors();
 			}
-		}.runTaskTimer(this, 20L * 60 * BACKUP_PERIOD_MINUTES, 20L * 60 * BACKUP_PERIOD_MINUTES);
+		}, 20 * 60 * BACKUP_PERIOD_MINUTES, 20 * 60 * BACKUP_PERIOD_MINUTES);
 	}
 	
 	public void backupFloors() {

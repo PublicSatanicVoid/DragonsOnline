@@ -2,7 +2,6 @@ package mc.dragons.dev.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -18,11 +17,11 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.dev.DevUserHook;
 import mc.dragons.dev.DragonsDev;
 import mc.dragons.dev.notifier.DiscordNotifier;
 import mc.dragons.dev.notifier.DiscordNotifier.DiscordRole;
 import mc.dragons.dev.tasks.TaskLoader.Task;
-import mc.dragons.dev.tasks.TaskLoader.TaskTag;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -127,7 +126,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 			return;
 		}
 		String desc = StringUtil.concatArgs(args, 0);
-		long words = desc.chars().filter(i -> ((char) i) == ' ').count();
+		long words = desc.chars().filter(i -> ((char) i) == ' ').count() + 1;
 		if(words < 4) {
 			sender.sendMessage(ChatColor.YELLOW + "That's a short task name! Please be more detailed.");
 			sender.sendMessage(ChatColor.RESET + "/taskhelp" + ChatColor.GRAY + " for help.");
@@ -154,15 +153,6 @@ public class TaskCommands extends DragonsCommandExecutor {
 				u.getPlayer().spigot().sendMessage(options, approve, space, reject, space, view, space, go);
 			});
 		}
-//		else if(dev) {
-//			taskAlert(mentionTask(task, "A new development task has been created and auto-approved: " + ACCENT + data), DiscordRole.DEVELOPER);
-//		}
-//		else if(gm) {
-//			taskAlert(mentionTask(task, "A new GM task has been created and auto-approved: " + ACCENT + data), DiscordRole.GAME_MASTER);
-//		}
-//		else {
-//			taskAlert(mentionTask(task, "A new task has been created and auto-approved: " + ACCENT + data), DiscordRole.BUILDER);
-//		}
 		else {
 			taskAlert(mentionTask(task, "A new task has been created and auto-approved: " + ACCENT + data), task);
 		}
@@ -253,7 +243,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		int pages = (int) Math.ceil((double) tasks.size() / pageSize);
 		sender.sendMessage(PREFIX + "Found " + ACCENT + tasks.size() + REGULAR + " tasks matching your query." + ChatColor.GRAY + " [Page " + page + "/" + pages + ". Showing " + results.size() + " Results]");
 		for(Task task : results) {
-			sender.spigot().sendMessage(mentionTask(task, format(task)));
+			sender.spigot().sendMessage(mentionTask(task, task.format()));
 		}
 	}
 	
@@ -277,10 +267,12 @@ public class TaskCommands extends DragonsCommandExecutor {
 		TextComponent closeEffective = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) && task.isDone() ? close : new TextComponent();
 		TextComponent note = noteText(task.getId());
 		sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done, space, closeEffective, note);
-		sender.sendMessage(REGULAR + "Name: " + ACCENT + task.getName());
+		sender.sendMessage(REGULAR + "Name: " + ACCENT + task.formatName());
+		TextComponent editStars = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) ? StringUtil.clickableHoverableText(ChatColor.GRAY + " [Edit]", "/stars " + task.getId() + " ", true, "Click to change the number of stars for this task") : space;
+		sender.spigot().sendMessage(StringUtil.plainText(REGULAR + "Stars: " + ACCENT + task.getStarString()), editStars);
 		sender.sendMessage(REGULAR + "By: " + ACCENT + task.getBy().getName());
 		sender.sendMessage(REGULAR + "Loc: " + ACCENT + StringUtil.locToString(task.getLocation()) + " [" + task.getLocation().getWorld().getName() + "]");
-		sender.sendMessage(REGULAR + "Status: " + ACCENT + status(task));
+		sender.sendMessage(REGULAR + "Status: " + ACCENT + task.getStatus());
 		sender.sendMessage(REGULAR + "Reviewed By: " + ACCENT + (task.getReviewedBy() == null ? "(None)" : task.getReviewedBy().getName()));
 		List<BaseComponent> assignees = new ArrayList<>(List.of(new TextComponent(ChatColor.GRAY + "Assignees: ")));
 		assignees.addAll(task.getAssignees()
@@ -358,12 +350,22 @@ public class TaskCommands extends DragonsCommandExecutor {
 		if(!requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.GOLD + "Approve a task.");
-			sender.sendMessage(ChatColor.YELLOW + "/approve <task#>");
+			sender.sendMessage(ChatColor.YELLOW + "/approve <task#> [stars]");
 			return;
 		}
 		Task task = lookupTask(sender, args[0]);
+		Integer stars = 0;
 		if(task == null) return;
+		if(args.length > 1) {
+			stars = parseInt(sender, args[1]);
+			if(stars == null) return;
+		}
+		if(stars > DragonsDev.MAX_STARS || stars < 0) {
+			sender.sendMessage(ChatColor.RED + "Number of stars must be between 0 and " + DragonsDev.MAX_STARS);
+			return;
+		}
 		task.setApproved(true, user(sender));
+		task.setStars(stars);
 		sender.sendMessage(PREFIX + "Approved task " + ACCENT + "#" + args[0] + REGULAR + " successfully.");
 		Player target = Bukkit.getPlayerExact(task.getBy().getName());
 		if(target != null) {
@@ -390,6 +392,24 @@ public class TaskCommands extends DragonsCommandExecutor {
 		});
 	}
 	
+	private void stars(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.GOLD + "Set the number of stars on a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/stars <task#> <stars>");
+			return;
+		}
+		Task task = lookupTask(sender, args[0]);
+		Integer stars = parseInt(sender, args[1]);
+		if(task == null || stars == null) return;
+		if(stars > DragonsDev.MAX_STARS || stars < 0) {
+			sender.sendMessage(ChatColor.RED + "Number of stars must be between 0 and " + DragonsDev.MAX_STARS);
+			return;
+		}
+		task.setStars(stars);
+		sender.sendMessage(PREFIX + "Set stars on task " + ACCENT + "#" + args[0] + REGULAR + " to " + ACCENT + stars);
+	}
+	
 	private void reject(CommandSender sender, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
 		if(args.length == 0) {
@@ -400,6 +420,7 @@ public class TaskCommands extends DragonsCommandExecutor {
 		Task task = lookupTask(sender, args[0]);
 		if(task == null) return;
 		task.setApproved(false, user(sender));
+		task.setClosed(true);
 		sender.sendMessage(PREFIX + "Rejected task " + ACCENT + "#" + args[0] + REGULAR + " successfully.");
 		Player target = Bukkit.getPlayerExact(task.getBy().getName());
 		if(target != null) {
@@ -410,10 +431,18 @@ public class TaskCommands extends DragonsCommandExecutor {
 	
 	private void assign(CommandSender sender, String[] args) {
 		if(args.length > 1 && !requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
+		List<Task> existing = taskLoader.getAllTasksWith(user(sender));
+		int stars = 0;
+		for(Task t : existing) {
+			stars += t.getStars();
+		}
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.GOLD + "Assign a player to a task.");
 			sender.sendMessage(ChatColor.YELLOW + "/assign <task#> <user> " + ChatColor.GRAY + "(requires Task Manager role)");
 			sender.sendMessage(ChatColor.YELLOW + "/assign <task#> " + ChatColor.GRAY + "to self-assign");
+			if(stars >= DragonsDev.MAX_ASSIGN_STARS) {
+				sender.sendMessage(ChatColor.RED + "You have reached the maximum number of stars you can be assigned to (" + DragonsDev.MAX_ASSIGN_STARS + ")");
+			}
 			return;
 		}
 		User target = user(sender);
@@ -423,6 +452,21 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		Task task = lookupTask(sender, args[0]);
 		if(task == null || target == null) return;
+		if(!task.isApproved() || task.isClosed()) {
+			sender.sendMessage(ChatColor.RED + "You cannot assign people to a task that has not been approved or is already closed!");
+			return;
+		}		
+		List<Task> existingOther = taskLoader.getAllTasksWith(user(sender));
+		int starsOther = 0;
+		for(Task t : existingOther) {
+			starsOther += t.getStars();
+		}
+		if(starsOther > DragonsDev.MAX_ASSIGN_STARS) {
+			boolean tm = hasPermission(sender, SystemProfileFlag.TASK_MANAGER);
+			sender.sendMessage((tm ? ChatColor.YELLOW : ChatColor.RED) + target.getName() + " has reached the maximum number of stars they can "
+				+ (tm ? "ordinarily " : "") + "be assigned to (" + starsOther + "/" + DragonsDev.MAX_ASSIGN_STARS + ")");
+			if(!tm) return;
+		}
 		task.addAssignee(target);
 		sender.sendMessage(PREFIX + "Assigned " + ACCENT + target.getName() + REGULAR + " to task " + ACCENT + "#" + task.getId() + REGULAR + ".");
 		taskAlert(mentionTask(task, ACCENT + target.getName() + REGULAR + " was assigned to task " + ACCENT + "#" + task.getId() + " " + task.getName() + " (by " + sender.getName() + ")"), DiscordRole.TASK_MANAGER);
@@ -443,6 +487,10 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		Task task = lookupTask(sender, args[0]);
 		if(task == null || target == null) return;
+		if(!task.isApproved() || task.isClosed()) {
+			sender.sendMessage(ChatColor.RED + "You cannot assign people to a task that has not been approved or is already closed!");
+			return;
+		}
 		task.removeAssignee(target);
 		sender.sendMessage(PREFIX + "Un-assigned " + ACCENT + target.getName() + REGULAR + " from task " + ACCENT + "#" + task.getId() + REGULAR + ".");
 		taskAlert(mentionTask(task, ACCENT + target.getName() + REGULAR + " was un-assigned from task " + ACCENT + "#" + task.getId() + " " + task.getName() + " (by " + sender.getName() + ")"), DiscordRole.TASK_MANAGER);
@@ -462,6 +510,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 			return;
 		}
 		task.setClosed(true);
+		for(User assignee : task.getAssignees()) {
+			DevUserHook.addStars(assignee, task.getStars());
+		}
 		sender.sendMessage(PREFIX + "Marked task " + ACCENT + "#" + args[0] + REGULAR + " as closed.");
 		taskAlert(mentionTask(task, "Task " + ACCENT + "#" + task.getId() + " " + task.getName() + REGULAR + " was marked as closed by " + sender.getName()), task);
 	}
@@ -519,6 +570,42 @@ public class TaskCommands extends DragonsCommandExecutor {
 		sender.sendMessage(PREFIX + "Sent notification successfully.");
 	}
 	
+	private void takeStarsCommand(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "/takestars <player> <#>");
+			return;
+		}
+		User target = lookupUser(sender, args[0]);
+		Integer stars = parseInt(sender, args[1]);
+		if(target == null || stars == null) return;
+		DevUserHook.addStars(target, -stars);
+		sender.sendMessage(ChatColor.GREEN + "Took " + stars + " from " + target.getName() + ". New balance: " + DevUserHook.getStars(target));
+	}
+	
+	private void giveStarsCommand(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "/givestars <player> <#>");
+			return;
+		}
+		User target = lookupUser(sender, args[0]);
+		Integer stars = parseInt(sender, args[1]);
+		if(target == null || stars == null) return;
+		DevUserHook.addStars(target, stars);
+		sender.sendMessage(ChatColor.GREEN + "Gave " + stars + " to " + target.getName() + ". New balance: " + DevUserHook.getStars(target));
+	}
+
+	private void getStarsCommand(CommandSender sender, String[] args) {
+		if(args.length < 1) {
+			sender.sendMessage(ChatColor.RED + "/getstars <player>");
+			return;
+		}
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return;
+		sender.sendMessage(ChatColor.GREEN + target.getName() + " has " + DevUserHook.getStars(target) + " stars");
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.BUILDER)) return true;
@@ -537,6 +624,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		else if(label.equalsIgnoreCase("approve")) {
 			approve(sender, args);
+		}
+		else if(label.equalsIgnoreCase("stars")) {
+			stars(sender, args);
 		}
 		else if(label.equalsIgnoreCase("reject")) {
 			reject(sender, args);
@@ -571,6 +661,20 @@ public class TaskCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("discordnotifyraw")) {
 			discordNotifyRawCommand(sender, args);
 		}
+		else if(label.equalsIgnoreCase("reloadtasks")) {
+			if(!requirePermission(sender, PermissionLevel.DEVELOPER)) return true;
+			taskLoader.clearCache();
+			taskLoader.getAllInProgressTasks();
+		}
+		else if(label.equalsIgnoreCase("takestars")) {
+			takeStarsCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("givestars")) {
+			giveStarsCommand(sender, args);
+		}
+		else if(label.equalsIgnoreCase("getstars")) {
+			getStarsCommand(sender, args);
+		}
 		else if(label.equalsIgnoreCase("taskhelp")) {
 			sender.sendMessage(ACCENT + "/task <task description>" + REGULAR + " creates a new task at your location.");
 			sender.sendMessage(ACCENT + "/gototask <task#>" + REGULAR + " teleports you to a task.");
@@ -579,7 +683,8 @@ public class TaskCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ACCENT + "/tasks my" + REGULAR + " lists all tasks assigned to you.");
 			sender.sendMessage(ACCENT + "/done <task#>" + REGULAR + " marks a task as done.");
 			if(hasPermission(sender, SystemProfileFlag.TASK_MANAGER)) {
-				sender.sendMessage(ACCENT + "/approve <task#>" + REGULAR + " approves a task.");
+				sender.sendMessage(ACCENT + "/approve <task#> [stars]" + REGULAR + " approves a task.");
+				sender.sendMessage(ACCENT + "/stars <task#> <stars>" + REGULAR + " sets the number of stars on a task.");
 				sender.sendMessage(ACCENT + "/reject <task#>" + REGULAR + " rejects a task.");
 				sender.sendMessage(ACCENT + "/assign <task#> <user>" + REGULAR + " assigns a player to a task.");
 				sender.sendMessage(ACCENT + "/unassign <task#> <user>" + REGULAR + " un-assigns a palyer from a task.");
@@ -592,33 +697,6 @@ public class TaskCommands extends DragonsCommandExecutor {
 					StringUtil.clickableHoverableText(ChatColor.GRAY + "[View In-Progress Tasks]", "/tasks approved", "Click to view all in-progress tasks"));
 		}
 		return true;
-	}
-
-	private String status(Task task) {
-		if(task.isClosed()) return "Closed";
-		if(task.isDone()) return "Done";
-		if(task.isApproved() && task.getAssignees().size() > 0) return "Assigned (" + task.getAssignees().size() + ")";
-		if(task.isApproved()) return "Approved";
-		if(task.getReviewedBy() == null) return "Waiting";
-		return "Rejected";
-	}
-	
-	private String getStrikethrough(Task task) {
-		return task.isClosed() ? ChatColor.STRIKETHROUGH + "" : "";
-	}
-	
-	private String formatName(Task task) {
-		String strike = getStrikethrough(task);
-		String formatted = strike + task.getName();
-		for(TaskTag tag : TaskTag.values()) {
-			formatted = formatted.replaceFirst(Pattern.quote("[" + tag.getName() + "]"), ChatColor.AQUA + "[" + tag.getName() + "]" + ChatColor.YELLOW + strike);
-		}
-		return formatted;
-	}
-	
-	private String format(Task task) {
-		return ChatColor.DARK_GRAY + "#" + ChatColor.GOLD + ChatColor.BOLD + task.getId() + ChatColor.DARK_GRAY + " | " 
-			+ ChatColor.YELLOW + formatName(task) + ChatColor.GRAY + " (" + status(task).toUpperCase() + ")";
 	}
 	
 	private TextComponent mentionTask(Task task, String text) {

@@ -56,6 +56,17 @@ public interface StorageAccess {
 	<T> T get(String key, Class<? extends T> clazz);
 	
 	/**
+	 * Pulls the value of the given key from the database,
+	 * ensuring synchronization.
+	 * 
+	 * @param <T> The type of the given key.
+	 * @param key
+	 * @param clazz
+	 * @return The synced value of the given key.
+	 */
+	<T> T pull(String key, Class<? extends T> clazz);
+	
+	/**
 	 * 
 	 * @return All data in this StorageAccess as a set of key-value pairs.
 	 */

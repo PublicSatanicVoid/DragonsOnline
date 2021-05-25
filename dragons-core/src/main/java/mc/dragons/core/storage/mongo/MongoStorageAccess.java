@@ -59,6 +59,13 @@ public class MongoStorageAccess implements StorageAccess {
 	public <T> T get(String key, Class<? extends T> clazz) {
 		return document.get(key, clazz);
 	}
+	
+	@Override
+	public <T> T pull(String key, Class<? extends T> clazz) {
+		Document remote = collection.find(identifier.getDocument()).first();
+		document.append(key, remote.get(key, clazz));
+		return remote.get(key, clazz);
+	}
 
 	@Override
 	public Set<Entry<String, Object>> getAll() {

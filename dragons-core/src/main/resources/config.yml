@@ -48,7 +48,7 @@ log-format:
   # Certain loggers, such as CraftBukkit and NMS, are further abbreviated for readability
   special-logger-names: true
   
-  # Thread names over 20 characters will be truncated
+  # Thread names over 30 characters will be truncated
   truncate-thread-names: true
   
   # Log messages internal to Minecraft will be displayed as if from an empty logger

@@ -31,3 +31,11 @@ backup:
   # How long backups are kept before being deleted.
   # Set to -1 to keep backups indefinitely.
   retention-days: 30
+
+stars:
+  # How many stars can a task have at most?
+  max-per-task: 5
+  
+  # How many stars can a player stand to gain at any
+  # one time from their assigned tasks?
+  max-assign-stars: 10

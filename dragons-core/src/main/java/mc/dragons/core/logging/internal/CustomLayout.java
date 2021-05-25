@@ -29,7 +29,7 @@ public class CustomLayout extends AbstractStringLayout {
 	private final String MESSAGE_PATTERN = Pattern.quote("%m");
 	private final String THREAD_PATTERN = Pattern.quote("%j");
 	
-	private final int THREAD_TRUNC_LENGTH = 20;
+	private final int THREAD_TRUNC_LENGTH = 30;
 	
 	private boolean hideEmpty = true;
 	private boolean hideMinecraft;

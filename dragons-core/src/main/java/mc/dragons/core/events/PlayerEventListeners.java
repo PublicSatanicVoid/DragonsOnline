@@ -3,10 +3,13 @@ package mc.dragons.core.events;
 import static mc.dragons.core.util.BukkitUtil.sync;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -14,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -32,6 +36,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.google.common.collect.HashBasedTable;
@@ -60,6 +67,19 @@ import mc.dragons.core.util.StringUtil;
 
 public class PlayerEventListeners implements Listener {
 	public static final String GOLD_CURRENCY_ITEM_CLASS_NAME = "Currency:Gold";
+	public static final String KEY_ENTITY_CLICK_HANDLERS = "RightClickHandlers";
+	
+	@SuppressWarnings("unchecked")
+	public static void addRightClickHandler(Entity entity, Plugin plugin, Consumer<User> handler) {
+		List<Consumer<User>> handlers = new ArrayList<>();
+		for(MetadataValue h : entity.getMetadata(KEY_ENTITY_CLICK_HANDLERS)) {
+			if(h.getOwningPlugin().equals(plugin)) {
+				handlers = (List<Consumer<User>>) h.value();
+			}
+		}
+		handlers.add(handler);
+		entity.setMetadata(KEY_ENTITY_CLICK_HANDLERS, new FixedMetadataValue(plugin, handlers));
+	}
 	
 	private static ItemClassLoader itemClassLoader;
 	public static ItemClass[] DEFAULT_INVENTORY;
@@ -67,7 +87,7 @@ public class PlayerEventListeners implements Listener {
 	private UserHookRegistry userHookRegistry;
 	
 	static {
-		itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+		itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
 		DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
 	}
 	
@@ -77,13 +97,13 @@ public class PlayerEventListeners implements Listener {
 	private UserLoader userLoader;
 	private ItemLoader itemLoader;
 	
-	private Table<User, NPC, Long> interacts = HashBasedTable.create();
+	private Table<User, Entity, Long> interacts = HashBasedTable.create();
 
 	public PlayerEventListeners(Dragons instance) {
 		plugin = instance;
 		LOGGER = instance.getLogger();
-		userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
-		itemLoader = GameObjectType.ITEM.<Item, ItemLoader>getLoader();
+		userLoader = GameObjectType.USER.getLoader();
+		itemLoader = GameObjectType.ITEM.getLoader();
 		userHookRegistry = instance.getUserHookRegistry();
 	}
 
@@ -237,24 +257,28 @@ public class PlayerEventListeners implements Listener {
 		Player player = (Player) event.getEntity();
 		player.setFoodLevel(20);
 	}
-
+	
+	@SuppressWarnings("unchecked")
 	@EventHandler
 	public void onInteractEntity(PlayerInteractEntityEvent event) {
 		LOGGER.debug("Interact entity event on " + event.getPlayer().getName() + " to " + StringUtil.entityToString(event.getRightClicked()));
 		User user = UserLoader.fromPlayer(event.getPlayer());
+		Entity rightClicked = event.getRightClicked();
 		user.debug("Right-click");
-		NPC npc = NPCLoader.fromBukkit(event.getRightClicked());
+		Long lastAccess = interacts.get(user, rightClicked);
+		if(lastAccess == null) lastAccess = 0L;
+		long now = System.currentTimeMillis();
+		if(now - lastAccess <= 20L) {
+			LOGGER.debug("-Duplicate interact event, ignoring");
+			return;
+		}
+		interacts.put(user, rightClicked, now);
+		NPC npc = NPCLoader.fromBukkit(rightClicked);
+		List<MetadataValue> handler = rightClicked.getMetadata(KEY_ENTITY_CLICK_HANDLERS);
+		if(handler.size() > 0) {
+			handler.forEach(v -> ((List<Consumer<User>>) v.value()).forEach(r -> r.accept(user)));
+		}
 		if (npc != null) {
-			Long lastAccess = interacts.get(user, npc);
-			if(lastAccess == null) lastAccess = 0L;
-			long now = System.currentTimeMillis();
-			
-			if(now - lastAccess <= 1L) {
-				LOGGER.debug("-Duplicate interact event, ignoring");
-				return;
-			}
-			interacts.put(user, npc, now);
-			
 			user.debug("- Clicked an NPC");
 			Item item = ItemLoader.fromBukkit(user.getPlayer().getInventory().getItemInMainHand());
 			if (item != null) {
