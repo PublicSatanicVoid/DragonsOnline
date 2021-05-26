@@ -172,11 +172,16 @@ public class TaskCommands extends DragonsCommandExecutor {
 	
 	private void taskListCommand(CommandSender sender, String[] args) {
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.GOLD + "List all tasks.");
-			sender.sendMessage(ChatColor.YELLOW + "/tasks <all|my|waiting|approved|assigned|rejected|done|closed> [page#]");
-			sender.sendMessage(ChatColor.YELLOW + "/tasks <of|by> <player> [page#]");
-			sender.sendMessage(ChatColor.YELLOW + "/tasks search <keywords> [page#]");
-			return;
+			if(hasPermission(sender, SystemProfileFlag.TASK_MANAGER)) {
+				sender.sendMessage(ChatColor.GOLD + "List all tasks.");
+				sender.sendMessage(ChatColor.YELLOW + "/tasks <all|my|waiting|approved|assigned|rejected|done|closed> [page#]");
+				sender.sendMessage(ChatColor.YELLOW + "/tasks <of|by> <player> [page#]");
+				sender.sendMessage(ChatColor.YELLOW + "/tasks search <keywords> [page#]");
+				return;
+			}
+			else {
+				args = new String[] { "my" };
+			}
 		}
 		int pageIndex = 1;
 		List<Task> tasks = null;
@@ -245,6 +250,21 @@ public class TaskCommands extends DragonsCommandExecutor {
 		for(Task task : results) {
 			sender.spigot().sendMessage(mentionTask(task, task.format()));
 		}
+		if(page < pages) {
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "Next Page >", "/tasks " + args[0] + " " + (page + 1), "Next page"));
+		}
+	}
+	
+	private void taskRenameCommand(CommandSender sender, String[] args) {
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.GOLD + "Set the name of a task.");
+			sender.sendMessage(ChatColor.YELLOW + "/taskrename <task#> <new task name>");
+			return;
+		}
+		Task task = lookupTask(sender, args[0]);
+		String name = StringUtil.concatArgs(args, 1);
+		task.setName(name);
+		sender.sendMessage(PREFIX + "Renamed task #" + task.getId() + " to " + name);
 	}
 	
 	private void taskInfoCommand(CommandSender sender, String[] args) {
@@ -256,19 +276,27 @@ public class TaskCommands extends DragonsCommandExecutor {
 		Task task = lookupTask(sender, args[0]);
 		if(task == null) return;
 		sender.sendMessage(ChatColor.GOLD + "=== Task #" + task.getId() + " ===");
-		TextComponent selfAssign = task.getAssignees().contains(user(sender)) ? selfUnassignText(task.getId()) : selfAssignText(task.getId());
 		TextComponent go = gotoText(task.getId());
-		TextComponent done = task.isDone() ? reopenText(task.getId()) : doneText(task.getId());
-		TextComponent otherAssign = assignText(task.getId());
-		otherAssign.addExtra(space);
-		TextComponent otherAssignEffective = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) ? otherAssign : new TextComponent();
-		TextComponent close = closeText(task.getId());
-		close.addExtra(space);
-		TextComponent closeEffective = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) && task.isDone() ? close : new TextComponent();
 		TextComponent note = noteText(task.getId());
-		sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done, space, closeEffective, note);
-		sender.sendMessage(REGULAR + "Name: " + ACCENT + task.formatName());
-		TextComponent editStars = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) ? StringUtil.clickableHoverableText(ChatColor.GRAY + " [Edit]", "/stars " + task.getId() + " ", true, "Click to change the number of stars for this task") : space;
+		boolean tm = hasPermission(sender, SystemProfileFlag.TASK_MANAGER);
+		if(task.isApproved()) {
+			TextComponent selfAssign = task.getAssignees().contains(user(sender)) ? selfUnassignText(task.getId()) : selfAssignText(task.getId());
+			TextComponent done = task.isDone() ? reopenText(task.getId()) : doneText(task.getId());
+			TextComponent otherAssign = assignText(task.getId());
+			otherAssign.addExtra(space);
+			TextComponent otherAssignEffective = tm ? otherAssign : new TextComponent();
+			TextComponent close = closeText(task.getId());
+			close.addExtra(space);
+			TextComponent closeEffective = tm && task.isDone() ? close : new TextComponent();
+			sender.spigot().sendMessage(go, space, otherAssignEffective, selfAssign, space, done, space, closeEffective, note);
+		}
+		else {
+			TextComponent approve = tm ? approveText(task.getId()) : StringUtil.plainText("");
+			TextComponent reject = tm ? rejectText(task.getId()) : StringUtil.plainText("");
+			sender.spigot().sendMessage(go, space, approve, space, reject, space, note);
+		}
+		sender.spigot().sendMessage(StringUtil.plainText(REGULAR + "Name: " + ACCENT + task.formatName()), StringUtil.clickableHoverableText(ChatColor.GRAY + " [" + TaskLoader.PENCIL + "]", "/taskrename " + task.getId() + " ", true, "Click to rename this task"));
+		TextComponent editStars = hasPermission(sender, SystemProfileFlag.TASK_MANAGER) ? StringUtil.clickableHoverableText(ChatColor.GRAY + " [" + TaskLoader.PENCIL + "]", "/stars " + task.getId() + " ", true, "Click to change the number of stars for this task") : space;
 		sender.spigot().sendMessage(StringUtil.plainText(REGULAR + "Stars: " + ACCENT + task.getStarString()), editStars);
 		sender.sendMessage(REGULAR + "By: " + ACCENT + task.getBy().getName());
 		sender.sendMessage(REGULAR + "Loc: " + ACCENT + StringUtil.locToString(task.getLocation()) + " [" + task.getLocation().getWorld().getName() + "]");
@@ -317,6 +345,21 @@ public class TaskCommands extends DragonsCommandExecutor {
 					u.getPlayer().spigot().sendMessage(options, reopen, space, close, space, go);
 				}
 			});
+	}
+	
+	private void findTasksCommand(CommandSender sender, String[] args) {
+		Integer page = 1;
+		if(args.length > 0) {
+			page = parseInt(sender, args[0]);
+			if(page == null) return;
+		}
+		List<Task> raw = taskLoader.getAllApprovedTasks();
+		raw.sort((a,b) -> a.getAssignees().size() - b.getAssignees().size());
+		List<Task> results = PaginationUtil.paginateList(raw, page, 5);
+		sender.sendMessage(ChatColor.GOLD + "There are " + raw.size() + " approved tasks. Showing page " + page + " of " + (int) Math.ceil((double) raw.size() / 5));
+		for(Task task : results) {
+			sender.spigot().sendMessage(mentionTask(task, task.format()));
+		}
 	}
 	
 	private void reopen(CommandSender sender, String[] args) {
@@ -646,6 +689,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("tasknote")) {
 			taskNoteCommand(sender, args);
 		}
+		else if(label.equalsIgnoreCase("taskrename")) {
+			taskRenameCommand(sender, args);
+		}
 		else if(label.equalsIgnoreCase("gototask")) {
 			gotoTaskCommand(sender, args);
 		}
@@ -654,6 +700,9 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		else if(label.equalsIgnoreCase("reopen")) {
 			reopen(sender, args);
+		}
+		else if(label.equalsIgnoreCase("findtasks")) {
+			findTasksCommand(sender, args);
 		}
 		else if(label.equalsIgnoreCase("togglediscordnotifier")) {
 			toggleDiscordNotifierCommand(sender, args);

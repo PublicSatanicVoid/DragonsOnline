@@ -104,7 +104,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.GREEN + "Operating System: " + ChatColor.GRAY + props.getProperty("os.name", "Unknown") + " v" + props.getProperty("os.version", "Unknown") 
 						+ " (" + props.getProperty("os.arch", "Unknown Architecture") + ")");
 					sender.sendMessage(ChatColor.GREEN + "Java Version: " + ChatColor.GRAY + props.getProperty("java.version", "Unknown") + " (" + props.getProperty("java.vendor", "Unknown Vendor") + ")");
-					sender.sendMessage(ChatColor.GREEN + "JVM Version: " + props.getProperty("java.vm.name", "Unknown Name") + ChatColor.GRAY + props.getProperty("java.vm.version", "Unknown") 
+					sender.sendMessage(ChatColor.GREEN + "JVM Version: " + ChatColor.GRAY + props.getProperty("java.vm.name", "Unknown Name") + props.getProperty("java.vm.version", "Unknown") 
 						+ " (" + props.getProperty("java.vm.vendor", "Unknown Vendor") + ")");
 					try {
 						OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
@@ -212,8 +212,8 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 					}
 				}
 			}
-			LOGGER.info(cid, "Stack trace requested for thread " + thread.getId() + " (" + thread.getState() + ")");
-			sender.sendMessage(ChatColor.GREEN + "Stack trace for thread " + thread.getId() + " (" + thread.getState() + ")");
+			LOGGER.info(cid, "Stack trace requested for thread " + thread.getId() + " " + thread.getName() + " (" + thread.getState() + ")");
+			sender.sendMessage(ChatColor.GREEN + "Stack trace for thread " + thread.getId() + " " + thread.getName() + " (" + thread.getState() + ")");
 			for(StackTraceElement elem : thread.getStackTrace()) {
 				sender.sendMessage(ChatColor.GRAY + elem.toString());
 				LOGGER.info(cid, elem.toString());

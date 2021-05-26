@@ -45,9 +45,11 @@ public class QuestTrigger {
 	private Region region;
 	private Map<QuestTrigger, QuestAction> branchPoints;
 	private Map<User, Integer> killQuantity;
+	private double minDistance;
 
 	public enum TriggerType {
 		ENTER_REGION,
+		WALK_REGION,
 		EXIT_REGION, 
 		CLICK_NPC, 
 		KILL_NPC, 
@@ -62,6 +64,9 @@ public class QuestTrigger {
 		questTrigger.type = TriggerType.valueOf(trigger.getString("type"));
 		if (questTrigger.type == TriggerType.ENTER_REGION || questTrigger.type == TriggerType.EXIT_REGION) {
 			questTrigger.region = regionLoader.getRegionByName(trigger.getString("region"));
+		} else if (questTrigger.type == TriggerType.WALK_REGION) {
+			questTrigger.region = regionLoader.getRegionByName(trigger.getString("region"));
+			questTrigger.minDistance = trigger.getDouble("minDistance");
 		} else if (questTrigger.type == TriggerType.CLICK_NPC) {
 			questTrigger.npcClassShortName = trigger.getString("npcClass");
 		} else if (questTrigger.type == TriggerType.KILL_NPC) {
@@ -89,6 +94,14 @@ public class QuestTrigger {
 		QuestTrigger trigger = new QuestTrigger();
 		trigger.type = TriggerType.ENTER_REGION;
 		trigger.region = region;
+		return trigger;
+	}
+	
+	public static QuestTrigger onWalkRegion(Region region, double minDistance) {
+		QuestTrigger trigger = new QuestTrigger();
+		trigger.type = TriggerType.WALK_REGION;
+		trigger.region = region;
+		trigger.minDistance = minDistance;
 		return trigger;
 	}
 
@@ -166,6 +179,10 @@ public class QuestTrigger {
 		return branchPoints;
 	}
 
+	public double getMinDistance() {
+		return minDistance;
+	}
+	
 	private void npcClassDeferredLoad() {
 		if (npcClass == null) {
 			npcClass = npcClassLoader.getNPCClassByClassName(npcClassShortName);
@@ -179,6 +196,10 @@ public class QuestTrigger {
 		case ENTER_REGION:
 		case EXIT_REGION:
 			document.append("region", region.getName());
+			break;
+		case WALK_REGION:
+			document.append("region", region.getName());
+			document.append("minDistance", minDistance);
 			break;
 		case CLICK_NPC:
 			npcClassDeferredLoad();
@@ -214,10 +235,10 @@ public class QuestTrigger {
 		if (type == TriggerType.INSTANT) {
 			return true;
 		}
-		if (type == TriggerType.NEVER) {
+		else if (type == TriggerType.NEVER) {
 			return false;
 		}
-		if (type == TriggerType.HAS_ITEM) {
+		else if (type == TriggerType.HAS_ITEM) {
 			user.debug(" [ - Testing if has item " + itemClass.getClassName());
 			int has = 0;
 			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
@@ -229,19 +250,26 @@ public class QuestTrigger {
 			user.debug("    [ - has " + has + " vs. needs " + quantity);
 			return has >= quantity;
 		}
-		if (type == TriggerType.ENTER_REGION) {
+		else if (type == TriggerType.ENTER_REGION) {
 			user.updateState(false, false);
 			if (user.getRegions().contains(region)) {
 				return true;
 			}
 		}
-		if (type == TriggerType.EXIT_REGION) {
+		else if (type == TriggerType.WALK_REGION) {
+			user.updateState(false, false);
+			user.debug("    [ - continuous walk distance is " + user.getContinuousWalkDistance(region));
+			if (user.getRegions().contains(region) && user.getContinuousWalkDistance(region) >= minDistance) {
+				return true;
+			}
+		}
+		else if (type == TriggerType.EXIT_REGION) {
 			user.updateState(false, false);
 			if (!user.getRegions().contains(region)) {
 				return true;
 			}
 		}
-		if (type == TriggerType.CLICK_NPC) {
+		else if (type == TriggerType.CLICK_NPC) {
 			npcClassDeferredLoad();
 			if (event == null) {
 				return false;
@@ -259,7 +287,7 @@ public class QuestTrigger {
 				}
 			}
 		}
-		if (type == TriggerType.KILL_NPC) {
+		else if (type == TriggerType.KILL_NPC) {
 			npcClassDeferredLoad();
 			if (event == null) {
 				return false;
@@ -278,7 +306,7 @@ public class QuestTrigger {
 				}
 			}
 		}
-		if (type == TriggerType.BRANCH_CONDITIONAL) {
+		else if (type == TriggerType.BRANCH_CONDITIONAL) {
 			for (Entry<QuestTrigger, QuestAction> conditional : branchPoints.entrySet()) {
 				if (conditional.getKey().test(user, event)) {
 					conditional.getValue().execute(user);

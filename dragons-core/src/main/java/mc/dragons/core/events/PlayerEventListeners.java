@@ -6,7 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -36,9 +38,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.google.common.collect.HashBasedTable;
@@ -54,7 +53,7 @@ import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemConstants;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCConditionalActions;
+import mc.dragons.core.gameobject.npc.NPCConditionalActions.NPCTrigger;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
@@ -67,18 +66,19 @@ import mc.dragons.core.util.StringUtil;
 
 public class PlayerEventListeners implements Listener {
 	public static final String GOLD_CURRENCY_ITEM_CLASS_NAME = "Currency:Gold";
-	public static final String KEY_ENTITY_CLICK_HANDLERS = "RightClickHandlers";
 	
-	@SuppressWarnings("unchecked")
-	public static void addRightClickHandler(Entity entity, Plugin plugin, Consumer<User> handler) {
-		List<Consumer<User>> handlers = new ArrayList<>();
-		for(MetadataValue h : entity.getMetadata(KEY_ENTITY_CLICK_HANDLERS)) {
-			if(h.getOwningPlugin().equals(plugin)) {
-				handlers = (List<Consumer<User>>) h.value();
-			}
-		}
-		handlers.add(handler);
-		entity.setMetadata(KEY_ENTITY_CLICK_HANDLERS, new FixedMetadataValue(plugin, handlers));
+	private static Map<Integer, List<Consumer<User>>> rightClickHandlers = new HashMap<>(); // OMG SOMEONE CALL THE STATIC POLICE OMG
+	
+	public static void addRightClickHandler(Entity entity, Consumer<User> handler) {
+		rightClickHandlers.computeIfAbsent(entity.getEntityId(), e -> new ArrayList<>()).add(handler);
+	}
+
+	public static void removeRightClickHandlers(Entity entity) {
+		rightClickHandlers.remove(entity.getEntityId());
+	}
+	
+	public static List<Consumer<User>> getRightClickHandlers(Entity entity) {
+		return rightClickHandlers.getOrDefault(entity.getEntityId(), List.of());
 	}
 	
 	private static ItemClassLoader itemClassLoader;
@@ -174,7 +174,7 @@ public class PlayerEventListeners implements Listener {
 			item.getItemClass().handleRightClick(user);
 		}
 	}
-
+	
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
 		LOGGER.debug("Death event from " + event.getEntity().getName());
@@ -258,7 +258,6 @@ public class PlayerEventListeners implements Listener {
 		player.setFoodLevel(20);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@EventHandler
 	public void onInteractEntity(PlayerInteractEntityEvent event) {
 		LOGGER.debug("Interact entity event on " + event.getPlayer().getName() + " to " + StringUtil.entityToString(event.getRightClicked()));
@@ -274,9 +273,10 @@ public class PlayerEventListeners implements Listener {
 		}
 		interacts.put(user, rightClicked, now);
 		NPC npc = NPCLoader.fromBukkit(rightClicked);
-		List<MetadataValue> handler = rightClicked.getMetadata(KEY_ENTITY_CLICK_HANDLERS);
-		if(handler.size() > 0) {
-			handler.forEach(v -> ((List<Consumer<User>>) v.value()).forEach(r -> r.accept(user)));
+		List<Consumer<User>> handlers = getRightClickHandlers(rightClicked);
+		if(handlers.size() > 0) {
+			LOGGER.debug("-Executing associated handlers (" + handlers.size() + ")");
+			handlers.forEach(r -> r.accept(user));
 		}
 		if (npc != null) {
 			user.debug("- Clicked an NPC");
@@ -301,7 +301,7 @@ public class PlayerEventListeners implements Listener {
 				user.nextDialogue();
 				return;
 			}
-			npc.getNPCClass().executeConditionals(NPCConditionalActions.NPCTrigger.CLICK, user, npc);
+			npc.getNPCClass().executeConditionals(NPCTrigger.CLICK, user, npc);
 			npc.getNPCClass().getAddons().forEach(addon -> addon.onInteract(npc, user));
 			item.getItemClass().handleRightClick(user); // TODO verify that this works
 		}

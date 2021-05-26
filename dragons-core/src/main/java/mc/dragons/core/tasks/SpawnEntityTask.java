@@ -137,7 +137,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 		ReusableDataMap data = new ReusableDataMap();
 		Map<Location, String> spawns = new HashMap<>();
 		Bukkit.getOnlinePlayers().stream().map(p -> UserLoader.fromPlayer(p)).forEach(user -> {
-			if (user.getPlayer().getGameMode() == GameMode.CREATIVE || user.getPlayer().getGameMode() == GameMode.SPECTATOR) {
+			if (user.getPlayer().getGameMode() == GameMode.CREATIVE || user.getPlayer().getGameMode() == GameMode.SPECTATOR || user.isGodMode() || user.isVanished()) {
 				return;
 			}
 			

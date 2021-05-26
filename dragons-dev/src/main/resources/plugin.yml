@@ -56,3 +56,9 @@ commands:
     description: (ADMIN) Give stars to a player.
   getstars:
     description: View a player's stars.
+  taskrename:
+    description: Rename a task.
+  findtasks:
+    description: List all tasks that are waiting for assignment.
+  staffshop:
+    description: Open the staff shop.

@@ -22,6 +22,8 @@ import mc.dragons.core.gameobject.user.User;
  *
  */
 public class HologramUtil {
+	public static String KEY_CLICKABLE_SLIME = "IsClickableSlime";
+	
 	public static ArmorStand makeHologram(String text, Location loc) {
 		ArmorStand hologram = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
 		hologram.setCustomName(text);
@@ -47,7 +49,9 @@ public class HologramUtil {
 		click.setInvulnerable(true);
 		click.setCollidable(false);
 		click.teleport(loc);
-		PlayerEventListeners.addRightClickHandler(click, Dragons.getInstance(), onClick);
+		click.setMetadata(KEY_CLICKABLE_SLIME, new FixedMetadataValue(Dragons.getInstance(), true));
+		click.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
+		PlayerEventListeners.addRightClickHandler(click, onClick);
 		return hologram;
 	}
 	
@@ -59,8 +63,16 @@ public class HologramUtil {
 		click.setAI(false);
 		click.setInvulnerable(true);
 		click.setCollidable(false);
-		PlayerEventListeners.addRightClickHandler(click, Dragons.getInstance(), onClick);
+		click.setMetadata(KEY_CLICKABLE_SLIME, new FixedMetadataValue(Dragons.getInstance(), true));
+		click.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
+		PlayerEventListeners.addRightClickHandler(click, onClick);
 		return click;
+	}
+	
+	public static void unclickableifySlime(Slime slime) {
+		slime.removeMetadata(KEY_CLICKABLE_SLIME, Dragons.getInstance());
+		slime.removeMetadata("allow", Dragons.getInstance());
+		PlayerEventListeners.removeRightClickHandlers(slime);
 	}
 	
 	public static ArmorStand makeArmorStandNameTag(final Entity entity, String nameTag, double xOffset, double yOffset, double zOffset, final boolean bind) {

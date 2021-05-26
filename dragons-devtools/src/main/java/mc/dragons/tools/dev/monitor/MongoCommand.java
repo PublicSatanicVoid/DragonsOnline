@@ -2,6 +2,7 @@ package mc.dragons.tools.dev.monitor;
 
 import java.util.ArrayList;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -29,7 +30,7 @@ public class MongoCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "IP: " + ChatColor.GRAY + config.getHost() + ":" + config.getPort());
 		sender.sendMessage(ChatColor.GREEN + "Database name: " + ChatColor.GRAY + db.getName());
 		sender.sendMessage(ChatColor.GREEN + "Collections: " + ChatColor.GRAY + db.listCollectionNames().into(new ArrayList<>()).stream()
-				.map(coll -> coll + " (" + db.getCollection(coll).estimatedDocumentCount() + ")").reduce((a,b) -> a + ", " + b).get());
+				.map(coll -> coll + " (" + db.getCollection(coll).estimatedDocumentCount() + "D, " + db.runCommand(new Document("collStats", coll).append("scale", 1024)).getInteger("storageSize") + "KB)").reduce((a,b) -> a + "; " + b).get());
 		
 		return true;
 	}

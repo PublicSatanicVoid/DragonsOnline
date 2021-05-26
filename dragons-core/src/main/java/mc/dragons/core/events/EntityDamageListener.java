@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -44,11 +45,29 @@ public class EntityDamageListener implements Listener {
 	private RegionLoader regionLoader;
 
 	public EntityDamageListener(Dragons instance) {
-		regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		regionLoader = GameObjectType.REGION.getLoader();
 		dragons = instance;
 		LOGGER = instance.getLogger();
 	}
 
+	/**
+	 * Handles damage where the player is not being damaged by another entity.
+	 * 
+	 * @param event
+	 */
+	@EventHandler
+	public void onEntityDamage(EntityDamageEvent event) {
+		LOGGER.debug("Damage event on " + StringUtil.entityToString(event.getEntity()));
+		Entity target = event.getEntity();
+		if(target.isInvulnerable()) event.setCancelled(true);
+		NPC npc = NPCLoader.fromBukkit(target);
+		if(npc != null && npc.isImmortal()) event.setCancelled(true);
+		if(target instanceof Player) {
+			User user = UserLoader.fromPlayer((Player) target);
+			if(user.isGodMode()) event.setCancelled(true);
+		}
+	}
+	
 	/**
 	 * Handles player-vs-player, player-vs-entity, and entity-vs-player interactions.
 	 * Calculates damage amounts and applies any special damage effects.
@@ -97,9 +116,18 @@ public class EntityDamageListener implements Listener {
 			event.setCancelled(true);
 			return;
 		}
-		
+		if(target.isInvulnerable()) {
+			event.setCancelled(true);
+			return;
+		}
 		if (target instanceof Player) {
 			userTarget = UserLoader.fromPlayer((Player) target);
+			if(userTarget.isGodMode()) {
+				immortalTarget(target, userDamager);
+				userTarget.debug("- God mode, cancelling");
+				event.setCancelled(true);
+				return;
+			}
 		} else if (target instanceof ArmorStand) {
 			
 			/*
@@ -182,11 +210,6 @@ public class EntityDamageListener implements Listener {
 			} else {
 				((Player) target).setHealth(0.0D);
 			}
-			return;
-		}
-		if (userTarget != null && userTarget.isGodMode()) {
-			immortalTarget(target, userDamager);
-			event.setCancelled(true);
 			return;
 		}
 		

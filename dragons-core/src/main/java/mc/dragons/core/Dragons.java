@@ -43,6 +43,7 @@ import mc.dragons.core.events.EntityMoveListener;
 import mc.dragons.core.events.EntityTargetEventListener;
 import mc.dragons.core.events.InventoryEventListeners;
 import mc.dragons.core.events.PlayerEventListeners;
+import mc.dragons.core.events.SlimeSplitEventListener;
 import mc.dragons.core.events.WorldEventListeners;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
@@ -235,26 +236,7 @@ public class Dragons extends DragonsJavaPlugin {
 	@Override
 	public void onEnable() {
 		BukkitUtil.initRollingSync();
-		
-		getLogger().info("Removing stale entities...");
-		boolean hasFixed = false;
-		for (Entity e : getEntities()) {
-			if(e.getPersistentDataContainer().has(FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
-				getLogger().verbose("-Skipping fixed entity #" + e.getEntityId());
-				hasFixed = true;
-			}
-			if (e instanceof ItemFrame) {
-				getLogger().verbose("-Skipping item frame #" + e.getEntityId());
-				continue;
-			}
-			e.remove();
-		}
-		
-		if(hasFixed) {
-			getLogger().notice("The use of fixed entities is not automatically synced across servers the same way that persistent NPCs are.\n"
-					+ "Instead, the appropriate world files must be copied.");
-		}
-		
+
 		// Game objects must be loaded from database in a particular sequence, to ensure
 		// all dependencies are ready.
 		// For example, items cannot be loaded before their item classes have been loaded,
@@ -267,11 +249,31 @@ public class Dragons extends DragonsJavaPlugin {
 		GameObjectType.getLoader(NPCClassLoader.class).lazyLoadAll();
 		GameObjectType.getLoader(QuestLoader.class).lazyLoadAll();
 		
+		
 		// If the server did not shut down gracefully (and sometimes if it did) there may be
 		// entities remaining from the previous instance which are no longer linked to a
 		// live game object. These entities need to be purged as they will not be responsive
 		// to new game events.
 		
+		getLogger().info("Removing stale entities...");
+		boolean hasFixed = false;
+		for (Entity e : getEntities()) {
+			if(e.getPersistentDataContainer().has(FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
+				getLogger().verbose("-Skipping fixed entity #" + e.getEntityId());
+				hasFixed = true;
+				continue;
+			}
+			if (e instanceof ItemFrame) {
+				getLogger().verbose("-Skipping item frame #" + e.getEntityId());
+				continue;
+			}
+			e.remove();
+		}
+		
+		if(hasFixed) {
+			getLogger().notice("The use of fixed entities is not automatically synced across servers the same way that persistent NPCs are.\n"
+					+ "Instead, the appropriate world files must be copied.");
+		}
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -316,6 +318,7 @@ public class Dragons extends DragonsJavaPlugin {
 		pluginManager.registerEvents(new InventoryEventListeners(), this);
 		pluginManager.registerEvents(new PlayerEventListeners(this), this);
 		pluginManager.registerEvents(new EntityCombustListener(), this);
+		pluginManager.registerEvents(new SlimeSplitEventListener(this), this);
 
 		getLogger().info("Registering packet listeners...");
 		ProtocolLibrary.getProtocolManager().addPacketListener(new EntityMoveListener(this));

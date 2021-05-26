@@ -39,3 +39,7 @@ stars:
   # How many stars can a player stand to gain at any
   # one time from their assigned tasks?
   max-assign-stars: 10
+
+  # Items that staff can buy with stars
+  staff-shop:
+    # ItemClassName: PriceInStars

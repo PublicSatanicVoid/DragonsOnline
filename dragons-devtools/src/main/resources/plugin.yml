@@ -147,3 +147,6 @@ commands:
     description: (ADMIN) Resync all user data from the database. Some data caches may not be updated.
   testinvisibleslimes:
   testrevealslimes:
+  testhideslimes:
+  testdestroyslimes:
+  testbadslimes:

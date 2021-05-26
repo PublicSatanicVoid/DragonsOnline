@@ -28,6 +28,7 @@ import org.bukkit.util.EulerAngle;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
+import mc.dragons.core.events.PlayerEventListeners;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
@@ -42,6 +43,7 @@ import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.networking.MessageHandler;
 import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -376,6 +378,40 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
 				}
 			}
+		}
+		
+		else if(label.equalsIgnoreCase("testhideslimes")) {
+			for(Entity entity : player.getWorld().getEntities()) {
+				if(entity instanceof Slime) {
+					Slime slime = (Slime) entity;
+					slime.setInvisible(true);
+					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
+				}
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("testdestroyslimes")) {
+			for(Entity entity : player.getWorld().getEntities()) {
+				if(entity instanceof Slime) {
+					Slime slime = (Slime) entity;
+					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
+					HologramUtil.unclickableifySlime(slime);
+					slime.remove();
+				}
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("testbadslimes")) {
+			int total = 0;
+			for(World world : Bukkit.getWorlds()) {
+				total += world.getEntitiesByClass(Slime.class).size();
+				for(Slime slime : world.getEntitiesByClass(Slime.class)) {
+					Dragons.getInstance().getLogger().severe("BAD SLIME YOU SUCK: " + StringUtil.entityToString(slime) + " - allow:" + slime.hasMetadata("allow")
+						+ " - nRClickHandlers:" + PlayerEventListeners.getRightClickHandlers(slime) + " - ClickySlime:" + slime.hasMetadata(HologramUtil.KEY_CLICKABLE_SLIME)
+						);
+				}
+			}
+			Dragons.getInstance().getLogger().debug("THERE ARE " + total + " SLIMES");
 		}
 		
 		else {

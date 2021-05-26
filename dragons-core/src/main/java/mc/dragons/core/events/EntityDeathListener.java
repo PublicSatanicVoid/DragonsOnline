@@ -40,7 +40,7 @@ public class EntityDeathListener implements Listener {
 
 	@EventHandler
 	public void onEntityDeath(EntityDeathEvent event) {
-		LOGGER.debug("Death event on " + StringUtil.entityToString(event.getEntity()));
+		LOGGER.trace("Death event on " + StringUtil.entityToString(event.getEntity()));
 		if(event.getEntity().getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.SHORT)) {
 			LOGGER.severe("A fixed entity (" + StringUtil.entityToString(event.getEntity()) + ") has died! Location: "
 				+ StringUtil.locToString(event.getEntity().getLocation()) + " [" + event.getEntity().getWorld().getName() + "]");

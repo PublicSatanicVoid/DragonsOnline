@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
@@ -18,9 +20,20 @@ import org.bukkit.command.CommandExecutor;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
+import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.core.gameobject.item.Item;
+import mc.dragons.core.gameobject.item.ItemClass;
+import mc.dragons.core.gameobject.item.ItemClassLoader;
+import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gui.GUI;
+import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.util.FileUtil;
+import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.dev.build.BackupCommand;
 import mc.dragons.dev.build.StartTrialCommand;
@@ -39,6 +52,7 @@ public class DragonsDev extends DragonsJavaPlugin {
 
 	public static int MAX_STARS;
 	public static int MAX_ASSIGN_STARS;
+	public static GUI STAFF_SHOP;
 	
 	private Dragons dragons;
 	private DiscordNotifier buildNotifier;
@@ -58,6 +72,48 @@ public class DragonsDev extends DragonsJavaPlugin {
 		BACKUP_RETENTION_DAYS = getConfig().getInt("backup.retention-days", 30);
 		MAX_STARS = getConfig().getInt("stars.max-stars", 5);
 		MAX_ASSIGN_STARS = getConfig().getInt("stars.max-assign-stars", 10);
+		
+		Map<String, Object> shop = getConfig().getConfigurationSection("stars.staff-shop").getValues(false);
+		ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+		ItemLoader itemLoader = GameObjectType.ITEM.getLoader();
+		int rows = (int) Math.ceil(2 + (double) shop.size() / 7);
+		int slot = 10;
+		int run = 0;
+		STAFF_SHOP = new GUI(rows, "Staff Shop");
+		for(Entry<String, Object> entry : shop.entrySet()) {
+			String className = entry.getKey();
+			int price = (int) entry.getValue();
+			ItemClass itemClass = itemClassLoader.getItemClassByClassName(className);
+			if(itemClass == null) {
+				getLogger().warning("Could not add item to staff shop: No item class \"" + className + "\" exists");
+				continue;
+			}
+			List<String> lore = new ArrayList<>();
+			lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + price + TaskLoader.STAR);
+			lore.addAll(Item.getCompleteLore(itemClass.getData(), itemClass.getLore().<String>toArray(new String[itemClass.getLore().size()]), null, false, itemClass));
+			GUIElement elem = new GUIElement(slot, itemClass.getMaterial(), itemClass.getDecoratedName(), lore, 1, user -> {
+				int stars = DevUserHook.getStars(user);
+				if(stars < price) {
+					user.getPlayer().sendMessage(ChatColor.RED + "This item costs " + price + TaskLoader.STAR + "! (Need " + (price - stars) + " more)");
+				}
+				else {
+					user.giveItem(itemLoader.registerNew(itemClass));
+					for(User test : UserLoader.allUsers()) {
+						if(test.getPlayer() != null && PermissionUtil.verifyActivePermissionLevel(test, PermissionLevel.TESTER, false)) {
+							test.getPlayer().sendMessage(ChatColor.GOLD + user.getName() + " redeemed " + price + TaskLoader.STAR + " for a " + itemClass.getDecoratedName() + "!");
+						}
+					}
+					DevUserHook.addStars(user, -price);
+				}
+			});
+			STAFF_SHOP.add(elem);
+			slot++;
+			run++;
+			if(run == 7) {
+				run = 0;
+				slot += 2;
+			}
+		}
 		
 		TaskLoader taskLoader = new TaskLoader(dragons);
 		dragons.getLightweightLoaderRegistry().register(taskLoader);
@@ -86,6 +142,9 @@ public class DragonsDev extends DragonsJavaPlugin {
 		getCommand("takestars").setExecutor(taskCommands);
 		getCommand("givestars").setExecutor(taskCommands);
 		getCommand("getstars").setExecutor(taskCommands);
+		getCommand("taskrename").setExecutor(taskCommands);
+		getCommand("findtasks").setExecutor(taskCommands);
+		getCommand("staffshop").setExecutor(new StaffShopCommand());
 		getCommand("backup").setExecutor(new BackupCommand(this));
 		getCommand("starttrial").setExecutor(new StartTrialCommand());
 		getCommand("tips").setExecutor(new TipsCommand());

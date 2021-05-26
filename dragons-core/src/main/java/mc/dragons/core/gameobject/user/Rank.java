@@ -30,6 +30,7 @@ public enum Rank {
 	TRIAL_BUILDER("Trial Builder", "Trial Builder", ChatColor.WHITE + "[Trial Builder]", ChatColor.GRAY, ChatColor.WHITE, false),
 	NEW_BUILDER("New Builder", "New Builder", ChatColor.BLUE + "[New Builder]", ChatColor.BLUE, ChatColor.WHITE, true),
 	BUILDER("Builder", "Builder", ChatColor.BLUE + "[Builder]", ChatColor.BLUE, ChatColor.WHITE, true),
+	CMD("Command Block Editor", "CMD", ChatColor.DARK_PURPLE + "[CMD]", ChatColor.DARK_PURPLE, ChatColor.WHITE, true),
 	BUILDER_CMD("Builder + CMD", "Builder + CMD", ChatColor.BLUE + "[Build" + ChatColor.DARK_GRAY + "+" + ChatColor.DARK_PURPLE + "CMD" + ChatColor.BLUE + "]", ChatColor.BLUE, ChatColor.WHITE, true),
 	BUILD_MANAGER("Build Manager", "Build Manager", ChatColor.BLUE + "[Build Mgr]", ChatColor.BLUE, ChatColor.WHITE, true),
 	HEAD_BUILDER("Head Builder", "Head Builder", ChatColor.BLUE + "[Head Builder]", ChatColor.BLUE, ChatColor.WHITE, true),

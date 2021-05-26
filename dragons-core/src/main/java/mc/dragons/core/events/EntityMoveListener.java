@@ -23,7 +23,7 @@ public class EntityMoveListener extends PacketAdapter {
 
 	public EntityMoveListener(Dragons instance) {
 		super(instance, new PacketType[] { PacketType.Play.Server.REL_ENTITY_MOVE, PacketType.Play.Server.REL_ENTITY_MOVE_LOOK });
-		regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		regionLoader = GameObjectType.REGION.getLoader();
 	}
 
 	@Override

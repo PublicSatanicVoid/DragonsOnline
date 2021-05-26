@@ -1,7 +1,11 @@
 package mc.dragons.dev;
 
+import static mc.dragons.core.util.BukkitUtil.async;
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
@@ -26,11 +30,29 @@ public class DevUserHook implements UserHook {
 	}
 	
 	@Override
-	public void onVerifiedJoin(User user) {
+	public void onVerifiedJoin(User user) {		
+		/* Lazy-load task markers */
+		if(!loadedTasks) {
+			
+			// This is extremely important to clear out pre-existing slimes that would obstruct the new ones
+			async(() -> {
+				for(int i = 0; i < 5; i++) {
+					sync(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "verifygameintegrity -resolve -silent"));
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException ignored) {}
+				}
+			});
+			
+			taskLoader.getAllInProgressTasks();
+			loadedTasks = true;
+		}
+		
 		/* Remind of any outstanding tasks */
 		List<Task> myTasks = taskLoader.getAllTasksWith(user);
-		user.getPlayer().sendMessage(ChatColor.GOLD + "You have " + myTasks.size() + " tasks! " + ChatColor.YELLOW + "/tasks my");
-		if(PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.TASK_MANAGER, false)) {
+		boolean tm = PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.TASK_MANAGER, false);
+		user.getPlayer().sendMessage(ChatColor.GOLD + "You have " + myTasks.size() + " tasks! " + ChatColor.YELLOW + "/tasks" + (tm ? " my" : ""));
+		if(tm) {
 			List<Task> myTasksToReview = taskLoader.getAllWaitingTasks();
 			user.getPlayer().sendMessage(ChatColor.GOLD + "There are " + myTasksToReview.size() + " tasks that need reviewing. " + ChatColor.YELLOW + "/tasks waiting");
 			List<Task> doneTasks = taskLoader.getAllCompletedTasks(true);
@@ -50,11 +72,7 @@ public class DevUserHook implements UserHook {
 		}
 		user.getPlayer().sendMessage(ChatColor.GOLD + "You are have " + user.getData().getInteger("stars", 0) + " stars in your balance");
 		
-		/* Lazy-load task markers */
-		if(!loadedTasks) {
-			taskLoader.getAllInProgressTasks();
-			loadedTasks = true;
-		}
+
 	}
 	
 	public static int getStars(User user) {
@@ -65,7 +83,7 @@ public class DevUserHook implements UserHook {
 		user.getStorageAccess().pull("stars", Integer.class);
 		user.getStorageAccess().set("stars", getStars(user) + stars);
 		if(user.getPlayer() != null) {
-			user.getPlayer().sendMessage(ChatColor.GOLD + "You received " + stars + " stars!");
+			user.getPlayer().sendMessage(ChatColor.GOLD + "You " + (stars > 0 ? "received " : "lost ") + stars + " stars!");
 		}
 	}
 }

@@ -5,6 +5,7 @@ import static mc.dragons.core.util.BukkitUtil.syncPeriodic;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +28,12 @@ import org.bukkit.entity.Slime;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.events.PlayerEventListeners;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.AbstractLightweightLoader;
 import mc.dragons.core.util.HologramUtil;
@@ -50,8 +53,11 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	private static int renderParity = 0;
 	
 	public static final String STAR = "✰";
+	public static final String PENCIL = "✎";
 	public static final int TASK_MARKER_Y_OFFSET = 3;
 
+	private DragonsLogger LOGGER;
+	
 	public static enum TaskTag {
 		BUILD(DiscordRole.BUILDER, "Build", true), 
 		DEV(DiscordRole.DEVELOPER, "Dev", false), 
@@ -104,6 +110,9 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		private Document data;
 		private Slime clickHandler;
 		private Location cachedLocation;
+		private User cachedBy;
+		private User cachedReviewedBy;
+		private List<User> cachedAssignees;
 		
 		private void updateMarker() {
 			if(clickHandler != null) {
@@ -115,6 +124,9 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 			}
 			else {
 				liveTasks.remove(this);
+				if(clickHandler != null) {
+					clickHandler.remove();
+				}
 			}
 		}
 		
@@ -178,7 +190,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		}
 
 		public User getBy() {
-			return userLoader.loadObject(UUID.fromString(data.getString("by")));
+			return cachedBy == null ? cachedBy = userLoader.loadObject(UUID.fromString(data.getString("by"))) : cachedBy;
 		}
 
 		public boolean isApproved() {
@@ -189,11 +201,13 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 			String reviewedBy = data.getString("reviewedBy");
 			if (reviewedBy == null)
 				return null;
-			return userLoader.loadObject(UUID.fromString(reviewedBy));
+			return cachedReviewedBy == null ? cachedReviewedBy = userLoader.loadObject(UUID.fromString(reviewedBy)) : cachedReviewedBy;
 		}
 
 		public List<User> getAssignees() {
-			return data.getList("assignees", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList());
+			return cachedAssignees == null 
+					? cachedAssignees = data.getList("assignees", String.class).stream().map(uuid -> userLoader.loadObject(UUID.fromString(uuid))).collect(Collectors.toList())
+					: cachedAssignees;
 		}
 
 		public boolean isDone() {
@@ -231,21 +245,30 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 			taskLoader.updateTask(this);
 		}
 
+		public void setName(String name) {
+			data.append("name", name);
+			save();
+			updateMarker();
+		}
+		
 		public void setApproved(boolean approved, User reviewedBy) {
 			data.append("approved", approved);
 			data.append("reviewedBy", reviewedBy.getUUID().toString());
+			cachedReviewedBy = reviewedBy;
 			save();
 			updateMarker();
 		}
 
 		public void addAssignee(User assignee) {
 			data.getList("assignees", String.class).add(assignee.getUUID().toString());
+			cachedAssignees.add(assignee);
 			save();
 			updateMarker();
 		}
 
 		public void removeAssignee(User assignee) {
 			data.getList("assignees", String.class).remove(assignee.getUUID().toString());
+			cachedAssignees.remove(assignee);
 			save();
 			updateMarker();
 		}
@@ -308,10 +331,19 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 
 	public TaskLoader(Dragons dragons) {
 		super(dragons.getMongoConfig(), "tasks", TASK_COLLECTION);
+		LOGGER = dragons.getLogger();
 
 		syncPeriodic(() -> {
 			renderParity = ++renderParity % 2;
 			for (Task task : liveTasks) {
+				if(task.clickHandler == null || task.clickHandler.isDead()) {
+					LOGGER.debug("Regenerating marker for task #" + task.getId());
+					task.updateMarker();
+				}
+				if(PlayerEventListeners.getRightClickHandlers(task.clickHandler).size() == 0) {
+					LOGGER.debug("Re-adding click handler for task #" + task.getId());
+					PlayerEventListeners.addRightClickHandler(task.clickHandler, user -> Bukkit.dispatchCommand(user.getPlayer(), "taskinfo " + task.getId()));
+				}
 				Location loc = task.getLocation();
 				Color mainColor = Color.LIME;
 				TaskTag[] tags = TaskTag.fromTaskName(task.getName());
@@ -346,6 +378,9 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 					else if(task.isApproved() && !task.isDone()) {
 						color = mainColor;
 					}
+					else if(task.getAssignees().contains(user)) {
+						color = Color.LIME;
+					}
 					if(color != null) {
 						ParticleUtil.drawSphere(player, Particle.REDSTONE, loc.getX(), loc.getY() + TASK_MARKER_Y_OFFSET, loc.getZ(), 0.4, 2, new DustOptions(color, 0.75f));
 					}
@@ -353,7 +388,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 			}
 		}, 20, 20);
 	}
-
+	
 	public void clearCache() {
 		taskPool.clear();
 		liveTasks.clear();
@@ -364,7 +399,11 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 	}
 
 	public List<Task> asTasks(List<Document> tasks) {
-		return tasks.stream().map(doc -> Task.fromDocument(doc)).sorted((a, b) -> b.getId() - a.getId()).collect(Collectors.toList());
+		return asTasks(tasks, ((a, b) -> b.getId() - a.getId()));
+	}
+	
+	public List<Task> asTasks(List<Document> tasks, Comparator<Task> comparator) {
+		return tasks.stream().map(doc -> Task.fromDocument(doc)).sorted(comparator).collect(Collectors.toList());
 	}
 
 	public List<Task> getAllTasks() {

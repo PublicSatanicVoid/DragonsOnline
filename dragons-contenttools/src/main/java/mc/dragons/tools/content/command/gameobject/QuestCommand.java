@@ -419,7 +419,11 @@ public class QuestCommand extends DragonsCommandExecutor {
 		QuestStep step = quest.getSteps().get(stepNo);
 		
 		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[4]);
-		step.setTrigger(makeTrigger(type, args.length > 5 ? args[5] : null));
+		List<String> params = new ArrayList<>();
+		for(int i = 5; i < args.length; i++) {
+			params.add(args[i]);
+		}
+		step.setTrigger(makeTrigger(type, params.toArray(new String[] {})));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest stage trigger successfully.");
 		MetadataConstants.logRevision(quest, user(sender), base, "Set trigger of stage " + args[2] + " to " + type);
 	}
@@ -512,6 +516,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return QuestTrigger.onClickNPC(npcClassLoader.getNPCClassByClassName(params[0]));
 		case ENTER_REGION:
 			return QuestTrigger.onEnterRegion(regionLoader.getRegionByName(params[0]));
+		case WALK_REGION:
+			return QuestTrigger.onWalkRegion(regionLoader.getRegionByName(params[0]), Double.valueOf(params[1]));
 		case EXIT_REGION:
 			return QuestTrigger.onExitRegion(regionLoader.getRegionByName(params[0]));
 		case BRANCH_CONDITIONAL:
@@ -536,6 +542,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 		case ENTER_REGION:
 		case EXIT_REGION:
 			return "Target Region: " + ChatColor.GREEN + trigger.getRegion().getName() + " (" + trigger.getRegion().getFlags().getString("fullname") + ")";
+		case WALK_REGION:
+			return "Target Region: " + ChatColor.GREEN + trigger.getRegion().getName() + " (" + trigger.getRegion().getFlags().getString("fullname") + "); Distance: " + trigger.getMinDistance();
 		case BRANCH_CONDITIONAL:
 			String triggerMsg = "Branch Points:";
 			for(Entry<QuestTrigger, QuestAction> conditional : trigger.getBranchPoints().entrySet()) {

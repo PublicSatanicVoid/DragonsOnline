@@ -116,6 +116,7 @@ public class User extends GameObject {
 	
 	private Player player; // The underlying Bukkit player associated with this User, or null if the user is offline.
 	private Set<Region> cachedRegions; // Last-known occupied regions.
+	private Map<Region, Double> continuousWalkDistance;
 	private Location cachedLocation; // Last-known location.
 	private PermissionLevel activePermissionLevel = PermissionLevel.USER;
 	private SystemProfile profile; // System profile the user is logged into, or null if none.
@@ -215,17 +216,19 @@ public class User extends GameObject {
 				player.setHealth((double) getData("health"));
 			}
 		}
+
+		questProgress = new HashMap<>();
+		questActionIndices = new HashMap<>();
+		questPauseStates = new HashMap<>();
+		questCorrelationIDs = new HashMap<>();
+		cachedRegions = new HashSet<>();
+		continuousWalkDistance = new HashMap<>();
+		seenMessages = Collections.synchronizedList(new ArrayList<>());
+		activePermissionLevel = PermissionLevel.USER;
 		
 		rollingAsync(() -> {
 			loadInventory(initCorrelationID, (Document) getData("inventory"));
-			questProgress = new HashMap<>();
-			questActionIndices = new HashMap<>();
-			questPauseStates = new HashMap<>();
-			questCorrelationIDs = new HashMap<>();
-			seenMessages = Collections.synchronizedList(new ArrayList<>());
 			loadQuests(initCorrelationID, (Document) getData("quests"));
-			cachedRegions = new HashSet<>();
-			activePermissionLevel = PermissionLevel.USER;
 			rollingSync(() -> {
 				instance.getSidebarManager().createScoreboard(player);
 				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
@@ -333,7 +336,9 @@ public class User extends GameObject {
 			return;
 		}
 		for (Region region : cachedRegions) {
-			if (regions.contains(region) || Boolean.valueOf(region.getFlags().getString(Region.FLAG_HIDDEN)).booleanValue()) {
+			if(regions.contains(region)) continue;
+			continuousWalkDistance.remove(region);
+			if (Boolean.valueOf(region.getFlags().getString(Region.FLAG_HIDDEN))) {
 				continue;
 			}
 			if (notify) {
@@ -341,6 +346,7 @@ public class User extends GameObject {
 			}
 		}
 		for (Region region : regions) {
+			continuousWalkDistance.put(region, continuousWalkDistance.getOrDefault(region, 0.0) + User.MIN_DISTANCE_TO_UPDATE_STATE);
 			if (!cachedRegions.contains(region)) {
 				int lvMin = Integer.parseInt(region.getFlags().getString(Region.FLAG_LVMIN));
 				if (getLevel() < lvMin) {
@@ -374,6 +380,10 @@ public class User extends GameObject {
 		cachedLocation = player.getLocation();
 		cachedRegions = regions;
 		updateEffectiveWalkSpeed();
+	}
+	
+	public double getContinuousWalkDistance(Region region) {
+		return continuousWalkDistance.getOrDefault(region, 0.0);
 	}
 	
 	
