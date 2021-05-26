@@ -21,7 +21,7 @@ If you're new to the repository, here are the most important files to check out 
 The codebase is divided into several plugins, each with a specific purpose. The core plugin is `dragons-core` and contains all necessary functionality to create a minimally working game. All other plugins depend either directly or indirectly on `dragons-core`.
 
 A full listing of current plugins:
-- `dragons-core` provides the base functionality for the game. Simple (vanilla) mobs/NPCs and items can function fully with just this plugin.
+- `dragons-core` provides the base functionality for the game. Simple mobs/NPCs and items can function fully with just this plugin.
 
 - `dragons-npcs` extends mob/NPC functionality to allow for custom models and behavior, such as particle auras. This functionality hooks into the core by extending the `NPCAddon` abstract class and registering each addon with the `AddonRegistry`.
 
