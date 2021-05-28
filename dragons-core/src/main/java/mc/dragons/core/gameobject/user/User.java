@@ -703,7 +703,7 @@ public class User extends GameObject {
 		}
 		if (!getSpeakingChannel().canHear(this, this)) {
 			player.sendMessage(ChatColor.RED + "Could not deliver message: You can't hear yourself! "
-				+ "Make sure you're listening to the channel you're speaking on (/cl" + getSpeakingChannel().getAbbreviation().toLowerCase() + ")");
+				+ "Make sure you're listening to the channel you're speaking on (/channel " + getSpeakingChannel().toString().toLowerCase() + ")");
 			return;
 		}
 		
