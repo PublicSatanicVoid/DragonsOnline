@@ -133,6 +133,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 		public Task(Document data) {
 			this.data = data;
 			cachedLocation = getLocation();
+			cachedAssignees = getAssignees();
 			updateMarker();
 		}
 		

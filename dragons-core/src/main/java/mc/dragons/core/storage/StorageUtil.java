@@ -58,12 +58,12 @@ public class StorageUtil {
 		
 		Document result = new Document("+", new Document()).append("-", new ArrayList<>());
 		for(Entry<String, Object> entry : a.entrySet()) {
-			if(!b.containsKey(entry.getKey()) || !(b.get(entry.getKey()).equals(a.get(entry.getKey())))) {
+			if(!b.containsKey(entry.getKey()) || b.get(entry.getKey()) == null || !(b.get(entry.getKey()).equals(a.get(entry.getKey())))) {
 				result.get("+", Document.class).append(entry.getKey(), entry.getValue());
 			}
 		}
 		for(Entry<String, Object> entry : b.entrySet()) {
-			if(!a.containsKey(entry.getKey())) {
+			if(!a.containsKey(entry.getKey()) || a.get(entry.getKey()) == null) {
 				result.getList("-", String.class).add(entry.getKey());
 			}
 		}

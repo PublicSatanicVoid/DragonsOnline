@@ -22,7 +22,7 @@ public class HoldMessageHandler extends MessageHandler {
 	}
 
 	public void sendHold(List<User> on, HoldType type, String reason) {
-		Set<String> servers = on.stream().map(u -> u.getServer()).filter(Objects::nonNull).collect(Collectors.toSet());
+		Set<String> servers = on.stream().map(u -> u.getServerName()).filter(Objects::nonNull).collect(Collectors.toSet());
 		List<UUID> uuids = on.stream().map(u -> u.getUUID()).collect(Collectors.toList());
 		for(String server : servers) {
 			send(new Document("action", "hold").append("reason", reason).append("on", uuids).append("type", type.toString()), server);
@@ -30,7 +30,7 @@ public class HoldMessageHandler extends MessageHandler {
 	}
 	
 	public void sendReleaseHold(List<User> on) {
-		Set<String> servers = on.stream().map(u -> u.getServer()).filter(Objects::nonNull).collect(Collectors.toSet());
+		Set<String> servers = on.stream().map(u -> u.getServerName()).filter(Objects::nonNull).collect(Collectors.toSet());
 		List<UUID> uuids = on.stream().map(u -> u.getUUID()).collect(Collectors.toList());
 		for(String server : servers) {
 			send(new Document("action", "release").append("on", uuids), server);

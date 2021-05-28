@@ -69,7 +69,7 @@ public class UnPunishCommands extends DragonsCommandExecutor {
 		wrapped.unpunish(id, code, user(sender));
 		
 		// Check if we need to tell a different server to immediately revoke the punishment
-		if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
+		if(targetUser.getServerName() != null && !targetUser.getServerName().equals(dragons.getServerName())) {
 			handler.forwardUnpunishment(targetUser, id);
 		}
 		

@@ -125,5 +125,9 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testhideslimes").setExecutor(experimentalCommands);
 		getCommand("testdestroyslimes").setExecutor(experimentalCommands);
 		getCommand("testbadslimes").setExecutor(experimentalCommands);
+		getCommand("mockuser").setExecutor(experimentalCommands);
+		getCommand("mocksudo").setExecutor(experimentalCommands);
+		getCommand("mockinject").setExecutor(experimentalCommands);
+		getCommand("mockserver").setExecutor(experimentalCommands);
 	}
 }

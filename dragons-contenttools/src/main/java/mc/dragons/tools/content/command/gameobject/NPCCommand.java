@@ -66,9 +66,9 @@ public class NPCCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> immortal <IsImmortal>" + ChatColor.GRAY + " set whether the NPC is immortal");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> loot [<RegionName> <ItemClassName> <Chance%|DEL>]" + ChatColor.GRAY + " manage NPC class loot table");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b [<CLICK|HIT> <add|remove <#>>]" + ChatColor.GRAY + " add/remove/view NPC behaviors");
-		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> condition <add [!]<ConditionType> <ConditionParams...>|remove <#>>" + ChatColor.GRAY + " add/remove conditions on an NPC behavior");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> condition <add [!]<ConditionType> <ConditionParams...>|<#> del>" + ChatColor.GRAY + " add/remove conditions on an NPC behavior");
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Adding a ! before the ConditionType will negate the condition.");
-		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action <add <ActionType> <ActionParams...>|remove <#>>" + ChatColor.GRAY + " add/remove actions on an NPC behavior");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action <add <ActionType> <ActionParams...>|<#> del>" + ChatColor.GRAY + " add/remove actions on an NPC behavior");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action shop add <Action#> <ItemClass> <Quantity> <CostPer>" + ChatColor.GRAY + " manage shop behavior");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> addon [<add|remove> <AddonName>]" + ChatColor.GRAY + " manage addons");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> attribute [<Attribute> <Value|DEL>]" + ChatColor.GRAY + " manage attributes");
@@ -420,12 +420,12 @@ public class NPCCommand extends DragonsCommandExecutor {
 				conditions.add(cond.toDocument());
 				behaviorsLocal.getConditional(behaviorNo).getKey().add(cond);
 			}
-			else if(args[5].equalsIgnoreCase("remove")) {
+			else if(args[6].equalsIgnoreCase("del")) {
 				if(args.length < 7) {
-					sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> condition remove <#>");
-					return  false;
+					sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> condition <#> del");
+					return false;
 				}
-				Integer index = parseInt(sender, args[6]);
+				Integer index = parseInt(sender, args[5]);
 				if(index == null) return false;
 				conditions.remove((int) index);
 				behaviorsLocal.getConditional(behaviorNo).getKey().remove((int) index);
@@ -483,7 +483,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action add BEGIN_DIALOGUE <DialogueLine1|DialogueLine2|...>");
 						return false;
 					}
-					action = NPCAction.beginDialogue(npcClass, Arrays.asList(StringUtil.concatArgs(args, 9)
+					action = NPCAction.beginDialogue(npcClass, Arrays.asList(StringUtil.concatArgs(args, 7)
 							.replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)"))
 							.split(Pattern.quote("|"))));
 					break;
@@ -517,12 +517,12 @@ public class NPCCommand extends DragonsCommandExecutor {
 				actions.add(action.toDocument());
 				behaviorsLocal.getConditional(behaviorNo).getValue().add(action);
 			}
-			else if(args[5].equalsIgnoreCase("remove")) {
+			else if(args[6].equalsIgnoreCase("del")) {
 				if(args.length < 7) {
-					sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action remove <#>");
+					sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action <#> del");
 					return false;
 				}
-				Integer index = parseInt(sender, args[6]);
+				Integer index = parseInt(sender, args[5]);
 				if(index == null) return false;
 				actions.remove((int) index);
 				behaviorsLocal.getConditional(behaviorNo).getValue().remove((int) index);
@@ -606,7 +606,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		if(npcClass == null) return;
 
 		Document base = Document.parse(npcClass.getData().toJson());
-		if(args[4].equalsIgnoreCase("none")) {
+		if(args[2].equalsIgnoreCase("none")) {
 			npcClass.setHeldItemType(null);
 			sender.sendMessage(ChatColor.GREEN + "Removed held item successfully.");
 			MetadataConstants.logRevision(npcClass, user(sender), base, "Removed held item");

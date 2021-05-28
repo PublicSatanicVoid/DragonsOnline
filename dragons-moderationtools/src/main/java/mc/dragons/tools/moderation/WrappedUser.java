@@ -38,10 +38,18 @@ public class WrappedUser {
 	private static Map<User, WrappedUser> wrappers = Collections.synchronizedMap(new HashMap<>());
 	private static ReportLoader reportLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	
+	/**
+	 * The time in seconds to remove one standing level from a player.
+	 */
 	public static long STANDING_LEVEL_DECAY_PERIOD = 60 * 60 * 24 * 7;
 
 	private User user;
 	
+	/**
+	 * 
+	 * @param user
+	 * @return The <code>WrappedUser</code> corresponding to the given user
+	 */
 	public static WrappedUser of(User user) {
 		return wrappers.computeIfAbsent(user, u -> new WrappedUser(u));
 	}
@@ -51,6 +59,10 @@ public class WrappedUser {
 		this.user = user;
 	}
 	
+	/**
+	 * 
+	 * @return The user wrapped by this instance
+	 */
 	public User getUser() {
 		return user;
 	}
@@ -59,14 +71,30 @@ public class WrappedUser {
 	 * Punishment management
 	 */	
 
+	/**
+	 * 
+	 * @return If this user has been flagged to be notified that
+	 * their report was handled
+	 */
 	public boolean reportWasHandled() {
 		return user.getData().getBoolean("reportHandled", false);
 	}
 	
+	/**
+	 * Flag this user to be notified that their report was handled
+	 * next time they join
+	 * 
+	 * @param handled
+	 */
 	public void setReportHandled(boolean handled) {
 		user.getStorageAccess().set("reportHandled", handled);
 	}
 	
+	/**
+	 * 
+	 * @return The record of all punishments applied to the player,
+	 * in the order in which they were applied
+	 */
 	public List<PunishmentData> getPunishmentHistory() {
 		List<PunishmentData> history = new ArrayList<>();
 		List<Document> results = user.getData().getList("punishmentHistory", Document.class);
@@ -76,6 +104,16 @@ public class WrappedUser {
 		return history;
 	}
 
+	/**
+	 * Modifies persistent data to store the punishment on the player.
+	 * 
+	 * @param punishmentType The type of punishment (warning, kick, mute, ban)
+	 * @param code The standard code for the punishment reason
+	 * @param standingLevelChange The change in standing level
+	 * @param extra Extra information about the punishment (shown to the player)
+	 * @param by The user who applied the punishment
+	 * @param durationSeconds The time until the punishment expires, in seconds
+	 */
 	public void savePunishment(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
 		long now = Instant.now().getEpochSecond();
 		Document punishment = new Document("type", punishmentType.toString())
@@ -92,7 +130,13 @@ public class WrappedUser {
 		user.setData("punishmentHistory", punishmentHistory);
 	}
 	
-	public void applyPunishmentLocally(PunishmentType punishmentType, String reason, long durationSeconds) {
+	/**
+	 * Applies the specified punishment to the player, but does not change persistent data.
+	 * 
+	 * @param punishmentType The type of punishment (warning, kick, mute, ban)
+	 * @param reason The displayed reason for the punishment
+	 */
+	public void applyPunishmentLocally(PunishmentType punishmentType, String reason) {
 		Player player = user.getPlayer();
 		if (player != null) {
 			if (punishmentType == PunishmentType.BAN) {
@@ -117,6 +161,10 @@ public class WrappedUser {
 		}
 	}
 	
+	/**
+	 * 
+	 * @return Information about all active bans on the player
+	 */
 	public String getActiveBanReasons() {
 		return StringUtil.parseList(getPunishmentHistory().stream()
 				.filter(p -> p.getType() == PunishmentType.BAN && !p.hasExpired() && !p.isRevoked())
@@ -124,6 +172,9 @@ public class WrappedUser {
 				.collect(Collectors.toList()), "\n\n");
 	}
 	
+	/**
+	 * Display information about all active mutes to the player.
+	 */
 	public void showActiveMuteReasons() {
 		for(PunishmentData p : getPunishmentHistory()) {
 			if(p.getType() != PunishmentType.MUTE || p.hasExpired() || p.isRevoked()) continue;
@@ -132,21 +183,49 @@ public class WrappedUser {
 		}
 	}
 	
+	/**
+	 * Applies the specified punishment to the player.
+	 * 
+	 * @param punishmentType The type of punishment (warning, kick, mute, ban)
+	 * @param code The standard code for the punishment reason
+	 * @param standingLevelChange The change in standing level
+	 * @param extra Extra information about the punishment (shown to the player)
+	 * @param by The user who applied the punishment
+	 * @param durationSeconds The time until the punishment expires, in seconds
+	 */
 	public void punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
 		if(punishmentType == PunishmentType.BAN) { // Banned users are automatically removed from the watchlist
 			PaginatedResult<Report> watchlist = reportLoader.getReportsByTypeStatusAndTarget(ReportType.WATCHLIST, ReportStatus.OPEN, user, 1);
 			if(watchlist.getTotal() > 0) {
 				watchlist.getPage().get(0).setStatus(ReportStatus.ACTION_TAKEN);
+				watchlist.getPage().get(0).addNote("Auto-closed due to a ban by " + by.getName() + " (" + code.getCode() + ", " + extra + ")");
 			}
 		}
 		savePunishment(punishmentType, code, standingLevelChange, extra, by, durationSeconds);
-		applyPunishmentLocally(punishmentType, PunishmentCode.formatReason(code, extra), durationSeconds);
+		applyPunishmentLocally(punishmentType, PunishmentCode.formatReason(code, extra));
 	}
 
+	/**
+	 * Applies the specified non-expiring punishment to the player.
+	 * 
+	 * @param punishmentType The type of punishment (warning, kick, mute, ban)
+	 * @param code The standard code for the punishment reason
+	 * @param standingLevelChange The change in standing level
+	 * @param extra Extra information about the punishment (shown to the player)
+	 * @param by The user who applied the punishment
+	 */
 	public void punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by) {
 		punish(punishmentType, code, standingLevelChange, extra, by, -1L);
 	}
 
+	/**
+	 * Revokes the specified punishment from the player,
+	 * modifying persistent data.
+	 * 
+	 * @param id
+	 * @param code The reason for revoking the punishment
+	 * @param by The user who revoked the punishment
+	 */
 	public void saveUnpunishment(int id, RevocationCode code, User by) {
 		PunishmentData data = getPunishmentHistory().get(id);
 		user.getStorageAccess().pull("punishmentHistory", List.class);
@@ -159,6 +238,11 @@ public class WrappedUser {
 		raiseStandingLevel(data.getCode().getType(), -effectiveLevelFromPunishment);
 	}
 	
+	/**
+	 * Permanently deletes the specified punishment from the player.
+	 * 
+	 * @param id
+	 */
 	public void deletePunishment(int id) {
 		applyUnpunishmentLocally(id);
 		user.getStorageAccess().pull("punishmentHistory", List.class);
@@ -167,6 +251,12 @@ public class WrappedUser {
 		user.getStorageAccess().set("punishmentHistory", rawHistory);
 	}
 	
+	/**
+	 * Locally revokes the specified punishment from the player,
+	 * but does not modify persistent data.
+	 * 
+	 * @param id
+	 */
 	public void applyUnpunishmentLocally(int id) {
 		PunishmentData data = getPunishmentHistory().get(id);
 		Player player = user.getPlayer();
@@ -177,11 +267,25 @@ public class WrappedUser {
 		}
 	}
 	
+	/**
+	 * Revoke the specified punishment from the player. It
+	 * stays on record.
+	 * 
+	 * @param id
+	 * @param code The reason for revoking the punishment
+	 * @param by The user who revoked the punishment
+	 */
 	public void unpunish(int id, RevocationCode code, User by) {
 		saveUnpunishment(id, code, by);
 		applyUnpunishmentLocally(id);
 	}
 
+	/**
+	 * 
+	 * @param punishmentType
+	 * @return The soonest-expiring active punishment of the specifed type,
+	 * or null if none exists
+	 */
 	public PunishmentData getActivePunishmentData(PunishmentType punishmentType) {
 		PunishmentData active = null;
 		user.getStorageAccess().pull("punishmentHistory", List.class);
@@ -193,10 +297,22 @@ public class WrappedUser {
 		return active;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return The player's standing level for the specified type
+	 */
 	public int getStandingLevel(StandingLevelType type) {
 		return user.getData().getEmbedded(List.of("standingLevel", type.toString(), "level"), 0);
 	}
 	
+	/**
+	 * Set the player's standing level for the specified type to the 
+	 * specified amount
+	 * 
+	 * @param type
+	 * @param level
+	 */
 	public void setStandingLevel(StandingLevelType type, int level) {
 		user.getStorageAccess().pull("standingLevel", Document.class);
 		Document standingLevel = user.getData().get("standingLevel", Document.class);
@@ -206,6 +322,13 @@ public class WrappedUser {
 		user.getStorageAccess().set("standingLevel", standingLevel);
 	}
 	
+	/**
+	 * Increase the player's standing level for the specified type by
+	 * the specified amount
+	 * 
+	 * @param type
+	 * @param amount
+	 */
  	public void raiseStandingLevel(StandingLevelType type, int amount) {
 		user.getStorageAccess().pull("standingLevel", Document.class);
 		Document standingLevel = user.getData().get("standingLevel", Document.class);
@@ -215,6 +338,10 @@ public class WrappedUser {
 		user.getStorageAccess().set("standingLevel", standingLevel);
 	}
 	
+ 	/**
+ 	 * Update the player's standing level for the specified type
+ 	 * @param type
+ 	 */
 	public void updateStandingLevel(StandingLevelType type) {
 		user.getStorageAccess().pull("standingLevel", Document.class);
 		Document standingLevel = user.getData().get("standingLevel", new Document());
@@ -229,12 +356,20 @@ public class WrappedUser {
 		user.getStorageAccess().set("standingLevel", standingLevel);
 	}
 	
+	/**
+	 * Update the player's standing levels to properly apply decay
+	 */
 	public void updateStandingLevels() {
 		for(StandingLevelType type : StandingLevelType.values()) {
 			updateStandingLevel(type);
 		}
 	}
 	
+	/**
+	 * 
+	 * @param level
+	 * @return The standard punishment duration for the given standing level
+	 */
 	public static long getDurationByStandingLevel(int level) {
 		switch(level) {
 		case 1:
@@ -260,6 +395,13 @@ public class WrappedUser {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param level The base level
+	 * @param on The time the base level was effective
+	 * @param after The new effective time
+	 * @return <code>level</code> decayed by the time between <code>on</code> and <code>after</code>
+	 */
 	public static int getEffectiveStandingLevel(int level, Date on, Date after) {
 		long diff = (after.getTime() - on.getTime()) / 1000L;
 		return Math.max(0, level - (int) Math.floor(diff / (double) STANDING_LEVEL_DECAY_PERIOD));

@@ -38,6 +38,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.events.PlayerEventListeners;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
@@ -136,7 +137,7 @@ public class User extends GameObject {
 	private String lastReceivedMessageFrom;
 	private boolean chatSpy; // Whether the user can see others' private messages.
 	private GUI currentGUI;
-	private boolean joined; // If the user has joined and authenticated yet.
+	protected boolean joined; // If the user has joined and authenticated yet.
 	private boolean initErrorOccurred;
 	private boolean initialized = false;
 	private List<MessageData> seenMessages;
@@ -198,8 +199,9 @@ public class User extends GameObject {
 		UUID initCorrelationID = LOGGER.newCID();
 		LOGGER.trace(initCorrelationID, "Initializing user " + this + " on player " + player);
 		
-		if(!Thread.currentThread().getName().contains("Rolling Async") && !Thread.currentThread().getName().contains("Server thread")) {
-			LOGGER.warning("User " + getName() + " is being initialized on an unexpected thread (" + Thread.currentThread().getName() + ")");
+		if(Thread.currentThread().getName().contains("Craft Scheduler Thread")) {
+			LOGGER.warning("User " + getName() + " is being initialized on a scheduler thread (" + Thread.currentThread().getName() + ")");
+			LOGGER.warning("This can lead to spammed database connections and other unexpected behavior.");
 			LOGGER.warning("Stack trace follows:");
 			Thread.dumpStack();
 		}
@@ -293,6 +295,10 @@ public class User extends GameObject {
 	
 	public Level getStreamConsoleLevel() {
 		return streamConsoleLevel;
+	}
+	
+	public CommandSender getCommandSender() {
+		return player;
 	}
 	
 	public void updateState() {
@@ -474,6 +480,10 @@ public class User extends GameObject {
 
 	public boolean nextDialogue() {
 		if (!hasActiveDialogue()) {
+			return false;
+		}
+		if (currentDialogueIndex >= currentDialogueBatch.size()) {
+			resetDialogueAndHandleCompletion();
 			return false;
 		}
 		debug("nextDialogue");
@@ -751,10 +761,10 @@ public class User extends GameObject {
 	/**
 	 * Give the player an RPG item.
 	 * 
-	 * This process is non-trivial, as we have to allow stacking
+	 * <p>This process is non-trivial, as we have to allow stacking
 	 * in certain cases despite conflicting metadata.
 	 * 
-	 * Thus, we need to rewrite practically the whole item stacking
+	 * <p>Thus, we need to rewrite practically the whole item stacking
 	 * algorithm, as well as correctly synchronize with the player's
 	 * stored inventory data.
 	 * 
@@ -765,6 +775,10 @@ public class User extends GameObject {
 	 */
 	public void giveItem(Item item, boolean updateDB, boolean dbOnly, boolean silent) {
 		int giveQuantity = item.getQuantity();
+		if(item.getClassName().equals(PlayerEventListeners.GOLD_CURRENCY_ITEM_CLASS_NAME)) {
+			giveGold(giveQuantity);
+			return;
+		}
 		int maxStackSize = item.getMaxStackSize();
 		if (!dbOnly) {
 			int remaining = giveQuantity;
@@ -1118,7 +1132,7 @@ public class User extends GameObject {
 		return StorageUtil.docToLoc((Document) getData("lastLocation"));
 	}
 	
-	public String getServer() {
+	public String getServerName() {
 		return (String) getData("currentServer");
 	}
 

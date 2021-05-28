@@ -69,7 +69,7 @@ public class StaffAlertMessageHandler extends MessageHandler {
 	 * @param message
 	 */
 	public void sendGenericMessage(PermissionLevel level, String message) {
-		sendAll(new Document("permissionLevel", level).append("subtype", "generic").append("message", message));
+		sendAll(new Document("permissionLevel", level.toString()).append("subtype", "generic").append("message", message));
 	}
 
 	@Override

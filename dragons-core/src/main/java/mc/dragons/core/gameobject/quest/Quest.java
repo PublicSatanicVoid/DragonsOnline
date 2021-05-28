@@ -34,6 +34,17 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public class Quest extends GameObject {
+	
+	/**
+	 * The status of a quest for a given player.
+	 * 
+	 * <p>In some cases, a quest's progression needs
+	 * to be paused, e.g. while we're waiting for some
+	 * external action to trigger something.
+	 * 
+	 * @author Adam
+	 *
+	 */
 	public enum QuestPauseState {
 		NORMAL, PAUSED, RESUMED;
 	}
@@ -69,6 +80,13 @@ public class Quest extends GameObject {
 		steps.add(step);
 		List<Document> stepsDoc = getStepsAsDoc();
 		stepsDoc.add(step.toDocument());
+		update(new Document("steps", stepsDoc));
+	}
+	
+	public void insertStep(int after, QuestStep step) {
+		steps.add(after + 1, step);
+		List<Document> stepsDoc = getStepsAsDoc();
+		stepsDoc.add(after + 1, step.toDocument());
 		update(new Document("steps", stepsDoc));
 	}
 

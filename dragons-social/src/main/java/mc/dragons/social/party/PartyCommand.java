@@ -37,13 +37,13 @@ public class PartyCommand extends DragonsCommandExecutor {
 			sender.sendMessage("No party");
 		}
 		else {
-			sender.sendMessage("Your Party: " + party.getId() + " (" + party.getOwner().getName() + " - " + party.getOwner().getServer() + ")");
+			sender.sendMessage("Your Party: " + party.getId() + " (" + party.getOwner().getName() + " - " + party.getOwner().getServerName() + ")");
 		}
 		for(Party p : invites) {
-			sender.sendMessage("Invite: " + p.getId() + " (" + p.getOwner().getName() + " - " + p.getOwner().getServer() + ")");
+			sender.sendMessage("Invite: " + p.getId() + " (" + p.getOwner().getName() + " - " + p.getOwner().getServerName() + ")");
 		}
 		for(Party p : partyLoader.all()) {
-			sender.sendMessage("Active: " + p.getId() + " (" + p.getOwner().getName() + " - " + p.getOwner().getServer() + ")");
+			sender.sendMessage("Active: " + p.getId() + " (" + p.getOwner().getName() + " - " + p.getOwner().getServerName() + ")");
 		}
 	}
 	

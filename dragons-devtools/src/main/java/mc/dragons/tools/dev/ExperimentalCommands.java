@@ -42,6 +42,8 @@ import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
 import mc.dragons.core.networking.MessageHandler;
+import mc.dragons.core.storage.StorageAccess;
+import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.PathfindingUtil;
@@ -412,6 +414,54 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 				}
 			}
 			Dragons.getInstance().getLogger().debug("THERE ARE " + total + " SLIMES");
+		}
+		
+		else if(label.equalsIgnoreCase("mockuser")) {
+			Document data = Document.parse(user(sender).getData().toJson());
+			data.append("_id", UUID.randomUUID());
+			data.append("username", args[0]);
+			data.append("currentServer", args[1]);
+			data.append("mock", true);
+			dragons.getMongoConfig().getDatabase().getCollection("gameobjects").insertOne(data);
+			sender.sendMessage("UUID: " + data.get("_id", UUID.class));
+		}
+		
+		else if(label.equalsIgnoreCase("mocksudo")) {
+			Document data = dragons.getMongoConfig().getDatabase().getCollection("gameobjects").find(new Document("username", args[0])).first();
+			if(data.getBoolean("mock", false)) {
+				dragons.getRemoteAdminHandler().sendRemoteSudo(data.getString("currentServer"), data.get("_id", UUID.class), StringUtil.concatArgs(args, 1));
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("mockinject")) {
+			StorageManager storageManager = dragons.getPersistentStorageManager();
+			StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER, new Document("username", args[0]));
+			MockPlayer mockPlayer = new MockPlayer(storageAccess.getIdentifier().getUUID(), args[0]);
+			MockUser mockUser = new MockUser(null, storageManager, storageAccess);
+			dragons.getGameObjectRegistry().getRegisteredObjects().removeIf(obj -> obj instanceof User && ((User) obj).getName().equalsIgnoreCase(args[0]));
+			dragons.getGameObjectRegistry().getRegisteredObjects().add(mockUser);
+			UserLoader.allUsers().removeIf(u -> u.getName().equalsIgnoreCase(args[0]));
+			UserLoader.allUsers().add(mockUser);
+			UserLoader.assign(mockPlayer, mockUser);
+			mockUser.setPlayer(mockPlayer);
+			sender.sendMessage("UUID: " + mockUser.getUUID());
+			sender.sendMessage("Server: " + mockUser.getServerName() + " ?= " + storageAccess.get("currentServer", String.class));
+			sender.sendMessage("Player: " + mockPlayer);
+			sender.sendMessage("CommandSender: " + mockUser.getCommandSender());
+			sender.sendMessage("CommandSender is player: " + (mockUser.getCommandSender() instanceof Player));
+			sender.sendMessage("Passes for player: " + (mockPlayer instanceof Player));
+			sender.sendMessage("Passes for user:"  + (mockUser instanceof User));
+			sender.sendMessage("Player casted from sender: " + ((Player) mockUser.getCommandSender()));
+			sender.sendMessage("User lookup: " + UserLoader.fromPlayer(mockPlayer));
+			sender.sendMessage("User lookup by sender: " + UserLoader.fromPlayer((Player) mockUser.getCommandSender()));
+			sender.sendMessage("Exists in UserLoader cache: " + UserLoader.allUsers().contains(mockUser));
+			sender.sendMessage("Exists in game object registry: " + dragons.getGameObjectRegistry().getRegisteredObjects().contains(mockUser));
+			sender.sendMessage("Exists in filtered game object registry: " + dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER).contains(mockUser));
+		}
+		
+		else if(label.equalsIgnoreCase("mockserver")) {
+			StorageAccess storageAccess = dragons.getPersistentStorageManager().getStorageAccess(GameObjectType.USER, new Document("username", args[0]));
+			storageAccess.set("currentServer", args[1]);
 		}
 		
 		else {

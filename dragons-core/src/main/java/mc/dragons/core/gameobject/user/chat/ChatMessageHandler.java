@@ -54,7 +54,7 @@ public class ChatMessageHandler extends MessageHandler {
 		}
 		messageInfoComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 				new Text(ChatColor.YELLOW + "" + ChatColor.BOLD + user.getName() + "\n"),
-				new Text(ChatColor.GRAY + "Server: " + ChatColor.RESET + user.getServer() + "\n"),
+				new Text(ChatColor.GRAY + "Server: " + ChatColor.RESET + user.getServerName() + "\n"),
 				new Text(ChatColor.GRAY + "Rank: " + ChatColor.RESET + user.getRank().getNameColor() + user.getRank().getRankName() + "\n"),
 				new Text(ChatColor.GRAY + "Level: " + user.getLevelColor() + user.getLevel() + "\n"),
 				new Text(ChatColor.GRAY + "XP: " + ChatColor.RESET + user.getXP() + "\n"),
@@ -79,7 +79,7 @@ public class ChatMessageHandler extends MessageHandler {
 			test.getSeenMessages().add(messageData);
 			test.sendMessage(channel, user, new BaseComponent[] { messageInfoComponent, messageComponent });
 		}
-		LOGGER.info("[" + user.getServer() + "/" + channel.getAbbreviation() + "/" + loc.getWorld().getName() + "] [" + user.getName() + "] " + message);
+		LOGGER.info("[" + user.getServerName() + "/" + channel.getAbbreviation() + "/" + loc.getWorld().getName() + "] [" + user.getName() + "] " + message);
 	}
 	
 	/**

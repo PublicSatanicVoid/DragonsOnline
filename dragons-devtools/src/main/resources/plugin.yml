@@ -150,3 +150,11 @@ commands:
   testhideslimes:
   testdestroyslimes:
   testbadslimes:
+  mockuser:
+    description: (ADMIN) Create a fake user for testing.
+  mocksudo:
+    description: (ADMIN) Run a command as a fake user.
+  mockinject:
+    description: (ADMIN) Inject a fake user into the server registries after creating it.
+  mockserver:
+    description: (ADMIN) Spoof the server that a mock user is connected to.

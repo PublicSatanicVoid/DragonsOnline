@@ -23,6 +23,7 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 	private void privateMessageCommand(User user, String to, String message) {
 		User target = lookupUser(user.getPlayer(), to);
 		if(target == null) return;
+		target.safeResyncData();
 		if (user.equals(target) && !user.getLocalData().getBoolean("canSelfMessage", false)) {
 			user.getPlayer().sendMessage(ChatColor.RED + "You can't message yourself!");
 		}
@@ -39,6 +40,10 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 			&& !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
 				user.getPlayer().sendMessage(ChatColor.RED + "You can't send or receive messages from non-friends. Use /togglemsg to change this.");
 		}
+		else if (!FriendUtil.getFriends(user).contains(target) && !target.getData().getBoolean("messageFriendsOnly", false) 
+				&& !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
+					user.getPlayer().sendMessage(ChatColor.RED + "This user has blocked private messages from non-friends.");
+			}
 		else {
 			handler.send(user, target, message);
 		}
@@ -87,6 +92,7 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 				return true;
 			}
 			String target = user.getLastReceivedMessageFrom();
+			message = StringUtil.concatArgs(args, 0);
 			if (target == null) {
 				sender.sendMessage(ChatColor.RED + "You don't have anyone to reply to!");
 				return true;

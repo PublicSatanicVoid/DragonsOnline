@@ -3,9 +3,9 @@ package mc.dragons.social.friend;
 import java.util.UUID;
 
 import org.bson.Document;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.logging.DragonsLogger;
@@ -17,6 +17,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class FriendMessageHandler extends MessageHandler {
 	private DragonsLogger LOGGER;
+	private UserLoader userLoader = GameObjectType.USER.getLoader();
 
 	public FriendMessageHandler(DragonsSocial instance) {
 		super(instance.getDragonsInstance(), "friend");
@@ -24,34 +25,34 @@ public class FriendMessageHandler extends MessageHandler {
 	}
 
 	public void pushRequest(User from, User to) {
-		send(new Document("action", "request").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServer());
+		send(new Document("action", "request").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServerName());
 	}
 
 	public void pushAccept(User from, User to) {
-		send(new Document("action", "accept").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServer());
+		send(new Document("action", "accept").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServerName());
 	}
 
 	public void pushIgnore(User from, User to) {
-		send(new Document("action", "deny").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServer());
+		send(new Document("action", "deny").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServerName());
 	}
 
 	public void pushRemove(User from, User to) {
-		send(new Document("action", "remove").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServer());
+		send(new Document("action", "remove").append("from", from.getUUID()).append("fromName", from.getName()).append("to", to.getUUID()), to.getServerName());
 	}
 
 	@Override
 	public void receive(String serverFrom, Document data) {
 		String action = data.getString("action");
 		UUID toUUID = data.get("to", UUID.class);
-		Player to = Bukkit.getPlayer(toUUID);
+		User toUser = userLoader.loadObject(toUUID);
+		Player to = toUser.getPlayer();
 		if (to == null) {
 			LOGGER.notice("Could not deliver friend message locally: User with UUID " + toUUID + " is not online on this server");
 			return;
 		}
-		User toUser = UserLoader.fromPlayer(to);
 		UUID fromUUID = data.get("from", UUID.class);
 		String from = data.getString("fromName");
-		boolean local = serverFrom.equals(toUser.getServer());
+		boolean local = serverFrom.equals(toUser.getServerName());
 		toUser.safeResyncData();
 		if (action.equalsIgnoreCase("request")) {
 			to.sendMessage(ChatColor.LIGHT_PURPLE + from + " sent you a friend request!");

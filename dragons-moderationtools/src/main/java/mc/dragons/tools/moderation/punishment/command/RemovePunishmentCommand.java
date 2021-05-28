@@ -61,7 +61,7 @@ public class RemovePunishmentCommand extends DragonsCommandExecutor {
 		}
 		
 		sender.sendMessage(ChatColor.GREEN + (deletePermanently ? "Deleted" : "Revoked") + " punishment #" + args[1] + " from " + targetUser.getName());
-		if(targetUser.getServer() != null && !targetUser.getServer().equals(dragons.getServerName())) {
+		if(targetUser.getServerName() != null && !targetUser.getServerName().equals(dragons.getServerName())) {
 			handler.forwardUnpunishment(targetUser, punishmentNo);
 		}
 		

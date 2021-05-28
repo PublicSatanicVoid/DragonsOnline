@@ -96,7 +96,7 @@ public class HoldLoader extends AbstractLightweightLoader<HoldEntry> {
 			for(User user : getUsers()) {
 				WrappedUser.of(user).punish(type, code, code.getStandingLevel(), extra, by, durationSeconds);
 				// Check if we need to tell a different server to immediately apply the punishment
-				if(user.getServer() != null && !dragons.getServerName().equals(user.getServer())) {
+				if(user.getServerName() != null && !dragons.getServerName().equals(user.getServerName())) {
 					punishHandler.forwardPunishment(user, type, PunishmentCode.formatReason(code, extra), durationSeconds);
 				}
 			}

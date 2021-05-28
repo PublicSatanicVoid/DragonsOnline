@@ -74,8 +74,8 @@ public class InfoCommand extends DragonsCommandExecutor {
 		}
 		sender.spigot().sendMessage(report, hold, punish, escalate, watchlist, reports, phistory);
 		sender.sendMessage(ChatColor.YELLOW + "UUID: " + ChatColor.RESET + targetUser.getIdentifier().getUUID().toString());
-		if(targetUser.getServer() != null) {
-			sender.sendMessage(ChatColor.YELLOW + "Current Server: " + ChatColor.RESET + targetUser.getServer());
+		if(targetUser.getServerName() != null) {
+			sender.sendMessage(ChatColor.YELLOW + "Current Server: " + ChatColor.RESET + targetUser.getServerName());
 		}
 		if(mod) {
 			sender.sendMessage(ChatColor.YELLOW + "Active Punishments:");

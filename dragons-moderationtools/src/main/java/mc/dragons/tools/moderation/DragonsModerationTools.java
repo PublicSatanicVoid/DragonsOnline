@@ -44,7 +44,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 	public void onEnable() {
 		enableDebugLogging();
 		
-		dragons = Dragons.getInstance();
+		dragons = getDragonsInstance();
 		
 		holdMessageHandler = new HoldMessageHandler(dragons);
 		dragons.getLightweightLoaderRegistry().register(new ReportLoader(dragons.getMongoConfig()));
@@ -62,6 +62,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("setverification").setExecutor(new SetVerificationCommand());
 		getCommand("locate").setExecutor(new LocateCommand());
 		getCommand("modnotifications").setExecutor(new ModNotificationsCommand());
+		getCommand("staffalert").setExecutor(new StaffAlertCommand());
 		
 		getCommand("report").setExecutor(new ReportCommand());
 		getCommand("escalate").setExecutor(new EscalateCommand());

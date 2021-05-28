@@ -82,7 +82,7 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	 * Avoid code style warnings for unused parameters by
 	 * calling this function for all unused parameters.
 	 * 
-	 * Only use this if there is a compelling need to not
+	 * <p>Only use this if there is a compelling need to not
 	 * change the parameter list.
 	 * 
 	 * @param param

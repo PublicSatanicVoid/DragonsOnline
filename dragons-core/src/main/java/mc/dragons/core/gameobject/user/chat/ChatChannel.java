@@ -82,7 +82,7 @@ public enum ChatChannel {
 	 * @return A hoverable overlay showing a snapshot of data about the channel.
 	 */
 	public TextComponent format(String str) {
-		long listening = UserLoader.allUsers().stream().filter(u -> u.getServer() != null).filter(u -> u.getActiveChatChannels().contains(this)).count();
+		long listening = UserLoader.allUsers().stream().filter(u -> u.getServerName() != null).filter(u -> u.getActiveChatChannels().contains(this)).count();
 		TextComponent component = new TextComponent(str);
 		component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 				new Text(ChatColor.YELLOW + "Channel: " + ChatColor.RESET + toString() + "\n"),

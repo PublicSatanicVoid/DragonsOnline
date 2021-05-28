@@ -52,7 +52,7 @@ public class PrivateMessageHandler extends MessageHandler {
 		informLocalSpies(from.getName(), to.getName(), message);
 		if(to.getPlayer() == null) {
 			to.safeResyncData();
-			send(new Document("from", from.getUUID().toString()).append("to", to.getUUID().toString()).append("message", message), to.getServer());
+			send(new Document("from", from.getUUID().toString()).append("to", to.getUUID().toString()).append("message", message), to.getServerName());
 		}
 		else doLocalReceive(to, from, message);
 	}

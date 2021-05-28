@@ -46,7 +46,7 @@ public class WatchlistCommand extends DragonsCommandExecutor {
 			for(Report report : reports.getPage()) {
 				User target = report.getTargets().get(0); // Well-defined because watchlist reports only ever have one target
 				target.safeResyncData();
-				boolean online = target.getServer() != null;
+				boolean online = target.getServerName() != null;
 				String username = target.getName();
 				sender.spigot().sendMessage(
 						StringUtil.clickableHoverableText(ChatColor.RED + "[-] ", "/watchlist remove " + report.getTargets().get(0).getName(), "Click to remove " + username + " from the watchlist"),

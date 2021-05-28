@@ -24,11 +24,11 @@ public class LocateCommand extends DragonsCommandExecutor {
 		if(target == null) return true;
 		long end = System.currentTimeMillis();
 		
-		if(target.getServer() == null) {
+		if(target.getServerName() == null) {
 			sender.sendMessage(ChatColor.RED + "That player is not currently connected to any server!");
 		}
 		else {
-			sender.sendMessage(ChatColor.GREEN + target.getName() + " is connected to " + target.getServer() + " (took " + (end - start) + "ms)");
+			sender.sendMessage(ChatColor.GREEN + target.getName() + " is connected to " + target.getServerName() + " (took " + (end - start) + "ms)");
 		}
 		
 		return true;

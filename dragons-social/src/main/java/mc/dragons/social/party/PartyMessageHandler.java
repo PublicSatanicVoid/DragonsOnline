@@ -41,7 +41,7 @@ public class PartyMessageHandler extends MessageHandler {
 	}
 	
 	public void sendInvite(int id, User target) {
-		send(new Document("action", "invite").append("party", id).append("member", target.getUUID()), target.getServer());
+		send(new Document("action", "invite").append("party", id).append("member", target.getUUID()), target.getServerName());
 	}
 	
 	@Override

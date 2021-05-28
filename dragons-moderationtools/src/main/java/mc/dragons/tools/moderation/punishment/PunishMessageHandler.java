@@ -18,11 +18,11 @@ public class PunishMessageHandler extends MessageHandler {
 	}
 
 	public void forwardPunishment(User user, PunishmentType type, String reason, long duration) {
-		send(new Document("uuid", user.getUUID().toString()).append("action", "punish").append("punishmentType", type.toString()).append("reason", reason).append("duration", duration), user.getServer());
+		send(new Document("uuid", user.getUUID().toString()).append("action", "punish").append("punishmentType", type.toString()).append("reason", reason).append("duration", duration), user.getServerName());
 	}
 	
 	public void forwardUnpunishment(User user, int id) {
-		send(new Document("uuid", user.getUUID().toString()).append("action", "unpunish").append("punishmentId", id), user.getServer());
+		send(new Document("uuid", user.getUUID().toString()).append("action", "unpunish").append("punishmentId", id), user.getServerName());
 	}
 	
 	@Override
@@ -36,6 +36,7 @@ public class PunishMessageHandler extends MessageHandler {
 			return;
 		}
 		
+		user.safeResyncData();
 		WrappedUser wrapped = WrappedUser.of(user);
 		
 		new BukkitRunnable() {
@@ -43,8 +44,7 @@ public class PunishMessageHandler extends MessageHandler {
 				if(action.equals("punish")) {
 					PunishmentType type = PunishmentType.valueOf(data.getString("punishmentType"));
 					String reason = data.getString("reason");
-					long duration = data.getLong("duration");
-					wrapped.applyPunishmentLocally(type, reason, duration);
+					wrapped.applyPunishmentLocally(type, reason);
 				}
 				else if(action.equals("unpunish")) {
 					int id = data.getInteger("punishmentId");
