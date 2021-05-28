@@ -83,10 +83,10 @@ public class Quest extends GameObject {
 		update(new Document("steps", stepsDoc));
 	}
 	
-	public void insertStep(int after, QuestStep step) {
-		steps.add(after + 1, step);
+	public void insertStep(int before, QuestStep step) {
+		steps.add(before, step);
 		List<Document> stepsDoc = getStepsAsDoc();
-		stepsDoc.add(after + 1, step.toDocument());
+		stepsDoc.add(before, step.toDocument());
 		update(new Document("steps", stepsDoc));
 	}
 

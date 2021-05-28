@@ -42,7 +42,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stages" + ChatColor.GRAY + " list all quest steps");
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <Stage#>" + ChatColor.GRAY + " view quest stage");
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <Stage#> name <QuestStageName>" + ChatColor.GRAY + " set name of quest stage");
-		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <add|insert <StageAfter#>|<Stage#> trigger> <TriggerType> [TriggerParam]" + ChatColor.GRAY + " update quest stage trigger");
+		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <add|insert <StageBefore#>|<Stage#> trigger> <TriggerType> [TriggerParam]" + ChatColor.GRAY + " update quest stage trigger");
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <Stage#> action "
 				+ "<add <ActionType> [ActionParams...]|"
 				+ "dialogue add <Action#> <Message>|"
@@ -163,22 +163,22 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[0]);
 		if(quest == null) return;
 		if(args.length < 5) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage insert <StageAfter#> <TriggerType> [TriggerParams...]");
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage insert <StageBefore#> <TriggerType> [TriggerParams...]");
 			return;
 		}
 		Document base = Document.parse(quest.getData().toJson());
-		Integer after = parseInt(sender, args[3]);
+		Integer before = parseInt(sender, args[3]);
 		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[4]);
-		if(after == null || type == null) return;
+		if(before == null || type == null) return;
 		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 5 ? Arrays.copyOfRange(args, 5, args.length) : null), new ArrayList<>(), quest);
-		quest.insertStep(after, step);
+		quest.insertStep(before, step);
 		sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
 		MetadataConstants.logRevision(quest, user(sender), base, "Inserted new quest stage");
 	}
 	
 	private void manageStage(CommandSender sender, String[] args) {
 		if(args.length <= 2) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <<Stage#> [name|trigger|action|del] [...]|<add|insert <StageAfter#>> <trigger> [params...]");
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <<Stage#> [name|trigger|action|del] [...]|<add|insert <StageBefore#>> <trigger> [params...]");
 		}
 		else if(args[2].equalsIgnoreCase("add")) {
 			addStage(sender, args);
