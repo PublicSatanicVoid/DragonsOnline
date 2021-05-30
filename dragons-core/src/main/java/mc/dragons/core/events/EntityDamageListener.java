@@ -83,6 +83,10 @@ public class EntityDamageListener implements Listener {
 		Item attackerHeldItem = null;
 		
 		if (damager instanceof Player) {
+			if(!dragons.getEntityHider().canSee((Player) damager, event.getEntity())) {
+				event.setCancelled(true);
+				return;
+			}
 			userDamager = UserLoader.fromPlayer((Player) damager);
 			attackerHeldItem = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
 			if(attackerHeldItem != null && !attackerHeldItem.getItemClass().canUse(userDamager)) {

@@ -299,8 +299,9 @@ public class QuestTrigger {
 					return false;
 				}
 				if (npc.getNPCClass().equals(npcClass)) {
-					killQuantity.put(user, Integer.valueOf(killQuantity.getOrDefault(user, Integer.valueOf(0)) + 1));
+					killQuantity.put(user, killQuantity.getOrDefault(user, 0) + 1);
 					if (killQuantity.getOrDefault(user, 0) >= quantity) {
+						killQuantity.remove(user);
 						return true;
 					}
 				}

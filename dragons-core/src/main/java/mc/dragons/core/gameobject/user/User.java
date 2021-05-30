@@ -572,9 +572,7 @@ public class User extends GameObject {
 		}
 		Document updatedQuestProgress = (Document) getData("quests");
 		if (questStep == null) {
-			questProgress.remove(quest);
-			updatedQuestProgress.remove(quest.getName());
-			storageAccess.update(new Document("quests", updatedQuestProgress));
+			removeQuest(quest);
 			return;
 		}
 		debug("updateQuestProgress(" + quest.getName() + ", " + questStep.getStepName() + ", notify=" + notify + ")");
