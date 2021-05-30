@@ -26,9 +26,11 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.BlockUtil;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.content.util.MetadataConstants;
+import mc.dragons.tools.content.AuditLogLoader;
 
 public class RegionCommand extends DragonsCommandExecutor {
+	private AuditLogLoader AUDIT_LOG = dragons.getLightweightLoaderRegistry().getLoader(AuditLogLoader.class);
+	
 	private void displayHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/region create <RegionName>" + ChatColor.GRAY + " create a region");
 		sender.sendMessage(ChatColor.YELLOW + "/region list [startingWith]" + ChatColor.GRAY + " list all regions, optionally starting with the specified text");
@@ -60,7 +62,8 @@ public class RegionCommand extends DragonsCommandExecutor {
 		else {
 			Player player = player(sender);
 			Region region = (Region) regionLoader.registerNew(args[1], player.getLocation(), player.getLocation());
-			MetadataConstants.addBlankMetadata(region, user(sender));
+//			MetadataConstants.addBlankMetadata(region, user(sender));
+			AUDIT_LOG.saveEntry(region, user(sender), "Created");
 			sender.sendMessage(ChatColor.GREEN + "Created region " + args[1] + ". Its database identifier is " + region.getIdentifier().toString());
 		}
 	}
@@ -112,6 +115,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		}
 		else {
 			dragons.getGameObjectRegistry().removeFromDatabase(region);
+			AUDIT_LOG.saveEntry(region, user(sender), "Deleted");
 			sender.sendMessage(ChatColor.GREEN + "Removed region " + args[1] + " successfully. Changes may not fully take effect until a network-wide restart.");
 		}
 	}
@@ -237,7 +241,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 			Vector newMax = Vector.getMaximum(corner1, corner2);
 			region.updateCorners(newMin.toLocation(player.getWorld()), newMax.toLocation(player.getWorld()));
 			sender.sendMessage(ChatColor.GREEN + "Updated region corners successfully. Min=(" + StringUtil.vecToString(newMin) + "), Max=" + StringUtil.vecToString(newMax) + ")");
-			MetadataConstants.logRevision(region, user, base, "Updated region corners");
+			AUDIT_LOG.saveEntry(region, user, base, "Updated region corners");
 			break;
 		default:
 			sender.sendMessage(ChatColor.RED + "Invalid usage! /region <RegionName> corner <1|2|go>");
@@ -264,7 +268,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 			double spawnRate = parseDouble(sender, args[3]);
 			region.setSpawnRate(args[2], spawnRate);
 			sender.sendMessage(ChatColor.GREEN + "Set spawn rate of entity class " + args[2] + " to " + spawnRate);
-			MetadataConstants.logRevision(region, user(sender), base, "Set spawn rate of class " + args[2] + " to " + spawnRate);
+			AUDIT_LOG.saveEntry(region, user(sender), base, "Set spawn rate of class " + args[2] + " to " + spawnRate);
 		}
 	}
 	
@@ -289,7 +293,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 			String value = StringUtil.concatArgs(args, 3);
 			region.setFlag(args[2], value);
 			sender.sendMessage(ChatColor.GREEN + "Set flag " + args[2] + " to " + value);
-			MetadataConstants.logRevision(region, user(sender), base, "Set flag " + args[2] + " to " + value);
+			AUDIT_LOG.saveEntry(region, user(sender), base, "Set flag " + args[2] + " to " + value);
 		}
 	}
 	

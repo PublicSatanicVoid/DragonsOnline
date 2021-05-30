@@ -126,7 +126,7 @@ public class Quest extends GameObject {
 	}
 
 	public void setLevelMin(int lvMin) {
-		setData("lvMin", Integer.valueOf(lvMin));
+		setData("lvMin", lvMin);
 	}
 	
 	public boolean isLocked() {

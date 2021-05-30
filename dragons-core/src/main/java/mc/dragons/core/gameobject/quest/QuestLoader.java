@@ -55,7 +55,12 @@ public class QuestLoader extends GameObjectLoader<Quest> implements Singleton {
 	public Quest registerNew(String name, String questName, int lvMin) {
 		lazyLoadAll();
 		LOGGER.trace("Registering new quest " + name);
-		Document data = new Document("_id", UUID.randomUUID()).append("name", name).append("questName", questName).append("lvMin", Integer.valueOf(lvMin)).append("steps", new ArrayList<>());
+		Document data = new Document("_id", UUID.randomUUID())
+				.append("name", name)
+				.append("questName", questName)
+				.append("lvMin", lvMin)
+				.append("steps", new ArrayList<>())
+				.append("locked", false);
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.QUEST, data);
 		Quest quest = new Quest(storageManager, storageAccess);
 		masterRegistry.getRegisteredObjects().add(quest);

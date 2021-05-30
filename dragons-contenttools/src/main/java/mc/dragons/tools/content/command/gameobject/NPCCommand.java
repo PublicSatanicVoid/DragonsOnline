@@ -44,11 +44,12 @@ import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.content.util.MetadataConstants;
+import mc.dragons.tools.content.AuditLogLoader;
 
 public class NPCCommand extends DragonsCommandExecutor {
-	private GameObjectRegistry gameObjectRegistry = dragons.getGameObjectRegistry();;
-	private AddonRegistry addonRegistry = dragons.getAddonRegistry();;
+	private GameObjectRegistry gameObjectRegistry = dragons.getGameObjectRegistry();
+	private AddonRegistry addonRegistry = dragons.getAddonRegistry();
+	private AuditLogLoader AUDIT_LOG = dragons.getLightweightLoaderRegistry().getLoader(AuditLogLoader.class);
 
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/npc create <ClassName> <EntityType> <MaxHealth> <Level> <NPCType>" + ChatColor.GRAY + " create a new NPC class");
@@ -69,7 +70,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> condition <add [!]<ConditionType> <ConditionParams...>|<#> del>" + ChatColor.GRAY + " add/remove conditions on an NPC behavior");
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Adding a ! before the ConditionType will negate the condition.");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action <add <ActionType> <ActionParams...>|<#> del>" + ChatColor.GRAY + " add/remove actions on an NPC behavior");
-		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action shop add <Action#> <ItemClass> <Quantity> <CostPer>" + ChatColor.GRAY + " manage shop behavior");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action shop <add <Action#> <ItemClass> <Quantity> <CostPer>|remove <action#> <item#>>" + ChatColor.GRAY + " manage shop behavior");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> addon [<add|remove> <AddonName>]" + ChatColor.GRAY + " manage addons");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> attribute [<Attribute> <Value|DEL>]" + ChatColor.GRAY + " manage attributes");
 		sender.sendMessage(ChatColor.YELLOW + "/npc delete <ClassName>" + ChatColor.GRAY + " delete NPC class");
@@ -95,7 +96,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "An error occurred! Does an NPC class by this name already exist?");
 			return;
 		}
-		MetadataConstants.addBlankMetadata(npcClass, user(sender));
+//		MetadataConstants.addBlankMetadata(npcClass, user(sender));
+		AUDIT_LOG.saveEntry(npcClass, user(sender), "Created");
 		sender.sendMessage(ChatColor.GREEN + "Successfully created NPC class " + npcClassName);
 	}
 	
@@ -122,6 +124,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		NPCClass npcClass = lookupNPCClass(sender, args[1]);
 		if(npcClass == null) return;
 		gameObjectRegistry.removeFromDatabase(npcClass);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), "Deleted");
 		sender.sendMessage(ChatColor.GREEN + "Successfully deleted NPC class.");
 	}
 	
@@ -141,7 +144,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			spawned.add(npcLoader.registerNew(player.getWorld(), player.getLocation(), args[1]));
 			remaining--;
 		}
-		MetadataConstants.logRevision(FloorLoader.fromLocation(player.getLocation()), user(sender), "Picked up NPC spawn of class " + args[1]); // this counts as a modification to the floor.
+		AUDIT_LOG.saveEntry(FloorLoader.fromLocation(player.getLocation()), user(sender), "Picked up NPC spawn of class " + args[1]); // this counts as a modification to the floor.
 		sender.sendMessage(ChatColor.GREEN + "Spawned an NPC of class " + args[1] + " at your location (x" + quantity + ")");
 		if(args.length > 4 && args[3].equalsIgnoreCase("-phase")) {
 			Player phaseFor = Bukkit.getPlayerExact(args[4]);
@@ -211,7 +214,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			if(value == null) return;
 			npcClass.setCustomAttribute(att, value);
 		}
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Updated attributes");
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Updated attributes");
 		sender.sendMessage(ChatColor.GREEN + "Updated attributes successfully.");
 	}
 	
@@ -243,12 +246,12 @@ public class NPCCommand extends DragonsCommandExecutor {
 		else if(args[4].equalsIgnoreCase("add")) {
 			npcClass.addAddon((NPCAddon) addon);
 			sender.sendMessage(ChatColor.GREEN + "Added addon " + addon.getName() + " to NPC class " + npcClass.getClassName() + ".");
-			MetadataConstants.logRevision(npcClass, user, base, "Added addon " + addon.getName());
+			AUDIT_LOG.saveEntry(npcClass, user, base, "Added addon " + addon.getName());
 		}
 		else if(args[4].equalsIgnoreCase("remove")) {
 			npcClass.removeAddon((NPCAddon) addon);
 			sender.sendMessage(ChatColor.GREEN + "Removed addon " + addon.getName() + " from NPC class " + npcClass.getClassName() + ".");
-			MetadataConstants.logRevision(npcClass, user, base, "Removed addon " + addon.getName());
+			AUDIT_LOG.saveEntry(npcClass, user, base, "Removed addon " + addon.getName());
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! /npc <ClassName> addon [<add|remove> <AddonName>]");
@@ -277,14 +280,14 @@ public class NPCCommand extends DragonsCommandExecutor {
 		else if(args[4].equalsIgnoreCase("del")) {
 			npcClass.deleteFromLootTable(args[2], args[3]);
 			sender.sendMessage(ChatColor.GREEN + "Removed from entity loot table successfully.");
-			MetadataConstants.logRevision(npcClass, user, base, "Removed entry from loot table");
+			AUDIT_LOG.saveEntry(npcClass, user, base, "Removed entry from loot table");
 		}
 		else {
 			Double chance = parseDouble(sender, args[4]);
 			if(chance == null) return;
 			npcClass.updateLootTable(args[2], args[3], chance);
 			sender.sendMessage(ChatColor.GREEN + "Updated entity loot table successfully.");
-			MetadataConstants.logRevision(npcClass, user, base, "Added entry to loot table");
+			AUDIT_LOG.saveEntry(npcClass, user, base, "Added entry to loot table");
 		}
 	}
 	
@@ -340,7 +343,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			changed = manageBehavior(sender, args, behaviors, conditionals, trigger, npcClass, behaviorsLocal);
 		}
 		if(changed) {
-			MetadataConstants.logRevision(npcClass, user(sender), base, "Updated behaviors");
+			AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Updated behaviors");
 		}
 	}
 	
@@ -430,6 +433,10 @@ public class NPCCommand extends DragonsCommandExecutor {
 				conditions.remove((int) index);
 				behaviorsLocal.getConditional(behaviorNo).getKey().remove((int) index);
 			}
+			else {
+				sender.sendMessage(ChatColor.RED + "Invalid behavioral arguments! For usage info, do /npc");
+				return false;
+			}
 			behavior.append("conditions", conditions);
 		}
 		else if(args[4].equalsIgnoreCase("action") || args[4].equalsIgnoreCase("a")) {
@@ -455,8 +462,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 					return true;
 				}
 				else if(args[6].equalsIgnoreCase("remove")) {
-					if(args.length < 10) {
-						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc class -s <ClassName> behavior <CLICK|HIT> <#> action shop remove <action#> <item#>");
+					if(args.length < 9) {
+						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action shop remove <action#> <item#>");
 						return false;
 					}
 					Integer actionNo = parseInt(sender, args[7]);
@@ -527,6 +534,10 @@ public class NPCCommand extends DragonsCommandExecutor {
 				actions.remove((int) index);
 				behaviorsLocal.getConditional(behaviorNo).getValue().remove((int) index);
 			}
+			else {
+				sender.sendMessage(ChatColor.RED + "Invalid behavioral arguments! For usage info, do /npc");
+				return false;
+			}
 			behavior.append("actions", actions);
 		}
 		else {
@@ -547,7 +558,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(npcClass.getData().toJson());
 		npcClass.setEntityType(type);
 		sender.sendMessage(ChatColor.GREEN + "Updated entity type successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity type to " + type);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity type to " + type);
 		propagateRevisions(npcClass);
 	}
 	
@@ -558,7 +569,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(npcClass.getData().toJson());
 		npcClass.setName(StringUtil.concatArgs(args, 2));
 		sender.sendMessage(ChatColor.GREEN + "Updated entity display name successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity display name to " + StringUtil.concatArgs(args, 2));
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity display name to " + StringUtil.concatArgs(args, 2));
 		propagateRevisions(npcClass);
 	}
 	
@@ -570,7 +581,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(npcClass.getData().toJson());
 		npcClass.setMaxHealth(maxHealth);
 		sender.sendMessage(ChatColor.GREEN + "Updated entity max health successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity max health to " + maxHealth);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity max health to " + maxHealth);
 		propagateRevisions(npcClass);
 	}
 	
@@ -582,7 +593,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(npcClass.getData().toJson());
 		npcClass.setLevel(level);
 		sender.sendMessage(ChatColor.GREEN + "Updated entity level successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity level to " + level);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity level to " + level);
 		propagateRevisions(npcClass);
 	}
 	
@@ -597,7 +608,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			npcClass.setAI(false);
 			sender.sendMessage(ChatColor.GREEN + "Automatically toggled off AI for this class based on the NPC type.");
 		}
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set NPC type to " + npcType);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set NPC type to " + npcType);
 		propagateRevisions(npcClass);
 	}
 	
@@ -609,7 +620,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		if(args[2].equalsIgnoreCase("none")) {
 			npcClass.setHeldItemType(null);
 			sender.sendMessage(ChatColor.GREEN + "Removed held item successfully.");
-			MetadataConstants.logRevision(npcClass, user(sender), base, "Removed held item");
+			AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Removed held item");
 			propagateRevisions(npcClass);
 		}
 		
@@ -618,7 +629,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		
 		npcClass.setHeldItemType(type);
 		sender.sendMessage(ChatColor.GREEN + "Set held item successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity held item to " + type);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity held item to " + type);
 		propagateRevisions(npcClass);
 	}
 	
@@ -630,7 +641,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(npcClass.getData().toJson());
 		npcClass.setAI(ai);
 		sender.sendMessage(ChatColor.GREEN + "Updated entity AI successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity AI to " + ai);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity AI to " + ai);
 		propagateRevisions(npcClass);
 	}
 	
@@ -642,7 +653,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(npcClass.getData().toJson());
 		npcClass.setImmortal(immortal);
 		sender.sendMessage(ChatColor.GREEN + "Updated entity immortality successfully.");
-		MetadataConstants.logRevision(npcClass, user(sender), base, "Set entity immortality to " + immortal);
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity immortality to " + immortal);
 		propagateRevisions(npcClass);
 	}
 	
@@ -781,7 +792,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 					if(npc == null) continue;
 					if(npc.getNPCClass().equals(npcClass)) {
 						LOGGER.trace("Automatically incremented revision count on " + floor.getFloorName() + " due to modification of NPC class " + npcClass.getClassName());
-						MetadataConstants.logRevision(floor, null, "Picked up revision of NPC class " + npcClass.getClassName());
+						AUDIT_LOG.saveEntry(floor, null, "Picked up revision of NPC class " + npcClass.getClassName());
 						break;
 					}
 				}

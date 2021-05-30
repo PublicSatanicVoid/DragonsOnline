@@ -283,6 +283,7 @@ public class PlayerEventListeners implements Listener {
 			Item item = ItemLoader.fromBukkit(user.getPlayer().getInventory().getItemInMainHand());
 			if (item != null) {
 				user.debug("- Holding an RPG item");
+				item.getItemClass().handleRightClick(user);
 				if(item.getItemClass().isGMLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
 					user.debug("- GM Locked, cancelling");
 					user.sendActionBar(ChatColor.DARK_RED + "- This item is GM locked! -");
@@ -303,7 +304,6 @@ public class PlayerEventListeners implements Listener {
 			}
 			npc.getNPCClass().executeConditionals(NPCTrigger.CLICK, user, npc);
 			npc.getNPCClass().getAddons().forEach(addon -> addon.onInteract(npc, user));
-			item.getItemClass().handleRightClick(user); // TODO verify that this works
 		}
 		user.updateQuests(event);
 	}

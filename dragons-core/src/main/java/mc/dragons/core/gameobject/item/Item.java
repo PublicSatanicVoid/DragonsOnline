@@ -37,15 +37,14 @@ import mc.dragons.core.storage.StorageManager;
 public class Item extends GameObject {
 	public static NamespacedKey ITEM_UUID_KEY = new NamespacedKey(Dragons.getInstance(), "dragons-uuid");
 	
-	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.<ItemClass, ItemClassLoader>getLoader();
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
 
 	private ItemStack itemStack;
 	private ItemClass itemClass;
 
 	
 	public static boolean isWeapon(Material type) {
-		return type == Material.BOW || type == Material.DIAMOND_SWORD || type == Material.GOLDEN_SWORD || type == Material.IRON_SWORD || type == Material.STONE_SWORD 
-				|| type == Material.WOODEN_SWORD || type == Material.STICK;
+		return type == Material.BOW || type == Material.STICK || type == Material.BOW || type == Material.CROSSBOW || type.toString().contains("SWORD") || type.toString().contains("AXE");
 	}
 	
 	/**
@@ -62,7 +61,7 @@ public class Item extends GameObject {
 		if (customLore.length > 0) {
 			lore.add("");
 		}
-		lore.addAll(Arrays.<String>asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
+		lore.addAll(Arrays.asList(customLore).stream().map(line -> ChatColor.DARK_PURPLE + " " + ChatColor.ITALIC + line).collect(Collectors.toList()));
 		List<String> statsMeta = new ArrayList<>();
 		double damage = data.getDouble("damage");
 		double armor = data.getDouble("armor");
@@ -107,7 +106,7 @@ public class Item extends GameObject {
 	}
 	
 	private List<String> getCompleteLore() {
-		return getCompleteLore(getData(), getLore().<String>toArray(new String[getLore().size()]), getUUID(), isCustom(), itemClass);
+		return getCompleteLore(getData(), getLore().toArray(new String[getLore().size()]), getUUID(), isCustom(), itemClass);
 	}
 
 	private List<String> getCompleteLore(String[] customLore) {

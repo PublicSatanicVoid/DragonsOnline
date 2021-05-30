@@ -22,8 +22,8 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 import mc.dragons.core.storage.local.LocalStorageAccess;
 import mc.dragons.core.util.FileUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.content.AuditLogLoader;
 import mc.dragons.tools.content.DragonsContentTools;
-import mc.dragons.tools.content.util.MetadataConstants;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -38,6 +38,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
  */
 public class FloorCommand extends DragonsCommandExecutor {
 	private static final String LOCAL_FLOOR_WARNING = ChatColor.RED + " (Warning: Dynamically injected floor!)";
+	private AuditLogLoader AUDIT_LOG = dragons.getLightweightLoaderRegistry().getLoader(AuditLogLoader.class);
 	
 	private static void pushFloor(Floor floor) {
 		Bukkit.getLogger().info("Pushing floor " + floor.getDisplayName());
@@ -97,7 +98,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 		}
 		sender.sendMessage(ChatColor.GREEN + "Pushing floor " + floor.getDisplayName() + "...");
 		pushFloor(floor);
-		MetadataConstants.logPush(floor);
+		AUDIT_LOG.savePush(floor, user(sender));
 		floor.setFloorStatus(FloorStatus.LIVE);
 		sender.sendMessage(ChatColor.GREEN + "...Complete! Floor status was changed to LIVE");
 		Bukkit.broadcastMessage(ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "[FLOOR PUSH] " + ChatColor.GREEN + "Floor " + floor.getDisplayName() + " was pushed to production staging! Great work everyone");
@@ -119,7 +120,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 		Integer lvMinOpt = parseInt(sender, args[3]);
 		if(lvMinOpt == null) return;
 		Floor floor = floorLoader.registerNew(args[1], args[2], args[2], lvMinOpt, superflat);
-		MetadataConstants.addBlankMetadata(floor, user(sender));
+		AUDIT_LOG.saveEntry(floor, user(sender), "Created");
 		sender.sendMessage(ChatColor.GREEN + "Created new floor successfully!");
 	}
 	
@@ -159,17 +160,17 @@ public class FloorCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.RED + "This floor is not currently editable. (Status: " + floor.getFloorStatus() + ")");
 		}
 		else if(args.length <= 2) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /floor -s <FloorName> <name|displayname|lvmin|volatile|status> <Value>");
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /floor <FloorName> <name|displayname|lvmin|volatile|status> <Value>");
 		}
 		else if(args[1].equalsIgnoreCase("name")) {
 			floor.setFloorName(args[2]);
 			sender.sendMessage(ChatColor.GREEN + "Updated floor name successfully.");
-			MetadataConstants.logRevision(floor, user, base, "Updated floor internal name to " + args[2]);
+			AUDIT_LOG.saveEntry(floor, user, base, "Updated floor internal name to " + args[2]);
 		}
 		else if(args[1].equalsIgnoreCase("displayname")) {
 			floor.setDisplayName(StringUtil.concatArgs(args, 2));
 			sender.sendMessage(ChatColor.GREEN + "Updated floor display name successfully.");
-			MetadataConstants.logRevision(floor, user, base, "Updated floor display name to " + StringUtil.concatArgs(args, 2));
+			AUDIT_LOG.saveEntry(floor, user, base, "Updated floor display name to " + StringUtil.concatArgs(args, 2));
 		}
 		else if(args[1].equalsIgnoreCase("status")) {
 			if(!requirePermission(sender, SystemProfileFlag.TASK_MANAGER)) return;
@@ -177,21 +178,21 @@ public class FloorCommand extends DragonsCommandExecutor {
 			if(status == null) return;
 			floor.setFloorStatus(status);
 			sender.sendMessage(ChatColor.GREEN + "Updated floor status successfully.");
-			MetadataConstants.logRevision(floor, user, base, "Updated floor status to " + status);
+			AUDIT_LOG.saveEntry(floor, user, base, "Updated floor status to " + status);
 		}
 		else if(args[1].equalsIgnoreCase("lvmin")) {
 			Integer lvMin = parseInt(sender, args[2]);
 			if(lvMin == null) return;
 			floor.setLevelMin(lvMin);
 			sender.sendMessage(ChatColor.GREEN + "Updated floor level requirement successfully.");
-			MetadataConstants.logRevision(floor, user, base, "Updated floor level min to " + lvMin);
+			AUDIT_LOG.saveEntry(floor, user, base, "Updated floor level min to " + lvMin);
 		}
 		else if(args[1].equalsIgnoreCase("volatile")) {
 			Boolean isVolatile = parseBoolean(sender, args[2]);
 			if(isVolatile == null) return;
 			floor.setVolatile(isVolatile);
 			sender.sendMessage(ChatColor.GREEN + "Updated floor volatility status sucessfully.");
-			MetadataConstants.logRevision(floor, user, base, "Updated floor volatility to " + isVolatile);
+			AUDIT_LOG.saveEntry(floor, user, base, "Updated floor volatility to " + isVolatile);
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid arguments! /floor <FloorName> <name|displayname|lvmin|volatile> <Value>");
@@ -207,6 +208,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 			return;
 		}
 		registry.removeFromDatabase(floor);
+		AUDIT_LOG.saveEntry(floor, user(sender), "Deleted");
 		sender.sendMessage(ChatColor.GREEN + "Deleted this floor successfully. World files remain intact. Changes may not fully take effect until a server restart.");
 	}
 	

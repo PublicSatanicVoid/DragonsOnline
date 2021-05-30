@@ -100,7 +100,6 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 	public User loadObject(UUID uuid) {
 		LOGGER.trace("Loading user by UUID " + uuid);
 		for (User user : users) {
-			LOGGER.verbose("-Checking user " + user + ": " + user.getUUID() + " vs " + uuid + " (eq: " + user.getUUID().equals(uuid) + ")");
 			if (user.getUUID().equals(uuid)) {
 				LOGGER.verbose(" - Found user in cache, fixing and returning");
 				return fixUser(user);

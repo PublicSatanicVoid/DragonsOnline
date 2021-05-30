@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.potion.PotionEffectType;
@@ -28,10 +29,11 @@ import mc.dragons.core.gameobject.quest.QuestTrigger.TriggerType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
-import mc.dragons.tools.content.util.MetadataConstants;
+import mc.dragons.tools.content.AuditLogLoader;
 
 public class QuestCommand extends DragonsCommandExecutor {
 	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
+	private AuditLogLoader AUDIT_LOG = dragons.getLightweightLoaderRegistry().getLoader(AuditLogLoader.class);
 
 	private void showHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.YELLOW + "/quest create <ShortName> <LvMin>" + ChatColor.GRAY + " create a new quest");
@@ -65,7 +67,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Integer lvMin = parseInt(sender, args[2]);
 		if(lvMin == null) return;
 		Quest quest = questLoader.registerNew(args[1], "Unnamed Quest", lvMin);
-		MetadataConstants.addBlankMetadata(quest, user(sender));
+//		MetadataConstants.addBlankMetadata(quest, user(sender));
+		AUDIT_LOG.saveEntry(quest, user(sender), "Created");
 		sender.sendMessage(ChatColor.GREEN + "Quest created successfully.");
 	}
 	
@@ -93,6 +96,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[1]);
 		if(quest == null) return;
 		registry.removeFromDatabase(quest);
+		AUDIT_LOG.saveEntry(quest, user(sender), "Deleted");
 		sender.sendMessage(ChatColor.GREEN + "Deleted quest successfully.");
 	}
 	
@@ -131,7 +135,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(quest.getData().toJson());
 		quest.setQuestName(StringUtil.concatArgs(args, 2));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest name successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Set quest name to " + StringUtil.concatArgs(args, 2));
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Set quest name to " + StringUtil.concatArgs(args, 2));
 	}
 	
 	private void updateLevelMin(CommandSender sender, String[] args) {
@@ -140,7 +144,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(quest.getData().toJson());
 		quest.setLevelMin(Integer.valueOf(args[2]));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest level min successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Set level min to " + args[2]);
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Set level min to " + args[2]);
 	}
 	
 	private void addStage(CommandSender sender, String[] args) {
@@ -156,7 +160,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 4 ? Arrays.copyOfRange(args, 4, args.length) : null), new ArrayList<>(), quest);
 		quest.addStep(step);
 		sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Added new quest stage");
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Added new quest stage");
 	}
 	
 	private void insertStage(CommandSender sender, String[] args) {
@@ -173,7 +177,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 5 ? Arrays.copyOfRange(args, 5, args.length) : null), new ArrayList<>(), quest);
 		quest.insertStep(before, step);
 		sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Inserted new quest stage");
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Inserted new quest stage");
 	}
 	
 	private void manageStage(CommandSender sender, String[] args) {
@@ -256,6 +260,9 @@ public class QuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add COMPLETION_HEADER");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add WAIT <Seconds>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add CHOICES");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add FAIL_QUEST");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add [UN]STASH_ITEMS <MaterialType>");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add SPAWN_RELATIVE <NpcClass> <Phased?> <Quantity> <MaxRadius>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action dialogue add <Action#> <DialogueText>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action branch add <GoToStage#> <TriggerType> <TriggerParam|NONE>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action choice add <Action#> <GoToStage#> <ChoiceText>");
@@ -308,18 +315,30 @@ public class QuestCommand extends DragonsCommandExecutor {
 		else if(StringUtil.equalsAnyIgnoreCase(args[5], "COMPLETION_HEADER", "CompletionHeader")) {
 			step.addAction(QuestAction.completionHeaderAction(quest));
 		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[5], "FAIL_QUEST", "FailQuest", "Fail")) {
+			step.addAction(QuestAction.failQuestAction(quest));
+		}
 		else if(args[5].equalsIgnoreCase("WAIT")) {
 			step.addAction(QuestAction.waitAction(quest, Integer.valueOf(args[6])));
 		}
 		else if(args[5].equalsIgnoreCase("CHOICES")) {
 			step.addAction(QuestAction.choicesAction(quest, new LinkedHashMap<>()));
 		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[5], "STASH_ITEMS", "StashItems", "Stash")) {
+			step.addAction(QuestAction.stashItemAction(quest, Material.valueOf(args[6])));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[5], "UNSTASH_ITEMS", "UnstashItems", "Unstash")) {
+			step.addAction(QuestAction.unstashItemAction(quest, Material.valueOf(args[6])));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[5], "SPAWN_RELATIVE", "SpawnRelative")) {
+			step.addAction(QuestAction.spawnRelativeAction(quest, npcClassLoader.getNPCClassByClassName(args[6]), Boolean.valueOf(args[7]), Integer.valueOf(args[8]), Integer.valueOf(args[9])));
+		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid action type! Valid action types are " + StringUtil.parseList(QuestActionType.values()));
 			return;
 		}
 		sender.sendMessage(ChatColor.GREEN + "Added new action to quest stage successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Added action to stage " + args[2]);
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Added action to stage " + args[2]);
 	}
 	
 	private void editDialogue(CommandSender sender, String[] args) {
@@ -352,13 +371,13 @@ public class QuestCommand extends DragonsCommandExecutor {
 			Document base = Document.parse(quest.getData().toJson());
 			step.addDialogue(Integer.valueOf(args[6]), dialogue);
 			sender.sendMessage(ChatColor.GREEN + "Added dialogue to quest stage action successfully.");
-			MetadataConstants.logRevision(quest, user(sender), base, "Added dialogue to action " + args[6] + " of stage " + args[2]);
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Added dialogue to action " + args[6] + " of stage " + args[2]);
 		}
 		else if(args[5].equalsIgnoreCase("remove")) {
 			Document base = Document.parse(quest.getData().toJson());
 			step.removeDialogue(Integer.valueOf(args[6]), Integer.valueOf(args[7]));
 			sender.sendMessage(ChatColor.GREEN + "Removed dialogue line from quest stage action successfully.");
-			MetadataConstants.logRevision(quest, user(sender), base, "Removed dialogue line " + args[7] + " from action " + args[6] + " of stage " + args[2]);
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Removed dialogue line " + args[7] + " from action " + args[6] + " of stage " + args[2]);
 		}
 	}
 	
@@ -377,7 +396,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			QuestAction action = QuestAction.goToStageAction(quest, Integer.valueOf(args[6]), false);
 			step.addBranchPoint(trigger, action);
 			sender.sendMessage(ChatColor.GREEN + "Added branch point successfully.");
-			MetadataConstants.logRevision(quest, user(sender), base, "Added branch point to stage " + args[2]);
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Added branch point to stage " + args[2]);
 		}
 	}
 	
@@ -399,7 +418,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			}
 			step.addChoice(Integer.valueOf(args[6]), choice, Integer.valueOf(args[8]));
 			sender.sendMessage(ChatColor.GREEN + "Added choice to quest stage action successfully.");
-			MetadataConstants.logRevision(quest, user(sender), base, "Added quest choice to action " + args[6] + " of stage " + args[2]);
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Added quest choice to action " + args[6] + " of stage " + args[2]);
 		}
 	}
 	
@@ -417,7 +436,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		
 		step.deleteAction(Integer.valueOf(args[5]));
 		sender.sendMessage(ChatColor.GREEN + "Removed action from quest stage successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Removed action " + args[4] + " from stage " + args[2]);
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Removed action " + args[4] + " from stage " + args[2]);
 	}
 	
 	private void updateStepName(CommandSender sender, String[] args) {
@@ -429,7 +448,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		
 		step.setStepName(StringUtil.concatArgs(args, 4));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest step name successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Set name of stage " + args[2] + " to " + StringUtil.concatArgs(args, 4));
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Set name of stage " + args[2] + " to " + StringUtil.concatArgs(args, 4));
 	}
 	
 	private void updateStepTrigger(CommandSender sender, String[] args) {
@@ -446,7 +465,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 		step.setTrigger(makeTrigger(type, params.toArray(new String[] {})));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest stage trigger successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Set trigger of stage " + args[2] + " to " + type);
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Set trigger of stage " + args[2] + " to " + type);
 	}
 	
 	private void deleteStep(CommandSender sender, String[] args) {
@@ -457,7 +476,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		
 		quest.delStep(stepNo);
 		sender.sendMessage(ChatColor.GREEN + "Deleted quest stage successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Deleted step " + args[2]);
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Deleted step " + args[2]);
 	}
 	
 	private void lockQuest(CommandSender sender, String[] args) {
@@ -466,7 +485,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(quest.getData().toJson());
 		quest.setLocked(true);
 		sender.sendMessage(ChatColor.GREEN + "Locked quest successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Locked quest");
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Locked quest");
 	}
 	
 	private void unlockQuest(CommandSender sender, String[] args) {
@@ -475,7 +494,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(quest.getData().toJson());
 		quest.setLocked(false);
 		sender.sendMessage(ChatColor.GREEN + "Unlocked quest successfully.");
-		MetadataConstants.logRevision(quest, user(sender), base, "Unlocked quest");
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Unlocked quest");
 	}
 	
 	@Override
@@ -588,7 +607,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return "Target NPC Class: " + ChatColor.GREEN + action.getNPCClass().getName() + " (" + action.getNPCClass().getClassName() + ")\n"
 					+ ChatColor.GRAY + "    - Location: " + ChatColor.GREEN + StringUtil.locToString(action.getLocation()) + "\n"
 					+ ChatColor.GRAY + (action.getNPCReferenceName() == null ? "    - No reference name" : "    - Reference name: " + ChatColor.GREEN + action.getNPCReferenceName()) + "\n"
-					+ ChatColor.GRAY + (action.isPhased() ? "    - Phased for player" : "    - Not phased");
+					+ ChatColor.GRAY + "    - " + (action.isPhased() ? "Phased for player" : "Not phased");
 		case TELEPORT_NPC:
 			return "NPC Reference Name: " + ChatColor.GREEN + action.getNPCReferenceName() + "\n"
 					+ ChatColor.GRAY + "    - To: " + ChatColor.GREEN + StringUtil.locToString(action.getLocation());
@@ -618,6 +637,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		case REMOVE_POTION_EFFECT:
 			return ChatColor.GRAY + "Effect Type: " + ChatColor.GREEN + action.getEffectType().getName();
 		case COMPLETION_HEADER:
+		case FAIL_QUEST:
 			return ChatColor.GRAY + "(No data)";
 		case WAIT:
 			return ChatColor.GRAY + "Time: " + ChatColor.GREEN + action.getWaitTime() + "s";
@@ -627,6 +647,14 @@ public class QuestCommand extends DragonsCommandExecutor {
 				choiceMsg += "      - " + choice.getKey() + ChatColor.YELLOW + " -> " + ChatColor.GRAY + "Step " + choice.getValue() + "\n";
 			}
 			return choiceMsg;
+		case STASH_ITEMS:
+		case UNSTASH_ITEMS:
+			return ChatColor.GRAY + "Material Type: " + ChatColor.GREEN + action.getMaterialType();
+		case SPAWN_RELATIVE:
+			return ChatColor.GRAY + "Target NPC Class: " + ChatColor.GREEN + action.getNPCClass().getName() + " (" + action.getNPCClass().getClassName() + ")\n"
+					+ ChatColor.GRAY + "    - Quantity: " + ChatColor.GREEN + action.getQuantity() + "\n"
+					+ ChatColor.GRAY + "    - Radius: " + ChatColor.GREEN + action.getRadius() + "\n"
+					+ ChatColor.GRAY + "    - " + (action.isPhased() ? "Phased for player" : "Not phased");
 		}
 		return "";
 	}

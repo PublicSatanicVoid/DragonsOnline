@@ -464,6 +464,16 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			storageAccess.set("currentServer", args[1]);
 		}
 		
+		else if(label.equalsIgnoreCase("testitemstash")) {
+			user.stashItems(questLoader.getQuestByName(args[0]), Material.valueOf(args[1]));
+			sender.sendMessage("Stash: " + user.getData().get("questStash", new Document()).toJson());
+		}
+		
+		else if(label.equalsIgnoreCase("testitemunstash")) {
+			user.unstashItems(questLoader.getQuestByName(args[0]), Material.valueOf(args[1]));
+			sender.sendMessage("Stash: " + user.getData().get("questStash", new Document()).toJson());
+		}
+		
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
 		}

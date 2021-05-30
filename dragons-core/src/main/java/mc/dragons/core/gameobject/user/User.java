@@ -25,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -579,9 +580,9 @@ public class User extends GameObject {
 		debug("updateQuestProgress(" + quest.getName() + ", " + questStep.getStepName() + ", notify=" + notify + ")");
 		questProgress.put(quest, questStep);
 		resetQuestPauseState(quest);
-		questActionIndices.put(quest, Integer.valueOf(0));
-		updatedQuestProgress.append(quest.getName(), Integer.valueOf(quest.getSteps().indexOf(questStep)));
-		storageAccess.update(new Document("quests", updatedQuestProgress));
+		questActionIndices.put(quest, 0);
+		updatedQuestProgress.append(quest.getName(), quest.getSteps().indexOf(questStep));
+		storageAccess.set("quests", updatedQuestProgress);
 		if (notify) {
 			if (questStep.getStepName().equals("Complete")) {
 				logQuestEvent(quest, Level.FINE, "completed quest");
@@ -593,9 +594,17 @@ public class User extends GameObject {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				User.this.updateQuests((Event) null);
+				updateQuests(null);
 			}
 		}.runTaskLater(instance, 1L);
+	}
+	
+	public void removeQuest(Quest quest) {
+		questProgress.remove(quest);
+		questActionIndices.remove(quest);
+		Document updatedQuestProgress = (Document) getData("quests");
+		updatedQuestProgress.remove(quest.getName());
+		storageAccess.set("quests", updatedQuestProgress);
 	}
 
 	public void updateQuestAction(Quest quest, int actionIndex) {
@@ -611,6 +620,43 @@ public class User extends GameObject {
 		updateQuestProgress(quest, questStep, true);
 	}
 
+	public void stashItems(Quest quest, Material type) {
+		List<UUID> stashed = new ArrayList<>();
+		for(ItemStack itemStack : player.getInventory().getContents()) {
+			if(itemStack == null) continue;
+			if(itemStack.getType() != type) continue;
+			Item item = ItemLoader.fromBukkit(itemStack);
+			if(item == null) continue;
+			stashed.add(item.getUUID());
+		}
+		player.getInventory().remove(type);
+		Document stash = getData().get("questStash", new Document());
+		stash.computeIfAbsent(quest.getName(), q -> new ArrayList<>());
+		stash.getList(quest.getName(), UUID.class).addAll(stashed);
+		storageAccess.set("questStash", stash);
+		if(stashed.size() > 0) {
+			player.sendMessage(ChatColor.RED + "" + stashed.size() + " items were temporarily removed from your inventory due to quest " + quest.getQuestName());
+		}
+	}
+	
+	public void unstashItems(Quest quest, Material type) {
+		Document stash = getData().get("questStash", new Document());
+		List<UUID> stashed = stash.get(quest.getName(), new ArrayList<>());
+		Map<UUID, Item> items = itemLoader.loadObjects(Set.copyOf(stashed));
+		int restored = 0;
+		for(Item item : items.values()) {
+			if(item.getMaterial() == type) {
+				giveItem(item, true, false, true);
+				stashed.remove(item.getUUID());
+				restored++;
+			}
+		}
+		stash.append(quest.getName(), stashed);
+		storageAccess.set("questStash", stash);
+		if(restored > 0) {
+			player.sendMessage(ChatColor.GREEN + "" + restored + " items were returned to your inventory.");
+		}
+	}
 	
 	/*
 	 * GUI management

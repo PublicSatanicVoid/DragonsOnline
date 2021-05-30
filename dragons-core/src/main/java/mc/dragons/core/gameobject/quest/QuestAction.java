@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.attribute.Attributable;
@@ -31,6 +32,7 @@ import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.util.BlockUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.PermissionUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -70,6 +72,8 @@ public class QuestAction {
 	private int amplifier;
 	private int waitTime;
 	private Map<String, Integer> choices;
+	private Material materialType;
+	private int radius;
 
 	/**
 	 * The result of executing a quest action.
@@ -83,7 +87,6 @@ public class QuestAction {
 	 */
 	public static class QuestActionResult {
 		private boolean stageModified;
-
 		private boolean shouldPause;
 
 		public QuestActionResult(boolean stageModified, boolean shouldPause) {
@@ -114,7 +117,11 @@ public class QuestAction {
 		REMOVE_POTION_EFFECT,
 		COMPLETION_HEADER,
 		WAIT, 
-		CHOICES;
+		CHOICES,
+		FAIL_QUEST,
+		STASH_ITEMS,
+		UNSTASH_ITEMS,
+		SPAWN_RELATIVE;
 	}
 
 	public static QuestAction fromDocument(Document action, Quest quest) {
@@ -126,43 +133,51 @@ public class QuestAction {
 			questAction.npcClass = null;
 			questAction.npcClassShortName = action.getString("npcClass");
 			questAction.npcReferenceName = action.getString("npcReferenceName");
-			questAction.phased = action.getBoolean("phased").booleanValue();
+			questAction.phased = action.getBoolean("phased");
 			questAction.to = StorageUtil.docToLoc(action.get("location", Document.class));
 		} else if (questAction.action == QuestActionType.BEGIN_DIALOGUE) {
 			questAction.npcClass = null;
 			questAction.npcClassShortName = action.getString("npcClass");
 			questAction.dialogue = action.getList("dialogue", String.class);
 		} else if (questAction.action == QuestActionType.GIVE_XP) {
-			questAction.xpAmount = action.getInteger("xp").intValue();
+			questAction.xpAmount = action.getInteger("xp");
 		} else if (questAction.action == QuestActionType.GOTO_STAGE) {
-			questAction.stage = action.getInteger("stage").intValue();
-			questAction.notify = action.getBoolean("notify").booleanValue();
+			questAction.stage = action.getInteger("stage");
+			questAction.notify = action.getBoolean("notify");
 		} else if (questAction.action == QuestActionType.TELEPORT_NPC) {
 			questAction.npcReferenceName = action.getString("npcReferenceName");
 			questAction.to = StorageUtil.docToLoc(action.get("tpTo", Document.class));
 		} else if (questAction.action == QuestActionType.PATHFIND_NPC) {
 			questAction.npcReferenceName = action.getString("npcReferenceName");
 			questAction.to = StorageUtil.docToLoc(action.get("tpTo", Document.class));
-			questAction.stage = action.getInteger("stage").intValue();
+			questAction.stage = action.getInteger("stage");
 		} else if (questAction.action == QuestActionType.TAKE_ITEM) {
 			questAction.itemClass = itemClassLoader.getItemClassByClassName(action.getString("itemClass"));
-			questAction.quantity = action.getInteger("quantity").intValue();
+			questAction.quantity = action.getInteger("quantity");
 		} else if (questAction.action == QuestActionType.GIVE_ITEM) {
 			questAction.itemClass = itemClassLoader.getItemClassByClassName(action.getString("itemClass"));
-			questAction.quantity = action.getInteger("quantity").intValue();
+			questAction.quantity = action.getInteger("quantity");
 		} else if (questAction.action == QuestActionType.ADD_POTION_EFFECT) {
 			questAction.effectType = PotionEffectType.getByName(action.getString("effectType"));
-			questAction.duration = action.getInteger("duration").intValue();
-			questAction.amplifier = action.getInteger("amplifier").intValue();
+			questAction.duration = action.getInteger("duration");
+			questAction.amplifier = action.getInteger("amplifier");
 		} else if (questAction.action == QuestActionType.REMOVE_POTION_EFFECT) {
 			questAction.effectType = PotionEffectType.getByName(action.getString("effectType"));
 		} else if (questAction.action == QuestActionType.WAIT) {
-			questAction.waitTime = action.getInteger("waitTime").intValue();
+			questAction.waitTime = action.getInteger("waitTime");
 		} else if (questAction.action == QuestActionType.CHOICES) {
 			questAction.choices = new LinkedHashMap<>();
 			for (Document choice : action.getList("choices", Document.class)) {
 				questAction.choices.put(choice.getString("choice"), choice.getInteger("stage"));
 			}
+		} else if (questAction.action == QuestActionType.STASH_ITEMS || questAction.action == QuestActionType.UNSTASH_ITEMS) {
+			questAction.materialType = Material.valueOf(action.getString("materialType"));
+		} else if (questAction.action == QuestActionType.SPAWN_RELATIVE) {
+			questAction.npcClass = null;
+			questAction.npcClassShortName = action.getString("npcClass");
+			questAction.phased = action.getBoolean("phased");
+			questAction.quantity = action.getInteger("quantity");
+			questAction.radius = action.getInteger("radius");
 		}
 		questAction.quest = quest;
 		return questAction;
@@ -293,6 +308,42 @@ public class QuestAction {
 		return action;
 	}
 
+	public static QuestAction failQuestAction(Quest quest) {
+		QuestAction action = new QuestAction();
+		action.action = QuestActionType.FAIL_QUEST;
+		action.quest = quest;
+		return action;
+	}
+	
+	public static QuestAction stashItemAction(Quest quest, Material type) {
+		QuestAction action = new QuestAction();
+		action.action = QuestActionType.STASH_ITEMS;
+		action.materialType = type;
+		action.quest = quest;
+		return action;
+	}
+	
+	public static QuestAction unstashItemAction(Quest quest, Material type) {
+		QuestAction action = new QuestAction();
+		action.action = QuestActionType.UNSTASH_ITEMS;
+		action.materialType = type;
+		action.quest = quest;
+		return action;
+	}
+	
+	public static QuestAction spawnRelativeAction(Quest quest, NPCClass npcClass, boolean phased, int quantity, int radius) {
+		QuestAction action = new QuestAction();
+		action.action = QuestActionType.SPAWN_RELATIVE;
+		action.npcClass = npcClass;
+		action.npcClassShortName = npcClass.getClassName();
+		action.phased = phased;
+		action.quantity = quantity;
+		action.radius = radius;
+		action.quest = quest;
+		return action;
+	}
+
+	
 	public Document toDocument() {
 		List<Document> choices;
 		Document document = new Document("type", action.toString());
@@ -306,30 +357,30 @@ public class QuestAction {
 			break;
 		case SPAWN_NPC:
 			npcClassDeferredLoad();
-			document.append("npcClass", npcClass.getClassName()).append("phased", Boolean.valueOf(phased)).append("npcReferenceName", npcReferenceName).append("location",
-					StorageUtil.locToDoc(to));
+			document.append("npcClass", npcClass.getClassName()).append("phased", phased).append("npcReferenceName", npcReferenceName)
+				.append("location", StorageUtil.locToDoc(to));
 			break;
 		case GIVE_XP:
-			document.append("xp", Integer.valueOf(xpAmount));
+			document.append("xp", xpAmount);
 			break;
 		case GOTO_STAGE:
-			document.append("stage", Integer.valueOf(stage)).append("notify", Boolean.valueOf(notify));
+			document.append("stage", stage).append("notify", notify);
 			break;
 		case TELEPORT_NPC:
 		case PATHFIND_NPC:
-			document.append("npcReferenceName", npcReferenceName).append("tpTo", StorageUtil.locToDoc(to)).append("stage", Integer.valueOf(stage));
+			document.append("npcReferenceName", npcReferenceName).append("tpTo", StorageUtil.locToDoc(to)).append("stage", stage);
 			break;
 		case TAKE_ITEM:
 		case GIVE_ITEM:
-			document.append("itemClass", itemClass.getClassName()).append("quantity", Integer.valueOf(quantity));
+			document.append("itemClass", itemClass.getClassName()).append("quantity", quantity);
 			break;
 		case ADD_POTION_EFFECT:
-			document.append("duration", Integer.valueOf(duration)).append("amplifier", Integer.valueOf(amplifier));
+			document.append("duration", duration).append("amplifier", amplifier);
 		case REMOVE_POTION_EFFECT:
 			document.append("effectType", effectType.getName());
 			break;
 		case WAIT:
-			document.append("waitTime", Integer.valueOf(waitTime));
+			document.append("waitTime", waitTime);
 			break;
 		case CHOICES:
 			choices = new ArrayList<>();
@@ -339,6 +390,14 @@ public class QuestAction {
 			document.append("choices", choices);
 			break;
 		case COMPLETION_HEADER:
+		case FAIL_QUEST:
+			break;
+		case STASH_ITEMS:
+		case UNSTASH_ITEMS:
+			document.append("materialType", materialType.toString());
+			break;
+		case SPAWN_RELATIVE:
+			document.append("npcClass", npcClass.getClassName()).append("phased", phased).append("quantity", quantity).append("radius", radius);
 			break;
 		default:
 			break;
@@ -412,6 +471,14 @@ public class QuestAction {
 	public Map<String, Integer> getChoices() {
 		return choices;
 	}
+	
+	public Material getMaterialType() {
+		return materialType;
+	}
+	
+	public int getRadius() {
+		return radius;
+	}
 
 	/**
 	 * Run this action on the specified user.
@@ -419,7 +486,7 @@ public class QuestAction {
 	 * @param user
 	 * @return The result of running this action.
 	 */
-	public QuestActionResult execute(final User user) {
+	public QuestActionResult execute(User user) {
 		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) return new QuestActionResult(false, false);
 		if (action == QuestActionType.TELEPORT_PLAYER) {
 			user.getPlayer().teleport(to);
@@ -538,6 +605,26 @@ public class QuestAction {
 			user.getPlayer().sendMessage(" ");
 			user.setQuestPaused(quest, true);
 			return new QuestActionResult(false, true);
+		} else if (action == QuestActionType.FAIL_QUEST) {
+			user.getPlayer().sendMessage(ChatColor.RED + "Quest failed: " + quest.getQuestName());
+			user.removeQuest(quest);
+		} else if (action == QuestActionType.STASH_ITEMS) {
+			user.stashItems(quest, materialType);
+		} else if (action == QuestActionType.UNSTASH_ITEMS) {
+			user.unstashItems(quest, materialType);
+		} else if (action == QuestActionType.SPAWN_RELATIVE) {
+			Location loc = user.getPlayer().getLocation();
+			for(int i = 0; i < quantity; i++) {
+				double angle = Math.random() * Math.PI * 2;
+				double radius = Math.random() * this.radius;
+				double dX = radius * Math.cos(angle);
+				double dZ = radius * Math.sin(angle);
+				Location spawn = BlockUtil.getAirAboveXZ(loc.clone().add(dX, 0, dZ));
+				NPC npc = npcLoader.registerNew(spawn.getWorld(), spawn, npcClass);
+				if (phased) {
+					npc.phase(user.getPlayer());
+				}
+			}
 		}
 		return new QuestActionResult(false, false);
 	}

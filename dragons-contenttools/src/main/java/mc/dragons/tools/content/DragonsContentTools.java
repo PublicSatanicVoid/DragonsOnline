@@ -3,6 +3,7 @@ package mc.dragons.tools.content;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.core.addon.Addon;
 import mc.dragons.tools.content.addon.NPCIdentifierAddon;
@@ -36,6 +37,9 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		saveDefaultConfig();
 		
 		PUSH_FOLDER = getConfig().getString("push-folder", "C:\\DragonsPush\\");
+		
+		Dragons dragons = getDragonsInstance();
+		dragons.getLightweightLoaderRegistry().register(new AuditLogLoader(dragons.getMongoConfig()));
 		
 		getCommand("region").setExecutor(new RegionCommand());
 		getCommand("npc").setExecutor(new NPCCommand());
@@ -73,7 +77,7 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		getCommand("warps").setExecutor(warpCommandsExecutor);
 		
 		Addon npcIdentifierAddon = new NPCIdentifierAddon();
-		getDragonsInstance().getAddonRegistry().register(npcIdentifierAddon);
+		dragons.getAddonRegistry().register(npcIdentifierAddon);
 		npcIdentifierAddon.apply();
 		
 		Bukkit.getPluginManager().registerEvents(new PlayerChangedWorldListener(), this);
