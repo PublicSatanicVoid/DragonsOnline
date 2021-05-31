@@ -94,9 +94,9 @@ public class SidebarManager {
 			instance.getLogger().warning("Attempted to update scoreboard for " + player.getName() + " but they did not have a scoreboard");
 			return;
 		}
-		RegionLoader regionLoader = GameObjectType.REGION.<Region, RegionLoader>getLoader();
+		RegionLoader regionLoader = GameObjectType.REGION.getLoader();
 		User user = UserLoader.fromPlayer(player);
-		if(!user.isInitialized()) {
+		if(user == null || !user.isInitialized()) {
 			instance.getLogger().verbose("Skipping scoreboard update for uninitialized player " + player.getName());
 			return;
 		}

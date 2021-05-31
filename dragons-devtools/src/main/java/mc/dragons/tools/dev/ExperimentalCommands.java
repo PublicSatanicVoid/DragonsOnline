@@ -474,6 +474,16 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("Stash: " + user.getData().get("questStash", new Document()).toJson());
 		}
 		
+		else if(label.equalsIgnoreCase("testmobai")) {
+			boolean ai = Boolean.valueOf(args[0]);
+			boolean gravity = Boolean.valueOf(args[1]);
+			boolean collidable = Boolean.valueOf(args[2]);
+			LivingEntity entity = (LivingEntity) player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
+			entity.setAI(ai);
+			entity.setGravity(gravity);
+			entity.setCollidable(collidable);
+		}
+		
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
 		}

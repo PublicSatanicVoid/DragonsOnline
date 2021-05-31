@@ -160,3 +160,4 @@ commands:
     description: (ADMIN) Spoof the server that a mock user is connected to.
   testitemstash:
   testitemunstash:
+  testmobai:

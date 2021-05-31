@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.bson.Document;
-import org.bukkit.Bukkit;
 
 import com.mongodb.client.FindIterable;
 
@@ -106,7 +105,7 @@ public class CorrelationLogger extends AbstractLightweightLoader<CorrelationLogE
 		if(correlationID == null) {
 			return;
 		}
-		Bukkit.getLogger().log(level, "[" + correlationID.toString().substring(0, 5) + "] " + message);
+		Dragons.getInstance().getLogger().log(level, "[" + correlationID.toString().substring(0, 5) + "] " + message);
 		rollingAsync(() -> collection.insertOne(new Document("correlationID", correlationID.toString()).append("level", level.getName())
 				.append("timestamp", StringUtil.dateFormatNow()).append("message", message)
 				.append("instance", Dragons.getInstance().getServerName())));

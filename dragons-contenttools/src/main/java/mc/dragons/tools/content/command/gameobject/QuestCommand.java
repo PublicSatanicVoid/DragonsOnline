@@ -248,7 +248,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	private void displayActionHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.RED + "Insufficient arguments!");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add TELEPORT_PLAYER");
-		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add SPAWN_NPC <NpcClass> [NpcReferenceName] [Phased?]");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add SPAWN_NPC <NpcClass> [NpcReferenceName [Phased?]]");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add TELEPORT_NPC <NpcReferenceName>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add PATHFIND_NPC <NpcReferenceName> [GotoStage#WhenComplete]");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add BEGIN_DIALOGUE <NpcClass>");
@@ -281,7 +281,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			step.addAction(QuestAction.teleportPlayerAction(quest, user.getPlayer().getLocation()));
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[5], "SPAWN_NPC", "SpawnNPC")) {
-			step.addAction(QuestAction.spawnNPCAction(quest, npcClassLoader.getNPCClassByClassName(args[6]), user.getPlayer().getLocation(), args.length <= 7 ? "" : args[7], args.length <= 8 ? false : Boolean.valueOf(args[9])));
+			step.addAction(QuestAction.spawnNPCAction(quest, npcClassLoader.getNPCClassByClassName(args[6]), user.getPlayer().getLocation(), args.length <= 7 ? "" : args[7], args.length <= 8 ? false : Boolean.valueOf(args[8])));
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[5], "TELEPORT_NPC", "TeleportNPC")) {
 			if(!requirePlayer(sender)) return;

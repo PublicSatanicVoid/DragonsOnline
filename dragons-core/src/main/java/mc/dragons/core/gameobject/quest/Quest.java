@@ -51,6 +51,7 @@ public class Quest extends GameObject {
 	
 	private List<QuestStep> steps;
 	private Table<User, String, NPC> referenceNames;
+	private boolean reentrant;
 
 	public Quest(StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
@@ -62,6 +63,23 @@ public class Quest extends GameObject {
 		for (Document step : rawSteps) {
 			steps.add(QuestStep.fromDocument(step, this));
 		}
+		recalculateReentrance();
+	}
+	
+	private void recalculateReentrance() {
+		for(QuestStep step : getSteps()) {
+			for(QuestAction action : step.getActions()) {
+				if(!action.getActionType().isReentrable()) {
+					reentrant = false;
+					return;
+				}
+			}
+		}
+		reentrant = true;
+	}
+	
+	public boolean isReentrant() {
+		return reentrant;
 	}
 
 	public List<Document> getStepsAsDoc() {
@@ -81,6 +99,7 @@ public class Quest extends GameObject {
 		List<Document> stepsDoc = getStepsAsDoc();
 		stepsDoc.add(step.toDocument());
 		update(new Document("steps", stepsDoc));
+		recalculateReentrance();
 	}
 	
 	public void insertStep(int before, QuestStep step) {
@@ -88,6 +107,7 @@ public class Quest extends GameObject {
 		List<Document> stepsDoc = getStepsAsDoc();
 		stepsDoc.add(before, step.toDocument());
 		update(new Document("steps", stepsDoc));
+		recalculateReentrance();
 	}
 
 	public void delStep(int step) {
@@ -95,6 +115,7 @@ public class Quest extends GameObject {
 		stepsDoc.remove(step);
 		steps.remove(step);
 		update(new Document("steps", stepsDoc));
+		recalculateReentrance();
 	}
 
 	public List<QuestStep> getSteps() {

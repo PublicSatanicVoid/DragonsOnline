@@ -104,24 +104,39 @@ public class QuestAction {
 	}
 
 	public enum QuestActionType {
-		TELEPORT_PLAYER,
-		SPAWN_NPC, 
-		TELEPORT_NPC, 
-		PATHFIND_NPC, 
-		BEGIN_DIALOGUE,
-		GIVE_XP, 
-		GOTO_STAGE,
-		TAKE_ITEM,
-		GIVE_ITEM, 
-		ADD_POTION_EFFECT,
-		REMOVE_POTION_EFFECT,
-		COMPLETION_HEADER,
-		WAIT, 
-		CHOICES,
-		FAIL_QUEST,
-		STASH_ITEMS,
-		UNSTASH_ITEMS,
-		SPAWN_RELATIVE;
+		TELEPORT_PLAYER(true),
+		SPAWN_NPC(false), 
+		TELEPORT_NPC(true), 
+		PATHFIND_NPC(true), 
+		BEGIN_DIALOGUE(true),
+		GIVE_XP(true), 
+		GOTO_STAGE(true),
+		TAKE_ITEM(true),
+		GIVE_ITEM(true), 
+		ADD_POTION_EFFECT(false),
+		REMOVE_POTION_EFFECT(false),
+		COMPLETION_HEADER(true),
+		WAIT(false), 
+		CHOICES(true),
+		FAIL_QUEST(true),
+		STASH_ITEMS(true),
+		UNSTASH_ITEMS(true),
+		SPAWN_RELATIVE(false);
+
+		private boolean reentrable;
+		
+		QuestActionType(boolean reentrable) {
+			this.reentrable = reentrable;
+		}
+		
+		/**
+		 * 
+		 * @return Whether a quest with this action can be safely re-entered
+		 * (e.g. re-joining while in progress)
+		 */
+		public boolean isReentrable() {
+			return reentrable;
+		}
 	}
 
 	public static QuestAction fromDocument(Document action, Quest quest) {
@@ -497,6 +512,9 @@ public class QuestAction {
 			if (phased) {
 				npc.phase(user.getPlayer());
 			}
+			if(!npc.getNPCType().isPersistent()) {
+				user.markNPCForCleanup(quest, npc);
+			}
 			quest.registerNPCReference(user, npc, npcReferenceName);
 		} else if (action == QuestActionType.BEGIN_DIALOGUE) {
 			npcClassDeferredLoad();
@@ -551,6 +569,7 @@ public class QuestAction {
 					user.takeItem(item, removeAmount, true, true, false);
 					remaining -= item.getQuantity();
 					if (remaining <= 0) {
+						user.markItemForCleanup(quest, item, quantity);
 						return new QuestActionResult(false, false);
 					}
 				}
@@ -559,6 +578,7 @@ public class QuestAction {
 			Item item = itemLoader.registerNew(itemClass);
 			item.setQuantity(quantity);
 			user.giveItem(item);
+			user.markItemForCleanup(quest, item, -quantity);
 		} else if (action == QuestActionType.ADD_POTION_EFFECT) {
 			user.getPlayer().addPotionEffect(new PotionEffect(effectType, duration, amplifier));
 		} else if (action == QuestActionType.REMOVE_POTION_EFFECT) {
@@ -608,11 +628,13 @@ public class QuestAction {
 		} else if (action == QuestActionType.FAIL_QUEST) {
 			user.getPlayer().sendMessage(ChatColor.RED + "Quest failed: " + quest.getQuestName());
 			user.removeQuest(quest);
+			return new QuestActionResult(true, false);
 		} else if (action == QuestActionType.STASH_ITEMS) {
 			user.stashItems(quest, materialType);
 		} else if (action == QuestActionType.UNSTASH_ITEMS) {
 			user.unstashItems(quest, materialType);
 		} else if (action == QuestActionType.SPAWN_RELATIVE) {
+			npcClassDeferredLoad();
 			Location loc = user.getPlayer().getLocation();
 			for(int i = 0; i < quantity; i++) {
 				double angle = Math.random() * Math.PI * 2;
@@ -623,6 +645,9 @@ public class QuestAction {
 				NPC npc = npcLoader.registerNew(spawn.getWorld(), spawn, npcClass);
 				if (phased) {
 					npc.phase(user.getPlayer());
+				}
+				if(!npc.getNPCType().isPersistent()) {
+					user.markNPCForCleanup(quest, npc);
 				}
 			}
 		}

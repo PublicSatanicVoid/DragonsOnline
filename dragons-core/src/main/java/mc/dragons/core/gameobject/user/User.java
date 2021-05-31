@@ -5,7 +5,6 @@ import static mc.dragons.core.util.BukkitUtil.rollingSync;
 import static mc.dragons.core.util.BukkitUtil.sync;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -37,6 +37,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.events.PlayerEventListeners;
@@ -47,6 +51,7 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.quest.Quest.QuestPauseState;
 import mc.dragons.core.gameobject.quest.QuestLoader;
@@ -63,6 +68,7 @@ import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFla
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.logging.DragonsLogger;
+import mc.dragons.core.logging.LogLevel;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
@@ -142,6 +148,9 @@ public class User extends GameObject {
 	private boolean initErrorOccurred;
 	private boolean initialized = false;
 	private List<MessageData> seenMessages;
+	private Map<Quest, List<NPC>> temporaryNPCs;
+	private Table<Item, Quest, Integer> questItems;
+	private Map<Quest, Location> questRestoreLocations;
 	
 	public static ConnectionMessageHandler getConnectionMessageHandler() {
 		return connectionMessageHandler;
@@ -220,20 +229,29 @@ public class User extends GameObject {
 			}
 		}
 
-		questProgress = new HashMap<>();
-		questActionIndices = new HashMap<>();
-		questPauseStates = new HashMap<>();
+		questProgress = new ConcurrentHashMap<>();
+		questActionIndices = new ConcurrentHashMap<>();
+		questPauseStates = new ConcurrentHashMap<>();
 		questCorrelationIDs = new HashMap<>();
 		cachedRegions = new HashSet<>();
 		continuousWalkDistance = new HashMap<>();
-		seenMessages = Collections.synchronizedList(new ArrayList<>());
+		temporaryNPCs = new ConcurrentHashMap<>();
+		questItems = HashBasedTable.create();
+		questRestoreLocations = new ConcurrentHashMap<>();
+		seenMessages = new CopyOnWriteArrayList<>();
 		activePermissionLevel = PermissionLevel.USER;
 		
 		rollingAsync(() -> {
 			loadInventory(initCorrelationID, (Document) getData("inventory"));
 			loadQuests(initCorrelationID, (Document) getData("quests"));
 			rollingSync(() -> {
-				instance.getSidebarManager().createScoreboard(player);
+				if(player != null) {
+					Scoreboard sb = instance.getSidebarManager().createScoreboard(player);
+					if(sb == null) {
+						LOGGER.warning(initCorrelationID, "Could not create scoreboard!");
+						initErrorOccurred();
+					}
+				}
 				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
 			});
 			if(initErrorOccurred) {
@@ -434,6 +452,49 @@ public class User extends GameObject {
 	public UUID getQuestCorrelationID(Quest quest) {
 		return questCorrelationIDs.computeIfAbsent(quest, q -> LOGGER.newCID());
 	}
+	
+	public void markNPCForCleanup(Quest quest, NPC npc) {
+		logQuestEvent(quest, LogLevel.DEBUG, "Marking NPC for cleanup from quest " + quest.getName() + ": " + npc.getUUID() + " (" + npc.getNPCClass().getClassName() + ")");
+		temporaryNPCs.computeIfAbsent(quest, q -> new ArrayList<>()).add(npc);
+	}
+	
+	public void markItemForCleanup(Quest quest, Item item, int restoreQuantity) {
+		logQuestEvent(quest, LogLevel.DEBUG, "Marking item for cleanup from quest " + quest.getName() + ": " + item.getUUID() + " (" + item.getItemClass().getClassName() + ")");
+		questItems.put(item, quest, restoreQuantity);
+	}
+	
+	public void setQuestRestoreLocation(Quest quest) {
+		questRestoreLocations.put(quest, player.getLocation());
+	}
+	
+	public void cleanupQuest(Quest quest, boolean undoProgress) {
+		logQuestEvent(quest, LogLevel.DEBUG, "Cleaning up quest " + quest.getName() + " (undoProgress=" + undoProgress + ")");
+		for(NPC npc : temporaryNPCs.getOrDefault(quest, new ArrayList<>())) {
+			npc.remove();
+		}
+		List<Item> remove = new ArrayList<>();
+		for(Entry<Item, Integer> entry: questItems.column(quest).entrySet()) {
+			if(undoProgress) {
+				if(entry.getValue() > 0) {
+					Item item = itemLoader.registerNew(entry.getKey());
+					item.setQuantity(entry.getValue());
+					giveItem(item);
+				}
+				else {
+					takeItem(entry.getKey(), -entry.getValue(), true, true, false);
+				}
+			}
+			remove.add(entry.getKey());
+		}
+		for(Item item : remove) {
+			questItems.remove(item, quest);
+		}
+		if(questRestoreLocations.containsKey(quest) && undoProgress) {
+			player.teleport(questRestoreLocations.get(quest));
+		}
+		temporaryNPCs.remove(quest);
+		questRestoreLocations.remove(quest);
+	}
 
 	public void setDialogueBatch(Quest quest, String speaker, List<String> dialogue) {
 		currentDialogueSpeaker = speaker;
@@ -554,7 +615,7 @@ public class User extends GameObject {
 					int nextIndex = quest.getSteps().indexOf(questStep.getValue()) + 1;
 					if (nextIndex != quest.getSteps().size()) {
 						QuestStep nextStep = quest.getSteps().get(nextIndex);
-						logQuestEvent(quest, Level.FINE, "update quest progress step " + questStep.getValue().getStepName() + " -> " + nextStep.getStepName());
+						logQuestEvent(quest, LogLevel.DEBUG, "update quest progress step " + questStep.getValue().getStepName() + " -> " + nextStep.getStepName());
 						updateQuestProgress(quest, nextStep, true);
 					}
 				}
@@ -576,6 +637,12 @@ public class User extends GameObject {
 			return;
 		}
 		debug("updateQuestProgress(" + quest.getName() + ", " + questStep.getStepName() + ", notify=" + notify + ")");
+		if(quest.getStepIndex(questStep) == 0) {
+			setQuestRestoreLocation(quest);
+			if(!quest.isReentrant()) {
+				player.sendMessage(ChatColor.YELLOW + "This quest cannot be resumed. If you log out, your progress will be erased.");
+			}
+		}
 		questProgress.put(quest, questStep);
 		resetQuestPauseState(quest);
 		questActionIndices.put(quest, 0);
@@ -585,6 +652,7 @@ public class User extends GameObject {
 			if (questStep.getStepName().equals("Complete")) {
 				logQuestEvent(quest, Level.FINE, "completed quest");
 				player.sendMessage(ChatColor.GRAY + "Completed quest " + quest.getQuestName());
+				cleanupQuest(quest, false);
 			} else {
 				player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
 			}
@@ -603,6 +671,7 @@ public class User extends GameObject {
 		Document updatedQuestProgress = (Document) getData("quests");
 		updatedQuestProgress.remove(quest.getName());
 		storageAccess.set("quests", updatedQuestProgress);
+		cleanupQuest(quest, true);
 	}
 
 	public void updateQuestAction(Quest quest, int actionIndex) {
@@ -1063,7 +1132,6 @@ public class User extends GameObject {
 	}
 	
 	public void handleQuit(boolean removeFromLocalRegistry) {
-		autoSave();
 		setData("totalOnlineTime", getTotalOnlineTime() + getLocalOnlineTime());
 		setData("currentServer", null);
 		if (!isVanished() && joined) {
@@ -1074,13 +1142,19 @@ public class User extends GameObject {
 			setActivePermissionLevel(PermissionLevel.USER);
 			setSystemProfile(null);
 		}
-		player.getInventory().clear();
-		player.getInventory().setArmorContents(new ItemStack[4]);
 		userHookRegistry.getHooks().forEach(h -> h.onQuit(this));
 		connectionMessageHandler.logDisconnect(this);
 		if(removeFromLocalRegistry) {
 			userLoader.removeStalePlayer(player);
 		}
+		for(Entry<Quest, QuestStep> entry : questProgress.entrySet()) {
+			if(!entry.getKey().isReentrant() && !entry.getValue().getStepName().equals("Complete")) {
+				removeQuest(entry.getKey());
+			}
+		}
+		autoSave();
+		player.getInventory().clear();
+		player.getInventory().setArmorContents(new ItemStack[4]);
 		player = null;
 	}
 

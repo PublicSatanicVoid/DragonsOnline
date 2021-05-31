@@ -45,7 +45,7 @@ public class TestQuestCommand extends DragonsCommandExecutor {
 		
 		if(args.length >= 2) {
 			if(args[1].equalsIgnoreCase("-reset")) {
-				user.updateQuestProgress(quest, null);
+				user.removeQuest(quest);
 				sender.sendMessage(ChatColor.GREEN + "Erased your progress for quest " + quest.getQuestName() + ".");
 			}
 			else if(args[1].equalsIgnoreCase("-stage")) {
