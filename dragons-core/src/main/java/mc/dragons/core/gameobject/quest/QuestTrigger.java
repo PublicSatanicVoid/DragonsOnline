@@ -22,6 +22,7 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.quest.QuestAction.QuestActionResult;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
@@ -37,6 +38,7 @@ public class QuestTrigger {
 	private static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
 	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
 	
+	private Quest quest;
 	private TriggerType type;
 	private String npcClassShortName;
 	private NPCClass npcClass;
@@ -61,6 +63,7 @@ public class QuestTrigger {
 
 	public static QuestTrigger fromDocument(Document trigger, Quest quest) {
 		QuestTrigger questTrigger = new QuestTrigger();
+		questTrigger.quest = quest;
 		questTrigger.type = TriggerType.valueOf(trigger.getString("type"));
 		if (questTrigger.type == TriggerType.ENTER_REGION || questTrigger.type == TriggerType.EXIT_REGION) {
 			questTrigger.region = regionLoader.getRegionByName(trigger.getString("region"));
@@ -90,65 +93,74 @@ public class QuestTrigger {
 	
 	/* No need to create subclasses for each trigger type; this works fine */
 
-	public static QuestTrigger onEnterRegion(Region region) {
+	public static QuestTrigger onEnterRegion(Quest quest, Region region) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.ENTER_REGION;
 		trigger.region = region;
 		return trigger;
 	}
 	
-	public static QuestTrigger onWalkRegion(Region region, double minDistance) {
+	public static QuestTrigger onWalkRegion(Quest quest, Region region, double minDistance) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.WALK_REGION;
 		trigger.region = region;
 		trigger.minDistance = minDistance;
 		return trigger;
 	}
 
-	public static QuestTrigger onExitRegion(Region region) {
+	public static QuestTrigger onExitRegion(Quest quest, Region region) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.EXIT_REGION;
 		trigger.region = region;
 		return trigger;
 	}
 
-	public static QuestTrigger onClickNPC(NPCClass npcClass) {
+	public static QuestTrigger onClickNPC(Quest quest, NPCClass npcClass) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.CLICK_NPC;
 		trigger.npcClass = npcClass;
 		return trigger;
 	}
 
-	public static QuestTrigger onKillNPC(NPCClass npcClass, int quantity) {
+	public static QuestTrigger onKillNPC(Quest quest, NPCClass npcClass, int quantity) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.KILL_NPC;
 		trigger.npcClass = npcClass;
 		trigger.quantity = quantity;
 		return trigger;
 	}
 
-	public static QuestTrigger instant() {
+	public static QuestTrigger instant(Quest quest) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.INSTANT;
 		return trigger;
 	}
 
-	public static QuestTrigger hasItem(ItemClass itemClass, int quantity) {
+	public static QuestTrigger hasItem(Quest quest, ItemClass itemClass, int quantity) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.HAS_ITEM;
 		trigger.itemClass = itemClass;
 		trigger.quantity = quantity;
 		return trigger;
 	}
 
-	public static QuestTrigger never() {
+	public static QuestTrigger never(Quest quest) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.NEVER;
 		return trigger;
 	}
 
-	public static QuestTrigger branchConditional(Map<QuestTrigger, QuestAction> branchPoints) {
+	public static QuestTrigger branchConditional(Quest quest, Map<QuestTrigger, QuestAction> branchPoints) {
 		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
 		trigger.type = TriggerType.BRANCH_CONDITIONAL;
 		trigger.branchPoints = branchPoints;
 		return trigger;
@@ -231,6 +243,12 @@ public class QuestTrigger {
 		return document;
 	}
 
+	/**
+	 * 
+	 * @param user
+	 * @param event
+	 * @return Whether to execute the actions associated with this trigger
+	 */
 	public boolean test(User user, Event event) {
 		if (type == TriggerType.INSTANT) {
 			return true;
@@ -239,7 +257,6 @@ public class QuestTrigger {
 			return false;
 		}
 		else if (type == TriggerType.HAS_ITEM) {
-			user.debug(" [ - Testing if has item " + itemClass.getClassName());
 			int has = 0;
 			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
 				Item item = ItemLoader.fromBukkit(itemStack);
@@ -247,7 +264,6 @@ public class QuestTrigger {
 					has += itemStack.getAmount();
 				}	
 			}
-			user.debug("    [ - has " + has + " vs. needs " + quantity);
 			return has >= quantity;
 		}
 		else if (type == TriggerType.ENTER_REGION) {
@@ -258,7 +274,6 @@ public class QuestTrigger {
 		}
 		else if (type == TriggerType.WALK_REGION) {
 			user.updateState(false, false);
-			user.debug("    [ - continuous walk distance is " + user.getContinuousWalkDistance(region));
 			if (user.getRegions().contains(region) && user.getContinuousWalkDistance(region) >= minDistance) {
 				return true;
 			}
@@ -275,13 +290,11 @@ public class QuestTrigger {
 				return false;
 			}
 			if (event instanceof PlayerInteractEntityEvent) {
-				user.debug("    [ - it's an interact entity event");
 				PlayerInteractEntityEvent interactEvent = (PlayerInteractEntityEvent) event;
 				NPC npc = NPCLoader.fromBukkit(interactEvent.getRightClicked());
 				if (npc == null) {
 					return false;
 				}
-				user.debug("    [ - clicked class: " + npc.getNPCClass().getClassName() + "; want: " + npcClass.getClassName());
 				if (npc.getNPCClass().equals(npcClass)) {
 					return true;
 				}
@@ -310,8 +323,13 @@ public class QuestTrigger {
 		else if (type == TriggerType.BRANCH_CONDITIONAL) {
 			for (Entry<QuestTrigger, QuestAction> conditional : branchPoints.entrySet()) {
 				if (conditional.getKey().test(user, event)) {
-					conditional.getValue().execute(user);
-					return true;
+					QuestActionResult result = conditional.getValue().execute(user);
+					user.debug("   [ - ran branch conditional actions on trigger " + conditional.getKey().getTriggerType() 
+						+ ", stageModified=" + result.wasStageModified() + ", shouldPause=" + result.shouldPause());
+					if(result.shouldPause()) {
+						user.setQuestPaused(quest, true);
+					}
+					return !result.wasStageModified() && !result.shouldPause();
 				}
 			}
 		}

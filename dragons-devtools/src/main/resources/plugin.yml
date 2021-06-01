@@ -161,3 +161,5 @@ commands:
   testitemstash:
   testitemunstash:
   testmobai:
+  testtakeitem:
+  testupdateinventory:

@@ -258,8 +258,16 @@ public class ItemClass extends GameObject {
 	 * @param user
 	 * @return Whether the specified user can use this item.
 	 */
-	public boolean canUse(User user) {
-		return !isGMLocked() || PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false);
+	public boolean checkCanUse(User user, boolean notify) {
+		if(isGMLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
+			if(notify) user.getPlayer().sendMessage(ChatColor.RED + "This item is GM locked!");
+			return false;
+		}
+		if(user.getLevel() < getLevelMin()) {
+			if(notify) user.getPlayer().sendMessage(ChatColor.RED + "You must be level " + getLevelMin() + " or higher to use this item!");
+			return false;
+		}
+		return true;
 	}
 	
 	/**

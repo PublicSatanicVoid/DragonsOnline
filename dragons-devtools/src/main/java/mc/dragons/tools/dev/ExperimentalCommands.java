@@ -136,9 +136,11 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			ItemStack itemStack = player.getInventory().getItemInMainHand();
 			sender.sendMessage("pdc=" + itemStack.getItemMeta().getPersistentDataContainer());
 			sender.sendMessage("uuid=" + itemStack.getItemMeta().getPersistentDataContainer().get(Item.ITEM_UUID_KEY, PersistentDataType.STRING));
+			sender.sendMessage("bukkit amt=" + itemStack.getAmount());
 			Item item = ItemLoader.fromBukkit(itemStack);
 			sender.sendMessage("item=" + item);
 			if(item != null) {
+				sender.sendMessage("db amt=" + item.getQuantity());
 				sender.sendMessage("item class=" + item.getClassName());
 				sender.sendMessage("item data=" + item.getData().toJson());
 			}
@@ -482,6 +484,16 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			entity.setAI(ai);
 			entity.setGravity(gravity);
 			entity.setCollidable(collidable);
+		}
+		
+		else if(label.equalsIgnoreCase("testtakeitem")) {
+			Item item = itemLoader.registerNew(args[0]);
+			int quantity = Integer.valueOf(args[1]);
+			user.takeItem(item, quantity, true, true, true);
+		}
+		
+		else if(label.equalsIgnoreCase("testupdateinventory")) {
+			player.updateInventory();
 		}
 		
 		else {

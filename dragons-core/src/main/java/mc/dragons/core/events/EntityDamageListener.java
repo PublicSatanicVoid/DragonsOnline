@@ -89,9 +89,7 @@ public class EntityDamageListener implements Listener {
 			}
 			userDamager = UserLoader.fromPlayer((Player) damager);
 			attackerHeldItem = ItemLoader.fromBukkit(userDamager.getPlayer().getInventory().getItemInMainHand());
-			if(attackerHeldItem != null && !attackerHeldItem.getItemClass().canUse(userDamager)) {
-				userDamager.debug("- GM Locked, item stats will not be applied");
-				userDamager.sendActionBar(ChatColor.DARK_RED + "- This item is GM locked! -");
+			if(attackerHeldItem != null && !attackerHeldItem.getItemClass().checkCanUse(userDamager, true)) {
 				// Don't cancel the event, just don't modify the damage from the default
 				return;
 			}
@@ -278,15 +276,7 @@ public class EntityDamageListener implements Listener {
 						}
 					}
 				}.runTaskTimer(dragons, 0L, 5L);
-				if(userDamager.getLevel() >= attackerHeldItem.getLevelMin()) {
-					itemDamage = attackerHeldItem.getDamage();
-				}
-				else {
-					damager.sendMessage(ChatColor.RED + "You must be level " + attackerHeldItem.getLevelMin() + " or higher to use this item!");
-					userDamager.sendActionBar(ChatColor.RED + "You can't use this! Lv Min: " + attackerHeldItem.getLevelMin());
-					event.setCancelled(true);
-					return;
-				}
+				itemDamage = attackerHeldItem.getDamage();
 				damage += itemDamage;
 			}
 			
@@ -318,12 +308,12 @@ public class EntityDamageListener implements Listener {
 			damage -= randomDefense;
 			Item targetHeldItem = ItemLoader.fromBukkit(userTarget.getPlayer().getInventory().getItemInMainHand());
 			double itemDefense = 0.0D;
-			if (targetHeldItem != null && targetHeldItem.getItemClass().canUse(userTarget)) {
+			if (targetHeldItem != null && targetHeldItem.getItemClass().checkCanUse(userTarget, false)) {
 				itemDefense = targetHeldItem.getArmor();
 			}
 			for(ItemStack itemStack : userTarget.getPlayer().getInventory().getArmorContents()) {
 				Item armorItem = ItemLoader.fromBukkit(itemStack);
-				if (armorItem != null && armorItem.getItemClass().canUse(userTarget)) {
+				if (armorItem != null && armorItem.getItemClass().checkCanUse(userTarget, false)) {
 					itemDefense += armorItem.getArmor();
 				}
 			}

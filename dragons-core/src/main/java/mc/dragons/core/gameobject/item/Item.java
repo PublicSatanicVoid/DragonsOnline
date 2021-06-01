@@ -105,12 +105,18 @@ public class Item extends GameObject {
 		return lore;
 	}
 	
-	private List<String> getCompleteLore() {
+	public List<String> getCompleteLore() {
 		return getCompleteLore(getData(), getLore().toArray(new String[getLore().size()]), getUUID(), isCustom(), itemClass);
 	}
 
-	private List<String> getCompleteLore(String[] customLore) {
+	public List<String> getCompleteLore(String[] customLore) {
 		return getCompleteLore(getData(), customLore, getUUID(), isCustom(), itemClass);
+	}
+	
+	public String[] getHoverableItemData() {
+		List<String> data = new ArrayList<>(List.of(getDecoratedName()));
+		data.addAll(getCompleteLore());
+		return data.toArray(new String[] {});
 	}
 	
 	public Item(ItemStack itemStack, StorageManager storageManager, StorageAccess storageAccess) {
@@ -193,6 +199,16 @@ public class Item extends GameObject {
 		itemStack.setAmount(quantity);
 	}
 
+	/**
+	 * Set the quantity of this item, without updating
+	 * the Bukkit item stack data.
+	 * 
+	 * @param quantity
+	 */
+	public void setQuantityNoBukkit(int quantity) {
+		setData("quantity", quantity);
+	}
+	
 	/**
 	 * Persist the live Bukkit item stack quantity to backend storage.
 	 */

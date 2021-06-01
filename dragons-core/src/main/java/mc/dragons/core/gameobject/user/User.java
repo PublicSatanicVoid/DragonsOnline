@@ -79,11 +79,8 @@ import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 /**
  * Represents a player in the RPG.
@@ -207,10 +204,11 @@ public class User extends GameObject {
 
 	public User initialize(Player player) {
 		UUID initCorrelationID = LOGGER.newCID();
-		LOGGER.trace(initCorrelationID, "Initializing user " + this + " on player " + player);
+		String threadName = Thread.currentThread().getName();
+		LOGGER.trace(initCorrelationID, "Initializing user " + this + " on player " + player + " (Thread: " + threadName + ")");
 		
-		if(Thread.currentThread().getName().contains("Craft Scheduler Thread")) {
-			LOGGER.warning("User " + getName() + " is being initialized on a scheduler thread (" + Thread.currentThread().getName() + ")");
+		if(threadName.contains("Craft Scheduler Thread")) {
+			LOGGER.warning("User " + getName() + " is being initialized on a scheduler thread (" + threadName + ")");
 			LOGGER.warning("This can lead to spammed database connections and other unexpected behavior.");
 			LOGGER.warning("Stack trace follows:");
 			Thread.dumpStack();
@@ -416,6 +414,12 @@ public class User extends GameObject {
 	 * Quest management
 	 */
 	
+	/**
+	 * Load this user's active and completed quests.
+	 * 
+	 * @param cid The correlation ID to log initialization data
+	 * @param questProgressDoc The document of this user's quest progress
+	 */
 	public void loadQuests(UUID cid, Document questProgressDoc) {
 		LOGGER.verbose(cid, "stored quest data: " + questProgressDoc.toJson());
 		questProgress.clear();
@@ -427,17 +431,35 @@ public class User extends GameObject {
 			if (quest == null) {
 				continue;
 			}
-			questProgress.put(quest, quest.getSteps().get((int) entry.getValue()));
+			int step = (int) entry.getValue();
+			if(step >= quest.getSteps().size()) {
+				logQuestEvent(quest, Level.WARNING, "Invalid quest stage " + step + " (max=" + (quest.getSteps().size() - 1) + ")");
+				questProgress.put(quest, quest.getSteps().get(0));
+			}
+			else {
+				questProgress.put(quest, quest.getSteps().get(step));
+			}
 			questActionIndices.put(quest, 0);
 			questPauseStates.put(quest, QuestPauseState.NORMAL);
-			questCorrelationIDs.put(quest, LOGGER.newCID());
 		}
 	}
 
+	/**
+	 * Log information related to this quest on a correlation ID unique to this user and quest.
+	 * 
+	 * @param quest
+	 * @param level
+	 * @param message
+	 */
 	public void logQuestEvent(Quest quest, Level level, String message) {
-		LOGGER.log(questCorrelationIDs.computeIfAbsent(quest, q -> LOGGER.newCID()), level, quest.getName() + " | " + message);
+		LOGGER.log(getQuestCorrelationID(quest), level, quest.getName() + " | " + message);
 	}
 	
+	/**
+	 * Dump data for the specified quest related to this user.
+	 * 
+	 * @param quest
+	 */
 	public void logAllQuestData(Quest quest) {
 		logQuestEvent(quest, Level.CONFIG, "Dumping all quest data");
 		logQuestEvent(quest, Level.CONFIG, "Current Step: " + getQuestProgress().get(quest).getStepName());
@@ -449,24 +471,59 @@ public class User extends GameObject {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param quest
+	 * @return The correlation ID for logging information about this quest
+	 */
 	public UUID getQuestCorrelationID(Quest quest) {
 		return questCorrelationIDs.computeIfAbsent(quest, q -> LOGGER.newCID());
 	}
 	
+	/**
+	 * Indicate that an NPC spawned for this user for the specified quest should be
+	 * removed when the quest is terminated or completed.
+	 * 
+	 * @param quest
+	 * @param npc
+	 */
 	public void markNPCForCleanup(Quest quest, NPC npc) {
 		logQuestEvent(quest, LogLevel.DEBUG, "Marking NPC for cleanup from quest " + quest.getName() + ": " + npc.getUUID() + " (" + npc.getNPCClass().getClassName() + ")");
 		temporaryNPCs.computeIfAbsent(quest, q -> new ArrayList<>()).add(npc);
 	}
 	
+	/**
+	 * Indicate that an item given to or taken from this user for the specified quest
+	 * should be removed or restored when the quest is terminated or completed.
+	 * 
+	 * @param quest
+	 * @param item
+	 * @param restoreQuantity The amount to give back to the player. May be negative.
+	 */
 	public void markItemForCleanup(Quest quest, Item item, int restoreQuantity) {
 		logQuestEvent(quest, LogLevel.DEBUG, "Marking item for cleanup from quest " + quest.getName() + ": " + item.getUUID() + " (" + item.getItemClass().getClassName() + ")");
 		questItems.put(item, quest, restoreQuantity);
 	}
 	
+	/**
+	 * Set the location that the user should be returned to if the specified quest
+	 * is terminated.
+	 * 
+	 * @param quest
+	 */
 	public void setQuestRestoreLocation(Quest quest) {
 		questRestoreLocations.put(quest, player.getLocation());
 	}
 	
+	/**
+	 * Terminate the specified quest for the user.
+	 * 
+	 * @param quest
+	 * @param undoProgress If the user's progress (items, location, objective) should be wiped.
+	 *
+	 * @apiNote NPCs marked for removal on termination will be removed regardless of the value
+	 * of <code>undoProgress</code>.
+	 */
 	public void cleanupQuest(Quest quest, boolean undoProgress) {
 		logQuestEvent(quest, LogLevel.DEBUG, "Cleaning up quest " + quest.getName() + " (undoProgress=" + undoProgress + ")");
 		for(NPC npc : temporaryNPCs.getOrDefault(quest, new ArrayList<>())) {
@@ -489,13 +546,26 @@ public class User extends GameObject {
 		for(Item item : remove) {
 			questItems.remove(item, quest);
 		}
+		unstashItems(quest);
 		if(questRestoreLocations.containsKey(quest) && undoProgress) {
 			player.teleport(questRestoreLocations.get(quest));
 		}
+		
 		temporaryNPCs.remove(quest);
 		questRestoreLocations.remove(quest);
 	}
 
+	/**
+	 * Set the current batch of dialogue for the user to listen to.
+	 * 
+	 * <p>The player will be unable to interact with other entities,
+	 * and other entities will be unable to interact with the player,
+	 * while dialogue is in progress.
+	 * 
+	 * @param quest
+	 * @param speaker
+	 * @param dialogue
+	 */
 	public void setDialogueBatch(Quest quest, String speaker, List<String> dialogue) {
 		currentDialogueSpeaker = speaker;
 		currentDialogueBatch = dialogue;
@@ -504,14 +574,28 @@ public class User extends GameObject {
 		currentDialogueCompletionHandlers = new CopyOnWriteArrayList<>();
 	}
 
+	/**
+	 * 
+	 * @return Whether the user is currently listening to an NPC.
+	 */
 	public boolean hasActiveDialogue() {
 		return currentDialogueBatch != null;
 	}
 
+	/**
+	 * 
+	 * @return When the user began their current batch of dialogue.
+	 */
 	public long getWhenBeganDialogue() {
 		return whenBeganDialogue;
 	}
 
+	/**
+	 * Register a handler to be executed when the user completes
+	 * their current batch of dialogue.
+	 * 
+	 * @param handler
+	 */
 	public void onDialogueComplete(Consumer<User> handler) {
 		if (!hasActiveDialogue()) {
 			return;
@@ -519,6 +603,10 @@ public class User extends GameObject {
 		currentDialogueCompletionHandlers.add(handler);
 	}
 
+	/**
+	 * Clear the user's current dialogue batch and fire all
+	 * associated completion handlers.
+	 */
 	public void resetDialogueAndHandleCompletion() {
 		if (currentDialogueBatch == null) {
 			return;
@@ -531,15 +619,23 @@ public class User extends GameObject {
 			for (Consumer<User> handler : currentDialogueCompletionHandlers) {
 				handler.accept(this);
 			}
+			currentDialogueCompletionHandlers.clear();
 		}
 	}
 
+	/**
+	 * Fast-forward the user through the current batch of dialogue.
+	 */
 	public void fastForwardDialogue() {
 		while (hasActiveDialogue()) {
 			nextDialogue();
 		}
 	}
 
+	/**
+	 * Display the next line of dialogue to the user.
+	 * @return
+	 */
 	public boolean nextDialogue() {
 		if (!hasActiveDialogue()) {
 			return false;
@@ -548,14 +644,12 @@ public class User extends GameObject {
 			resetDialogueAndHandleCompletion();
 			return false;
 		}
-		debug("nextDialogue");
-		debug(" - idx=" + currentDialogueIndex);
-		TextComponent message = new TextComponent(
-				TextComponent.fromLegacyText(ChatColor.GRAY + "[" + (currentDialogueIndex + 1) + "/" + currentDialogueBatch.size() + "] " + ChatColor.DARK_GREEN + currentDialogueSpeaker
-						+ ": " + ChatColor.GREEN + currentDialogueBatch.get(currentDialogueIndex++).replaceAll(Pattern.quote("%PLAYER%"), getName())));
-		message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/fastforwarddialogue"));
-		message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.YELLOW + "Click to fast-forward through the dialogue")));
-		player.spigot().sendMessage(message);
+		debug("nextDialogue (#" + currentDialogueIndex + ")");
+		player.spigot().sendMessage(
+			StringUtil.clickableHoverableText(ChatColor.GRAY + "[" + (currentDialogueIndex + 1) + "/" + currentDialogueBatch.size() + "] " + ChatColor.DARK_GREEN + currentDialogueSpeaker + ": " 
+					+ ChatColor.GREEN + currentDialogueBatch.get(currentDialogueIndex++).replaceAll(Pattern.quote("%PLAYER%"), getName()),
+				"/fastforwarddialogue", 
+				ChatColor.YELLOW + "Click to fast-forward through this dialogue"));
 		if (currentDialogueIndex >= currentDialogueBatch.size()) {
 			resetDialogueAndHandleCompletion();
 			return false;
@@ -563,59 +657,80 @@ public class User extends GameObject {
 		return true;
 	}
 
+	/**
+	 * Set whether the specified quest should be paused.
+	 * 
+	 * @param quest
+	 * @param paused
+	 */
 	public void setQuestPaused(Quest quest, boolean paused) {
 		questPauseStates.put(quest, paused ? QuestPauseState.PAUSED : QuestPauseState.RESUMED);
 		debug(String.valueOf(paused ? "Paused" : "Unpaused") + " quest " + quest.getName());
 		logQuestEvent(quest, Level.FINE, "Set quest pause state to " + paused);
 	}
 
+	/**
+	 * Reset the quest pause state, allowing actions to continue without
+	 * resumption behavior, as if the quest had not been paused or unpaused.
+	 * 
+	 * @param quest
+	 */
 	public void resetQuestPauseState(Quest quest) {
 		questPauseStates.put(quest, QuestPauseState.NORMAL);
 		debug("Reset pause state for quest " + quest.getName());
 	}
 
+	/**
+	 * 
+	 * @param quest
+	 * @return The pause state of the specified quest
+	 */
 	public QuestPauseState getQuestPauseState(Quest quest) {
 		return questPauseStates.getOrDefault(quest, QuestPauseState.NORMAL);
 	}
 
 	/**
-	 * Called whenever a quest trigger has been potentially updated.
+	 * Call this whenever a quest trigger has been potentially updated.
 	 * 
 	 * @param event
 	 */
 	public void updateQuests(Event event) {
 		if (currentDialogueBatch != null && currentDialogueIndex < currentDialogueBatch.size()) {
-			debug("updateQuests(): Cancelled quest update because of active dialogue");
 			return;
 		}
-		for (Entry<Quest, QuestStep> questStep : questProgress.entrySet()) {			
-			if (questStep.getValue().getStepName().equalsIgnoreCase("Complete")) {
+		for (Entry<Quest, QuestStep> questStep : questProgress.entrySet()) {
+			Quest quest = questStep.getKey();
+			QuestStep step = questStep.getValue();
+			
+			// Completed quests need no further action
+			if (step.getStepName().equals(QuestStep.LAST_STEP_NAME)) {
 				continue;
 			}
-			debug("updateQuests(): Step " + questStep.getValue().getStepName() + " of " + questStep.getKey().getName());
-			QuestPauseState pauseState = getQuestPauseState(questStep.getKey());
+			
+			debug("updateQuests(): Step " + step.getStepName() + " of " + quest.getName());
+			
+			// Paused quests do not require action at this time
+			QuestPauseState pauseState = getQuestPauseState(quest);
 			if (pauseState == QuestPauseState.PAUSED) {
 				continue;
 			}
-			Quest quest = questStep.getKey();
-			int actionIndex = getQuestActionIndex(quest);
-			debug("updateQuests():   - Trigger = " + questStep.getValue().getTrigger().getTriggerType());
-			debug("updateQuests():   - Action# = " + actionIndex);
 			
-			/*
-			 * If they meet the trigger, great
-			 * If they were resumed from a pause state, great
-			 * If they already met the trigger and were further along in the stage, great
-			 * Any of these conditions are sufficient
-			 */
-			if (questStep.getValue().getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED || actionIndex > 0) {
-				debug("updateQuests():     - Triggered (starting @ action #" + actionIndex + ")");
-				if (questStep.getValue().executeActions(this, actionIndex)) {
-					debug("updateQuests():      - Normal progression to next step");
-					int nextIndex = quest.getSteps().indexOf(questStep.getValue()) + 1;
+			int actionIndex = getQuestActionIndex(quest);
+			debug("updateQuests(): -Trigger = " + step.getTrigger().getTriggerType());
+			debug("updateQuests(): -Action# = " + actionIndex);
+			
+			// Run actions if appropriate.
+			// It is important to note that QuestTrigger.test returns true only if the actions should be executed.
+			// It is possible for a trigger to be met but for test to return false, because the actions should not
+			// be executed for some other reason.
+			if (step.getTrigger().test(this, event) || pauseState == QuestPauseState.RESUMED || actionIndex > 0) {
+				debug("updateQuests(): -Triggered (starting @ action #" + actionIndex + ")");
+				if (step.executeActions(this, actionIndex)) {
+					debug("updateQuests(): -Normal progression to next step");
+					int nextIndex = quest.getStepIndex(step) + 1;
 					if (nextIndex != quest.getSteps().size()) {
 						QuestStep nextStep = quest.getSteps().get(nextIndex);
-						logQuestEvent(quest, LogLevel.DEBUG, "update quest progress step " + questStep.getValue().getStepName() + " -> " + nextStep.getStepName());
+						logQuestEvent(quest, LogLevel.DEBUG, "update quest progress step " + step.getStepName() + " -> " + nextStep.getStepName());
 						updateQuestProgress(quest, nextStep, true);
 					}
 				}
@@ -623,19 +738,44 @@ public class User extends GameObject {
 		}
 	}
 
+	/**
+	 * 
+	 * @return This user's progress through quests
+	 */
 	public Map<Quest, QuestStep> getQuestProgress() {
 		return questProgress;
 	}
 
+	/**
+	 * Update this user's progress for the specified quest.
+	 * 
+	 * @param quest The quest to update.
+	 * @param questStep The new step the user is on.
+	 */
+	public void updateQuestProgress(Quest quest, QuestStep questStep) {
+		updateQuestProgress(quest, questStep, true);
+	}
+	
+	/**
+	 * Update this user's progress for the specified quest.
+	 * 
+	 * @param quest The quest to update.
+	 * @param questStep The new step the user is on, or null to remove the quest.
+	 * @param notify Whether to show the user their new objective or the standard completion message.
+	 */
 	public void updateQuestProgress(Quest quest, QuestStep questStep, boolean notify) {
 		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.GM, false)) {
 			sendActionBar(ChatColor.RED + "Quest \"" + quest.getQuestName() + "\" is currently locked! Try again later.");
 		}
-		Document updatedQuestProgress = (Document) getData("quests");
+		
+		Document updatedQuestProgress = getData().get("quests", Document.class);
+		
 		if (questStep == null) {
 			removeQuest(quest);
 			return;
 		}
+		
+		// If the player has begun the quest, set restore point and warn if necessary
 		debug("updateQuestProgress(" + quest.getName() + ", " + questStep.getStepName() + ", notify=" + notify + ")");
 		if(quest.getStepIndex(questStep) == 0) {
 			setQuestRestoreLocation(quest);
@@ -643,11 +783,15 @@ public class User extends GameObject {
 				player.sendMessage(ChatColor.YELLOW + "This quest cannot be resumed. If you log out, your progress will be erased.");
 			}
 		}
-		questProgress.put(quest, questStep);
+		
+		// Update the quest progress
 		resetQuestPauseState(quest);
+		questProgress.put(quest, questStep);
 		questActionIndices.put(quest, 0);
-		updatedQuestProgress.append(quest.getName(), quest.getSteps().indexOf(questStep));
+		updatedQuestProgress.append(quest.getName(), quest.getStepIndex(questStep));
 		storageAccess.set("quests", updatedQuestProgress);
+		
+		// Notify the user of any changes to their quest progression
 		if (notify) {
 			if (questStep.getStepName().equals("Complete")) {
 				logQuestEvent(quest, Level.FINE, "completed quest");
@@ -657,6 +801,8 @@ public class User extends GameObject {
 				player.sendMessage(ChatColor.GRAY + "New Objective: " + questStep.getStepName());
 			}
 		}
+		
+		// Some triggers (e.g. INSTANT) may need to be run immediately
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -665,28 +811,49 @@ public class User extends GameObject {
 		}.runTaskLater(instance, 1L);
 	}
 	
+	/**
+	 * Remove all progress for the specified quest from this user.
+	 * 
+	 * @param quest
+	 */
 	public void removeQuest(Quest quest) {
 		questProgress.remove(quest);
 		questActionIndices.remove(quest);
-		Document updatedQuestProgress = (Document) getData("quests");
+		Document updatedQuestProgress = getData().get("quests", Document.class);
 		updatedQuestProgress.remove(quest.getName());
 		storageAccess.set("quests", updatedQuestProgress);
 		cleanupQuest(quest, true);
 	}
 
+	/**
+	 * Change the action within the current quest step that the user is on.
+	 * 
+	 * @param quest
+	 * @param actionIndex The zero-based action index
+	 */
 	public void updateQuestAction(Quest quest, int actionIndex) {
 		logQuestEvent(quest, Level.FINE, "set action index to " + actionIndex);
 		questActionIndices.put(quest, actionIndex);
 	}
 
+	/**
+	 * 
+	 * @param quest
+	 * @return The current action index for the current quest step for this user.
+	 */
 	public int getQuestActionIndex(Quest quest) {
 		return questActionIndices.getOrDefault(quest, 0);
 	}
 
-	public void updateQuestProgress(Quest quest, QuestStep questStep) {
-		updateQuestProgress(quest, questStep, true);
-	}
-
+	/**
+	 * Temporarily remove all items of the specified type from the player's inventory.
+	 * 
+	 * <p>They can be restored at any time with <code>unstashItems</code>, or will
+	 * automatically be restored at the end of the quest.
+	 * 
+	 * @param quest
+	 * @param type
+	 */
 	public void stashItems(Quest quest, Material type) {
 		List<UUID> stashed = new ArrayList<>();
 		for(ItemStack itemStack : player.getInventory().getContents()) {
@@ -702,17 +869,23 @@ public class User extends GameObject {
 		stash.getList(quest.getName(), UUID.class).addAll(stashed);
 		storageAccess.set("questStash", stash);
 		if(stashed.size() > 0) {
-			player.sendMessage(ChatColor.RED + "" + stashed.size() + " items were temporarily removed from your inventory due to quest " + quest.getQuestName());
+			player.sendMessage(ChatColor.RED + "" + stashed.size() + " " + (stashed.size() == 1 ? "item was" : "items were") + " temporarily removed from your inventory due to quest " + quest.getQuestName());
 		}
 	}
 	
+	/**
+	 * Restore all items of the specified type that were stashed for the specified quest.
+	 * 
+	 * @param quest
+	 * @param type The type to restore, or null to restore all.
+	 */
 	public void unstashItems(Quest quest, Material type) {
 		Document stash = getData().get("questStash", new Document());
 		List<UUID> stashed = stash.get(quest.getName(), new ArrayList<>());
 		Map<UUID, Item> items = itemLoader.loadObjects(Set.copyOf(stashed));
 		int restored = 0;
 		for(Item item : items.values()) {
-			if(item.getMaterial() == type) {
+			if(type == null || item.getMaterial() == type) {
 				giveItem(item, true, false, true);
 				stashed.remove(item.getUUID());
 				restored++;
@@ -723,6 +896,15 @@ public class User extends GameObject {
 		if(restored > 0) {
 			player.sendMessage(ChatColor.GREEN + "" + restored + " items were returned to your inventory.");
 		}
+	}
+	
+	/**
+	 * Restore all items that were stashed for the specified quest.
+	 * 
+	 * @param quest
+	 */
+	public void unstashItems(Quest quest) {
+		unstashItems(quest, null);
 	}
 	
 	/*
@@ -888,6 +1070,7 @@ public class User extends GameObject {
 	 */
 	public void giveItem(Item item, boolean updateDB, boolean dbOnly, boolean silent) {
 		int giveQuantity = item.getQuantity();
+		debug("Giving " + item.getItemClass().getClassName() + " x" + giveQuantity);
 		if(item.getClassName().equals(PlayerEventListeners.GOLD_CURRENCY_ITEM_CLASS_NAME)) {
 			giveGold(giveQuantity);
 			return;
@@ -895,36 +1078,50 @@ public class User extends GameObject {
 		int maxStackSize = item.getMaxStackSize();
 		if (!dbOnly) {
 			int remaining = giveQuantity;
+			
+			// Try to add to existing items in inventory first
 			for (int i = 0; i < player.getInventory().getContents().length; i++) {
 				ItemStack itemStack = player.getInventory().getContents()[i];
-				if (itemStack != null) {
-					Item testItem = ItemLoader.fromBukkit(itemStack);
-					if (testItem != null && item.getClassName().equals(testItem.getClassName()) && !item.isCustom() && !testItem.isCustom()) {
-						int quantity = Math.min(maxStackSize, testItem.getQuantity() + remaining);
-						int added = quantity - testItem.getQuantity();
-						debug("Adding to existing stack: " + testItem.getUUID().toString() + " (curr=" + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount() + ", add=" + added + ", tot=" + quantity + ")");
-						remaining -= added;
-						testItem.setQuantity(quantity);
-						player.getInventory().setItem(i, testItem.getItemStack());
-						item.setQuantity(item.getQuantity() - added);
-						debug("-Quantity: " + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount());
-						if (remaining == 0) {
-							break;
-						}
-						debug(" - " + remaining + " remaining to dispense");
+				if (itemStack == null) continue;
+				Item testItem = ItemLoader.fromBukkit(itemStack);
+				if (testItem != null && item.getClassName().equals(testItem.getClassName()) && !item.isCustom() && !testItem.isCustom()) {
+					int quantity = Math.min(maxStackSize, testItem.getQuantity() + remaining);
+					int added = quantity - testItem.getQuantity();
+					debug("Adding to existing stack: " + testItem.getUUID().toString() + " (curr=" + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount() + ", add=" + added + ", tot=" + quantity + ")");
+					remaining -= added;
+					testItem.setQuantity(quantity);
+					player.getInventory().setItem(i, testItem.getItemStack());
+					item.setQuantity(item.getQuantity() - added);
+					debug("-Quantity: " + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount());
+					if (remaining == 0) {
+						break;
 					}
+					debug(" - " + remaining + " remaining to dispense");
 				}
+				
 			}
-			if (remaining > 0) {
-				debug("Adding remaining items as new item stack");
-				player.getInventory().addItem(new ItemStack[] { item.getItemStack() });
+			
+			// If we can't fit everything in to existing items, add new ones
+			while (remaining > 0) {
+				int quantity = Math.min(maxStackSize, item.getItemStack().getAmount());
+				if(quantity > remaining) {
+					quantity = remaining;
+				}
+				debug("Adding " + quantity + "/" + remaining + " remaining items as new item stack");
+				remaining -= quantity;
+				Item r = itemLoader.registerNew(item);
+				r.setQuantity(quantity);
+				player.getInventory().addItem(new ItemStack[] { r.getItemStack() });
+				debug(" - " + remaining + " remaining to dispense");
 			}
 		}
 		if (updateDB) {
 			storageAccess.update(new Document("inventory", getInventoryAsDocument()));
 		}
 		if (!silent) {
-			player.sendMessage(ChatColor.GRAY + "+ " + item.getDecoratedName() + (item.getQuantity() > 1 ? ChatColor.GRAY + " (x" + giveQuantity + ")" : ""));
+			player.spigot().sendMessage(StringUtil.hoverableText(
+				ChatColor.GRAY + "+ " + item.getDecoratedName() + (item.getQuantity() > 1 ? ChatColor.GRAY + " (x" + giveQuantity + ")" : ""),
+				item.getHoverableItemData()));
 		}
 	}
 
@@ -933,25 +1130,47 @@ public class User extends GameObject {
 	}
 
 	public void takeItem(Item item, int amount, boolean updateDB, boolean updateInventory, boolean notify) {
-		debug("Removing " + amount + " of " + item.getName() + " (has " + item.getQuantity() + "=" + item.getItemStack().getAmount() + ")");
-		if (amount < item.getQuantity()) {
-			debug("-Current quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount());
-			debug("-New quantity: " + (item.getQuantity() - amount));
-			item.setQuantity(item.getQuantity() - amount);
-			debug("-Saved quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount());
-		}
-		if (updateInventory) {
-			ItemStack removal = item.getItemStack().clone();
-			removal.setAmount(amount);
-			player.getInventory().removeItem(new ItemStack[] { removal });
+		debug("Removing " + amount + " of " + item.getName() + " (has " + item.getQuantity() + "=" + item.getItemStack().getAmount() + ", db=" + updateDB + ", inv=" + updateInventory + ", n=" + notify + ")");
+		int remaining = amount;
+		for (int i = 0; i < player.getInventory().getContents().length; i++) {
+			ItemStack itemStack = player.getInventory().getContents()[i];
+			if (itemStack == null) continue;
+			Item testItem = ItemLoader.fromBukkit(itemStack);
+			if (testItem != null && item.getClassName().equals(testItem.getClassName()) && !item.isCustom() && !testItem.isCustom()) {
+				if(testItem.getQuantity() <= remaining) {
+					debug("Removing whole stack " + testItem.getUUID());
+					if(updateDB) {
+						instance.getGameObjectRegistry().removeFromDatabase(testItem);
+					}
+					if(updateInventory) {
+						player.getInventory().remove(itemStack);
+					}
+					remaining -= testItem.getQuantity();
+				}
+				else {
+					int newQuantity = testItem.getQuantity() - remaining;
+					debug("Removing partial stack " + testItem.getUUID() + " (old=" + testItem.getQuantity() + ", new=" + newQuantity + ")");
+					if(updateInventory) {
+						testItem.getItemStack().setAmount(newQuantity);
+						itemStack.setAmount(newQuantity);
+					}
+					if(updateDB) {
+						testItem.setQuantityNoBukkit(newQuantity);
+					}
+					debug("-New quantity for this stack: " + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount() + "=" + itemStack.getAmount());
+					break;
+				}
+			}
 		}
 		if (updateDB) {
 			storageAccess.update(new Document("inventory", getInventoryAsDocument()));
 		}
 		if (notify) {
-			player.sendMessage(ChatColor.RED + "- " + item.getDecoratedName() + (amount > 1 ? ChatColor.GRAY + " (x" + amount + ")" : ""));
+			player.spigot().sendMessage(StringUtil.hoverableText(
+				ChatColor.RED + "- " + item.getDecoratedName() + (amount > 1 ? ChatColor.GRAY + " (x" + amount + ")" : ""),
+				item.getHoverableItemData()));
 		}
-		debug("-Final quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount());
+		debug("-Final quantity: " + item.getQuantity() + "=" + item.getItemStack().getAmount() + " (might not match if specified item is not the exact item matched and removed)");
 	}
 
 	public void takeItem(Item item) {
@@ -1186,7 +1405,7 @@ public class User extends GameObject {
 	}
 
 	public void markChangeLogsRead() {
-		setData("lastReadChangeLog", Integer.valueOf(changeLogLoader.getCurrentMaxId()));
+		setData("lastReadChangeLog", changeLogLoader.getCurrentMaxId());
 	}
 
 	public String getLastIP() {
@@ -1450,7 +1669,7 @@ public class User extends GameObject {
 		if (!overrideLevelRequirement && getLevel() < floor.getLevelMin()) {
 			return;
 		}
-		player.teleport(floor.getWorld().getSpawnLocation());
+		sync(() -> player.teleport(floor.getWorld().getSpawnLocation()));
 	}
 
 	public void sendToFloor(String floorName) {

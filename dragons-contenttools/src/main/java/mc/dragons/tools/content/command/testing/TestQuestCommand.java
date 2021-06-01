@@ -58,6 +58,7 @@ public class TestQuestCommand extends DragonsCommandExecutor {
 				user.updateQuestProgress(quest, quest.getSteps().get(stepNo));
 				sender.sendMessage(ChatColor.GREEN + "Jumped to step " + stepNo + " of quest " + quest.getQuestName());
 			}
+			return true;
 		}
 		
 		if(!quest.isValid()) {

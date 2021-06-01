@@ -1,5 +1,7 @@
 package mc.dragons.core.gameobject.user;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -173,12 +175,12 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 				.append("gamemode", GameMode.ADVENTURE.toString())
 				.append("lastReadChangeLog", 0)
 				.append("ip", player.getAddress().getAddress().getHostAddress())
-				.append("ipHistory", List.of(player.getAddress().getAddress().getHostAddress()))
+				.append("ipHistory", new ArrayList<>(List.of(player.getAddress().getAddress().getHostAddress())))
 				.append("totalOnlineTime", 0L)
 				.append("currentServer", dragons.getServerName())
 				.append("verified", false)
 				.append("blockedUsers", new ArrayList<>());
-		dragons.getUserHookRegistry().getHooks().forEach(h -> h.onCreateStorageAccess(data));
+		sync(() -> dragons.getUserHookRegistry().getHooks().forEach(h -> h.onCreateStorageAccess(data)));
 		StorageAccess storageAccess = storageManager.getNewStorageAccess(GameObjectType.USER, data);
 		User user = new User(player, storageManager, storageAccess);
 		assign(player, user);

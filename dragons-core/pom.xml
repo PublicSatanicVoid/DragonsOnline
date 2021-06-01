@@ -14,8 +14,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>12</maven.compiler.source>
-		<maven.compiler.target>12</maven.compiler.target>
+		<maven.compiler.source>16</maven.compiler.source>
+		<maven.compiler.target>16</maven.compiler.target>
 	</properties>
 
 	<build>
@@ -81,7 +81,8 @@
 		<dependency>
 			<groupId>com.comphenix.protocol</groupId>
 			<artifactId>ProtocolLib</artifactId>
-			<version>4.6.0</version>
+			<version>4.6.1-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
@@ -89,7 +90,6 @@
 			<version>3.12.0</version>
 			<scope>compile</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>net.minecrell</groupId>
 			<artifactId>terminalconsoleappender</artifactId>

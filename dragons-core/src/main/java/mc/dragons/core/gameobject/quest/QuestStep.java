@@ -19,6 +19,8 @@ import mc.dragons.core.util.PermissionUtil;
  *
  */
 public class QuestStep {
+	public static final String LAST_STEP_NAME = "Complete";
+	
 	private QuestTrigger trigger;
 	private List<QuestAction> actions;
 	private String stepName;
@@ -85,13 +87,15 @@ public class QuestStep {
 		this.trigger.getBranchPoints().put(trigger, action);
 		int stepIndex = quest.getStepIndex(this);
 		List<Document> steps = quest.getStepsAsDoc();
-		steps.get(stepIndex).get("trigger", Document.class).getList("branchPoints", Document.class)
-				.add(new Document("trigger", trigger.toDocument()).append("action", action.toDocument()));
+		steps.get(stepIndex).get("trigger", Document.class)
+			.getList("branchPoints", Document.class)
+			.add(new Document("trigger", trigger.toDocument())
+					.append("action", action.toDocument()));
 		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
 	public void addChoice(int actionIndex, String choiceText, int goToStage) {
-		actions.get(actionIndex).getChoices().put(choiceText, Integer.valueOf(goToStage));
+		actions.get(actionIndex).getChoices().put(choiceText, goToStage);
 		List<Document> steps = quest.getRecalculatedStepsAsDoc();
 		quest.getStorageAccess().update(new Document("steps", steps));
 	}
@@ -120,10 +124,23 @@ public class QuestStep {
 		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
+	/**
+	 * Execute the actions for this quest step.
+	 * 
+	 * @param user
+	 * @return
+	 */
 	public boolean executeActions(User user) {
 		return executeActions(user, 0);
 	}
 
+	/**
+	 * Execute the actions for this quest step, starting at the specified action.
+	 * 
+	 * @param user The user to execute the actions on.
+	 * @param beginIndex The (zero-based) index to start executing actions at.
+	 * @return Whether the user's current stage should be updated downstream.
+	 */
 	public boolean executeActions(User user, int beginIndex) {
 		if(quest.isLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) return false;
 		user.debug(" - Executing actions beginning at " + beginIndex);
@@ -142,7 +159,7 @@ public class QuestStep {
 				shouldUpdateStage = false;
 				int resumeIndex = i + 1;
 				user.onDialogueComplete(u -> {
-					u.updateQuestAction(quest, resumeIndex); // TODO: Do we need this?
+					u.updateQuestAction(quest, resumeIndex);
 				});
 				break;
 			}

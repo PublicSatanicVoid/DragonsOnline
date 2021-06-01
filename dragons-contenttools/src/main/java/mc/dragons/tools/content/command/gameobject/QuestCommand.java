@@ -50,7 +50,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 				+ "dialogue add <Action#> <Message>|"
 				+ "branch add <Action#> <GoToStage#> <TriggerType> [TriggerParams...]|"
 				+ "del <Action#>>" + ChatColor.GRAY + " manage quest stage actions");
-		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage <Stage#> del" + ChatColor.GRAY + " delete quest stage");
+		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> stage del <Stage#>" + ChatColor.GRAY + " delete quest stage");
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> delete" + ChatColor.GRAY + " delete quest");
 		sender.sendMessage(ChatColor.YELLOW + "/quest <ShortName> [un]lock" + ChatColor.GRAY + " lock or unlock quest");
 		sender.sendMessage(ChatColor.YELLOW + "/testquest <ShortName>" + ChatColor.GRAY + " test quest");
@@ -157,7 +157,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(quest.getData().toJson());
 		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[3]);
 		if(type == null) return;
-		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 4 ? Arrays.copyOfRange(args, 4, args.length) : null), new ArrayList<>(), quest);
+		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(quest, type, args.length > 4 ? Arrays.copyOfRange(args, 4, args.length) : null), new ArrayList<>(), quest);
 		quest.addStep(step);
 		sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
 		AUDIT_LOG.saveEntry(quest, user(sender), base, "Added new quest stage");
@@ -174,7 +174,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Integer before = parseInt(sender, args[3]);
 		TriggerType type = StringUtil.parseEnum(sender, TriggerType.class, args[4]);
 		if(before == null || type == null) return;
-		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(type, args.length > 5 ? Arrays.copyOfRange(args, 5, args.length) : null), new ArrayList<>(), quest);
+		QuestStep step = new QuestStep("Unnamed Step", makeTrigger(quest, type, args.length > 5 ? Arrays.copyOfRange(args, 5, args.length) : null), new ArrayList<>(), quest);
 		quest.insertStep(before, step);
 		sender.sendMessage(ChatColor.GREEN + "Added new quest stage successfully.");
 		AUDIT_LOG.saveEntry(quest, user(sender), base, "Inserted new quest stage");
@@ -182,7 +182,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void manageStage(CommandSender sender, String[] args) {
 		if(args.length <= 2) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <<Stage#> [name|trigger|action|del] [...]|<add|insert <StageBefore#>> <trigger> [params...]");
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <<Stage#> [name|trigger|action] [...]|<add|insert <StageBefore#>>|del <Stage#>> <trigger> [params...]");
 		}
 		else if(args[2].equalsIgnoreCase("add")) {
 			addStage(sender, args);
@@ -213,7 +213,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 				deleteAction(sender, args);
 			}
 		}
-		else if(args[3].equalsIgnoreCase("del")) {
+		else if(args[2].equalsIgnoreCase("del")) {
 			deleteStep(sender, args);
 		}
 		else if(args.length == 4) {
@@ -392,7 +392,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Document base = Document.parse(quest.getData().toJson());
 		QuestStep step = quest.getSteps().get(stepNo);
 		if(args[5].equalsIgnoreCase("add")) {
-			QuestTrigger trigger = makeTrigger(TriggerType.valueOf(args[7]), Arrays.copyOfRange(args, 8, args.length));
+			QuestTrigger trigger = makeTrigger(quest, TriggerType.valueOf(args[7]), Arrays.copyOfRange(args, 8, args.length));
 			QuestAction action = QuestAction.goToStageAction(quest, Integer.valueOf(args[6]), false);
 			step.addBranchPoint(trigger, action);
 			sender.sendMessage(ChatColor.GREEN + "Added branch point successfully.");
@@ -463,14 +463,14 @@ public class QuestCommand extends DragonsCommandExecutor {
 		for(int i = 5; i < args.length; i++) {
 			params.add(args[i]);
 		}
-		step.setTrigger(makeTrigger(type, params.toArray(new String[] {})));
+		step.setTrigger(makeTrigger(quest, type, params.toArray(new String[] {})));
 		sender.sendMessage(ChatColor.GREEN + "Updated quest stage trigger successfully.");
 		AUDIT_LOG.saveEntry(quest, user(sender), base, "Set trigger of stage " + args[2] + " to " + type);
 	}
 	
 	private void deleteStep(CommandSender sender, String[] args) {
 		Quest quest = lookupQuest(sender, args[0]);
-		Integer stepNo = parseInt(sender, args[2]);
+		Integer stepNo = parseInt(sender, args[3]);
 		if(quest == null || stepNo == null) return;
 		Document base = Document.parse(quest.getData().toJson());
 		
@@ -544,26 +544,26 @@ public class QuestCommand extends DragonsCommandExecutor {
 		return true;
 	}
 	
-	private QuestTrigger makeTrigger(TriggerType type, String... params) {
+	private QuestTrigger makeTrigger(Quest quest, TriggerType type, String... params) {
 		switch(type) {
 		case INSTANT:
-			return QuestTrigger.instant();
+			return QuestTrigger.instant(quest);
 		case NEVER:
-			return QuestTrigger.never();
+			return QuestTrigger.never(quest);
 		case KILL_NPC:
-			return QuestTrigger.onKillNPC(npcClassLoader.getNPCClassByClassName(params[0]), Integer.valueOf(params[1]));
+			return QuestTrigger.onKillNPC(quest, npcClassLoader.getNPCClassByClassName(params[0]), Integer.valueOf(params[1]));
 		case CLICK_NPC:
-			return QuestTrigger.onClickNPC(npcClassLoader.getNPCClassByClassName(params[0]));
+			return QuestTrigger.onClickNPC(quest, npcClassLoader.getNPCClassByClassName(params[0]));
 		case ENTER_REGION:
-			return QuestTrigger.onEnterRegion(regionLoader.getRegionByName(params[0]));
+			return QuestTrigger.onEnterRegion(quest, regionLoader.getRegionByName(params[0]));
 		case WALK_REGION:
-			return QuestTrigger.onWalkRegion(regionLoader.getRegionByName(params[0]), Double.valueOf(params[1]));
+			return QuestTrigger.onWalkRegion(quest, regionLoader.getRegionByName(params[0]), Double.valueOf(params[1]));
 		case EXIT_REGION:
-			return QuestTrigger.onExitRegion(regionLoader.getRegionByName(params[0]));
+			return QuestTrigger.onExitRegion(quest, regionLoader.getRegionByName(params[0]));
 		case BRANCH_CONDITIONAL:
-			return QuestTrigger.branchConditional(new HashMap<>());
+			return QuestTrigger.branchConditional(quest, new HashMap<>());
 		case HAS_ITEM:
-			return QuestTrigger.hasItem(itemClassLoader.getItemClassByClassName(params[0]), Integer.valueOf(params[1]));
+			return QuestTrigger.hasItem(quest, itemClassLoader.getItemClassByClassName(params[0]), Integer.valueOf(params[1]));
 		}
 		return null;
 	}

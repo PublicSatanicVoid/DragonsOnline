@@ -24,7 +24,7 @@ public class HoldCommand extends DragonsCommandExecutor {
 		User user = user(sender);
 		
 		if(args.length == 0) {
-			sender.sendMessage(ChatColor.RED + "Specify a player and code! /hold <player1 [player2 ...]> <code> [extra info] [--forceEscalate]");
+			sender.sendMessage(ChatColor.RED + "Specify a player and code! /hold <player1 [player2 ...]> <code> [extra info]");
 			return true;
 		}
 

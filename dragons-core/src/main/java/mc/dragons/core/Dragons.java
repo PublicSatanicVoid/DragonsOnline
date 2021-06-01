@@ -14,10 +14,12 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 
 import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.bridge.Bridge;
@@ -83,6 +85,7 @@ import mc.dragons.core.tasks.UpdateScoreboardTask;
 import mc.dragons.core.tasks.VerifyGameIntegrityTask;
 import mc.dragons.core.util.BukkitUtil;
 import mc.dragons.core.util.EntityHider;
+import mc.dragons.core.util.ObjectUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.singletons.SingletonReInstantiationException;
 import mc.dragons.core.util.singletons.Singletons;
@@ -289,7 +292,6 @@ public class Dragons extends DragonsJavaPlugin {
 						if (i >= 5) {
 							cancel();
 							getLogger().info("... flush complete. Entity count: " + getEntities().size());
-							System.gc();
 							joinable = true;
 							getLogger().info("Server is now joinable");
 						}
@@ -321,8 +323,10 @@ public class Dragons extends DragonsJavaPlugin {
 		pluginManager.registerEvents(new SlimeSplitEventListener(this), this);
 
 		getLogger().info("Registering packet listeners...");
-		ProtocolLibrary.getProtocolManager().addPacketListener(new EntityMoveListener(this));
-		entityHider = new EntityHider(Dragons.getInstance(), EntityHider.Policy.BLACKLIST);
+		if(verifyProtocolLib()) {
+			ProtocolLibrary.getProtocolManager().addPacketListener(new EntityMoveListener(this));
+			entityHider = new EntityHider(this, EntityHider.Policy.BLACKLIST);
+		}
 		
 		getLogger().info("Registering commands...");
 		getCommand("dragons").setExecutor(new DragonsCommand());
@@ -361,7 +365,7 @@ public class Dragons extends DragonsJavaPlugin {
 		getLogger().info("Enabling addons...");
 		addonRegistry.enableAll();
 	}
-
+	
 	@Override
 	public void onDisable() {
 		autoSaveRunnable.run(true);
@@ -382,6 +386,20 @@ public class Dragons extends DragonsJavaPlugin {
 				user.getPlayer().kickPlayer(kickMessage);
 			}
 		}
+	}
+	
+	private boolean verifyProtocolLib() {
+		ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+		if(protocolManager == null) {
+			Plugin p = ProtocolLibrary.getPlugin();
+			getLogger().severe("Could not load protocol manager from ProtocolLib!");
+			getLogger().severe("ProtocolLib " + ObjectUtil.get(p, () -> p.getDescription().getVersion() + " - " + p.getClass(), "main instance is null"));
+			return false;
+		}
+		else {
+			getLogger().debug("Verified ProtocolLib instance successfully");
+		}
+		return true;
 	}
 	
 	/**

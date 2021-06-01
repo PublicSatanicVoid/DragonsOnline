@@ -63,7 +63,7 @@ public class InventoryEventListeners implements Listener {
 			}
 			return;
 		}
-		if (e.getAction() == InventoryAction.SWAP_WITH_CURSOR && e.getClick() == ClickType.LEFT) {
+		else if (e.getAction() == InventoryAction.SWAP_WITH_CURSOR && e.getClick() == ClickType.LEFT) {
 			user.debug("- Merge candidate");
 			ItemStack mergeWith = player.getInventory().getItem(e.getSlot());
 			ItemStack mergeFrom = e.getCursor();
@@ -93,7 +93,7 @@ public class InventoryEventListeners implements Listener {
 				user.debug("- Merge complete (total quantity=" + quantity + ")");
 			}
 		}
-		if (e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_SOME) {
+		else if (e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_SOME) {
 			user.debug("- Split candidate");
 			ItemStack splitFrom = e.getCurrentItem();
 			Item rpgSplitFrom = ItemLoader.fromBukkit(splitFrom);

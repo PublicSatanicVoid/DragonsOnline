@@ -46,7 +46,7 @@ public class QuestDialogueCommands extends DragonsCommandExecutor {
 		if (stage == null) {
 			return;
 		}
-		sender.sendMessage(ChatColor.GRAY + "[1/1] " + ChatColor.DARK_GREEN + user.getName() + ": " + ChatColor.GREEN + response);
+		sender.sendMessage(ChatColor.GRAY + "[1/1] " + ChatColor.DARK_GREEN + "You: " + ChatColor.GREEN + response);
 		user.setQuestPaused(quest, false);
 		user.updateQuestProgress(quest, quest.getSteps().get(stage), false);
 	}

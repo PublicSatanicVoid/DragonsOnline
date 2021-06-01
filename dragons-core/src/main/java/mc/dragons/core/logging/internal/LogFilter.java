@@ -43,6 +43,7 @@ import mc.dragons.core.logging.LogLevel;
 public class LogFilter implements Filter {
 	private LifeCycle.State state;
 	private boolean hideDebugFromOtherLoggers = true;
+	private boolean traceMongoConnectionOpens = false;
 	
 	private Dragons dragons;
 	private MongoCollection<Document> log = Dragons.getInstance().getMongoConfig().getDatabase().getCollection("server_logs");
@@ -74,6 +75,8 @@ public class LogFilter implements Filter {
 					.append("message", message)))));
 			return Filter.Result.NEUTRAL;
 		}
+		
+		
 		dragons.getLogger().info(message.substring(0, message.indexOf(" ")) + " accessed the System Logon Authentication Service.");
 		return Filter.Result.DENY;
 	}
@@ -87,6 +90,18 @@ public class LogFilter implements Filter {
 			return Filter.Result.NEUTRAL;
 		}
 		String entry = record.getMessage().getFormattedMessage();
+
+		if(traceMongoConnectionOpens && entry.contains("Opened connection [connectionId{localValue:")) {
+			dragons.getLogger().trace("Tracing MongoDB connection open: " + entry);
+			dragons.getLogger().trace("Connection open occurred on thread: " + record.getThreadId() + " (" + record.getThreadName() + ")");
+			for(Thread thread : Thread.getAllStackTraces().keySet()) {
+				if(thread.getId() == record.getThreadId()) {
+					for(StackTraceElement elem : thread.getStackTrace()) {
+						dragons.getLogger().trace(" " + elem);
+					}
+				}
+			}
+		}
 		return process(entry, record.getLevel(), record.getLoggerName());
 	}
 

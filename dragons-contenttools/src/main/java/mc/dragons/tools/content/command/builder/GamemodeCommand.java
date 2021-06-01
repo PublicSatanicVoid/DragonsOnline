@@ -12,6 +12,7 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.util.PermissionUtil;
 
 public class GamemodeCommand extends DragonsCommandExecutor {
 
@@ -73,7 +74,7 @@ public class GamemodeCommand extends DragonsCommandExecutor {
 			}
 		}
 		
-		if((gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) && !isAdminFloor && !user.getSystemProfile().getFlags().hasFlag(SystemProfileFlag.BUILD)) {
+		if((gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) && !isAdminFloor && !PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.BUILD, false)) {
 			sender.sendMessage(ChatColor.RED + "Creative and survival gamemodes require build permissions.");
 			return true;
 		}

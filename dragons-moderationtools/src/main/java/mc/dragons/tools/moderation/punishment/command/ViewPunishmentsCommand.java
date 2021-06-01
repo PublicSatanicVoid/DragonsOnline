@@ -69,7 +69,7 @@ public class ViewPunishmentsCommand extends DragonsCommandExecutor {
 		
 		int i = 1;
 		for(PunishmentData entry : wrapped.getPunishmentHistory()) {
-			if(!entry.getIssuedBy().equals(user(sender)) && !mod) {
+			if((entry.getIssuedBy() == null || !entry.getIssuedBy().equals(user(sender))) && !mod) {
 				i++;
 				continue;
 			}

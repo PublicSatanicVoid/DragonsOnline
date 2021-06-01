@@ -1,9 +1,8 @@
 package mc.dragons.core.gameobject.floor;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.bson.Document;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -31,8 +30,8 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 	private FloorLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
 		masterRegistry = instance.getGameObjectRegistry();
-		worldNameToFloor = new HashMap<>();
-		floorNameToFloor = new CaseInsensitiveMap<>();
+		worldNameToFloor = new ConcurrentHashMap<>();
+		floorNameToFloor = new ConcurrentHashMap<>();
 	}
 
 	public static FloorLoader getInstance() {
@@ -47,7 +46,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 		Floor floor = new Floor(storageManager, storageAccess, false);
 		masterRegistry.getRegisteredObjects().add(floor);
 		worldNameToFloor.put(floor.getWorldName(), floor);
-		floorNameToFloor.put(floor.getFloorName(), floor);
+		floorNameToFloor.put(floor.getFloorName().toLowerCase(), floor);
 		return floor;
 	}
 
@@ -64,7 +63,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 		Floor floor = new Floor(storageManager, storageAccess, superflat);
 		masterRegistry.getRegisteredObjects().add(floor);
 		worldNameToFloor.put(worldName, floor);
-		floorNameToFloor.put(floorName, floor);
+		floorNameToFloor.put(floorName.toLowerCase(), floor);
 		return floor;
 	}
 
@@ -76,7 +75,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 	 */
 	public static void link(World world, Floor floor) {
 		worldNameToFloor.put(world.getName(), floor);
-		floorNameToFloor.put(floor.getFloorName(), floor);
+		floorNameToFloor.put(floor.getFloorName().toLowerCase(), floor);
 	}
 
 	/**
@@ -112,7 +111,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 	 * @return The floor associated with the specified internal (GM) name.
 	 */
 	public static Floor fromFloorName(String floorName) {
-		return floorNameToFloor.get(floorName);
+		return floorNameToFloor.get(floorName.toLowerCase());
 	}
 
 	/**
@@ -123,7 +122,7 @@ public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
 	 * @param newFloorName
 	 */
 	public static void updateFloorName(String floorName, String newFloorName) {
-		floorNameToFloor.put(newFloorName, floorNameToFloor.remove(floorName));
+		floorNameToFloor.put(newFloorName.toLowerCase(), floorNameToFloor.remove(floorName.toLowerCase()));
 	}
 
 	/**

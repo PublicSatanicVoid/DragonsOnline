@@ -1,11 +1,10 @@
 package mc.dragons.core.events;
 
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
 import static mc.dragons.core.util.BukkitUtil.sync;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,15 +19,18 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -36,9 +38,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -68,6 +71,17 @@ public class PlayerEventListeners implements Listener {
 	public static final String GOLD_CURRENCY_ITEM_CLASS_NAME = "Currency:Gold";
 	
 	private static Map<Integer, List<Consumer<User>>> rightClickHandlers = new HashMap<>(); // OMG SOMEONE CALL THE STATIC POLICE OMG
+	private long commandSpamThreshold = 1000L;
+	private long chatSpamThreshold = 1000L;
+	
+	private Dragons plugin;
+	private DragonsLogger LOGGER;
+	private UserLoader userLoader;
+	private ItemLoader itemLoader;
+	private Table<User, Entity, Long> interacts = HashBasedTable.create();
+	private Map<Integer, Item> arrowsByEntity = new HashMap<>();
+	private Map<Player, Long> lastCommand = new HashMap<>();
+	private Map<Player, Long> lastChat = new HashMap<>();
 	
 	public static void addRightClickHandler(Entity entity, Consumer<User> handler) {
 		rightClickHandlers.computeIfAbsent(entity.getEntityId(), e -> new ArrayList<>()).add(handler);
@@ -91,14 +105,6 @@ public class PlayerEventListeners implements Listener {
 		DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
 	}
 	
-	private Dragons plugin;
-	private DragonsLogger LOGGER;
-
-	private UserLoader userLoader;
-	private ItemLoader itemLoader;
-	
-	private Table<User, Entity, Long> interacts = HashBasedTable.create();
-
 	public PlayerEventListeners(Dragons instance) {
 		plugin = instance;
 		LOGGER = instance.getLogger();
@@ -109,9 +115,15 @@ public class PlayerEventListeners implements Listener {
 
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent event) {
-		LOGGER.debug("Chat event from player " + event.getPlayer().getName());
-		User user = UserLoader.fromPlayer(event.getPlayer());
+		Player player = event.getPlayer();
+		User user = UserLoader.fromPlayer(player);
+		LOGGER.debug("Chat event from player " + player.getName());
 		event.setCancelled(true);
+		if(System.currentTimeMillis() - lastChat.getOrDefault(player, 0L) < chatSpamThreshold && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.DEVELOPER, false)) {
+			player.sendMessage(ChatColor.RED + "Please do not spam chat!");
+			return;
+		}
+		lastChat.put(player, System.currentTimeMillis());
 		user.chat(event.getMessage());
 	}
 
@@ -214,7 +226,6 @@ public class PlayerEventListeners implements Listener {
 		int amt = drop.getAmount();
 		Item item = ItemLoader.fromBukkit(drop);
 		
-		
 		LOGGER.trace("Drop item event on " + event.getPlayer().getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + amt + ")");
 		if (item == null) {
 			return;
@@ -230,7 +241,7 @@ public class PlayerEventListeners implements Listener {
 		dropItem.setQuantity(amt);
 		user.debug("drop="+dropItem.getQuantity()+"="+dropItem.getItemStack().getAmount());
 		event.getItemDrop().setItemStack(dropItem.getItemStack());
-		user.takeItem(item, amt, true, false, true);
+		user.takeItem(item, amt, true, true, true);
 	}
 
 	@EventHandler
@@ -319,36 +330,55 @@ public class PlayerEventListeners implements Listener {
 					+ "This is not a punishment-related kick.");
 			return;
 		}
-		UUID uuid = player.getUniqueId();
-		User user = userLoader.loadObject(uuid);
-		boolean firstJoin = false;
-		if (user == null) {
-			firstJoin = true;
-			plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
-			user = userLoader.registerNew(player);
-			user.sendToFloor("BeginnerTown");
-			for(ItemClass itemClass : DEFAULT_INVENTORY) {
-				user.giveItem(itemLoader.registerNew(itemClass), true, false, true);
+		rollingAsync(() -> {
+			UUID uuid = player.getUniqueId();
+			User user = userLoader.loadObject(uuid);
+			boolean firstJoin = false;
+			if (user == null) {
+				firstJoin = true;
+				plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
+				user = userLoader.registerNew(player);
+				user.sendToFloor("BeginnerTown");
+				int i = 1;
+				final User fUser = user;
+				for(ItemClass itemClass : DEFAULT_INVENTORY) {
+					sync(() -> fUser.giveItem(itemLoader.registerNew(itemClass), true, false, true), i);
+					i++;
+				}
 			}
+			Floor floor = FloorLoader.fromLocation(player.getLocation());
+			if(floor.isPlayerLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
+				sync(() -> player.kickPlayer(ChatColor.RED + "This floor (#" + floor.getLevelMin() + " " + floor.getDisplayName() + ") is currently locked for maintenance.\n"
+						+ "You will be allowed to re-join once the maintenance completes.\n\n"
+						+ "This is not a punishment-related kick.\n\n"
+						+ StringUtil.dateFormatNow()));
+				return;
+			}
+			if (user.getRank().isStaff()) {
+				GameMode restoreTo = user.getSavedGameMode();
+				final User fUser = user;
+				sync(() -> {
+					fUser.setGameMode(GameMode.ADVENTURE, true);
+					fUser.setGameMode(restoreTo, false);
+					fUser.sendToFloor("Staff");
+					player.setPlayerListName(ChatColor.DARK_GRAY + "" + ChatColor.MAGIC + "[Staff Joining]");
+				});
+				player.sendMessage(ChatColor.AQUA + "Please login to your system profile or select \"Join as player\".");
+			} else {
+				user.handleJoin(firstJoin);
+			}
+		});
+	}
+	
+	@EventHandler
+	public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
+		Player player = event.getPlayer();
+		User user = UserLoader.fromPlayer(player);
+		if(System.currentTimeMillis() - lastCommand.getOrDefault(player, 0L) < commandSpamThreshold && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.DEVELOPER, false)) {
+			player.sendMessage(ChatColor.RED + "Please do not spam commands!");
+			event.setCancelled(true);
 		}
-		Floor floor = FloorLoader.fromLocation(player.getLocation());
-		if(floor.isPlayerLocked() && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.GM, false)) {
-			player.kickPlayer(ChatColor.RED + "This floor (#" + floor.getLevelMin() + " " + floor.getDisplayName() + ") is currently locked for maintenance.\n"
-					+ "You will be allowed to re-join once the maintenance completes.\n\n"
-					+ "This is not a punishment-related kick.\n\n"
-					+ new SimpleDateFormat("yyyy MM dd HH:mm z").format(new Date()));
-			return;
-		}
-		if (user.getRank().isStaff()) {
-			GameMode restoreTo = user.getSavedGameMode();
-			user.setGameMode(GameMode.ADVENTURE, true);
-			user.setGameMode(restoreTo, false);
-			user.sendToFloor("Staff");
-			player.setPlayerListName(ChatColor.DARK_GRAY + "" + ChatColor.MAGIC + "[Staff Joining]");
-			player.sendMessage(ChatColor.AQUA + "Please login to your system profile or select \"Join as player\".");
-		} else {
-			user.handleJoin(firstJoin);
-		}
+		lastCommand.put(player, System.currentTimeMillis());
 	}
 
 	@EventHandler
@@ -361,43 +391,36 @@ public class PlayerEventListeners implements Listener {
 		user.handleMove();
 	}
 
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onPickupArrow(PlayerPickupArrowEvent event) {
+		Item arrow = arrowsByEntity.get(event.getArrow().getEntityId());
+		if(arrow == null) return;
+		LOGGER.trace("Pickup arrow event on " + event.getPlayer().getName() + " of " + arrow.getIdentifier());
+		event.setCancelled(true);
+		event.getItem().remove();
+		UserLoader.fromPlayer(event.getPlayer()).giveItem(arrow);
+	}
+	
 	@EventHandler
 	public void onPickupItem(EntityPickupItemEvent event) {
-		if (!(event.getEntity() instanceof Player)) {
-			return;
-		}
+		if (event.getEntityType() != EntityType.PLAYER) return;
 		final Player player = (Player) event.getEntity();
 		ItemStack pickup = event.getItem().getItemStack();
 		User user = UserLoader.fromPlayer(player);
-		if (pickup == null) {
-			return;
-		}
-		if (pickup.getItemMeta() == null) {
-			return;
-		}
-		if (pickup.getItemMeta().getDisplayName() == null) {
-			return;
-		}
 		final Item item = ItemLoader.fromBukkit(pickup);
-		if (item == null) {
-			return;
-		}
-
+		if (item == null) return;
+		
 		LOGGER.trace("Pickup item event on " + player.getName() + " of " + (item == null ? "null" : item.getIdentifier()) + " (x" + pickup.getAmount() + ")");
 		if (item.getItemClass().getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME)) {
 			int amount = pickup.getAmount();
 			user.giveGold(amount * 1.0D);
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					Arrays.asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
-							.map(i -> ItemLoader.fromBukkit(i)).filter(Objects::nonNull).filter(i -> i.getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME))
-							.forEach(i -> {
-								player.getInventory().remove(i.getItemStack());
-								plugin.getGameObjectRegistry().removeFromDatabase(item);
-							});
-				}
-			}.runTaskLater(plugin, 1L);
+			sync(() -> Arrays.asList(player.getInventory().getContents()).stream().filter(i -> (i != null)).filter(i -> (i.getItemMeta() != null))
+				.map(i -> ItemLoader.fromBukkit(i)).filter(Objects::nonNull).filter(i -> i.getClassName().equals(GOLD_CURRENCY_ITEM_CLASS_NAME))
+				.forEach(i -> {
+					player.getInventory().remove(i.getItemStack());
+					plugin.getGameObjectRegistry().removeFromDatabase(item);
+			}));
 			player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0F, 1.3F);
 			return;
 		}
@@ -408,7 +431,33 @@ public class PlayerEventListeners implements Listener {
 		event.setCancelled(true);
 		event.getItem().remove();
 	}
-
+	
+	@EventHandler
+	public void onShootBow(EntityShootBowEvent event) {
+		if(event.getEntityType() != EntityType.PLAYER) return;
+		Player player = (Player) event.getEntity();
+		User user = UserLoader.fromPlayer(player);
+		Item bow = ItemLoader.fromBukkit(event.getBow());
+		if(bow == null) return;
+		LOGGER.debug("Shoot bow event on " + player.getName() + " with " + bow.getIdentifier());
+		if(!bow.getItemClass().checkCanUse(user, true)) {
+			event.setCancelled(true);
+			event.setConsumeItem(false);
+			user.getPlayer().updateInventory();
+			return;
+		}
+		Item arrow = ItemLoader.fromBukkit(event.getConsumable());
+		Item link = itemLoader.registerNew(arrow);
+		arrow.setQuantity(arrow.getQuantity() - 1);
+		link.setQuantity(1);
+		link.updateItemStackData();
+		user.getPlayer().updateInventory();
+		if(arrow != null) {
+			arrowsByEntity.put(event.getProjectile().getEntityId(), link);
+			event.getProjectile().setMetadata("allow", new FixedMetadataValue(plugin, true));
+		}
+	}
+	
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		LOGGER.debug("Quit event on " + event.getPlayer().getName());

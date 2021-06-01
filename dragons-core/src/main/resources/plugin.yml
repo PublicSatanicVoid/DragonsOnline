@@ -3,7 +3,7 @@ main: mc.dragons.core.Dragons
 version: 1.0.0
 author: DragonRider747
 depend: [ProtocolLib]
-loadbefore: [WorldEdit]
+loadbefore: [WorldEdit, Builders-Utilities]
 load: POSTWORLD
 api-version: 1.16
 description: Provides core APIs and game object functionality.

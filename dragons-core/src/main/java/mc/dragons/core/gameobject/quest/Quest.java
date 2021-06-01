@@ -11,6 +11,7 @@ import com.google.common.collect.Table;
 
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.quest.QuestTrigger.TriggerType;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
@@ -58,8 +59,7 @@ public class Quest extends GameObject {
 		LOGGER.verbose("Constructing quest (" + storageManager + ", " + storageAccess + ")");
 		steps = new ArrayList<>();
 		referenceNames = HashBasedTable.create();
-		@SuppressWarnings("unchecked")
-		List<Document> rawSteps = (List<Document>) getData("steps");
+		List<Document> rawSteps = getData().getList("steps", Document.class);
 		for (Document step : rawSteps) {
 			steps.add(QuestStep.fromDocument(step, this));
 		}
@@ -163,10 +163,10 @@ public class Quest extends GameObject {
 			return false;
 		}
 		QuestStep finalStep = steps.get(steps.size() - 1);
-		if (!finalStep.getStepName().equalsIgnoreCase("Complete")) {
+		if (!finalStep.getStepName().equals(QuestStep.LAST_STEP_NAME)) {
 			return false;
 		}
-		if (finalStep.getTrigger().getTriggerType() != QuestTrigger.TriggerType.INSTANT) {
+		if (finalStep.getTrigger().getTriggerType() != TriggerType.INSTANT) {
 			return false;
 		}
 		if (finalStep.getActions().size() != 0) {
