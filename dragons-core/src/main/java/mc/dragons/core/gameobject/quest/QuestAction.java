@@ -52,8 +52,6 @@ public class QuestAction {
 	private static NPCLoader npcLoader = GameObjectType.NPC.getLoader();
 	private static ItemLoader itemLoader = GameObjectType.ITEM.getLoader();
 	
-	private QuestAction() {}
-	
 	private Quest quest;
 	private QuestActionType action;
 	private String npcClassShortName;
@@ -75,6 +73,8 @@ public class QuestAction {
 	private Material materialType;
 	private int radius;
 
+	private QuestAction() {}
+	
 	/**
 	 * The result of executing a quest action.
 	 * 

@@ -73,6 +73,7 @@ import org.bukkit.util.Vector;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.logging.DragonsLogger;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 public class MockPlayer implements Player {
 	private static DragonsLogger LOGGER = Dragons.getInstance().getLogger();
@@ -95,43 +96,43 @@ public class MockPlayer implements Player {
 
 		@Override
 		@Deprecated
-		public void setCollidesWithEntities(boolean collides) {}
+		public void setCollidesWithEntities(boolean collides) { /* do nothing */ }
 
 		@Override
-		public void respawn() {}
+		public void respawn() { /* do nothing */ }
 
 		@Override
-		public java.util.Set<Player> getHiddenPlayers() {
+		public Set<Player> getHiddenPlayers() {
 			return new HashSet<>();
 		}
 
-		public void sendMessage(net.md_5.bungee.api.chat.BaseComponent component) {
+		public void sendMessage(BaseComponent component) {
 			LOGGER.debug("MOCK USER " + name + " received message " + component.toPlainText());
 		}
 
 		@Override
-		public void sendMessage(net.md_5.bungee.api.chat.BaseComponent... components) {
+		public void sendMessage(BaseComponent... components) {
 			String message = Arrays.stream(components).map(c -> c.toPlainText()).reduce("", (a,b) -> a + b);
 			LOGGER.debug("MOCK USER " + name + " received message " + message);
 		}
 
 		@Override
-		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, net.md_5.bungee.api.chat.BaseComponent component) {
+		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, BaseComponent component) {
 			sendMessage(component);
 		}
 
 		@Override
-		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, net.md_5.bungee.api.chat.BaseComponent... components) {
+		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, BaseComponent... components) {
 			sendMessage(components);
 		}
 
 		@Override
-		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, UUID sender, net.md_5.bungee.api.chat.BaseComponent component) {
+		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, UUID sender, BaseComponent component) {
 			sendMessage(component);
 		}
 
 		@Override
-		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, UUID sender, net.md_5.bungee.api.chat.BaseComponent... components) {
+		public void sendMessage(net.md_5.bungee.api.ChatMessageType position, UUID sender, BaseComponent... components) {
 			sendMessage(components);
 		}
 	}

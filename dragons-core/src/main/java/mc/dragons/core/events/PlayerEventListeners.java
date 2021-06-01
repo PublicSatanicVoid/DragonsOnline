@@ -71,6 +71,9 @@ public class PlayerEventListeners implements Listener {
 	public static final String GOLD_CURRENCY_ITEM_CLASS_NAME = "Currency:Gold";
 	
 	private static Map<Integer, List<Consumer<User>>> rightClickHandlers = new HashMap<>(); // OMG SOMEONE CALL THE STATIC POLICE OMG
+	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
+	public static ItemClass[] DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
+	
 	private long commandSpamThreshold = 1000L;
 	private long chatSpamThreshold = 1000L;
 	
@@ -83,6 +86,8 @@ public class PlayerEventListeners implements Listener {
 	private Map<Player, Long> lastCommand = new HashMap<>();
 	private Map<Player, Long> lastChat = new HashMap<>();
 	
+	private UserHookRegistry userHookRegistry;
+
 	public static void addRightClickHandler(Entity entity, Consumer<User> handler) {
 		rightClickHandlers.computeIfAbsent(entity.getEntityId(), e -> new ArrayList<>()).add(handler);
 	}
@@ -93,16 +98,6 @@ public class PlayerEventListeners implements Listener {
 	
 	public static List<Consumer<User>> getRightClickHandlers(Entity entity) {
 		return rightClickHandlers.getOrDefault(entity.getEntityId(), List.of());
-	}
-	
-	private static ItemClassLoader itemClassLoader;
-	public static ItemClass[] DEFAULT_INVENTORY;
-	
-	private UserHookRegistry userHookRegistry;
-	
-	static {
-		itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
-		DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
 	}
 	
 	public PlayerEventListeners(Dragons instance) {

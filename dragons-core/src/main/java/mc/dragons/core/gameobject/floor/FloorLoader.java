@@ -18,20 +18,18 @@ import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
 public class FloorLoader extends GameObjectLoader<Floor> implements Singleton {
-	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
+	private static Map<String, Floor> worldNameToFloor = new ConcurrentHashMap<>();
+	private static Map<String, Floor> floorNameToFloor = new ConcurrentHashMap<>();
 	
-	private static Map<String, Floor> worldNameToFloor;
-	private static Map<String, Floor> floorNameToFloor;
-	
+	private DragonsLogger LOGGER;
 	private GameObjectRegistry masterRegistry;
 	
 	private boolean allLoaded = false;
 
 	private FloorLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
+		LOGGER = instance.getLogger();
 		masterRegistry = instance.getGameObjectRegistry();
-		worldNameToFloor = new ConcurrentHashMap<>();
-		floorNameToFloor = new ConcurrentHashMap<>();
 	}
 
 	public static FloorLoader getInstance() {
