@@ -43,7 +43,7 @@ public class FeedbackLoader extends AbstractLightweightLoader<FeedbackLoader.Fee
 	}
 
 	public PaginatedResult<FeedbackEntry> getUnreadFeedback(int page) {
-		FindIterable<Document> results = collection.find(new Document("read", Boolean.valueOf(false)));
+		FindIterable<Document> results = collection.find(new Document("read", false));
 		int total = Iterables.size(results);
 		return new PaginatedResult<FeedbackEntry>(PaginationUtil.sortAndPaginate(results, page, PAGE_SIZE)
 				.map(d -> new FeedbackEntry(d.getInteger("_id"), d.getString("from"), d.getString("feedback")))

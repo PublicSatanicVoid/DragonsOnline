@@ -75,7 +75,7 @@ public class NPC extends GameObject {
 		HOSTILE(ChatColor.RED, "", false, false, true, false, false),
 		NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),
 		QUEST(ChatColor.DARK_GREEN, ChatColor.DARK_GREEN + "[NPC] ", true, true, false, true, true), 
-		SHOP(ChatColor.DARK_AQUA, ChatColor.DARK_AQUA + "[NPC] ", true, true, false, true, true),
+		SHOP(ChatColor.DARK_AQUA, ChatColor.DARK_AQUA + "", true, true, false, true, true),
 		PERSISTENT(ChatColor.YELLOW, "", true, true, true, true, true), 
 		COMPANION(ChatColor.GOLD, ChatColor.GOLD + "[COMPANION] ", true, false, true, false, true);
 

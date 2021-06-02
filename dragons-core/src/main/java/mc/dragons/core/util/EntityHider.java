@@ -34,6 +34,7 @@ import mc.dragons.core.exception.DragonsInternalException;
  * Adapted by Adam for use within Dragons Online.
  * 
  * @author comphenix
+ * @author Adam
  *
  */
 
@@ -86,13 +87,13 @@ public class EntityHider implements Listener {
 
 	protected boolean setMembership(Player observer, int entityID, boolean member) {
 		if (member) {
-			return observerEntityMap.put(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID), Boolean.valueOf(true)) != null;
+			return observerEntityMap.put(observer.getEntityId(), entityID, true) != null;
 		}
-		return observerEntityMap.remove(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID)) != null;
+		return observerEntityMap.remove(observer.getEntityId(), entityID) != null;
 	}
 
 	protected boolean getMembership(Player observer, int entityID) {
-		return observerEntityMap.contains(Integer.valueOf(observer.getEntityId()), Integer.valueOf(entityID));
+		return observerEntityMap.contains(observer.getEntityId(), entityID);
 	}
 
 	protected boolean isVisible(Player observer, int entityID) {
@@ -102,33 +103,33 @@ public class EntityHider implements Listener {
 
 	protected void removeEntity(Entity entity, boolean destroyed) {
 		int entityID = entity.getEntityId();
-		for (Map<Integer, Boolean> maps : (Iterable<Map<Integer, Boolean>>) observerEntityMap.rowMap().values()) {
-			maps.remove(Integer.valueOf(entityID));
+		for (Map<Integer, Boolean> maps : observerEntityMap.rowMap().values()) {
+			maps.remove(entityID);
 		}
 	}
 
 	protected void removePlayer(Player player) {
-		observerEntityMap.rowMap().remove(Integer.valueOf(player.getEntityId()));
+		observerEntityMap.rowMap().remove(player.getEntityId());
 	}
 
 	private Listener constructBukkit() {
 		return new Listener() {
 			@EventHandler
 			public void onEntityDeath(EntityDeathEvent e) {
-				EntityHider.this.removeEntity(e.getEntity(), true);
+				removeEntity(e.getEntity(), true);
 			}
 
 			@EventHandler
 			public void onChunkUnload(ChunkUnloadEvent e) {
 				for(Entity entity : e.getChunk().getEntities()) {
-					EntityHider.this.removeEntity(entity, false);
+					removeEntity(entity, false);
 				}
 
 			}
 
 			@EventHandler
 			public void onPlayerQuit(PlayerQuitEvent e) {
-				EntityHider.this.removePlayer(e.getPlayer());
+				removePlayer(e.getPlayer());
 			}
 		};
 	}
@@ -139,7 +140,7 @@ public class EntityHider implements Listener {
 			public void onPacketSending(PacketEvent event) {
 				int index = event.getPacketType() == PacketType.Play.Server.COMBAT_EVENT ? 1 : 0;
 				Integer entityID = event.getPacket().getIntegers().readSafely(index);
-				if (entityID != null && !EntityHider.this.isVisible(event.getPlayer(), entityID.intValue())) {
+				if (entityID != null && !isVisible(event.getPlayer(), entityID.intValue())) {
 					event.setCancelled(true);
 				}
 			}

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -13,8 +14,9 @@ import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.chat.ChatChannel;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.gui.GUI;
+import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.util.StringUtil;
-import net.md_5.bungee.api.chat.TextComponent;
 
 public class ChannelCommand extends DragonsCommandExecutor {
 	private boolean handleAlias(CommandSender sender, String label) {
@@ -94,6 +96,57 @@ public class ChannelCommand extends DragonsCommandExecutor {
 		return null;
 	}
 	
+	private void openGUI(User user) {
+		boolean staff = hasPermission(user, PermissionLevel.BUILDER);
+		GUI gui = new GUI(5, ChatColor.WHITE + "Chat Channels");
+		gui.add(new GUIElement(4, Material.BOOK, ChatColor.AQUA + "Chat Channels", List.of(
+				ChatColor.WHITE + "Channels are different streams of chat",
+				ChatColor.WHITE + "that you can speak or listen on.",
+				"",
+				ChatColor.WHITE + "You can listen to multiple channels,",
+				ChatColor.WHITE + "but can only speak on one.",
+				"",
+				ChatColor.WHITE + "Do " + ChatColor.GRAY + "/channel <channel> " + ChatColor.WHITE + "to manually",
+				ChatColor.WHITE + "change channels."), 1, u -> {}));
+		// Assume we have 7 or fewer channels, otherwise overflow occurs
+		int i = 10;
+		for(ChatChannel channel : ChatChannel.values()) {
+			if(channel == ChatChannel.STAFF && !staff) continue;
+			boolean speaking = user.getSpeakingChannel() == channel;
+			boolean listening = user.getActiveChatChannels().contains(channel);
+			gui.add(new GUIElement(i, Material.OAK_SIGN, ChatColor.YELLOW + "" + ChatColor.BOLD + channel, List.of(
+					ChatColor.GRAY + channel.getDescription(),
+					ChatColor.GRAY + "- " + (speaking ? ChatColor.GREEN + "You are speaking on this channel" : ChatColor.RED + "You are not speaking on this channel"),
+					ChatColor.GRAY + "- " + (listening ? ChatColor.GREEN + "You are listening to this channel" : ChatColor.RED + "You are not speaking to this channel")), 
+					1, u -> {}));
+			gui.add(new GUIElement(i + 9, speaking ? Material.EMERALD_BLOCK : Material.STONE, 
+					speaking ? ChatColor.GRAY + "You are currently speaking on this channel" : ChatColor.GREEN + "Click to speak on " + channel,
+					ChatColor.GRAY + "You can only speak on one channel at a time", u -> {
+						u.setSpeakingChannel(channel);
+						if(!u.getActiveChatChannels().contains(channel)) {
+							u.addActiveChatChannel(channel);
+						}
+						openGUI(u);
+					}));
+			gui.add(new GUIElement(i + 9 * 2, listening ? Material.EMERALD_BLOCK : Material.REDSTONE_BLOCK, 
+					listening ? 
+						  speaking ? ChatColor.RED + "You must listen to the channel you're speaking on" : ChatColor.RED + "Click to stop listening to " + channel 
+						: ChatColor.GREEN + "Click to listen to " + channel,
+					ChatColor.GRAY + "You can listen to multiple channels at once", u -> {
+						if(speaking && listening) return; 
+						if(listening) {
+							u.removeActiveChatChannel(channel);
+						}
+						else {
+							u.addActiveChatChannel(channel);
+						}
+						openGUI(u);
+					}));
+			i++;
+		}
+		gui.open(user);
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePlayer(sender)) return true;
@@ -103,45 +156,7 @@ public class ChannelCommand extends DragonsCommandExecutor {
 		if(handleAlias(sender, label)) return true;
 		
 		if (args.length == 0) {
-			TextComponent header = StringUtil.plainText(ChatColor.YELLOW + "" + ChatColor.STRIKETHROUGH + "===" + ChatColor.YELLOW + " Chat Channels " + ChatColor.YELLOW + "" + ChatColor.STRIKETHROUGH + "===");
-			TextComponent help = StringUtil.hoverableText(ChatColor.GRAY + " [?]",
-				ChatColor.YELLOW + "" + ChatColor.BOLD + "Chat Channels",
-				ChatColor.GREEN + "Channels are different streams of chat you can speak or listen on.",
-				ChatColor.WHITE + "You can listen to as many channels as you like,",
-				ChatColor.WHITE + "but can only speak on one.",
-				"",
-				ChatColor.WHITE + "Click " + ChatColor.GRAY + "[S]" + ChatColor.RESET + " to speak on a channel.",
-				ChatColor.WHITE + "Click " + ChatColor.GRAY + "[L]" + ChatColor.RESET + " to listen on a channel.",
-				ChatColor.RESET + "Do " + ChatColor.GRAY + "/channel <channel>" + ChatColor.RESET + " to manually toggle a channel.");
-			sender.spigot().sendMessage(header, help);
-			for(ChatChannel channel : ChatChannel.values()) {
-				if(channel == ChatChannel.STAFF && !staff) continue;
-				boolean speaking = user.getSpeakingChannel() == channel;
-				boolean listening = user.getActiveChatChannels().contains(channel);
-				TextComponent speak = speaking ? 
-						StringUtil.clickableHoverableText(ChatColor.DARK_GREEN + "[S] ", "/channel listen " + channel, 
-							ChatColor.YELLOW + "» Click to stop listening on " + channel,
-							ChatColor.GRAY + "   " + channel.getDescription(),
-							"",
-							ChatColor.GREEN + "You are currently speaking and listening on this channel") :
-						StringUtil.clickableHoverableText(ChatColor.GRAY + "[S] ", "/channel speak " + channel, 
-							ChatColor.YELLOW + "» Click to speak on channel " + channel, 
-							ChatColor.GRAY + "   " + channel.getDescription());
-				TextComponent listen = listening ?
-						StringUtil.clickableHoverableText(ChatColor.DARK_GREEN + "[L] ", "/channel listen " + channel, 
-							ChatColor.YELLOW + "» Click to stop listening on " + channel,
-							ChatColor.GRAY + "   " + channel.getDescription(),
-							"",
-							ChatColor.GREEN + "You are currently " + (speaking ? "speaking and " : "") + "listening on this channel"):
-						StringUtil.clickableHoverableText(ChatColor.GRAY + "[L] ", "/channel listen " + channel, 
-							ChatColor.YELLOW + "» Click to listen on channel " + channel,
-							ChatColor.GRAY + "   " + channel.getDescription());
-				TextComponent channelName = StringUtil.hoverableText((listening ? ChatColor.GREEN : ChatColor.RESET) + "" + channel, ChatColor.GRAY + channel.getDescription());
-				sender.spigot().sendMessage(speak, listen, channelName);
-			}
-//			sender.sendMessage(ChatColor.RED + "/channel <speak|listen> <" + validChannels(staff) + ">");
-//			sender.sendMessage(ChatColor.RED + "Curently speaking on " + user.getSpeakingChannel());
-//			sender.sendMessage(ChatColor.RED + "Currently listening to " + StringUtil.parseList(user.getActiveChatChannels()));
+			openGUI(user);
 			return true;
 		}
 		

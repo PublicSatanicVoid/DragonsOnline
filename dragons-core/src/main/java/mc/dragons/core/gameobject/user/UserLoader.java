@@ -88,7 +88,7 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 				return fixUser(user);
 			}
 		}
-		Player p = Bukkit.getPlayer((UUID) storageAccess.get("_id"));
+		Player p = Bukkit.getPlayer(storageAccess.get("_id", UUID.class));
 		if (p == null) {
 			LOGGER.notice("Attempting to load offline or nonexistent user (" + storageAccess.getIdentifier() + ")");
 		}
