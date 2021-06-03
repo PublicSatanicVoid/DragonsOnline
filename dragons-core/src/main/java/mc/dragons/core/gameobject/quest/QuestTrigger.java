@@ -56,7 +56,9 @@ public class QuestTrigger {
 		CLICK_NPC, 
 		KILL_NPC, 
 		INSTANT, 
-		HAS_ITEM, 
+		HAS_ITEM,
+		HAS_NO_ITEM,
+		HAS_LESS_ITEM,
 		NEVER, 
 		BRANCH_CONDITIONAL;
 	}
@@ -74,21 +76,28 @@ public class QuestTrigger {
 			questTrigger.npcClassShortName = trigger.getString("npcClass");
 		} else if (questTrigger.type == TriggerType.KILL_NPC) {
 			questTrigger.npcClassShortName = trigger.getString("npcClass");
-			questTrigger.quantity = trigger.getInteger("quantity").intValue();
+			questTrigger.quantity = trigger.getInteger("quantity");
 		} else if (questTrigger.type == TriggerType.BRANCH_CONDITIONAL) {
 			questTrigger.branchPoints = new LinkedHashMap<>();
 			for (Document conditional : trigger.getList("branchPoints", Document.class)) {
-				questTrigger.branchPoints.put(fromDocument((Document) conditional.get("trigger"), quest), QuestAction.fromDocument((Document) conditional.get("action"), quest));
+				questTrigger.branchPoints.put(fromDocument(conditional.get("trigger", Document.class), quest), 
+						QuestAction.fromDocument(conditional.get("action", Document.class), quest));
 			}
 		} else if (questTrigger.type == TriggerType.HAS_ITEM) {
 			questTrigger.itemClass = itemClassLoader.getItemClassByClassName(trigger.getString("itemClass"));
-			questTrigger.quantity = trigger.getInteger("quantity").intValue();
+			questTrigger.quantity = trigger.getInteger("quantity");
+		} else if (questTrigger.type == TriggerType.HAS_NO_ITEM) {
+			questTrigger.itemClass = itemClassLoader.getItemClassByClassName(trigger.getString("itemClass"));
+		} else if (questTrigger.type == TriggerType.HAS_LESS_ITEM) {
+			questTrigger.itemClass = itemClassLoader.getItemClassByClassName(trigger.getString("itemClass"));
+			questTrigger.quantity = trigger.getInteger("quantity");
 		}
 		return questTrigger;
 	}
 
 	private QuestTrigger() {
 		killQuantity = new HashMap<>();
+		branchPoints = new LinkedHashMap<>();
 	}
 	
 	/* No need to create subclasses for each trigger type; this works fine */
@@ -150,7 +159,24 @@ public class QuestTrigger {
 		trigger.quantity = quantity;
 		return trigger;
 	}
+	
+	public static QuestTrigger hasLessItem(Quest quest, ItemClass itemClass, int quantity) {
+		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
+		trigger.type = TriggerType.HAS_LESS_ITEM;
+		trigger.itemClass = itemClass;
+		trigger.quantity = quantity;
+		return trigger;
+	}
 
+	
+	public static QuestTrigger hasNoItem(Quest quest, ItemClass itemClass) {
+		QuestTrigger trigger = new QuestTrigger();
+		trigger.quest = quest;
+		trigger.type = TriggerType.HAS_NO_ITEM;
+		trigger.itemClass = itemClass;
+		return trigger;
+	}
 	public static QuestTrigger never(Quest quest) {
 		QuestTrigger trigger = new QuestTrigger();
 		trigger.quest = quest;
@@ -162,7 +188,7 @@ public class QuestTrigger {
 		QuestTrigger trigger = new QuestTrigger();
 		trigger.quest = quest;
 		trigger.type = TriggerType.BRANCH_CONDITIONAL;
-		trigger.branchPoints = branchPoints;
+		trigger.branchPoints = branchPoints == null ? new LinkedHashMap<>() : branchPoints;
 		return trigger;
 	}
 
@@ -223,8 +249,11 @@ public class QuestTrigger {
 			document.append("quantity", quantity);
 			break;
 		case HAS_ITEM:
-			document.append("itemClass", itemClass.getClassName()).append("quantity", Integer.valueOf(quantity));
+		case HAS_LESS_ITEM:
+			document.append("itemClass", itemClass.getClassName()).append("quantity", quantity);
 			break;
+		case HAS_NO_ITEM:
+			document.append("itemClass", itemClass.getClassName());
 		case BRANCH_CONDITIONAL:
 			conditions = new ArrayList<>();
 			for (Entry<QuestTrigger, QuestAction> entry : branchPoints.entrySet()) {
@@ -256,7 +285,7 @@ public class QuestTrigger {
 		else if (type == TriggerType.NEVER) {
 			return false;
 		}
-		else if (type == TriggerType.HAS_ITEM) {
+		else if (type == TriggerType.HAS_ITEM || type == TriggerType.HAS_NO_ITEM || type == TriggerType.HAS_LESS_ITEM) {
 			int has = 0;
 			for(ItemStack itemStack : user.getPlayer().getInventory().getContents()) {
 				Item item = ItemLoader.fromBukkit(itemStack);
@@ -264,7 +293,15 @@ public class QuestTrigger {
 					has += itemStack.getAmount();
 				}	
 			}
-			return has >= quantity;
+			if(type == TriggerType.HAS_ITEM) {
+				return has >= quantity;
+			}
+			else if(type == TriggerType.HAS_NO_ITEM) {
+				return has == 0;
+			}
+			else if(type == TriggerType.HAS_LESS_ITEM) {
+				return has < quantity;
+			}
 		}
 		else if (type == TriggerType.ENTER_REGION) {
 			user.updateState(false, false);

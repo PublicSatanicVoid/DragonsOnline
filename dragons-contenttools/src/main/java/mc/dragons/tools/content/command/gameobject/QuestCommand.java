@@ -375,8 +375,13 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 		else if(args[5].equalsIgnoreCase("remove")) {
 			Document base = Document.parse(quest.getData().toJson());
-			step.removeDialogue(Integer.valueOf(args[6]), Integer.valueOf(args[7]));
-			sender.sendMessage(ChatColor.GREEN + "Removed dialogue line from quest stage action successfully.");
+			boolean success = step.removeDialogue(Integer.valueOf(args[6]), Integer.valueOf(args[7]));
+			if(success) {
+				sender.sendMessage(ChatColor.GREEN + "Removed dialogue line from quest stage action successfully.");
+			}
+			else {
+				sender.sendMessage(ChatColor.RED + "Could not remove dialogue line from quest stage action");
+			}
 			AUDIT_LOG.saveEntry(quest, user(sender), base, "Removed dialogue line " + args[7] + " from action " + args[6] + " of stage " + args[2]);
 		}
 	}
@@ -564,8 +569,13 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return QuestTrigger.branchConditional(quest, new HashMap<>());
 		case HAS_ITEM:
 			return QuestTrigger.hasItem(quest, itemClassLoader.getItemClassByClassName(params[0]), Integer.valueOf(params[1]));
+		case HAS_LESS_ITEM:
+			return QuestTrigger.hasLessItem(quest, itemClassLoader.getItemClassByClassName(params[0]), Integer.valueOf(params[1]));
+		case HAS_NO_ITEM:
+			return QuestTrigger.hasNoItem(quest, itemClassLoader.getItemClassByClassName(params[0]));
+		default:
+			return null;
 		}
-		return null;
 	}
 	
 	private String displayTrigger(QuestTrigger trigger) {
@@ -593,10 +603,13 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return triggerMsg;
 		case HAS_ITEM:
 			return "Triggered immediately once player has " + ChatColor.GREEN + trigger.getQuantity() + ChatColor.GRAY + " of " + ChatColor.GREEN + trigger.getItemClass().getClassName();
+		case HAS_LESS_ITEM:
+			return "Triggered immediately once player has less than " + ChatColor.GREEN + trigger.getQuantity() + ChatColor.GRAY + " of " + ChatColor.GREEN + trigger.getItemClass().getClassName();
+		case HAS_NO_ITEM:
+			return "Triggered immediately once player has none of " + ChatColor.GREEN + trigger.getItemClass().getClassName();
 		default:
-			break;
+			return "";
 		}
-		return "";
 	}
 	
 	private String displayAction(QuestAction action) {

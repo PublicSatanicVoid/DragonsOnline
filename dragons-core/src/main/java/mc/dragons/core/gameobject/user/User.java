@@ -1356,15 +1356,11 @@ public class User extends GameObject {
 		if (!isVanished() && joined) {
 			Bukkit.broadcastMessage(ChatColor.GRAY + player.getName() + " left!");
 		}
-		if (profile != null && instance.isEnabled()) {
-			systemProfileLoader.logoutProfile(profile.getProfileName());
-			setActivePermissionLevel(PermissionLevel.USER);
-			setSystemProfile(null);
-		}
 		userHookRegistry.getHooks().forEach(h -> h.onQuit(this));
 		connectionMessageHandler.logDisconnect(this);
 		if(removeFromLocalRegistry) {
 			userLoader.removeStalePlayer(player);
+			instance.getGameObjectRegistry().getRegisteredObjects().remove(this);
 		}
 		for(Entry<Quest, QuestStep> entry : questProgress.entrySet()) {
 			if(!entry.getKey().isReentrant() && !entry.getValue().getStepName().equals("Complete")) {
@@ -1372,6 +1368,11 @@ public class User extends GameObject {
 			}
 		}
 		autoSave();
+		if (profile != null && instance.isEnabled()) {
+			systemProfileLoader.logoutProfile(profile.getProfileName());
+			setActivePermissionLevel(PermissionLevel.USER);
+			setSystemProfile(null);
+		}
 		player.getInventory().clear();
 		player.getInventory().setArmorContents(new ItemStack[4]);
 		player = null;

@@ -74,7 +74,7 @@ public class QuestStep {
 		if (dialogue == null) {
 			return false;
 		}
-		if (dialogue.size() >= dialogueIndex) {
+		if (dialogueIndex >= dialogue.size()) {
 			return false;
 		}
 		dialogue.remove(dialogueIndex);
