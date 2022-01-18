@@ -11,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 
+import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.anticheat.check.Check;
 import mc.dragons.anticheat.check.CheckType;
 import mc.dragons.anticheat.check.ViolationData;
@@ -19,12 +20,18 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.MathUtil;
 
-public class NoClip implements Check {
+public class NoClip extends Check {
+	public NoClip(DragonsAntiCheat plugin) {
+		super(plugin);
+	}
+
 	private final double VL_THRESHOLD = 10;
 	private final double VL_FACTOR = 0.99;
 	private final double VL_RUBBERBAND = 5;
+	private final double VOLUME_THRESHOLD = 0.05;
 	
-	private final Set<Material> EXCLUDED_TYPES = Arrays.stream(Material.values()).filter(material -> material.toString().contains("STAIRS")).collect(Collectors.toSet());
+	private final Set<Material> EXCLUDED_TYPES = Arrays.stream(Material.values())
+			.filter(material -> material.toString().contains("STAIRS")).collect(Collectors.toSet());
 	
 	@Override
 	public String getName() {
@@ -38,21 +45,29 @@ public class NoClip implements Check {
 
 	@Override
 	public void setup() {
-		
+		// Nothing to do yet
 	}
 
 	@Override
 	public boolean check(User user) {
 		Player player = user.getPlayer();
-//		if(player.getGameMode() == GameMode.SPECTATOR) return true; // Spectators can NoClip legitimately
 		ViolationData violationData = ViolationData.of(this, user);
+		if(player.getGameMode() == GameMode.SPECTATOR && !plugin.isDebug()) return true; // Spectators can NoClip legitimately
+		if(!enabled) {
+			violationData.vl *= VL_FACTOR;
+			return true;
+		}
 		MoveData moveData = MoveData.of(user);
 		BoundingBox playerBB = player.getBoundingBox();
 		Set<Block> nearby = ACUtil.filterSolid(ACUtil.getNearbyBlocks(player, 1));
 		for(Block block : nearby) {
 			if(!EXCLUDED_TYPES.contains(block.getType()) && block.getBoundingBox().overlaps(playerBB)) {
 				double volume = block.getBoundingBox().intersection(playerBB).getVolume();
+				if(volume < VOLUME_THRESHOLD) {
+					return true;
+				}
 				user.debug("AC: NoClip " + block.getType() + " V=" + MathUtil.round(volume) + " VL=" + MathUtil.round(violationData.vl));
+				
 				if(violationData.vl >= VL_RUBBERBAND) {
 					moveData.rubberband();
 				}

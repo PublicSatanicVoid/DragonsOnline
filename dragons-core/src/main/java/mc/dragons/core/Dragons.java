@@ -26,10 +26,12 @@ import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.impl.BridgeSpigot116R3;
 import mc.dragons.core.commands.AutoRankCommand;
 import mc.dragons.core.commands.ChangeLogCommands;
+import mc.dragons.core.commands.ChatOptionsCommand;
 import mc.dragons.core.commands.DragonsCommand;
 import mc.dragons.core.commands.FeedbackCommand;
 import mc.dragons.core.commands.HealCommand;
 import mc.dragons.core.commands.HelpCommand;
+import mc.dragons.core.commands.LogoutCommand;
 import mc.dragons.core.commands.MyQuestsCommand;
 import mc.dragons.core.commands.QuestDialogueCommands;
 import mc.dragons.core.commands.RankCommand;
@@ -65,6 +67,7 @@ import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfileLoader;
 import mc.dragons.core.logging.CustomLoggingProvider;
 import mc.dragons.core.logging.correlation.CorrelationLogger;
+import mc.dragons.core.networking.InternalMessageHandler;
 import mc.dragons.core.networking.MessageDispatcher;
 import mc.dragons.core.networking.RemoteAdminMessageHandler;
 import mc.dragons.core.networking.StaffAlertMessageHandler;
@@ -133,6 +136,7 @@ public class Dragons extends DragonsJavaPlugin {
 	private ChatMessageRegistry chatMessageRegistry;
 	private MessageDispatcher messageDispatcher;
 
+	private InternalMessageHandler internalMessageHandler;
 	private RemoteAdminMessageHandler remoteAdminHandler;
 	private StaffAlertMessageHandler staffAlertHandler;
 	
@@ -339,7 +343,8 @@ public class Dragons extends DragonsJavaPlugin {
 		getCommand("myquests").setExecutor(new MyQuestsCommand());
 		getCommand("help").setExecutor(new HelpCommand());
 		getCommand("stuckquest").setExecutor(new StuckQuestCommand());
-		getCommand("restartinstance").setExecutor(new RestartInstanceCommand());		
+		getCommand("restartinstance").setExecutor(new RestartInstanceCommand());	
+		getCommand("logout").setExecutor(new LogoutCommand());
 		CommandExecutor stateCommands = new StateCommands();
 		getCommand("getstate").setExecutor(stateCommands);
 		getCommand("setstate").setExecutor(stateCommands);
@@ -349,6 +354,9 @@ public class Dragons extends DragonsJavaPlugin {
 		ChangeLogCommands changeLogCommandsExecutor = new ChangeLogCommands();
 		getCommand("news").setExecutor(changeLogCommandsExecutor);
 		getCommand("newsmanager").setExecutor(changeLogCommandsExecutor);
+		CommandExecutor chatCommands = new ChatOptionsCommand();
+		getCommand("chatoptions").setExecutor(chatCommands);
+		getCommand("chatreply").setExecutor(chatCommands);
 
 		getLogger().info("Scheduling tasks...");
 		autoSaveRunnable.runTaskTimer(this, 0L, serverOptions.getAutoSavePeriodTicks());
@@ -359,8 +367,9 @@ public class Dragons extends DragonsJavaPlugin {
 		updateScoreboardTask.runTaskTimer(this, 100L, 20L);
 
 		getLogger().info("Registering message handlers...");
-		remoteAdminHandler = new RemoteAdminMessageHandler();
-		staffAlertHandler = new StaffAlertMessageHandler();
+		internalMessageHandler = new InternalMessageHandler(this);
+		remoteAdminHandler = new RemoteAdminMessageHandler(this);
+		staffAlertHandler = new StaffAlertMessageHandler(this);
 		
 		getLogger().info("Enabling addons...");
 		addonRegistry.enableAll();
@@ -530,6 +539,14 @@ public class Dragons extends DragonsJavaPlugin {
 	 */
 	public MessageDispatcher getMessageDispatcher() {
 		return messageDispatcher;
+	}
+	
+	/**
+	 * 
+	 * @return The message handler for internal server-to-server communications
+	 */
+	public InternalMessageHandler getInternalMessageHandler() {
+		return internalMessageHandler;
 	}
 	
 	/**

@@ -1,11 +1,29 @@
 package mc.dragons.anticheat.check;
 
+import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.core.gameobject.user.User;
 
-public interface Check {
-	public CheckType getType();
-	public String getName();
-	public void setup();
+public abstract class Check {
+	protected DragonsAntiCheat plugin;
+	protected boolean enabled;
+	
+	protected Check(DragonsAntiCheat plugin) {
+		this.plugin = plugin;
+		this.enabled = true;
+	}
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+	
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+		plugin.getLogger().info("Check " + getName() + " " + (enabled ? "enabled" : "disabled"));
+	}
+	
+	public abstract CheckType getType();
+	public abstract String getName();
+	public abstract void setup();
 	
 	/**
 	 * 
@@ -13,5 +31,5 @@ public interface Check {
 	 * 
 	 * @return Whether the check was passed or not.
 	 */
-	public boolean check(User user);
+	public abstract boolean check(User user);
 }

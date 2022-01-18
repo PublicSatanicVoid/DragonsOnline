@@ -24,8 +24,8 @@ import net.md_5.bungee.api.chat.hover.content.Text;
  *
  */
 public class StaffAlertMessageHandler extends MessageHandler {
-	public StaffAlertMessageHandler() {
-		super(Dragons.getInstance(), "staffAlert");
+	public StaffAlertMessageHandler(Dragons plugin) {
+		super(plugin, "staffAlert");
 	}
 	
 	/**

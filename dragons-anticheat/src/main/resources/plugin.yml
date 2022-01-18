@@ -15,3 +15,5 @@ commands:
   ackick:
   acdump:
   acresetplayer:
+  acstatus:
+  actoggle:

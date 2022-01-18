@@ -21,8 +21,8 @@ import mc.dragons.core.gameobject.user.UserLoader;
 public class RemoteAdminMessageHandler extends MessageHandler {
 	private boolean ignoresRemoteRestarts = false;
 	
-	public RemoteAdminMessageHandler() {
-		super(Dragons.getInstance(), "remoteAdmin");
+	public RemoteAdminMessageHandler(Dragons plugin) {
+		super(plugin, "remoteAdmin");
 	}
 
 	public void setIgnoresRemoteRestarts(boolean ignoresRemoteRestarts) {

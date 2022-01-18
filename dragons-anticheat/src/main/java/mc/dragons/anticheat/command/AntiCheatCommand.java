@@ -136,6 +136,37 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + " for illegal client modifications");
 		}
 		
+		else if(label.equalsIgnoreCase("acstatus")) {
+			for(Check check : plugin.getCheckRegistry().getChecks()) {
+				sender.sendMessage((check.isEnabled() ? ChatColor.DARK_GREEN : ChatColor.RED) + check.getName() + (check.isEnabled() ? "(Enabled)" : "(Disabled)"));
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("actoggle")) {
+			// If any check is active, make them all inactive
+			// If all checks are inactive, make them all active
+			if(args.length == 0) {
+				if(plugin.getCheckRegistry().getChecks().stream().filter(c -> c.isEnabled()).count() > 0) {
+					plugin.getCheckRegistry().getChecks().forEach(c -> c.setEnabled(false));
+					sender.sendMessage(ChatColor.GREEN + "Disabled all checks.");
+				}
+				else {
+					plugin.getCheckRegistry().getChecks().forEach(c -> c.setEnabled(true));
+					sender.sendMessage(ChatColor.GREEN + "Enabled all checks.");
+				}
+			}
+			else {
+				Check check = plugin.getCheckRegistry().getCheckByName(args[0]);
+				if(check == null) {
+					sender.sendMessage(ChatColor.RED + "No check by that name exists! /acstatus");
+					return true;
+				}
+				check.setEnabled(!check.isEnabled());
+				sender.sendMessage(ChatColor.GREEN + (check.isEnabled() ? "Enabled" : "Disabled") + " check " + check.getName());
+			}
+			
+		}
+		
 		else {
 			sender.sendMessage("Coming Soon...");
 		}

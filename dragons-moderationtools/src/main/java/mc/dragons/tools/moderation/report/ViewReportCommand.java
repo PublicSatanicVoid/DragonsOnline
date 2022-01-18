@@ -77,9 +77,15 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		if(args.length == 1) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "Report #" + report.getId() + ": " + report.getType() + "/" + report.getStatus());
 
+			TextComponent snapshots = null;
+			if(report.getData().containsKey("states") && report.getData().getList("states", String.class).size() > 0) {
+				snapshots = StringUtil.clickableHoverableText(ChatColor.AQUA + "[User Snapshots]", "/viewreport " + id + " snapshots", "Click to view snapshots of the reported player(s)");
+			}
+			
 			if(canEdit) {
 				if(closed) {
-					sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Re-Open]", "/viewreport " + id + " status OPEN", "Re-open this report for further action or review"));
+					sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.YELLOW + "[Re-Open] ", "/viewreport " + id + " status OPEN", "Re-open this report for further action or review"),
+							snapshots == null ? StringUtil.plainText("") : snapshots);
 				}
 				else {
 					TextComponent confirm = StringUtil.clickableHoverableText(ChatColor.GREEN + "[Confirm] ", "/viewreport " + id + " confirm", "Confirm report and apply punishment(s)", "Closes the report");
@@ -93,13 +99,16 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 					TextComponent skip = StringUtil.clickableHoverableText(ChatColor.GRAY + "[Skip] ", "/viewreport " + id + " skip", "Skip this report and go to the next one in the queue", "Does not close the report");
 					TextComponent addNote = StringUtil.clickableHoverableText(ChatColor.WHITE + "" + ChatColor.ITALIC + "  [+Add Note]", "/viewreport " + id + " note ", true, "Add a note to this report", "Does not close the report");
 					sender.spigot().sendMessage(confirm, insufficient, watchlist, escalate, duplicate, cancel, skip, addNote);
+					if(snapshots != null) {
+						sender.spigot().sendMessage(snapshots);
+					}
 				}
 			}
 			else {
-				sender.sendMessage(ChatColor.GRAY + "- You do not have sufficient permission to modify this report -");
-			}
-			if(report.getData().containsKey("states") && report.getData().getList("states", String.class).size() > 0) {
-				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[User Snapshots]", "/viewreport " + id + " snapshots", "Click to view snapshots of the reported player(s)"));
+				sender.sendMessage(ChatColor.GRAY + "- You do not have sufficient permission to modify this report -");					
+				if(snapshots != null) {
+					sender.spigot().sendMessage(snapshots);
+				}
 			}
 			sender.sendMessage(ChatColor.GRAY + "Filed Against: " + ChatColor.RESET + StringUtil.parseList(report.getTargets().stream().map(u -> u.getName()).collect(Collectors.toList())));
 			if(report.getFiledBy() != null) {
@@ -121,7 +130,7 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GRAY + "Unreviewed.");
 			}
 			if(report.getData().size() > 0 && hasPermission(sender, SystemProfileFlag.DEVELOPMENT)) {
-				sender.sendMessage(ChatColor.GRAY + "Data: ");
+				sender.sendMessage(ChatColor.GRAY + "Internal Data: ");
 				for(Entry<String, Object> entry : report.getData().entrySet()) {
 					sender.sendMessage(ChatColor.GRAY + "- " + entry.getKey() + ChatColor.GRAY + ": " + ChatColor.RESET + entry.getValue());
 				}

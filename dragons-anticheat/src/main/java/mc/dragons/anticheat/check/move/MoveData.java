@@ -17,6 +17,16 @@ public class MoveData {
 	public static long RUBBERBAND_DELAY_MS = 500;
 	public static int MIN_VALID_MOVES_TO_SET_VALID_LOCATION = 20;
 	
+	private static Map<User, MoveData> moveData = new HashMap<>();
+
+	public User user;
+	
+	public List<MoveEntry> moveHistory;
+	
+	public Location lastValidLocation;
+	public long lastRubberband;
+	public int validMoves;
+	
 	public static class MoveEntry {
 		public long time;
 		public Location from;
@@ -33,7 +43,6 @@ public class MoveData {
 		}
 	}
 	
-	private static Map<User, MoveData> moveData = new HashMap<>();
 	public static MoveData of(User user) {
 		return moveData.computeIfAbsent(user, u -> new MoveData(user));
 	}
@@ -48,14 +57,6 @@ public class MoveData {
 			moveHistory.remove(0);
 		}
 	}
-
-	public User user;
-	
-	public List<MoveEntry> moveHistory;
-	
-	public Location lastValidLocation;
-	public long lastRubberband;
-	public int validMoves;
 	
 	public void rubberband() {
 		long now = System.currentTimeMillis();

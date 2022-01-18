@@ -28,6 +28,8 @@ commands:
   stuckquest:
     description: Report a problem with a quest.
     aliases: [brokenquest, reportquest]
+  logout:
+    description: (TESTER) Immediately log out of system profile and restore last non-staff state.
   respawn:
     description: (TESTER) Skip the death countdown and respawn instantly.
   heal:
@@ -44,3 +46,7 @@ commands:
     description: (ADMIN) Set the default rank for the specified player when they first join.
   restartinstance:
     description: (ADMIN) Restart the specified server instance.
+  chatoptions:
+    description: Internal use only!
+  chatreply:
+    description: Internal use only!

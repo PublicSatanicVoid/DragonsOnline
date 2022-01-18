@@ -33,11 +33,13 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		getCommand("ackick").setExecutor(ac);
 		getCommand("acdump").setExecutor(ac);
 		getCommand("acresetplayer").setExecutor(ac);
+		getCommand("acstatus").setExecutor(ac);
+		getCommand("actoggle").setExecutor(ac);
 		
 		checkRegistry = new CheckRegistry();
-		checkRegistry.registerCheck(new PacketSpoof());
-		checkRegistry.registerCheck(new NoClip());
-		checkRegistry.registerCheck(new WrongMove());
+		checkRegistry.registerCheck(new PacketSpoof(this));
+		checkRegistry.registerCheck(new NoClip(this));
+		checkRegistry.registerCheck(new WrongMove(this));
 		
 		PluginManager pluginManager = getServer().getPluginManager();
 		pluginManager.registerEvents(testingMoveListener = new TestingMoveListener(this), this);

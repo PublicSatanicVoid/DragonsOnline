@@ -609,6 +609,10 @@ public class TaskCommands extends DragonsCommandExecutor {
 	
 	private void discordNotifyRawCommand(CommandSender sender, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return;
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.RED + "/discordnotifyraw <notification text>");
+			return;
+		}
 		taskAlert(StringUtil.concatArgs(args, 0), DiscordRole.TASK_MANAGER);
 		sender.sendMessage(PREFIX + "Sent notification successfully.");
 	}

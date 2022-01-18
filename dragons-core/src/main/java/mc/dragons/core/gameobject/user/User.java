@@ -991,7 +991,7 @@ public class User extends GameObject {
 		}
 	}
 
-	public void chat(String message) {
+	public void chat(String message, int messageReplyingTo) {
 		if (!hasJoined()) {
 			player.sendMessage(ChatColor.RED + "You are not joined yet!");
 			return;
@@ -1012,8 +1012,12 @@ public class User extends GameObject {
 			return;
 		}
 		
-		chatMessageHandler.send(this, getSpeakingChannel(), message);
+		chatMessageHandler.send(this, getSpeakingChannel(), message, messageReplyingTo);
 		userHookRegistry.getHooks().forEach(hook -> hook.onChat(getSpeakingChannel(), message));
+	}
+	
+	public void chat(String message) {
+		chat(message, -1);
 	}
 
 	public String getLastReceivedMessageFrom() {

@@ -17,6 +17,12 @@ public class ViolationData {
 	
 	private static ReportLoader reportLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	private static Table<Check, User, ViolationData> violationData = HashBasedTable.create();
+	
+	public Check check;
+	public User user;
+	public double vl;
+	public long lastReported = 0L;
+	
 	public static ViolationData of(Check check, User user) {
 		if(!violationData.contains(check, user)) {
 			violationData.put(check, user, new ViolationData(check, user));
@@ -28,11 +34,6 @@ public class ViolationData {
 		this.check = check;
 		this.user = user;
 	}
-	
-	public Check check;
-	public User user;
-	public double vl;
-	public long lastReported = 0L;
 	
 	public Report generateReport(Document data) {
 		return reportLoader.fileInternalReport(user, new Document("check", check.getName()).append("vl", vl).append("data", data));

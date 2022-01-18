@@ -4,6 +4,7 @@ import org.bson.Document;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.anticheat.check.Check;
 import mc.dragons.anticheat.check.CheckType;
 import mc.dragons.anticheat.check.ViolationData;
@@ -11,7 +12,11 @@ import mc.dragons.anticheat.check.move.MoveData.MoveEntry;
 import mc.dragons.anticheat.util.ACUtil;
 import mc.dragons.core.gameobject.user.User;
 
-public class PacketSpoof implements Check {
+public class PacketSpoof extends Check {
+	public PacketSpoof(DragonsAntiCheat plugin) {
+		super(plugin);
+	}
+
 	private final double VL_THRESHOLD = 10;
 	private final double VL_FACTOR = 0.5;
 	
@@ -27,7 +32,7 @@ public class PacketSpoof implements Check {
 
 	@Override
 	public void setup() {
-		
+		// Nothing to do yet
 	}
 
 	@SuppressWarnings("deprecation")
@@ -36,6 +41,10 @@ public class PacketSpoof implements Check {
 		Player player = user.getPlayer();
 		MoveData moveData = MoveData.of(user);
 		ViolationData violationData = ViolationData.of(this, user);
+		if(!enabled) {
+			violationData.vl *= VL_FACTOR;
+			return true;
+		}
 		
 		MoveEntry lastMove = moveData.moveHistory.get(moveData.moveHistory.size() - 1);
 		Vector delta = lastMove.getDelta();

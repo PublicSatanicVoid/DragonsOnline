@@ -124,6 +124,10 @@ public class SystemLogonCommand extends DragonsCommandExecutor {
 		if(!requirePermission(sender, PermissionLevel.ADMIN)) return;
 		
 		SystemProfile systemProfile = systemProfileLoader.loadProfile(args[1]);
+		if(systemProfile == null) {
+			sender.sendMessage(ChatColor.RED + "No system profile by that name exists!");
+			return;
+		}
 		sender.sendMessage(ChatColor.GOLD + "Viewing system profile " + systemProfile.getProfileName());
 		sender.sendMessage(ChatColor.YELLOW + "Status: " + ChatColor.RESET + (systemProfile.isActive() ? "Active" : "Inactive"));
 		sender.sendMessage(ChatColor.YELLOW + "Max. Permission Level: " + ChatColor.RESET + systemProfile.getMaxPermissionLevel());

@@ -32,12 +32,22 @@ public class StuckQuestCommand extends DragonsCommandExecutor {
 	};
 	
 	private void selectQuest(CommandSender sender) {
+		User user = user(sender);
+		boolean any = false;
+		for(Entry<Quest, QuestStep> entry : user.getQuestProgress().entrySet()) {
+			if(entry.getValue().getStepName().equalsIgnoreCase("Complete")) continue;
+			any = true;
+		}
+		if(!any) {
+			sender.sendMessage(ChatColor.RED + "You don't have any active quests!");
+			return;
+		}
 		sender.sendMessage(" ");
 		sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Please confirm the quest you are having issues with:");
 		
-		for(Entry<Quest, QuestStep> entry : user(sender).getQuestProgress().entrySet()) {
+		for(Entry<Quest, QuestStep> entry : user.getQuestProgress().entrySet()) {
 			if(entry.getValue().getStepName().equalsIgnoreCase("Complete")) continue;
-			player(sender).spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " • " + ChatColor.GREEN + entry.getKey().getQuestName(),
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " • " + ChatColor.GREEN + entry.getKey().getQuestName(),
 					"/stuckquest " + entry.getKey().getName(), 
 					ChatColor.GRAY + "Quest: " + ChatColor.RESET + entry.getKey().getQuestName()));
 		}

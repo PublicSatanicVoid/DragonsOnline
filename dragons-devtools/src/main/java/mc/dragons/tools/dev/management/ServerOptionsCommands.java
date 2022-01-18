@@ -12,6 +12,7 @@ import mc.dragons.core.ServerOptions;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.logging.LogLevel;
+import mc.dragons.core.networking.RemoteAdminMessageHandler;
 import mc.dragons.core.storage.mongo.MongoConfig;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -40,8 +41,10 @@ public class ServerOptionsCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("ignoreremoterestarts")) {
-			dragons.getRemoteAdminHandler().setIgnoresRemoteRestarts(true);
-			sender.sendMessage(ChatColor.GREEN + "Server will now ignore all remote restart commands.");
+			RemoteAdminMessageHandler handler = dragons.getRemoteAdminHandler();
+			handler.setIgnoresRemoteRestarts(!handler.ignoresRemoteRestarts());
+			sender.sendMessage(ChatColor.GREEN + "Server will " + (handler.ignoresRemoteRestarts() ? "now" : "no longer") 
+					+ " ignore remote restart commands.");
 		}
 		
 		else if(label.equalsIgnoreCase("getlogtoken")) {

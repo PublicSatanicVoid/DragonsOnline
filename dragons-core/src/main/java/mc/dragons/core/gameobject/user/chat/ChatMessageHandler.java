@@ -27,6 +27,8 @@ import net.md_5.bungee.api.chat.hover.content.Text;
  *
  */
 public class ChatMessageHandler extends MessageHandler {
+	private static final TextComponent REPLY_PREFIX = StringUtil.plainText(ChatColor.GRAY + "" + ChatColor.BOLD + "└ ");
+	
 	private UserLoader userLoader = GameObjectType.USER.getLoader();
 	private ChatMessageRegistry registry = Dragons.getInstance().getChatMessageRegistry();
 	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
@@ -35,9 +37,17 @@ public class ChatMessageHandler extends MessageHandler {
 		super(instance, "chat");
 	}
 
-	private void doLocalSend(User user, ChatChannel channel, String message) {
+	private void doLocalSend(User user, ChatChannel channel, String message, UUID replyTo, String replyMsg) {
 		LOGGER.trace("Chat message from " + user.getName());
 		LOGGER.verbose("-Creating message text component");
+		
+		boolean isReply = replyTo != null;
+		String replyLine = null;
+		if(isReply) {
+			replyLine = ChatColor.DARK_GRAY + "" + ChatColor.BOLD + userLoader.loadObject(replyTo).getName() 
+					+ " " + ChatColor.GRAY + "" + ChatColor.ITALIC + replyMsg;
+		}
+		
 		String messageSenderInfo = "";
 		if(user.isVerified()) {
 			messageSenderInfo = ChatColor.GREEN + "✓ " + ChatColor.GRAY;
@@ -66,8 +76,8 @@ public class ChatMessageHandler extends MessageHandler {
 		messageInfoComponent.addExtra(ChatColor.GRAY + " » ");
 		TextComponent messageComponent = new TextComponent(user.getRank().getChatColor() + message);
 		messageComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-				new Text(ChatColor.YELLOW + "Click to report this message")));
-		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatreport " + messageData.getId() + " --id"));
+				new Text(ChatColor.YELLOW + "Click to reply or report this message")));
+		messageComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatoptions " + messageData.getId()));
 		registry.register(messageData);
 		for (User test: UserLoader.allUsers()) {
 			LOGGER.verbose("-Checking if " + user.getName() + " can receive");
@@ -77,7 +87,13 @@ public class ChatMessageHandler extends MessageHandler {
 			if (!channel.canHear(test, user) && !test.hasChatSpy()) continue;
 			LOGGER.verbose("  -Yes!");
 			test.getSeenMessages().add(messageData);
-			test.sendMessage(channel, user, new BaseComponent[] { messageInfoComponent, messageComponent });
+			if(isReply) {
+				test.sendMessage(channel, user, replyLine);
+				test.sendMessage(channel, user, new BaseComponent[] { REPLY_PREFIX, messageInfoComponent, messageComponent });
+			}
+			else {
+				test.sendMessage(channel, user, new BaseComponent[] { messageInfoComponent, messageComponent });
+			}
 		}
 		LOGGER.info("[" + user.getServerName() + "/" + channel.getAbbreviation() + "/" + loc.getWorld().getName() + "] [" + user.getName() + "] " + message);
 	}
@@ -89,14 +105,19 @@ public class ChatMessageHandler extends MessageHandler {
 	 * @param channel
 	 * @param message
 	 */
-	public void send(User user, ChatChannel channel, String message) {
+	public void send(User user, ChatChannel channel, String message, int messageReplyingTo) {
+		MessageData replyOriginal = messageReplyingTo == -1 ? null : registry.get(messageReplyingTo);
+		UUID replyTo = replyOriginal == null ? null : replyOriginal.getSender().getUUID();
+		String replyMsg = replyOriginal == null ? null : replyOriginal.getMessage();
+		
 		if(channel.isNetworked()) {
 			LOGGER.trace("-Channel " + channel + " is networked, sending all");
-			sendAll(new Document("sender", user.getUUID().toString()).append("channel", channel.toString()).append("message", message));
+			sendAll(new Document("sender", user.getUUID().toString()).append("channel", channel.toString()).append("message", message)
+					.append("replyTo", replyTo == null ? null : replyTo.toString()).append("replyMsg", replyMsg));
 		}
 		else {
 			LOGGER.trace("-Channel " + channel + " is local, sending locally");
-			doLocalSend(user, channel, message);
+			doLocalSend(user, channel, message, replyTo, replyMsg);
 		}
 	}
 	
@@ -105,8 +126,14 @@ public class ChatMessageHandler extends MessageHandler {
 		User sender = userLoader.loadObject(UUID.fromString(data.getString("sender")));
 		ChatChannel channel = ChatChannel.valueOf(data.getString("channel"));
 		String message = data.getString("message");
-	
-		doLocalSend(sender, channel, message);
+		UUID replyTo = null;
+		String replyMsg = null;
+		if(data.getString("replyTo") != null) {
+			replyTo = UUID.fromString(data.getString("replyTo"));
+			replyMsg = data.getString("replyMsg");
+		}
+		
+		doLocalSend(sender, channel, message, replyTo, replyMsg);
 		
 	}
 	

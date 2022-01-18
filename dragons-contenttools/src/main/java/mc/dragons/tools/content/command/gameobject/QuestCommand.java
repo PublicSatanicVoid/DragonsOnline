@@ -379,7 +379,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 			if(isPlayer(sender)) {
 				choice = choice.replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)"));
 			}
-			step.addChoice(Integer.valueOf(args[6]), choice, Integer.valueOf(args[8]));
+			step.addChoice(Integer.valueOf(args[6]), choice, Integer.valueOf(args[7]));
 			sender.sendMessage(ChatColor.GREEN + "Added choice to quest stage action successfully.");
 			AUDIT_LOG.saveEntry(quest, user(sender), base, "Added quest choice to action " + args[6] + " of stage " + args[2]);
 		}
