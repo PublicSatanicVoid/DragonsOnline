@@ -26,12 +26,18 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 		}
 		
 		User reporter = user(sender);
-		boolean forceId = StringUtil.getFlagIndex(args, "--id", 1) != -1;
+		boolean queryId = StringUtil.getFlagIndex(args, "--id", 1) != -1;
 		
 		/* /chatreport <player> */
-		if(!forceId && Integer.getInteger(args[0], null) == null) {
+		if(!queryId) {
 			User target = lookupUser(sender, args[0]);
 			if(target == null) return true;
+			if(target.equals(reporter) && !reporter.getLocalData().getBoolean("canSelfReport", false)) {
+				sender.sendMessage(ChatColor.RED + "You can't report your own message!");
+				return true;
+			}
+			
+			sender.sendMessage(ChatColor.DARK_GREEN + "Report a message by " + target.getName());
 			int i = 0;
 			for(MessageData message : reporter.getSeenMessages()) {
 				if(message.getSender().equals(target) && (!message.isPrivate() || message.isPrivate() && message.getTo().equals(reporter))) {
@@ -82,7 +88,8 @@ public class ChatReportCommand extends DragonsCommandExecutor {
 		}
 		
 		reportLoader.fileChatReport(messageData.getSender(), reporter, messageData);
-		sender.sendMessage(ChatColor.GREEN + "Chat report filed successfully. A staff member will review it as soon as possible.");
+		sender.sendMessage(ChatColor.GREEN + "Chat report filed successfully. A staff member will review it as soon as possible." + 
+				(reporter.isVerified() ? " As a verified user, your reports are prioritized for review." : ""));
 		sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " [Click to Block Player]", "/block " + messageData.getSender().getName(), "Click to block " + messageData.getSender().getName()));
 		
 		return true;

@@ -1617,8 +1617,8 @@ public class User extends GameObject {
 	 * @param seconds
 	 */
 	public void setDeathCountdown(int seconds) {
-		setData("deathCountdown", Integer.valueOf(seconds));
-		setData("deathTime", Long.valueOf(System.currentTimeMillis()));
+		setData("deathCountdown", seconds);
+		setData("deathTime", System.currentTimeMillis());
 		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * seconds, 10, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * seconds, 10, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20 * seconds, 10, false, false));
@@ -1646,7 +1646,7 @@ public class User extends GameObject {
 		}
 		int deathCountdown = (int) getData("deathCountdown");
 		long now = System.currentTimeMillis();
-		return deathTime.longValue() + 1000 * deathCountdown > now;
+		return deathTime + 1000 * deathCountdown > now;
 	}
 
 	public int getDeathCountdownRemaining() {
@@ -1666,6 +1666,7 @@ public class User extends GameObject {
 	}
 
 	public void sendToFloor(String floorName, boolean overrideLevelRequirement) {
+		if(player == null) return; // TODO still save the location?
 		Floor floor = FloorLoader.fromFloorName(floorName);
 		if (!overrideLevelRequirement && getLevel() < floor.getLevelMin()) {
 			return;

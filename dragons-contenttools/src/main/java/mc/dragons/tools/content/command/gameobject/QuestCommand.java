@@ -26,6 +26,7 @@ import mc.dragons.core.gameobject.quest.QuestAction.QuestActionType;
 import mc.dragons.core.gameobject.quest.QuestStep;
 import mc.dragons.core.gameobject.quest.QuestTrigger;
 import mc.dragons.core.gameobject.quest.QuestTrigger.TriggerType;
+import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.StringUtil;
@@ -209,6 +210,9 @@ public class QuestCommand extends DragonsCommandExecutor {
 			else if(args[4].equalsIgnoreCase("choice")) {
 				addChoice(sender, args);
 			}
+			else if(args[4].equalsIgnoreCase("insert")) {
+				insertAction(sender, args);
+			}
 			else if(args[4].equalsIgnoreCase("del")) {
 				deleteAction(sender, args);
 			}
@@ -247,7 +251,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void displayActionHelp(CommandSender sender) {
 		sender.sendMessage(ChatColor.RED + "Insufficient arguments!");
-		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add TELEPORT_PLAYER");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action TELEPORT_PLAYER");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add SPAWN_NPC <NpcClass> [NpcReferenceName [Phased?]]");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add TELEPORT_NPC <NpcReferenceName>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add PATHFIND_NPC <NpcReferenceName> [GotoStage#WhenComplete]");
@@ -266,6 +270,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action dialogue add <Action#> <DialogueText>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action branch add <GoToStage#> <TriggerType> <TriggerParam|NONE>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action choice add <Action#> <GoToStage#> <ChoiceText>");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action insert <BeforeAction#> <ACTION_TYPE> [ActionParams...]");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action del <Action#>");
 	}
 	
@@ -274,71 +279,24 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
 		QuestStep step = quest.getSteps().get(stepNo);
-		User user = user(sender);
 		Document base = Document.parse(quest.getData().toJson());
-		if(StringUtil.equalsAnyIgnoreCase(args[5], "TELEPORT_PLAYER", "TeleportPlayer")) {
-			if(!requirePlayer(sender)) return;
-			step.addAction(QuestAction.teleportPlayerAction(quest, user.getPlayer().getLocation()));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "SPAWN_NPC", "SpawnNPC")) {
-			step.addAction(QuestAction.spawnNPCAction(quest, npcClassLoader.getNPCClassByClassName(args[6]), user.getPlayer().getLocation(), args.length <= 7 ? "" : args[7], args.length <= 8 ? false : Boolean.valueOf(args[8])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "TELEPORT_NPC", "TeleportNPC")) {
-			if(!requirePlayer(sender)) return;
-			step.addAction(QuestAction.teleportNPCAction(quest, args[6], user.getPlayer().getLocation()));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "PATHFIND_NPC", "PathfindNPC", "Pathfind", "Path")) {
-			if(!requirePlayer(sender)) return;
-			step.addAction(QuestAction.pathfindNPCAction(quest, args[6], user.getPlayer().getLocation(), args.length <= 7 ? -1 : Integer.valueOf(args[7])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "BEGIN_DIALOGUE", "BeginDialogue", "Dialogue", "Speak", "Talk", "Conversation", "Converse")) {
-			step.addAction(QuestAction.beginDialogueAction(quest, npcClassLoader.getNPCClassByClassName(args[6]), new ArrayList<>()));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "GIVE_XP", "GiveXP", "XP")) {
-			step.addAction(QuestAction.giveXPAction(quest, Integer.valueOf(args[6])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "GOTO_STAGE", "GoToStage", "GoTo", "Jump")) {
-			step.addAction(QuestAction.goToStageAction(quest, Integer.valueOf(args[6]), Boolean.valueOf(args[7])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "TAKE_ITEM", "TakeItem", "Take")) {
-			step.addAction(QuestAction.takeItemAction(quest, itemClassLoader.getItemClassByClassName(args[6]), args.length <= 7 ? 1 : Integer.valueOf(args[7])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "GIVE_ITEM", "GiveItem", "Give")) {
-			step.addAction(QuestAction.giveItemAction(quest, itemClassLoader.getItemClassByClassName(args[6]), args.length <= 7 ? 1 : Integer.valueOf(args[7])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "ADD_POTION_EFFECT", "AddPotionEffect", "AddPotion", "AddEffect")) {
-			step.addAction(QuestAction.addPotionEffectAction(quest, PotionEffectType.getByName(args[6]), Integer.valueOf(args[7]), Integer.valueOf(args[8])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "REMOVE_POTION_EFFECT", "RemovePotionEffect", "RemovePotion", "RemoveEffect")) {
-			step.addAction(QuestAction.removePotionEffectAction(quest, PotionEffectType.getByName(args[6])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "COMPLETION_HEADER", "CompletionHeader")) {
-			step.addAction(QuestAction.completionHeaderAction(quest));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "FAIL_QUEST", "FailQuest", "Fail")) {
-			step.addAction(QuestAction.failQuestAction(quest));
-		}
-		else if(args[5].equalsIgnoreCase("WAIT")) {
-			step.addAction(QuestAction.waitAction(quest, Integer.valueOf(args[6])));
-		}
-		else if(args[5].equalsIgnoreCase("CHOICES")) {
-			step.addAction(QuestAction.choicesAction(quest, new LinkedHashMap<>()));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "STASH_ITEMS", "StashItems", "Stash")) {
-			step.addAction(QuestAction.stashItemAction(quest, Material.valueOf(args[6])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "UNSTASH_ITEMS", "UnstashItems", "Unstash")) {
-			step.addAction(QuestAction.unstashItemAction(quest, Material.valueOf(args[6])));
-		}
-		else if(StringUtil.equalsAnyIgnoreCase(args[5], "SPAWN_RELATIVE", "SpawnRelative")) {
-			step.addAction(QuestAction.spawnRelativeAction(quest, npcClassLoader.getNPCClassByClassName(args[6]), Boolean.valueOf(args[7]), Integer.valueOf(args[8]), Integer.valueOf(args[9])));
-		}
-		else {
-			sender.sendMessage(ChatColor.RED + "Invalid action type! Valid action types are " + StringUtil.parseList(QuestActionType.values()));
-			return;
-		}
+		QuestAction action = makeAction(quest, sender, Arrays.copyOfRange(args, 5, args.length));
+		step.addAction(action);
 		sender.sendMessage(ChatColor.GREEN + "Added new action to quest stage successfully.");
 		AUDIT_LOG.saveEntry(quest, user(sender), base, "Added action to stage " + args[2]);
+	}
+	
+	private void insertAction(CommandSender sender, String[] args) {
+		Quest quest = lookupQuest(sender, args[0]);
+		Integer stepNo = parseInt(sender, args[2]);
+		Integer actionNo = parseInt(sender, args[5]);
+		if(quest == null || stepNo == null || actionNo == null) return;
+		QuestStep step = quest.getSteps().get(stepNo);
+		QuestAction action = makeAction(quest, sender, Arrays.copyOfRange(args, 6, args.length));
+		step.insertAction(action, actionNo);
+		Document base = Document.parse(quest.getData().toJson());
+		sender.sendMessage(ChatColor.GREEN + "Inserted new action to quest stage successfully.");
+		AUDIT_LOG.saveEntry(quest, user(sender), base, "Inserted action before " + args[5] + " to stage " + args[2]);
 	}
 	
 	private void editDialogue(CommandSender sender, String[] args) {
@@ -578,6 +536,71 @@ public class QuestCommand extends DragonsCommandExecutor {
 		}
 	}
 	
+	private QuestAction makeAction(Quest quest, CommandSender sender, String... args) {
+		User user = user(sender);
+		if(StringUtil.equalsAnyIgnoreCase(args[0], "TELEPORT_PLAYER", "TeleportPlayer")) {
+			if(!requirePlayer(sender)) return null;
+			return QuestAction.teleportPlayerAction(quest, user.getPlayer().getLocation());
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "SPAWN_NPC", "SpawnNPC")) {
+			return QuestAction.spawnNPCAction(quest, npcClassLoader.getNPCClassByClassName(args[1]), user.getPlayer().getLocation(), args.length <= 2 ? "" : args[2], args.length <= 3 ? false : Boolean.valueOf(args[3]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "TELEPORT_NPC", "TeleportNPC")) {
+			if(!requirePlayer(sender)) return null;
+			return QuestAction.teleportNPCAction(quest, args[1], user.getPlayer().getLocation());
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "PATHFIND_NPC", "PathfindNPC", "Pathfind", "Path")) {
+			if(!requirePlayer(sender)) return null;
+			return QuestAction.pathfindNPCAction(quest, args[1], user.getPlayer().getLocation(), args.length <= 2 ? -1 : Integer.valueOf(args[2]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "BEGIN_DIALOGUE", "BeginDialogue", "Dialogue", "Speak", "Talk", "Conversation", "Converse")) {
+			return QuestAction.beginDialogueAction(quest, npcClassLoader.getNPCClassByClassName(args[1]), new ArrayList<>());
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "GIVE_XP", "GiveXP", "XP")) {
+			return QuestAction.giveXPAction(quest, Integer.valueOf(args[1]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "GOTO_STAGE", "GoToStage", "GoTo", "Jump")) {
+			return QuestAction.goToStageAction(quest, Integer.valueOf(args[1]), Boolean.valueOf(args[2]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "TAKE_ITEM", "TakeItem", "Take")) {
+			return QuestAction.takeItemAction(quest, itemClassLoader.getItemClassByClassName(args[1]), args.length <= 2 ? 1 : Integer.valueOf(args[2]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "GIVE_ITEM", "GiveItem", "Give")) {
+			return QuestAction.giveItemAction(quest, itemClassLoader.getItemClassByClassName(args[1]), args.length <= 2 ? 1 : Integer.valueOf(args[2]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "ADD_POTION_EFFECT", "AddPotionEffect", "AddPotion", "AddEffect")) {
+			return QuestAction.addPotionEffectAction(quest, PotionEffectType.getByName(args[1]), Integer.valueOf(args[2]), Integer.valueOf(args[3]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "REMOVE_POTION_EFFECT", "RemovePotionEffect", "RemovePotion", "RemoveEffect")) {
+			return QuestAction.removePotionEffectAction(quest, PotionEffectType.getByName(args[1]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "COMPLETION_HEADER", "CompletionHeader")) {
+			return QuestAction.completionHeaderAction(quest);
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "FAIL_QUEST", "FailQuest", "Fail")) {
+			return QuestAction.failQuestAction(quest);
+		}
+		else if(args[0].equalsIgnoreCase("WAIT")) {
+			return QuestAction.waitAction(quest, Integer.valueOf(args[1]));
+		}
+		else if(args[0].equalsIgnoreCase("CHOICES")) {
+			return QuestAction.choicesAction(quest, new LinkedHashMap<>());
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "STASH_ITEMS", "StashItems", "Stash")) {
+			return QuestAction.stashItemAction(quest, Material.valueOf(args[1]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "UNSTASH_ITEMS", "UnstashItems", "Unstash")) {
+			return QuestAction.unstashItemAction(quest, Material.valueOf(args[1]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "SPAWN_RELATIVE", "SpawnRelative")) {
+			return QuestAction.spawnRelativeAction(quest, npcClassLoader.getNPCClassByClassName(args[1]), Boolean.valueOf(args[2]), Integer.valueOf(args[3]), Integer.valueOf(args[4]));
+		}
+		else {
+			sender.sendMessage(ChatColor.RED + "Invalid action type! Valid action types are " + StringUtil.parseList(QuestActionType.values()));
+			return null;
+		}
+	}
+	
 	private String displayTrigger(QuestTrigger trigger) {
 		switch(trigger.getTriggerType()) {
 		case INSTANT:
@@ -591,9 +614,9 @@ public class QuestCommand extends DragonsCommandExecutor {
 			return "Target NPC Class: " + ChatColor.GREEN + trigger.getNPCClass().getName() + " (" + trigger.getNPCClass().getClassName() + ")";
 		case ENTER_REGION:
 		case EXIT_REGION:
-			return "Target Region: " + ChatColor.GREEN + trigger.getRegion().getName() + " (" + trigger.getRegion().getFlags().getString("fullname") + ")";
+			return "Target Region: " + ChatColor.GREEN + trigger.getRegion().getName() + " (" + trigger.getRegion().getFlags().getString(Region.FLAG_FULLNAME) + ")";
 		case WALK_REGION:
-			return "Target Region: " + ChatColor.GREEN + trigger.getRegion().getName() + " (" + trigger.getRegion().getFlags().getString("fullname") + "); Distance: " + trigger.getMinDistance();
+			return "Target Region: " + ChatColor.GREEN + trigger.getRegion().getName() + " (" + trigger.getRegion().getFlags().getString(Region.FLAG_FULLNAME) + "); Distance: " + trigger.getMinDistance();
 		case BRANCH_CONDITIONAL:
 			String triggerMsg = "Branch Points:";
 			for(Entry<QuestTrigger, QuestAction> conditional : trigger.getBranchPoints().entrySet()) {

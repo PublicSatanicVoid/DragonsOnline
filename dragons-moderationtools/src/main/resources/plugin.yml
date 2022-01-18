@@ -76,4 +76,10 @@ commands:
     description: (MODERATOR) Manage the watchlist
   staffalert:
     description: (MODERATOR) Send an alert to staff on all servers
+  bulkdeletereports:
+    description: (ADMIN) Delete multiple reports at once
+  acknowledgewarning:
+    description: Acknowledge a warning.
+  recentlogins:
+    description: (ADMIN) View the n most recent players who have logged in to the network.
   

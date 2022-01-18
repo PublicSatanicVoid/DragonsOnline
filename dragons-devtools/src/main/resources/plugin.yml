@@ -158,6 +158,10 @@ commands:
     description: (ADMIN) Inject a fake user into the server registries after creating it.
   mockserver:
     description: (ADMIN) Spoof the server that a mock user is connected to.
+  mockdelete:
+    description: (ADMIN) Delete a mock user.
+  mocklist:
+    description: (ADMIN) List all mock users.
   testitemstash:
   testitemunstash:
   testmobai:

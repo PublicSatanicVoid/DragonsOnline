@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
@@ -92,6 +93,7 @@ public class ModUserHook implements UserHook {
 	@Override
 	public void onVerifiedJoin(User user) {
 		WrappedUser wrapped = WrappedUser.of(user);
+		Player player = user.getPlayer();
 		Set<User> alts = IPAnalysisUtil.scanAlts(Dragons.getInstance().getPersistentStorageManager(), user)
 				.stream()
 				.filter(u -> WrappedUser.of(u).getActivePunishmentData(PunishmentType.BAN) != null)
@@ -109,14 +111,30 @@ public class ModUserHook implements UserHook {
 		}
 		
 		if(wrapped.reportWasHandled()) {
-			user.getPlayer().sendMessage(ChatColor.GOLD + "" + ChatColor.ITALIC + "Your recent report was handled and closed. Thank you!");
+			player.sendMessage(ChatColor.GOLD + "" + ChatColor.ITALIC + "Your recent report was handled and closed. Thank you!");
 			wrapped.setReportHandled(false);
 		}
-		
 
 		PaginatedResult<Report> waiting = reportLoader.getAuthorizedUnreviewedReports(1, user.getActivePermissionLevel(), user.getUUID());
 		if(waiting.getTotal() > 0) {
-			user.getPlayer().sendMessage(ChatColor.LIGHT_PURPLE + "There are " + waiting.getTotal() + " reports in your moderation queue! To get started, do " + ChatColor.DARK_PURPLE + "/modqueue");
+			player.sendMessage(ChatColor.LIGHT_PURPLE + "There are " + waiting.getTotal() + " reports in your moderation queue! To get started, do " + ChatColor.DARK_PURPLE + "/modqueue");
+		}
+		
+		int i = 0;
+		for(PunishmentData punishment : wrapped.getPunishmentHistory()) {
+			if(punishment.getType() == PunishmentType.WARNING && !punishment.isWarningAcknowledged()) {
+				String reason = punishment.getReason();
+				player.sendMessage(" ");
+				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.BOLD + "You received a warning since the last time you were online.");
+				if (!reason.equals(" ")) {
+					player.sendMessage(PunishCommand.RECEIVE_PREFIX + "Reason: " + reason);
+				}
+				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "Repeated warnings may result in a mute or ban.");
+				player.spigot().sendMessage(StringUtil.clickableHoverableText(PunishCommand.RECEIVE_PREFIX + ChatColor.RESET + "[Click here to acknowledge warning]", 
+						"/acknowledgewarning " + i, "Click to acknowledge this warning"));
+				player.sendMessage("");
+			}
+			i++;
 		}
 	}
 	

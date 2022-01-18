@@ -62,6 +62,15 @@ public class QuestStep {
 		actions.add(action.toDocument());
 		quest.getStorageAccess().update(new Document("steps", steps));
 	}
+	
+	public void insertAction(QuestAction action, int actionBefore) {
+		actions.add(actionBefore, action);
+		int stepIndex = quest.getStepIndex(this);
+		List<Document> steps = quest.getStepsAsDoc();
+		List<Document> actions = steps.get(stepIndex).getList("actions", Document.class);
+		actions.add(actionBefore, action.toDocument());
+		quest.getStorageAccess().update(new Document("steps", steps));
+	}
 
 	public void addDialogue(int actionIndex, String dialogue) {
 		actions.get(actionIndex).getDialogue().add(dialogue);

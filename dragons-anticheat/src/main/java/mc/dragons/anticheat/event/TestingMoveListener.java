@@ -19,7 +19,7 @@ import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 
-public class MoveListener implements Listener {
+public class TestingMoveListener implements Listener {
 	private DragonsAntiCheat plugin;
 	
 	private static final double IMPULSE_STRAIGHT = 0.350001;
@@ -135,7 +135,7 @@ public class MoveListener implements Listener {
 	
 	private Map<User, MoveContext> contextMap = new HashMap<>();
 	
-	public MoveListener(DragonsAntiCheat instance) {
+	public TestingMoveListener(DragonsAntiCheat instance) {
 		plugin = instance;
 	}
 	

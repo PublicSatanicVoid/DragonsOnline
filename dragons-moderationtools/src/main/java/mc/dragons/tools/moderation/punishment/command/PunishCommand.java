@@ -72,17 +72,17 @@ public class PunishCommand extends DragonsCommandExecutor {
 					sender.sendMessage(ChatColor.RED + "This player already has an active punishment of type " + data.code.getCode());
 					return true;
 				}
-			}	
+			}
 			
 			if(canApply) {
 				// Punish immediately
-				w.punish(type, data.code, level, data.extraInfo, user(sender), duration);
+				int id = w.punish(type, data.code, level, data.extraInfo, user(sender), duration);
 				w.raiseStandingLevel(levelType, level);
 				
 				// Check if we need to tell a different server to immediately apply the punishment
 				if(w.getUser().getServerName() != null && !dragons.getServerName().equals(w.getUser().getServerName())) {
 					LOGGER.trace("Forwarding punishment on " + w.getUser().getName() + " to " + w.getUser().getServerName());
-					handler.forwardPunishment(w.getUser(), type, reason, duration);
+					handler.forwardPunishment(w.getUser(), id,  type, reason, duration);
 				}
 				
 				String punishment = "Punished";
@@ -102,8 +102,6 @@ public class PunishCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "Punishment applied to " + w.getUser().getName() + ": " + punishment + " for " + data.code.getName());
 			}
 		}
-		
-		
 
 		if(!canApply) {
 			// Generate escalation report
@@ -120,8 +118,9 @@ public class PunishCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + (held ? "Placed a " + HoldLoader.HOLD_DURATION_HOURS + "-hour hold and escalated" : "Escalated") + " this issue for review by a senior staff member.");
 		}
 		
-		if(level >= 10 && canApply && reportLoader.fileStaffReport(data.targets, user(sender), "Post Review: " + data.formatInternalReason(), "") != null) {
-			sender.sendMessage(ChatColor.GRAY + " A senior staff member will review this punishment.");
+		if(level >= 10 && canApply) {
+			Report review = reportLoader.fileStaffReport(data.targets, user(sender), "Post Review: " + data.formatInternalReason(), "");
+			sender.sendMessage(ChatColor.GRAY + " A senior staff member will review this punishment. (Escalation Report ID: " + review.getId() + ")");
 		}
 		
 		return true;

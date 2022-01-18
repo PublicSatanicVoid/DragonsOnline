@@ -87,6 +87,10 @@ public class PunishmentData {
 		return getDuration() == -1L;
 	}
 	
+	public boolean isWarningAcknowledged() {
+		return data.getBoolean("acknowledged", false);
+	}
+	
 	public static PunishmentData fromDocument(Document data) {
 		if(data == null) return null;
 		PunishmentData pdata = new PunishmentData(data);

@@ -12,12 +12,14 @@ import mc.dragons.tools.moderation.analysis.IPHistoryCommand;
 import mc.dragons.tools.moderation.analysis.IPScanCommand;
 import mc.dragons.tools.moderation.analysis.InfoCommand;
 import mc.dragons.tools.moderation.analysis.LocateCommand;
+import mc.dragons.tools.moderation.analysis.RecentLoginsCommand;
 import mc.dragons.tools.moderation.hold.HoldCommand;
 import mc.dragons.tools.moderation.hold.HoldLoader;
 import mc.dragons.tools.moderation.hold.HoldMessageHandler;
 import mc.dragons.tools.moderation.hold.ReleaseHoldCommand;
 import mc.dragons.tools.moderation.hold.ViewHoldsCommand;
 import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
+import mc.dragons.tools.moderation.punishment.command.AcknowledgeWarningCommand;
 import mc.dragons.tools.moderation.punishment.command.PunishCodesCommand;
 import mc.dragons.tools.moderation.punishment.command.PunishCommand;
 import mc.dragons.tools.moderation.punishment.command.PurgePunishmentsCommand;
@@ -63,6 +65,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("locate").setExecutor(new LocateCommand());
 		getCommand("modnotifications").setExecutor(new ModNotificationsCommand());
 		getCommand("staffalert").setExecutor(new StaffAlertCommand());
+		getCommand("recentlogins").setExecutor(new RecentLoginsCommand());
 		
 		getCommand("report").setExecutor(new ReportCommand());
 		getCommand("escalate").setExecutor(new EscalateCommand());
@@ -80,6 +83,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		CommandExecutor reportAdminCommands = new ReportAdminCommands();
 		getCommand("toggleselfreport").setExecutor(reportAdminCommands);
 		getCommand("deletereport").setExecutor(reportAdminCommands);
+		getCommand("bulkdeletereports").setExecutor(reportAdminCommands);
 		
 		punishCommand = new PunishCommand(this);
 		getCommand("punish").setExecutor(punishCommand);
@@ -93,6 +97,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		
 		getCommand("viewpunishments").setExecutor(new ViewPunishmentsCommand());
 		getCommand("removepunishment").setExecutor(new RemovePunishmentCommand());
+		getCommand("acknowledgewarning").setExecutor(new AcknowledgeWarningCommand());
 		
 		getCommand("vanish").setExecutor(new VanishCommand());
 		getCommand("unvanish").setExecutor(new UnVanishCommand());	

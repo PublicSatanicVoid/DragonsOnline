@@ -1,17 +1,23 @@
 package mc.dragons.anticheat;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.PluginManager;
 
+import mc.dragons.anticheat.check.CheckRegistry;
+import mc.dragons.anticheat.check.move.NoClip;
+import mc.dragons.anticheat.check.move.PacketSpoof;
+import mc.dragons.anticheat.check.move.WrongMove;
 import mc.dragons.anticheat.command.AntiCheatCommand;
-import mc.dragons.anticheat.event.MoveListener;
+import mc.dragons.anticheat.event.CheckListeners;
+import mc.dragons.anticheat.event.TestingMoveListener;
 import mc.dragons.core.DragonsJavaPlugin;
 
 public class DragonsAntiCheat extends DragonsJavaPlugin {
 	private boolean debug;
-	private MoveListener moveListener;
+	private TestingMoveListener testingMoveListener;
+	private CheckRegistry checkRegistry;
 	
 	@Override
 	public void onEnable() {
@@ -25,10 +31,17 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		getCommand("acblockdata").setExecutor(ac);
 		getCommand("acban").setExecutor(ac);
 		getCommand("ackick").setExecutor(ac);
+		getCommand("acdump").setExecutor(ac);
+		getCommand("acresetplayer").setExecutor(ac);
 		
-		moveListener = new MoveListener(this);
+		checkRegistry = new CheckRegistry();
+		checkRegistry.registerCheck(new PacketSpoof());
+		checkRegistry.registerCheck(new NoClip());
+		checkRegistry.registerCheck(new WrongMove());
 		
-		Bukkit.getServer().getPluginManager().registerEvents(moveListener, this);
+		PluginManager pluginManager = getServer().getPluginManager();
+		pluginManager.registerEvents(testingMoveListener = new TestingMoveListener(this), this);
+		pluginManager.registerEvents(new CheckListeners(this), this);
 	}
 	
 	
@@ -46,7 +59,11 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		}
 	}
 	
-	public MoveListener getMoveListener() {
-		return moveListener;
+	public TestingMoveListener getTestingMoveListener() {
+		return testingMoveListener;
+	}
+	
+	public CheckRegistry getCheckRegistry() {
+		return checkRegistry;
 	}
 }

@@ -1,11 +1,8 @@
 package mc.dragons.tools.dev.monitor;
 
 import java.lang.management.ManagementFactory;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -68,7 +65,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		
 		if(label.equalsIgnoreCase("worldperformance")) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + dragons.getServerName()
-					+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
+					+ " @ " + StringUtil.dateFormatNow());
 			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
 			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_LIVING, COL_PLAYERS, COL_CHUNKS, COL_POPULATED, COL_RATIO);
 			String floorPrefix = ChatColor.YELLOW + "";
@@ -232,7 +229,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 				TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
 				tg.addRow(COL_ID, COL_NAME, COL_STATE, COL_PRIORITY, COL_DAEMON);
 				for(Thread thread : threads) {
-					tg.addRowEx("/getstacktrace " + thread.getId(), "Click to view stack trace for thread #" + thread.getId(), 
+					tg.addRowEx("/getstacktrace " + thread.getId(), "Click to view stack trace for thread #" + thread.getId() + " " + thread.getName() + " (" + thread.getState() + ")", 
 							"" + thread.getId(), StringUtil.truncateWithEllipsis(thread.getName(), 30), thread.getState().toString(), "" + thread.getPriority(), "" + thread.isDaemon());
 				}
 				tg.display(sender);

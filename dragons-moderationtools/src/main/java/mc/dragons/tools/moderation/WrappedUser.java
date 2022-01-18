@@ -114,7 +114,7 @@ public class WrappedUser {
 	 * @param by The user who applied the punishment
 	 * @param durationSeconds The time until the punishment expires, in seconds
 	 */
-	public void savePunishment(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
+	public int savePunishment(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
 		long now = Instant.now().getEpochSecond();
 		Document punishment = new Document("type", punishmentType.toString())
 			.append("code", code.toString())
@@ -128,15 +128,17 @@ public class WrappedUser {
 		List<Document> punishmentHistory = user.getData().getList("punishmentHistory", Document.class);
 		punishmentHistory.add(punishment);
 		user.setData("punishmentHistory", punishmentHistory);
+		return punishmentHistory.size() - 1;
 	}
 	
 	/**
 	 * Applies the specified punishment to the player, but does not change persistent data.
 	 * 
+	 * @param id The zero-based ID of the punishment.
 	 * @param punishmentType The type of punishment (warning, kick, mute, ban)
 	 * @param reason The displayed reason for the punishment
 	 */
-	public void applyPunishmentLocally(PunishmentType punishmentType, String reason) {
+	public void applyPunishmentLocally(int id, PunishmentType punishmentType, String reason) {
 		Player player = user.getPlayer();
 		if (player != null) {
 			if (punishmentType == PunishmentType.BAN) {
@@ -151,6 +153,8 @@ public class WrappedUser {
 					player.sendMessage(PunishCommand.RECEIVE_PREFIX + "Reason: " + reason);
 				}
 				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "Repeated warnings may result in a mute or ban.");
+				player.spigot().sendMessage(StringUtil.clickableHoverableText(PunishCommand.RECEIVE_PREFIX + ChatColor.RESET + "[Click here to acknowledge warning]", 
+						"/acknowledgewarning " + id, "Click to acknowledge this warning"));
 				player.sendMessage("");
 			} else if (punishmentType == PunishmentType.MUTE) {
 				player.sendMessage(" ");
@@ -192,8 +196,10 @@ public class WrappedUser {
 	 * @param extra Extra information about the punishment (shown to the player)
 	 * @param by The user who applied the punishment
 	 * @param durationSeconds The time until the punishment expires, in seconds
+	 *
+	 * @return The zero-based punishment index
 	 */
-	public void punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
+	public int punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by, long durationSeconds) {
 		if(punishmentType == PunishmentType.BAN) { // Banned users are automatically removed from the watchlist
 			PaginatedResult<Report> watchlist = reportLoader.getReportsByTypeStatusAndTarget(ReportType.WATCHLIST, ReportStatus.OPEN, user, 1);
 			if(watchlist.getTotal() > 0) {
@@ -201,8 +207,9 @@ public class WrappedUser {
 				watchlist.getPage().get(0).addNote("Auto-closed due to a ban by " + by.getName() + " (" + code.getCode() + ", " + extra + ")");
 			}
 		}
-		savePunishment(punishmentType, code, standingLevelChange, extra, by, durationSeconds);
-		applyPunishmentLocally(punishmentType, PunishmentCode.formatReason(code, extra));
+		int id = savePunishment(punishmentType, code, standingLevelChange, extra, by, durationSeconds);
+		applyPunishmentLocally(id, punishmentType, PunishmentCode.formatReason(code, extra));
+		return id;
 	}
 
 	/**
@@ -214,10 +221,21 @@ public class WrappedUser {
 	 * @param extra Extra information about the punishment (shown to the player)
 	 * @param by The user who applied the punishment
 	 */
-	public void punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by) {
-		punish(punishmentType, code, standingLevelChange, extra, by, -1L);
+	public int punish(PunishmentType punishmentType, PunishmentCode code, int standingLevelChange, String extra, User by) {
+		return punish(punishmentType, code, standingLevelChange, extra, by, -1L);
 	}
 
+	/**
+	 * Marks this warning as acknowledged by the player.
+	 * 
+	 * @param id The punishment index (zero-based)
+	 */
+	public void acknowledgeWarning(int id) {
+		List<Document> rawHistory = user.getData().getList("punishmentHistory", Document.class);
+		rawHistory.get(id).append("acknowledged", true);
+		user.getStorageAccess().set("punishmentHistory", rawHistory);
+	}
+	
 	/**
 	 * Revokes the specified punishment from the player,
 	 * modifying persistent data.

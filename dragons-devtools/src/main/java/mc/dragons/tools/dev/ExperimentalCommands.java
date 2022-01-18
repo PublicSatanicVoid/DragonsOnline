@@ -2,8 +2,10 @@ package mc.dragons.tools.dev;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -459,6 +461,24 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("Exists in UserLoader cache: " + UserLoader.allUsers().contains(mockUser));
 			sender.sendMessage("Exists in game object registry: " + dragons.getGameObjectRegistry().getRegisteredObjects().contains(mockUser));
 			sender.sendMessage("Exists in filtered game object registry: " + dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER).contains(mockUser));
+		}
+		
+		else if(label.equalsIgnoreCase("mockdelete")) {
+			User target = lookupUser(sender, args[0]);
+			if(target.getData().getBoolean("mock", false)) {
+				dragons.getGameObjectRegistry().removeFromDatabase(target);
+				dragons.getGameObjectRegistry().getRegisteredObjects().remove(target);
+				UserLoader.allUsers().remove(target);
+				sender.sendMessage("Deleted mock user " + target.getName() + " and removed from primary local caches");
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("mocklist")) {
+			Set<User> mocks = dragons.getPersistentStorageManager().getAllStorageAccess(GameObjectType.USER, new Document("mock", true)).stream().map(sa -> userLoader.loadObject(sa)).collect(Collectors.toSet());
+			sender.sendMessage("USERNAME  -  UUID  -  CURRENT SERVER");
+			for(User mock : mocks) {
+				sender.sendMessage(mock.getName() + "  -  " + mock.getUUID() + "  -  " + mock.getServerName());
+			}
 		}
 		
 		else if(label.equalsIgnoreCase("mockserver")) {

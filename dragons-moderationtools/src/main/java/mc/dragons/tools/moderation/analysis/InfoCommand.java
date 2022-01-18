@@ -83,7 +83,7 @@ public class InfoCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.WHITE + "- Not banned");
 			}
 			else {
-				sender.sendMessage(ChatColor.WHITE + "- Banned: " + banData.getReason() + " (" + (banData.isPermanent() ? "Permanent" : "Until " + StringUtil.DATE_FORMAT.format(banData.getExpiry()) + ")"));
+				sender.sendMessage(ChatColor.WHITE + "- Banned: " + banData.getReason() + " (" + (banData.isPermanent() ? "Permanent" : "Until " + StringUtil.DATE_FORMAT.format(banData.getExpiry())) + ")");
 				goodStanding = false;
 			}
 			
@@ -91,7 +91,7 @@ public class InfoCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.WHITE + "- Not muted");
 			}
 			else {
-				sender.sendMessage(ChatColor.WHITE + "- Muted: " + muteData.getReason() + " (" + (muteData.isPermanent() ? "Permanent" : "Until " + StringUtil.DATE_FORMAT.format(muteData.getExpiry()) + ")"));
+				sender.sendMessage(ChatColor.WHITE + "- Muted: " + muteData.getReason() + " (" + (muteData.isPermanent() ? "Permanent" : "Until " + StringUtil.DATE_FORMAT.format(muteData.getExpiry())) + ")");
 				goodStanding = false;
 			}
 			List<HoldEntry> holds = holdLoader.getActiveHoldsByUser(targetUser);

@@ -17,8 +17,9 @@ public class PunishMessageHandler extends MessageHandler {
 		super(Dragons.getInstance(), "punishment");
 	}
 
-	public void forwardPunishment(User user, PunishmentType type, String reason, long duration) {
-		send(new Document("uuid", user.getUUID().toString()).append("action", "punish").append("punishmentType", type.toString()).append("reason", reason).append("duration", duration), user.getServerName());
+	public void forwardPunishment(User user, int id, PunishmentType type, String reason, long duration) {
+		send(new Document("uuid", user.getUUID().toString()).append("action", "punish").append("punishmentId", id)
+				.append("punishmentType", type.toString()).append("reason", reason).append("duration", duration), user.getServerName());
 	}
 	
 	public void forwardUnpunishment(User user, int id) {
@@ -42,9 +43,10 @@ public class PunishMessageHandler extends MessageHandler {
 		new BukkitRunnable() {
 			@Override public void run() {
 				if(action.equals("punish")) {
+					int id = data.getInteger("punishmentId");
 					PunishmentType type = PunishmentType.valueOf(data.getString("punishmentType"));
 					String reason = data.getString("reason");
-					wrapped.applyPunishmentLocally(type, reason);
+					wrapped.applyPunishmentLocally(id, type, reason);
 				}
 				else if(action.equals("unpunish")) {
 					int id = data.getInteger("punishmentId");

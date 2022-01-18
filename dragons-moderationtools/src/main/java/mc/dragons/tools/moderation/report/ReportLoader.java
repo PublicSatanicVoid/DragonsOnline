@@ -32,7 +32,7 @@ import mc.dragons.tools.moderation.report.ReportLoader.Report;
 public class ReportLoader extends AbstractLightweightLoader<Report> {
 	public static final int PAGE_SIZE = 10;
 	
-	private UserLoader userLoader = GameObjectType.USER.<User, UserLoader>getLoader();
+	private UserLoader userLoader = GameObjectType.USER.getLoader();
 	private Map<Integer, Report> reportPool = new HashMap<>();
 	
 	public class Report {
@@ -275,6 +275,18 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return parseResults(collection.find(filter), page);
 	}
 	
+	public long deleteReports(String field, String query, boolean list) {
+		return collection.deleteMany(list ? new Document(field, new Document("$in", List.of(query))) : new Document(field, query)).getDeletedCount();
+	}
+	
+	public long deleteReports(Document query) {
+		return collection.deleteMany(query).getDeletedCount();
+	}
+	
+	public long closeReports(Document query) {
+		return collection.updateMany(query, new Document("$set", new Document("status", ReportStatus.NO_ACTION.toString()))).getModifiedCount();
+	}
+	
 	private List<String> getStateTokens(List<User> users) {
 		return users.stream().filter(u -> u.getPlayer() != null).map(u -> u.getState().toString()).collect(Collectors.toList());
 	}
@@ -339,7 +351,10 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("target", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()))
 				.append("priority", 100) // Escalations go to the very tippity top of the queue
 				.append("filedBy", List.of(staff.getUUID().toString()))
-				.append("data", new Document("message", message).append("confirmCommand", confirmCommand).append("permissionReq", permissionReq.toString()).append("states", getStateTokens(targets)));
+				.append("data", new Document("message", message)
+						.append("confirmCommand", confirmCommand)
+						.append("permissionReq", permissionReq.toString())
+						.append("states", getStateTokens(targets)));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + message);
 		return report;
@@ -362,7 +377,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("target", targets.stream().map(u -> u.getUUID().toString()).collect(Collectors.toList()))
 				.append("priority", escalate ? 100 : 0) // Escalations go to the very tippity top of the queue
 				.append("filedBy", List.of(staff.getUUID().toString()))
-				.append("data", internalData);
+				.append("data", internalData.append("states", getStateTokens(targets)));
 		Report report = fileReport(data);
 		reportNotify(report.getId(), staff.getName() + " placed a hold on " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + reason);
 		return report;

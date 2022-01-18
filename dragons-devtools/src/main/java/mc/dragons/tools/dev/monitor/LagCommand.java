@@ -1,8 +1,5 @@
 package mc.dragons.tools.dev.monitor;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +46,7 @@ public class LagCommand extends DragonsCommandExecutor {
 		if(advanced) {
 			sender.sendMessage(ChatColor.DARK_GRAY + "-------------------------------------------------------------");
 			sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName()
-				+ " @ " + new SimpleDateFormat("MM/dd/yyyy HH:mm").format(Date.from(Instant.now())));
+				+ " @ " + StringUtil.dateFormatNow());
 		}
 		List<Double> tpsRecord = Dragons.getInstance().getTPSRecord();
 		final int[] tps_thresholds = new int[] { 5, 10, 15, 18, 19 };

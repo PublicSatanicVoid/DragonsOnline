@@ -8,10 +8,15 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 
 import mc.dragons.anticheat.DragonsAntiCheat;
+import mc.dragons.anticheat.check.Check;
+import mc.dragons.anticheat.check.ViolationData;
+import mc.dragons.anticheat.check.move.MoveData;
+import mc.dragons.anticheat.util.ACUtil;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.moderation.WrappedUser;
 import mc.dragons.tools.moderation.punishment.PunishmentCode;
@@ -47,16 +52,46 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
+		else if(label.equalsIgnoreCase("acdump")) {
+			if(args.length == 0) {
+				sender.sendMessage(ChatColor.RED + "/acdump <Player>");
+				return true;
+			}
+			User target = lookupUser(sender, args[0]);
+			sender.sendMessage("CHECK - CATEGORY - VL");
+			for(Check check : plugin.getCheckRegistry().getChecks()) {
+				ViolationData violationData = ViolationData.of(check, target);
+				sender.sendMessage(check.getName() + " - " + check.getType() + " - " + MathUtil.round(violationData.vl));
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("acresetplayer")) {
+			if(args.length == 0) {
+				sender.sendMessage(ChatColor.RED + "/acresetplayer <Player>");
+				return true;
+			}
+			User target = lookupUser(sender, args[0]);
+			for(Check check : plugin.getCheckRegistry().getChecks()) {
+				ViolationData violationData = ViolationData.of(check, target);
+				violationData.vl = 0;
+			}
+			MoveData moveData = MoveData.of(target);
+			moveData.lastRubberband = 0L;
+			moveData.lastValidLocation = target.getPlayer().getLocation();
+			moveData.validMoves = MoveData.MIN_VALID_MOVES_TO_SET_VALID_LOCATION;
+			sender.sendMessage("Reset check data for " + target.getName());
+		}
+		
 		else if(label.equalsIgnoreCase("acflushlog")) {
-			plugin.getMoveListener().dumpLog();
-			plugin.getMoveListener().disableLog();
+			plugin.getTestingMoveListener().dumpLog();
+			plugin.getTestingMoveListener().disableLog();
 			sender.sendMessage(ChatColor.GREEN + "Dumped log to console and cleared");
 			return true;
 		}
 		
 		else if(label.equalsIgnoreCase("acstartlog")) {
-			plugin.getMoveListener().clearLog();
-			plugin.getMoveListener().enableLog();
+			plugin.getTestingMoveListener().clearLog();
+			plugin.getTestingMoveListener().enableLog();
 			return true;
 		}
 		
@@ -69,6 +104,7 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			ff *= 0.91; // ?
 			sender.sendMessage("*multiplier="+ 0.1 * (0.1627714 / (ff * ff * ff)));
 			sender.sendMessage("*a="+ff);
+			sender.sendMessage("calculated onGround=" + ACUtil.isOnGround(player));
 			
 			return true;
 		}

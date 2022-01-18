@@ -13,3 +13,5 @@ commands:
   acblockdata:
   acban:
   ackick:
+  acdump:
+  acresetplayer:

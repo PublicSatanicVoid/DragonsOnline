@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.Addon;
 import mc.dragons.core.addon.AddonRegistry;
+import mc.dragons.core.addon.AddonType;
 import mc.dragons.core.addon.NPCAddon;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.GameObject;
@@ -70,7 +71,8 @@ public class NPCCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> condition <add [!]<ConditionType> <ConditionParams...>|<#> del>" + ChatColor.GRAY + " add/remove conditions on an NPC behavior");
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Adding a ! before the ConditionType will negate the condition.");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action <add <ActionType> <ActionParams...>|<#> del>" + ChatColor.GRAY + " add/remove actions on an NPC behavior");
-		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action shop <add <Action#> <ItemClass> <Quantity> <CostPer>|remove <action#> <item#>>" + ChatColor.GRAY + " manage shop behavior");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action shop <add <Action#> <ItemClass> <Quantity> <CostPer>|remove <Action#> <Item#>>" + ChatColor.GRAY + " manage shop behavior");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> action dialogue <add <Action#> <Line|Line|...>|remove <Action#> <Line#>>" + ChatColor.GRAY + " manage dialogue behavior");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> addon [<add|remove> <AddonName>]" + ChatColor.GRAY + " manage addons");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> attribute [<Attribute> <Value|DEL>]" + ChatColor.GRAY + " manage attributes");
 		sender.sendMessage(ChatColor.YELLOW + "/npc delete <ClassName>" + ChatColor.GRAY + " delete NPC class");
@@ -231,24 +233,24 @@ public class NPCCommand extends DragonsCommandExecutor {
 			}
 			return;
 		}
-		else if(args.length == 5) {
+		else if(args.length == 3) {
 			sender.sendMessage(ChatColor.RED + "Specify an addon name! For a list of addons, do /addon -l");
 			return;
 		}
 		Document base = Document.parse(npcClass.getData().toJson());
-		Addon addon = addonRegistry.getAddonByName(args[5]);
+		Addon addon = addonRegistry.getAddonByName(args[3]);
 		if(addon == null) {
 			sender.sendMessage(ChatColor.RED + "Invalid addon name! For a list of addons, do /addon -l");
 		}
-		else if(!(addon instanceof NPCAddon)) {
+		else if(addon.getType() != AddonType.NPC) {
 			sender.sendMessage(ChatColor.RED + "Invalid addon type! Only NPC Addons can be applied to NPCs.");
 		}
-		else if(args[4].equalsIgnoreCase("add")) {
+		else if(args[2].equalsIgnoreCase("add")) {
 			npcClass.addAddon((NPCAddon) addon);
 			sender.sendMessage(ChatColor.GREEN + "Added addon " + addon.getName() + " to NPC class " + npcClass.getClassName() + ".");
 			AUDIT_LOG.saveEntry(npcClass, user, base, "Added addon " + addon.getName());
 		}
-		else if(args[4].equalsIgnoreCase("remove")) {
+		else if(args[2].equalsIgnoreCase("remove")) {
 			npcClass.removeAddon((NPCAddon) addon);
 			sender.sendMessage(ChatColor.GREEN + "Removed addon " + addon.getName() + " from NPC class " + npcClass.getClassName() + ".");
 			AUDIT_LOG.saveEntry(npcClass, user, base, "Removed addon " + addon.getName());
@@ -463,19 +465,68 @@ public class NPCCommand extends DragonsCommandExecutor {
 				}
 				else if(args[6].equalsIgnoreCase("remove")) {
 					if(args.length < 9) {
-						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action shop remove <action#> <item#>");
+						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action shop remove <Action#> <Item#>");
 						return false;
 					}
 					Integer actionNo = parseInt(sender, args[7]);
 					Integer slotNo = parseInt(sender, args[8]);
 					if(actionNo == null || slotNo == null) return false;
 					NPCAction action = behaviorsLocal.getConditional(behaviorNo).getValue().get(actionNo);
+					if(slotNo >= action.getShopItems().size()) {
+						sender.sendMessage(ChatColor.RED + "Index " + slotNo + " is out of bounds: must be between 0 and " + (action.getShopItems().size() - 1));
+						return true;
+					}
 					action.getShopItems().remove((int) slotNo);
 					actions.get(actionNo).clear();
 					actions.get(actionNo).putAll(action.toDocument());
 					behavior.append("actions", actions);
 					npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
 					sender.sendMessage(ChatColor.GREEN + "Removed item from shop successfully.");
+					propagateRevisions(npcClass);
+					return true;
+				}
+			}
+			else if(args[5].equalsIgnoreCase("dialogue")) {
+				if(args[6].equalsIgnoreCase("add")) {
+					if(args.length < 9) {
+						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action dialogue add <#> <Line|Line|...>");
+						return false;
+					}
+					Integer actionNo = parseInt(sender, args[7]);
+					if(actionNo == null) return false;
+					
+					List<String> lines = Arrays.asList(StringUtil.concatArgs(args, 8)
+							.replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)"))
+							.split(Pattern.quote("|")));
+					
+					NPCAction action = behaviorsLocal.getConditional(behaviorNo).getValue().get(actionNo);
+					action.getDialogue().addAll(lines);
+					actions.get(actionNo).putAll(action.toDocument());
+					behavior.append("actions", actions);
+					npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
+					sender.sendMessage(ChatColor.GREEN + "Added dialogue successfully.");
+					propagateRevisions(npcClass);
+					return true;
+				}
+				else if(args[6].equalsIgnoreCase("remove")) {
+					if(args.length < 9) {
+						sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> behavior <CLICK|HIT> <#> action dialogue remove <Action#> <Line#>");
+						return false;
+					}
+					Integer actionNo = parseInt(sender, args[7]);
+					Integer slotNo = parseInt(sender, args[8]);
+					if(actionNo == null || slotNo == null) return false;
+					NPCAction action = behaviorsLocal.getConditional(behaviorNo).getValue().get(actionNo);
+					if(slotNo >= action.getDialogue().size()) {
+						sender.sendMessage(ChatColor.RED + "Index " + slotNo + " is out of bounds: must be between 0 and " + (action.getDialogue().size() - 1));
+						return true;
+					}
+					action.getDialogue().remove((int) slotNo);
+					actions.get(actionNo).clear();
+					actions.get(actionNo).putAll(action.toDocument());
+					behavior.append("actions", actions);
+					npcClass.getStorageAccess().update(new Document("conditionals", conditionals));
+					sender.sendMessage(ChatColor.GREEN + "Removed line from dialogue successfully.");
 					propagateRevisions(npcClass);
 					return true;
 				}

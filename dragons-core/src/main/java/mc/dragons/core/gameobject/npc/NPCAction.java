@@ -44,9 +44,7 @@ public class NPCAction {
 
 	public static class ShopItem {
 		private String itemClass;
-
 		private int quantity;
-
 		private double costPer;
 
 		public ShopItem(String itemClass, int quantity, double costPer) {
