@@ -69,3 +69,6 @@ commands:
     description: (GM) View metadata about a game object.
   deletenpc:
     description: Internal command!
+  hologram:
+    description: (GM) Create and manage standalone holograms.
+    aliases: holo

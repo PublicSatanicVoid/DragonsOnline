@@ -12,6 +12,7 @@ import mc.dragons.tools.content.command.builder.ClearInventoryCommand;
 import mc.dragons.tools.content.command.builder.FixedCommand;
 import mc.dragons.tools.content.command.builder.GamemodeCommand;
 import mc.dragons.tools.content.command.builder.GoToFloorCommand;
+import mc.dragons.tools.content.command.builder.HologramCommand;
 import mc.dragons.tools.content.command.builder.SpeedCommand;
 import mc.dragons.tools.content.command.builder.WarpCommands;
 import mc.dragons.tools.content.command.gameobject.FloorCommand;
@@ -40,6 +41,7 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		
 		Dragons dragons = getDragonsInstance();
 		dragons.getLightweightLoaderRegistry().register(new AuditLogLoader(dragons.getMongoConfig()));
+		dragons.getLightweightLoaderRegistry().register(new HologramLoader(dragons.getMongoConfig()));
 		
 		getCommand("region").setExecutor(new RegionCommand());
 		getCommand("npc").setExecutor(new NPCCommand());
@@ -56,6 +58,7 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		getCommand("fixed").setExecutor(new FixedCommand());
 		getCommand("objmeta").setExecutor(new ObjectMetadataCommand());
 		getCommand("deletenpc").setExecutor(new DeleteNPCCommand());
+		getCommand("hologram").setExecutor(new HologramCommand(this));
 		
 		CommandExecutor gamemodeCommandExecutor = new GamemodeCommand();
 		getCommand("gamemode").setExecutor(gamemodeCommandExecutor);

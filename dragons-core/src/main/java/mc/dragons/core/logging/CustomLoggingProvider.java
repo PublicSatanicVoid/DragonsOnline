@@ -23,11 +23,12 @@ import net.minecrell.terminalconsole.TerminalConsoleAppender;
 public class CustomLoggingProvider {
 	private Dragons dragons;
 	private LogFilter logFilter;
-	private CustomForwardLogHandler customHandler = new CustomForwardLogHandler();
+	private CustomForwardLogHandler customHandler;
 
 	public CustomLoggingProvider(Dragons instance) {
 		dragons = instance;
 		logFilter = new LogFilter(instance);
+		customHandler = new CustomForwardLogHandler();
 	}
 
 	/**

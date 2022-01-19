@@ -57,6 +57,15 @@ public class StringUtil {
 		return e.getType() + " " + e + " (#" + e.getEntityId() + ")";
 	}
 
+	public static int argIndex(String[] args, String search) {
+		for(int i = 0; i < args.length; i++) {
+			if(args[i].equalsIgnoreCase(search)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	public static String concatArgs(String[] args, int startIndex, int endIndex) {
 		if (endIndex <= startIndex && endIndex != -1) {
 			return "";
