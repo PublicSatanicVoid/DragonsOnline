@@ -30,7 +30,7 @@ import mc.dragons.social.DragonsSocial;
 public class DuelCommands extends DragonsCommandExecutor {
 
 	private static final String DUEL_ARENA_WARP = "duelarena1";
-	public static final String DUEL_MESSAGE_HEADER = ChatColor.DARK_GREEN + "--------------------------------------------------------------------";
+	public static final String DUEL_MESSAGE_HEADER = ChatColor.DARK_GREEN + "-----------------------------------------------------";
 
 	private static Map<User, User> requests = new HashMap<>();
 	private static Map<User, Location> restore = new HashMap<>();

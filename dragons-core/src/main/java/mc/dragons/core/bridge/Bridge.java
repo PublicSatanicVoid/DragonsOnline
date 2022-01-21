@@ -72,6 +72,14 @@ public interface Bridge {
 	void setEntityAI(Entity entity, boolean ai);
 	
 	/**
+	 * Set the specified entity's NoClip status.
+	 * 
+	 * @param entity
+	 * @param noclip
+	 */
+	void setEntityNoClip(Entity entity, boolean noclip);
+	
+	/**
 	 * Set the specified item's unbreakability status. 
 	 * 
 	 * @param itemStack

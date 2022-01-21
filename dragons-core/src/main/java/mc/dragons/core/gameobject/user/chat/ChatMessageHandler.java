@@ -134,7 +134,6 @@ public class ChatMessageHandler extends MessageHandler {
 		}
 		
 		doLocalSend(sender, channel, message, replyTo, replyMsg);
-		
 	}
 	
 }

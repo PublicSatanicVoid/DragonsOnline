@@ -369,7 +369,8 @@ public class PlayerEventListeners implements Listener {
 	public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
 		Player player = event.getPlayer();
 		User user = UserLoader.fromPlayer(player);
-		if(System.currentTimeMillis() - lastCommand.getOrDefault(player, 0L) < commandSpamThreshold && !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.DEVELOPER, false)) {
+		if(System.currentTimeMillis() - lastCommand.getOrDefault(player, 0L) < commandSpamThreshold 
+				&& !PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.HELPER, false)) {
 			player.sendMessage(ChatColor.RED + "Please do not spam commands!");
 			event.setCancelled(true);
 		}

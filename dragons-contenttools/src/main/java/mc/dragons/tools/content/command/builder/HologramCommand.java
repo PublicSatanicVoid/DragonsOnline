@@ -71,14 +71,14 @@ public class HologramCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "" + results.size() + " Results found");
 			for(Hologram hologram : results) {
 				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " #" + hologram.getId() + 
-						": " + StringUtil.locToString(hologram.getLocation()) + " (" + hologram.getText().length + " lines)", 
+						": " + StringUtil.locToString(hologram.getLocation()) + " " + hologram.getText()[0], 
 						"/hologram " + hologram.getId() + " info", hologram.getText()));
 			}
 		}
 		
 		else if(args[0].equalsIgnoreCase("create")) {
-			int cmdIndex = StringUtil.argIndex(args, "-cmd");
-			int ccmdIndex = StringUtil.argIndex(args, "-ccmd");
+			int cmdIndex = StringUtil.getFlagIndex(args, "-cmd", 0);
+			int ccmdIndex = StringUtil.getFlagIndex(args, "-ccmd", 0);
 			if(ccmdIndex != -1 && !hasPermission(sender, SystemProfileFlag.CMD)) {
 				sender.sendMessage(ChatColor.RED + "Setting -ccmd (console command) flag requires profile flag CMD");
 				return true;
@@ -87,7 +87,7 @@ public class HologramCommand extends DragonsCommandExecutor {
 			if(endTextIndex == -1) endTextIndex = args.length;
 			String text = StringUtil.concatArgs(args, 1, Math.max(cmdIndex, ccmdIndex));
 			Hologram h = loader.new Hologram(player.getLocation().add(0, HologramLoader.Y_OFFSET, 0), new String[] { text });
-			sender.sendMessage(ChatColor.GREEN + "Created new hologram at your location");
+			sender.sendMessage(ChatColor.GREEN + "Created new hologram #" + h.getId() + " at your location");
 			if(cmdIndex != -1) {
 				String cmd = StringUtil.concatArgs(args, cmdIndex + 1);
 				h.setCmdAction(cmd);
@@ -119,7 +119,7 @@ public class HologramCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GRAY + "Click Action: " + hologram._describeActions());
 			sender.sendMessage(ChatColor.GRAY + "Text:");
 			for(String line : hologram.getText()) {
-				sender.sendMessage(ChatColor.DARK_GRAY + "- " + ChatColor.GRAY + ChatColor.translateAlternateColorCodes('&', line));
+				sender.sendMessage(ChatColor.DARK_GRAY + "- " + ChatColor.GRAY + StringUtil.colorize(line));
 			}
 		}
 		

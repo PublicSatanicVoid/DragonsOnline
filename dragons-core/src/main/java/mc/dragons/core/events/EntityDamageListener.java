@@ -174,7 +174,7 @@ public class EntityDamageListener implements Listener {
 				LOGGER.trace("- Target is an entity but not an NPC! HasHandle=" + target.hasMetadata("handle"));
 				LOGGER.warning("- Unauthorized vanilla interaction from " + StringUtil.entityToString(damager) + " to " + StringUtil.entityToString(target));
 				if(userDamager != null && PermissionUtil.verifyActivePermissionLevel(userDamager, PermissionLevel.TESTER, false)) {
-					HologramUtil.temporaryArmorStand(target, ChatColor.RED + "Error: Unbound Entity Target", 20 * 5, true);
+					HologramUtil.temporaryHologram(target, ChatColor.RED + "Error: Unbound Entity Target", 20 * 5, true);
 				}
 			}
 		}
@@ -346,7 +346,7 @@ public class EntityDamageListener implements Listener {
 				if (target.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L) {
 					tag = String.valueOf(tag) + ChatColor.GRAY + " from " + userDamager.getName();
 				}
-				HologramUtil.temporaryArmorStand(target, tag, 20, false);
+				HologramUtil.temporaryHologram(target, tag, 20, false);
 			}
 		}
 		if (npcTarget != null) {
@@ -366,6 +366,6 @@ public class EntityDamageListener implements Listener {
 			return;
 		}
 		damager.sendActionBar(ChatColor.RED + "Target is immortal!");
-		HologramUtil.temporaryArmorStand(target, ChatColor.LIGHT_PURPLE + "✦ Immortal Object", 40, false);
+		HologramUtil.temporaryHologram(target, ChatColor.LIGHT_PURPLE + "✦ Immortal Object", 40, false);
 	}
 }

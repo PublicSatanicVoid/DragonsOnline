@@ -108,7 +108,7 @@ public class HologramLoader extends AbstractLightweightLoader<Hologram> {
 		public void spawn() {
 			String[] lines = getText();
 			for(int i = 0; i < lines.length; i++) {
-				parts.add(HologramUtil.clickableHologram(ChatColor.translateAlternateColorCodes('&', lines[i]), getLocation().clone().subtract(0, LINE_HEIGHT * i, 0), u -> {
+				parts.add(HologramUtil.clickableHologram(StringUtil.colorize(lines[i]), getLocation().clone().subtract(0, LINE_HEIGHT * i, 0), u -> {
 					boolean gm = PermissionUtil.verifyActivePermissionLevel(u, PermissionLevel.GM, false);
 					if(gm) {
 						Bukkit.dispatchCommand(u.getPlayer(), "hologram " + getId() + " info");

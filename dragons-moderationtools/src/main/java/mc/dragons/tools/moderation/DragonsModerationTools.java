@@ -20,6 +20,7 @@ import mc.dragons.tools.moderation.hold.ReleaseHoldCommand;
 import mc.dragons.tools.moderation.hold.ViewHoldsCommand;
 import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
 import mc.dragons.tools.moderation.punishment.command.AcknowledgeWarningCommand;
+import mc.dragons.tools.moderation.punishment.command.NSPunishCommands;
 import mc.dragons.tools.moderation.punishment.command.PunishCodesCommand;
 import mc.dragons.tools.moderation.punishment.command.PunishCommand;
 import mc.dragons.tools.moderation.punishment.command.PurgePunishmentsCommand;
@@ -90,6 +91,13 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("punishcodes").setExecutor(new PunishCodesCommand());
 		getCommand("setstandinglevel").setExecutor(new StandingLevelCommand());
 		getCommand("purgepunishments").setExecutor(new PurgePunishmentsCommand());
+		
+		CommandExecutor nsPunishCommands = new NSPunishCommands(this);
+		getCommand("safekick").setExecutor(nsPunishCommands);
+		getCommand("kick").setExecutor(nsPunishCommands);
+		getCommand("warn").setExecutor(nsPunishCommands);
+		getCommand("mute").setExecutor(nsPunishCommands);
+		getCommand("ban").setExecutor(nsPunishCommands);
 		
 		CommandExecutor unPunishCommands = new UnPunishCommands();
 		getCommand("unban").setExecutor(unPunishCommands);

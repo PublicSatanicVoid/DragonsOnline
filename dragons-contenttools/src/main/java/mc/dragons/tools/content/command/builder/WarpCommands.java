@@ -1,6 +1,7 @@
 package mc.dragons.tools.content.command.builder;
 
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,9 +13,12 @@ import org.bukkit.entity.Player;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.loader.WarpLoader;
+import mc.dragons.core.storage.loader.WarpLoader.WarpEntry;
+import mc.dragons.core.storage.mongo.pagination.PaginationUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class WarpCommands extends DragonsCommandExecutor {
+	private static final int PAGE_SIZE = 7;
 	private WarpLoader warpLoader = dragons.getLightweightLoaderRegistry().getLoader(WarpLoader.class);
 	
 	private Location getWarp(CommandSender sender, String warpName) {
@@ -76,9 +80,42 @@ public class WarpCommands extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.GREEN + "Set warp " + args[0] + " to your current location");
 	}
 	
-	private void listWarps(CommandSender sender) {
-		sender.sendMessage(ChatColor.DARK_GREEN + "Listing all warps: " + ChatColor.GREEN + StringUtil.parseList(
-				warpLoader.getWarps().stream().map(e -> e.getWarpName()).collect(Collectors.toList())));
+	private void listWarps(CommandSender sender, String[] args) {
+		List<WarpEntry> results = new ArrayList<>(warpLoader.getWarps());
+		int pageIndex = StringUtil.getFlagIndex(args, "-page", 0);
+		int searchIndex = pageIndex == 0 ? 2 : 0;
+		String search = searchIndex >= args.length ? "" : args[searchIndex];
+		Integer page = 1;
+		if(pageIndex != -1) {
+			page = lookup(sender, () -> Integer.valueOf(args[pageIndex + 1]), 
+					ChatColor.RED + "Invalid page number. /warps [startingWith] [-page <#>]");
+		}
+		if(page == null) return;
+		int pages = 0;
+		if(!search.isEmpty()) {
+			results = results.stream().filter(r -> r.getWarpName().toLowerCase()
+					.contains(search.toLowerCase())).sorted((a,b)->a.getWarpName().compareTo(b.getWarpName())).toList();
+			pages = PaginationUtil.pageCount(results, PAGE_SIZE);
+			results = PaginationUtil.paginateList(results, page, PAGE_SIZE);
+			sender.sendMessage(ChatColor.DARK_GREEN + "Listing all warps containing \"" + search + "\""
+					+ " (page " + page + "/" + pages + ")");
+		}
+		else {
+			results = results.stream().sorted((a,b)->a.getWarpName().compareTo(b.getWarpName())).toList();
+			pages = PaginationUtil.pageCount(results, PAGE_SIZE);
+			results = PaginationUtil.paginateList(results, page, PAGE_SIZE);
+			sender.sendMessage(ChatColor.DARK_GREEN + "Listing all warps" + " (page " + page + " / " + pages + ")");
+		}
+		for(WarpEntry warp : results) {
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "- " + ChatColor.GREEN + warp.getWarpName() 
+					+ ChatColor.GRAY + " (" + StringUtil.locToString(warp.getLocation()) + ")", "/warp " + warp.getWarpName(),
+					"Click to warp to " + warp.getWarpName()));
+		}
+		if(page < pages) {
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Next Page]", 
+					"/warps " + search + (search.length() > 0 ? " " : "") + "-page " + (page + 1), args));
+		}
+		
 	}
 	
 	@Override
@@ -92,7 +129,7 @@ public class WarpCommands extends DragonsCommandExecutor {
 			deleteWarp(sender, args);
 		}
 		else if(label.equalsIgnoreCase("warps")) {
-			listWarps(sender);
+			listWarps(sender, args);
 		}
 		else if(label.equalsIgnoreCase("setwarp")) {
 			setWarp(sender, args);

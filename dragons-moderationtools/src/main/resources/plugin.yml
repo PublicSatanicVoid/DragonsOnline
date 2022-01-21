@@ -26,6 +26,16 @@ commands:
     description: (ADMIN) View all IP addresses a player has used.
   ipscan:
     description: (MODERATOR) Search for alt accounts based on known IP.
+  safekick:
+    description: (HELPER) Kick a player without logging to punishment record.
+  kick:
+    description: (HELPER) Kick a player.
+  warn:
+    description: (HELPER) Warn a player.
+  mute:
+    description: (MODERATOR) Mute a player.
+  ban:
+    description: (MODERATOR) Ban a player.
   unmute:
     description: (HELPER) Unmute a player. The mute stays on the player's record. Helpers can only unmute players they have muted.
   unban:

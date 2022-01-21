@@ -83,7 +83,7 @@ public class DevUserHook implements UserHook {
 		user.getStorageAccess().pull("stars", Integer.class);
 		user.getStorageAccess().set("stars", getStars(user) + stars);
 		if(user.getPlayer() != null) {
-			user.getPlayer().sendMessage(ChatColor.GOLD + "You " + (stars > 0 ? "received " : "lost ") + stars + " stars!");
+			user.getPlayer().sendMessage(ChatColor.GOLD + "You " + (stars > 0 ? "received " : "lost ") + Math.abs(stars) + " stars!");
 		}
 	}
 }

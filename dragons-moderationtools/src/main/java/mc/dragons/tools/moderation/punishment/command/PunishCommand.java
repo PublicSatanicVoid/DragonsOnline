@@ -16,7 +16,6 @@ import mc.dragons.tools.moderation.hold.HoldLoader;
 import mc.dragons.tools.moderation.hold.HoldLoader.HoldEntry;
 import mc.dragons.tools.moderation.hold.HoldLoader.HoldType;
 import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
-import mc.dragons.tools.moderation.punishment.PunishmentData;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
 import mc.dragons.tools.moderation.punishment.StandingLevelType;
 import mc.dragons.tools.moderation.report.ReportLoader;
@@ -67,12 +66,12 @@ public class PunishCommand extends DragonsCommandExecutor {
 				duration = -1L;
 			}
 			
-			for(PunishmentData record : w.getPunishmentHistory()) {
-				if(!record.isRevoked() && !record.hasExpired() && record.getType().hasDuration() && record.getCode() == data.code) {
-					sender.sendMessage(ChatColor.RED + "This player already has an active punishment of type " + data.code.getCode());
-					return true;
-				}
-			}
+//			for(PunishmentData record : w.getPunishmentHistory()) {
+//				if(!record.isRevoked() && !record.hasExpired() && record.getType().hasDuration() && record.getCode() == data.code) {
+//					sender.sendMessage(ChatColor.RED + "This player already has an active punishment of type " + data.code.getCode());
+//					return true;
+//				}
+//			}
 			
 			if(canApply) {
 				// Punish immediately

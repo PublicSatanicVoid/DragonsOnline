@@ -81,7 +81,7 @@ public class EntityDeathListener implements Listener {
 			if (livingEntity.getNearbyEntities(10.0D, 10.0D, 10.0D).stream().filter(e -> (e.getType() == EntityType.PLAYER)).count() > 1L) {
 				tag = String.valueOf(tag) + ChatColor.GRAY + " to " + user.getName();
 			}
-			HologramUtil.temporaryArmorStand(livingEntity, tag, 20, false);
+			HologramUtil.temporaryHologram(livingEntity, tag, 20, false);
 			user.addXP(xpReward);
 		}
 		user.updateQuests(event);

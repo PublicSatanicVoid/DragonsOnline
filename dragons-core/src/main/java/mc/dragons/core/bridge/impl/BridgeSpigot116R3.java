@@ -51,6 +51,11 @@ public class BridgeSpigot116R3 implements Bridge {
 		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), "NoAI");
 		LOGGER.trace("BRIDGE: Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
+	
+	@Override
+	public void setEntityNoClip(Entity entity, boolean noclip) {
+		((CraftEntity) entity).getHandle().noclip = noclip;
+	}
 
 	@Override
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {

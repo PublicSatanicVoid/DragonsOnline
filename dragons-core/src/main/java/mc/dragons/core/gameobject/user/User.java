@@ -1675,7 +1675,10 @@ public class User extends GameObject {
 		if (!overrideLevelRequirement && getLevel() < floor.getLevelMin()) {
 			return;
 		}
-		sync(() -> player.teleport(floor.getWorld().getSpawnLocation()));
+		sync(() -> {
+			if(player == null) return; // Yes, again
+			player.teleport(floor.getWorld().getSpawnLocation());
+		});
 	}
 
 	public void sendToFloor(String floorName) {

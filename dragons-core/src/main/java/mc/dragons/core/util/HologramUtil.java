@@ -12,6 +12,7 @@ import org.bukkit.entity.Slime;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.events.PlayerEventListeners;
 import mc.dragons.core.gameobject.user.User;
 
@@ -22,7 +23,8 @@ import mc.dragons.core.gameobject.user.User;
  *
  */
 public class HologramUtil {
-	public static String KEY_CLICKABLE_SLIME = "IsClickableSlime";
+	public static final String KEY_CLICKABLE_SLIME = "IsClickableSlime";
+	private static final Bridge BRIDGE = Dragons.getInstance().getBridge();
 	
 	public static ArmorStand makeHologram(String text, Location loc) {
 		ArmorStand hologram = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
@@ -31,10 +33,11 @@ public class HologramUtil {
 		hologram.setGravity(false);
 		hologram.setVisible(false);
 		hologram.setAI(false);
-		hologram.setCollidable(false);
+		hologram.setRemoveWhenFarAway(false);
 		hologram.setInvulnerable(true);
 		hologram.setSmall(true);
 		hologram.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
+		sync(() -> hologram.setCollidable(false), 1);
 		return hologram;
 	}
 
@@ -46,12 +49,14 @@ public class HologramUtil {
 		click.setSize(2);
 		click.setGravity(false);
 		click.setAI(false);
+		BRIDGE.setEntityNoClip(click, true);
 		click.setInvulnerable(true);
-		click.setCollidable(false);
+		click.setRemoveWhenFarAway(false);
 		click.teleport(loc);
 		click.setMetadata(KEY_CLICKABLE_SLIME, new FixedMetadataValue(Dragons.getInstance(), true));
 		click.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
 		PlayerEventListeners.addRightClickHandler(click, onClick);
+		sync(() -> click.setCollidable(false), 1);
 		return hologram;
 	}
 	
@@ -61,11 +66,14 @@ public class HologramUtil {
 		click.setSize(2);
 		click.setGravity(false);
 		click.setAI(false);
+		BRIDGE.setEntityNoClip(click, true);
 		click.setInvulnerable(true);
-		click.setCollidable(false);
+//		click.setCollidable(false);
+		click.setRemoveWhenFarAway(false);
 		click.setMetadata(KEY_CLICKABLE_SLIME, new FixedMetadataValue(Dragons.getInstance(), true));
 		click.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
 		PlayerEventListeners.addRightClickHandler(click, onClick);
+		sync(() -> click.setCollidable(false), 1);
 		return click;
 	}
 	
@@ -84,6 +92,7 @@ public class HologramUtil {
 		armorStand.setCollidable(false);
 		armorStand.setInvulnerable(true);
 		armorStand.setSmall(true);
+		armorStand.setRemoveWhenFarAway(false);
 		armorStand.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
 		sync(() -> {
 			nameTagFix.teleport(entity.getLocation().add(xOffset, yOffset, zOffset));		
@@ -112,13 +121,13 @@ public class HologramUtil {
 	 * @param bind Whether the hologram should follow the provided entity, or stay stationary.
 	 * @return
 	 */
-	public static ArmorStand temporaryArmorStand(final Entity entity, String label, int durationTicks, final boolean bind) {
+	public static ArmorStand temporaryHologram(final Entity entity, String label, int durationTicks, final boolean bind) {
 		double xOffset = bind ? 0.0D : Math.random() * 0.5D;
 		double yOffset = bind ? 0.5D : Math.random() * 1.2D;
 		double zOffset = bind ? 0.0D : Math.random() * 0.5D;
 		final ArmorStand tag = makeArmorStandNameTag(entity, label, xOffset, yOffset, zOffset, bind);
 		sync(() -> {
-				if (bind) {
+			if (bind) {
 				entity.removePassenger(tag);
 			}
 			tag.remove();

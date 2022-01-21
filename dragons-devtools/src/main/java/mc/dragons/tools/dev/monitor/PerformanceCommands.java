@@ -43,13 +43,9 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 	
 	private static final String HEADER_PREFIX = ChatColor.GREEN + "";
 	
-	private static final String COL_FLOOR = HEADER_PREFIX + "Floor Name";
-	private static final String COL_ENTITIES = HEADER_PREFIX + "Entities";
-	private static final String COL_LIVING = HEADER_PREFIX + "Living";
-	private static final String COL_PLAYERS = HEADER_PREFIX + "Players";
-	private static final String COL_CHUNKS = HEADER_PREFIX + "Chunks";
-	private static final String COL_POPULATED = HEADER_PREFIX + "Populated";
-	private static final String COL_RATIO = HEADER_PREFIX + "Ratio";
+	private static final String COL_FLOOR = HEADER_PREFIX + "Floor";
+	private static final String COL_ENTITIES = HEADER_PREFIX + "Ent(Liv)(Plr)";
+	private static final String COL_CHUNKS = HEADER_PREFIX + "Chk(Pop)(Rat)";
 	
 	private static final String COL_ID = HEADER_PREFIX + "ID";
 	private static final String COL_NAME = HEADER_PREFIX + "Name";
@@ -66,8 +62,8 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		if(label.equalsIgnoreCase("worldperformance")) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + dragons.getServerName()
 					+ " @ " + StringUtil.dateFormatNow());
-			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
-			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_LIVING, COL_PLAYERS, COL_CHUNKS, COL_POPULATED, COL_RATIO);
+			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
+			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_CHUNKS);
 			String floorPrefix = ChatColor.YELLOW + "";
 			String dataPrefix = ChatColor.GRAY + "";
 			for(World w : Bukkit.getWorlds()) {
@@ -75,9 +71,9 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 						.filter(ch -> Arrays.stream(ch.getEntities()).filter(e -> e.getType() == EntityType.PLAYER).count() > 0)
 						.count();
 				tg.addRow(floorPrefix + w.getName(), 
-						dataPrefix + w.getEntities().size(), dataPrefix + w.getLivingEntities().size(), dataPrefix + w.getPlayers().size(), 
-						dataPrefix + w.getLoadedChunks().length, dataPrefix + populatedChunks, 
-						dataPrefix + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%");
+						dataPrefix + w.getEntities().size() + " (" + dataPrefix + w.getLivingEntities().size() + ") (" + dataPrefix + w.getPlayers().size() + ")", 
+						dataPrefix + w.getLoadedChunks().length + " (" + dataPrefix + populatedChunks + ") (" + 
+						dataPrefix + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%)");
 			}
 			tg.display(sender);
 		}
@@ -107,12 +103,12 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 						OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
 						sender.sendMessage(ChatColor.GREEN + "Available Processors: " + ChatColor.GRAY + osBean.getAvailableProcessors());
 						sender.sendMessage(ChatColor.GREEN + "Process Committed Virtual Memory: " + ChatColor.GRAY + (osBean.getCommittedVirtualMemorySize() / BYTES_IN_MB) + "MB");
-						sender.sendMessage(ChatColor.GREEN + "Process Free Physical Memory: " + ChatColor.GRAY + (osBean.getFreePhysicalMemorySize() / BYTES_IN_MB) + "MB");
+//						sender.sendMessage(ChatColor.GREEN + "Process Free Physical Memory: " + ChatColor.GRAY + (osBean.getFreePhysicalMemorySize() / BYTES_IN_MB) + "MB");
 						sender.sendMessage(ChatColor.GREEN + "Process CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getProcessCpuLoad()) + "%");
 						sender.sendMessage(ChatColor.GREEN + "Process CPU Time: " + ChatColor.GRAY + (osBean.getProcessCpuTime() / NS_IN_MS) + "ms");
 						sender.sendMessage(ChatColor.GREEN + "Free Swap Space: " + ChatColor.GRAY + (osBean.getFreeSwapSpaceSize() / BYTES_IN_MB) + "MB");
-						sender.sendMessage(ChatColor.GREEN + "Total Physical Memory: " + ChatColor.GRAY + (osBean.getTotalPhysicalMemorySize() / BYTES_IN_MB) + "MB");
-						sender.sendMessage(ChatColor.GREEN + "System CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemCpuLoad()) + "%");
+//						sender.sendMessage(ChatColor.GREEN + "Total Physical Memory: " + ChatColor.GRAY + (osBean.getTotalPhysicalMemorySize() / BYTES_IN_MB) + "MB");
+//						sender.sendMessage(ChatColor.GREEN + "System CPU Load: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemCpuLoad()) + "%");
 						sender.sendMessage(ChatColor.GREEN + "System Load Average: " + ChatColor.GRAY + Math.round(100 * osBean.getSystemLoadAverage()) + "%");
 						ThreadMXBean threadBean = ManagementFactory.getPlatformMXBean(ThreadMXBean.class);
 						sender.sendMessage(ChatColor.GREEN + "Thread Count: " + ChatColor.GRAY + threadBean.getThreadCount());

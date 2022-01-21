@@ -44,7 +44,7 @@ public class LagCommand extends DragonsCommandExecutor {
 		}
 	
 		if(advanced) {
-			sender.sendMessage(ChatColor.DARK_GRAY + "-------------------------------------------------------------");
+			sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------------------------------");
 			sender.sendMessage(ChatColor.GREEN + "Showing lag data for server " + Dragons.getInstance().getServerName()
 				+ " @ " + StringUtil.dateFormatNow());
 		}
@@ -158,18 +158,18 @@ public class LagCommand extends DragonsCommandExecutor {
 		
 		if(warn) {
 			UUID cid = LOGGER.newCID();
-			LOGGER.warning(cid, "Server " + Dragons.getInstance().getServerName() + " may be experiencing performance issues.");
+			LOGGER.warning(cid, "Server " + Dragons.getInstance().getServerName() + " is experiencing performance issues.");
 			LOGGER.warning(cid, "N=" + tpsRecord.size() + " - Uptime: " + Dragons.getInstance().getUptime()/1000 + "s - Last Spike: " + lastSpikeTPS + "TPS, " + lastSpikeAgo + "s ago - Memory used %: " + MathUtil.round(memoryUsedPerc) + 
 					" - Min TPS: " + minTPS + " - Recent Min: " + recentMinTPS + "TPS, " + recentMinAgo + "s ago - Avg TPS: " + avgTPS + " - Curr TPS: " + LagMeter.getRoundedTPS() + " - Chunks: " + Dragons.getInstance().getLoadedChunks().size() + " - Entities: " + Dragons.getInstance().getEntities().size());
-			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "/!\\ " + ChatColor.RED + "Server may be experiencing performance issues. ");
-			sender.sendMessage(ChatColor.RED + "     " + StringUtil.toHdFont("Correlation ID: " + cid));
+			sender.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "! " + ChatColor.RED + "Server is experiencing performance issues. Approx TPS: " + LagMeter.getRoundedTPS());
+			sender.sendMessage(ChatColor.RED + "   " + StringUtil.toHdFont("Correlation ID: " + cid));
 		}
 		else {
-			sender.sendMessage(ChatColor.GREEN + "No issues detected with recent server performance." + (advanced ? "" : " Approx TPS: " + LagMeter.getRoundedTPS()));
+			sender.sendMessage(ChatColor.GREEN + "No issues detected with recent performance. Approx TPS: " + LagMeter.getRoundedTPS());
 		}
 
 		if(advanced) {
-			sender.sendMessage(ChatColor.DARK_GRAY + "-------------------------------------------------------------");
+			sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------------------------------");
 		}
 		return true;
 	}

@@ -30,6 +30,17 @@ public class PaginationUtil {
 	 * 
 	 * @param <E>
 	 * @param results
+	 * @param pageSize
+	 * @return How many pages are in the given result set
+	 */
+	public static <E> int pageCount(List<E> results, int pageSize) {
+		return (int) Math.ceil((double) results.size() / pageSize);
+	}
+	
+	/**
+	 * 
+	 * @param <E>
+	 * @param results
 	 * @param page
 	 * @param pageSize
 	 * @return The sublist of results beginning at the given page
