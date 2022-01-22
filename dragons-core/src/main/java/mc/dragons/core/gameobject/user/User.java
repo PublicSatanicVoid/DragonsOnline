@@ -1687,7 +1687,11 @@ public class User extends GameObject {
 
 	public String getListName() {
 		return (getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
-				StringUtil.parseList(userHookRegistry.getHooks().stream().map(h -> h.getListNameSuffix(this)).collect(Collectors.toList()), " ")).trim();
+				StringUtil.parseList(userHookRegistry.getHooks().stream()
+						.map(h -> h.getListNameSuffix(this))
+						.filter(name -> !name.isEmpty())
+						.collect(Collectors.toList()), " "))
+				.trim();
 	}
 	
 	public void updateListName() {

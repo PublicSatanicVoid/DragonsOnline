@@ -3,6 +3,8 @@ package mc.dragons.tools.content.command.builder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -48,8 +50,11 @@ public class HologramCommand extends DragonsCommandExecutor {
 		for(Hologram hologram : results) {
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " #" + hologram.getId() + 
 					": " + StringUtil.locToString(hologram.getLocation()) + " [" + hologram.getLocation().getWorld().getName() + "] " 
-					+ hologram.getText()[0], 
-					"/hologram " + hologram.getId() + " info", hologram.getText()));
+					+ StringUtil.colorize(hologram.getText()[0]), 
+					"/hologram " + hologram.getId() + " info", 
+					Stream.of(hologram.getText()).map(s -> StringUtil.colorize(s))
+						.collect(Collectors.toList())
+						.toArray(new String[] {})));
 		}
 	}
 	
@@ -83,7 +88,8 @@ public class HologramCommand extends DragonsCommandExecutor {
 		if(hologram == null) return;
 		String[] text = hologram.getText();
 		sender.sendMessage(ChatColor.GREEN + "Info for hologram #" + hologram.getId());
-		sender.sendMessage(ChatColor.GRAY + "Location: " + StringUtil.locToString(hologram.getLocation()));
+		sender.sendMessage(ChatColor.GRAY + "Location: " + StringUtil.locToString(hologram.getLocation())
+				+ " [" + hologram.getLocation().getWorld().getName() + "]");
 		sender.sendMessage(ChatColor.GRAY + "Click Action: " + hologram.describeActions());
 		sender.sendMessage(ChatColor.GRAY + "Text:");
 		for(int i = 0; i < text.length; i++) {
