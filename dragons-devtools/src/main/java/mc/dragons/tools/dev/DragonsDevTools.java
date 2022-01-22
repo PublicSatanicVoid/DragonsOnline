@@ -75,6 +75,11 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		
 		CommandExecutor performanceCommands = new PerformanceCommands();
 		getCommand("worldperformance").setExecutor(performanceCommands);
+		getCommand("worldmanager").setExecutor(performanceCommands);
+		getCommand("unloadchunks").setExecutor(performanceCommands);
+		getCommand("reloadchunks").setExecutor(performanceCommands);
+		getCommand("cleardrops").setExecutor(performanceCommands);
+		getCommand("clearmobs").setExecutor(performanceCommands);
 		getCommand("serverperformance").setExecutor(performanceCommands);
 		getCommand("getprocessid").setExecutor(performanceCommands);
 		getCommand("requestgc").setExecutor(performanceCommands);

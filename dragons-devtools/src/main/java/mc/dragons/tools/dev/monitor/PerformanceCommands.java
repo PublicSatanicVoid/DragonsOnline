@@ -12,10 +12,16 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.mongodb.client.MongoCollection;
@@ -23,7 +29,11 @@ import com.mongodb.client.result.DeleteResult;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.ThreadMXBean;
 
+import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
+import mc.dragons.core.gameobject.floor.FloorLoader;
+import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
@@ -44,14 +54,18 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 	private static final String HEADER_PREFIX = ChatColor.GREEN + "";
 	
 	private static final String COL_FLOOR = HEADER_PREFIX + "Floor";
-	private static final String COL_ENTITIES = HEADER_PREFIX + "Ent(Liv)(Plr)";
-	private static final String COL_CHUNKS = HEADER_PREFIX + "Chk(Pop)(Rat)";
+	private static final String COL_ENTITIES = HEADER_PREFIX + "Ent";
+	private static final String COL_LIVING = HEADER_PREFIX + "Liv";
+	private static final String COL_PLAYERS = HEADER_PREFIX + "Plr";
+	private static final String COL_CHUNKS = HEADER_PREFIX + "Chk";
+	private static final String COL_POPULATED = HEADER_PREFIX + "Pop";
+	private static final String COL_RATIO = HEADER_PREFIX + "Rat";
 	
 	private static final String COL_ID = HEADER_PREFIX + "ID";
 	private static final String COL_NAME = HEADER_PREFIX + "Name";
 	private static final String COL_STATE = HEADER_PREFIX + "State";
-	private static final String COL_PRIORITY = HEADER_PREFIX + "Priority";
-	private static final String COL_DAEMON = HEADER_PREFIX + "Daemon";
+	private static final String COL_PRIORITY = HEADER_PREFIX + "Prty";
+	private static final String COL_DAEMON = HEADER_PREFIX + "Daem";
 	
 	private List<Long> tickTimings = new ArrayList<>();
 	
@@ -62,20 +76,104 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 		if(label.equalsIgnoreCase("worldperformance")) {
 			sender.sendMessage(ChatColor.DARK_GREEN + "World performance statistics for " + dragons.getServerName()
 					+ " @ " + StringUtil.dateFormatNow());
-			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
-			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_CHUNKS);
+			TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
+			tg.addRow(COL_FLOOR, COL_ENTITIES, COL_LIVING, COL_PLAYERS, COL_CHUNKS, COL_POPULATED, COL_RATIO);
 			String floorPrefix = ChatColor.YELLOW + "";
 			String dataPrefix = ChatColor.GRAY + "";
 			for(World w : Bukkit.getWorlds()) {
 				long populatedChunks = Arrays.stream(w.getLoadedChunks())
 						.filter(ch -> Arrays.stream(ch.getEntities()).filter(e -> e.getType() == EntityType.PLAYER).count() > 0)
 						.count();
-				tg.addRow(floorPrefix + w.getName(), 
-						dataPrefix + w.getEntities().size() + " (" + dataPrefix + w.getLivingEntities().size() + ") (" + dataPrefix + w.getPlayers().size() + ")", 
-						dataPrefix + w.getLoadedChunks().length + " (" + dataPrefix + populatedChunks + ") (" + 
-						dataPrefix + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%)");
+				tg.addRowEx("/worldmanager " + w.getName(), "Click to manage performance of " + w.getName(), floorPrefix + w.getName(), 
+						dataPrefix + w.getEntities().size(), dataPrefix + w.getLivingEntities().size(), dataPrefix + w.getPlayers().size(), 
+						dataPrefix + w.getLoadedChunks().length, dataPrefix  + populatedChunks,
+						dataPrefix + MathUtil.round(100 * (double) populatedChunks / w.getLoadedChunks().length) + "%");
 			}
 			tg.display(sender);
+		}
+		
+		else if(label.equalsIgnoreCase("worldmanager")) {
+			World w = args.length == 0 ? player(sender).getWorld() : Bukkit.getWorld(args[0]);
+			if(w == null) {
+				sender.sendMessage(ChatColor.RED + "No world named '" + args[0] + "'");
+				return true;
+			}
+			sender.sendMessage(ChatColor.GREEN + "Manage world " + w.getName());
+			sender.spigot().sendMessage(
+					StringUtil.clickableHoverableText(ChatColor.GRAY + " [Manage Floor]", "/floor " + FloorLoader.fromWorld(w).getFloorName(), "Click to manage associated floor"),
+					StringUtil.clickableHoverableText(ChatColor.GRAY + " [Unload Chunks]", "/unloadchunks " + w.getName(), "Click to unload all chunks from this world"),
+					StringUtil.clickableHoverableText(ChatColor.GRAY + " [Reload Chunks]", "/reloadchunks " + w.getName(), "Click to reload all chunks from this world"),
+					StringUtil.clickableHoverableText(ChatColor.GRAY + " [Clear Drops]", "/cleardrops " + w.getName(), "Click to remove all dropped items from this world"),
+					StringUtil.clickableHoverableText(ChatColor.GRAY + " [Clear Mobs]", "/clearmobs " + w.getName(), "Click to remove all non-persistent mobs from this world")
+			);
+		}
+		
+		else if(label.equalsIgnoreCase("unloadchunks")) {
+			World w = args.length == 0 ? player(sender).getWorld() : Bukkit.getWorld(args[0]);
+			if(w == null) {
+				sender.sendMessage(ChatColor.RED + "No world named '" + args[0] + "'");
+				return true;
+			}
+			int success = 0, total = 0;
+			for (Chunk c : w.getLoadedChunks()) {
+				if(c.unload(true)) success++;
+				total++;
+			}
+			sender.sendMessage(ChatColor.GREEN + "" + success + "/" + total + " chunks unloaded in " + w.getName());
+		}		
+		
+		else if(label.equalsIgnoreCase("reloadchunks")) {
+			World w = args.length == 0 ? player(sender).getWorld() : Bukkit.getWorld(args[0]);
+			if(w == null) {
+				sender.sendMessage(ChatColor.RED + "No world named '" + args[0] + "'");
+				return true;
+			}
+			int success = 0, total = 0;
+			for (Chunk c : w.getLoadedChunks()) {
+				if(c.unload(true)) success++;
+				c.load(false);
+				total++;
+			}
+			sender.sendMessage(ChatColor.GREEN + "" + success + "/" + total + " chunks reloaded in " + w.getName());
+		}
+		
+		else if(label.equalsIgnoreCase("cleardrops")) {
+			World w = args.length == 0 ? player(sender).getWorld() : Bukkit.getWorld(args[0]);
+			if(w == null) {
+				sender.sendMessage(ChatColor.RED + "No world named '" + args[0] + "'");
+				return true;
+			}
+			int total = 0;
+			for (Entity e : w.getEntities()) {
+				if(e.getType() == EntityType.DROPPED_ITEM) {
+					e.remove();
+					total++;
+				}
+			}
+			sender.sendMessage(ChatColor.GREEN + "" + total + " drops cleared in " + w.getName());			
+		}
+		
+		else if(label.equalsIgnoreCase("clearmobs")) {
+			World w = args.length == 0 ? player(sender).getWorld() : Bukkit.getWorld(args[0]);
+			if(w == null) {
+				sender.sendMessage(ChatColor.RED + "No world named '" + args[0] + "'");
+				return true;
+			}
+			int total = 0;
+			for (Entity e : w.getEntities()) {
+				if(e instanceof Player || e instanceof Item || e instanceof ItemFrame) continue;
+				if(e.getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.SHORT)) continue;
+				NPC npc = NPCLoader.fromBukkit(e);
+				if(npc == null) {
+					e.remove();
+					total++;
+				}
+				else if(!npc.getNPCType().isPersistent()) {
+					npc.remove();
+					total++;
+				}
+			}
+			sender.sendMessage(ChatColor.GREEN + "" + total + " mobs cleared in " + w.getName());			
 		}
 		
 		else if(label.equalsIgnoreCase("getsystemproperties")) {
@@ -221,12 +319,12 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			// adapted from https://stackoverflow.com/a/46979843/8463670
 			Thread.getAllStackTraces().keySet().stream().collect(Collectors.groupingBy(Thread::getThreadGroup)).forEach((group, threads) -> {
 				sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "GROUP " + group.getName() + " - " + group.activeCount() + " thr, " + group.activeGroupCount() + " sub" 
-						+ ", par=" + (group.getParent() == null ? "none" : group.getParent().getName()) + ", maxpriority=" + group.getMaxPriority() + ", daemon=" + group.isDaemon());
+						+ ", par=" + (group.getParent() == null ? "none" : group.getParent().getName()) + ", maxpriority=" + group.getMaxPriority());
 				TableGenerator tg = new TableGenerator(Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT, Alignment.LEFT);
 				tg.addRow(COL_ID, COL_NAME, COL_STATE, COL_PRIORITY, COL_DAEMON);
 				for(Thread thread : threads) {
 					tg.addRowEx("/getstacktrace " + thread.getId(), "Click to view stack trace for thread #" + thread.getId() + " " + thread.getName() + " (" + thread.getState() + ")", 
-							"" + thread.getId(), StringUtil.truncateWithEllipsis(thread.getName(), 30), thread.getState().toString(), "" + thread.getPriority(), "" + thread.isDaemon());
+							"" + thread.getId(), StringUtil.truncateWithEllipsis(thread.getName(), 20), thread.getState().toString(), "" + thread.getPriority(), "" + thread.isDaemon());
 				}
 				tg.display(sender);
 			});

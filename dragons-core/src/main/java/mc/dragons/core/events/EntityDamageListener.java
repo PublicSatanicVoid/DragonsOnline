@@ -39,6 +39,9 @@ import mc.dragons.core.util.ProgressBarUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class EntityDamageListener implements Listener {
+	private static final double TARGET_LEVEL_DISCOUNTING = 0.4;
+	private static final double LEVEL_DISCREPANCY_FACTOR = 0.15;
+	
 	private Dragons dragons;
 	private DragonsLogger LOGGER;
 
@@ -233,8 +236,8 @@ public class EntityDamageListener implements Listener {
 			 * Adjust damage amount based on the level difference. A high level entity will damage a
 			 * low level player more than it would damage a high level player.
 			 */
-			double weightedLevelDiscrepancy = Math.max(0.0D, npcDamager.getLevel() - 0.3D * userTarget.getLevel());
-			damage += 0.25D * weightedLevelDiscrepancy;
+			double weightedLevelDiscrepancy = Math.max(0.0D, npcDamager.getLevel() - TARGET_LEVEL_DISCOUNTING * userTarget.getLevel());
+			damage += LEVEL_DISCREPANCY_FACTOR * weightedLevelDiscrepancy;
 		} else {
 			
 			/*

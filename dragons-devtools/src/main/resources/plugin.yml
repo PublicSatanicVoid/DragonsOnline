@@ -66,6 +66,16 @@ commands:
     description: (ADMIN) Scan game objects and caches for inconsistencies and attempt to resolve them if the -resolve flag is specified.
   worldperformance:
     description: (ADMIN) View performance statistics broken down by world.
+  worldmanager:
+    description: (ADMIN) Manage settings for a given world.
+  unloadchunks:
+    description: (ADMIN) Unload all chunks that can be unloaded for a given world.
+  reloadchunks:
+    description: (ADMIN) Unload and reload all chunks that can be unloaded for a given world.
+  cleardrops:
+    description: (ADMIN) Clear all dropped items in a given world.
+  clearmobs:
+    descripton: (ADMIN) Clear all non-persistent mobs in a given world.
   helditemdata:
     aliases: whatamiholding
     description: (ADMIN) View data about the item you are holding.
