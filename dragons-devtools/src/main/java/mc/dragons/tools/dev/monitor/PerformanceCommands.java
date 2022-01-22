@@ -114,7 +114,8 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "No world named '" + args[0] + "'");
 				return true;
 			}
-			int success = 0, total = 0;
+			int success = 0;
+			int total = 0;
 			for (Chunk c : w.getLoadedChunks()) {
 				if(c.unload(true)) success++;
 				total++;

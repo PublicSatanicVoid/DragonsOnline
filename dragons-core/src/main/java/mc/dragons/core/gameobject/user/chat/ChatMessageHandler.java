@@ -81,10 +81,9 @@ public class ChatMessageHandler extends MessageHandler {
 		registry.register(messageData);
 		for (User test: UserLoader.allUsers()) {
 			LOGGER.verbose("-Checking if " + user.getName() + " can receive");
-			if(test.getPlayer() == null) continue;
-			if(test.getBlockedUsers().contains(user)) continue;
-			// For now, we allow X's blocked users to see X's PUBLIC messages, but not the other way around
-			if (!channel.canHear(test, user) && !test.hasChatSpy()) continue;
+			if(test.getPlayer() == null
+					|| test.getBlockedUsers().contains(user)
+					|| !channel.canHear(test, user) && !test.hasChatSpy()) continue;
 			LOGGER.verbose("  -Yes!");
 			test.getSeenMessages().add(messageData);
 			if(isReply) {

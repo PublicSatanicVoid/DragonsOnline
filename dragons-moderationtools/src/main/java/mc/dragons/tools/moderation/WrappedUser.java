@@ -12,11 +12,14 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.mongo.pagination.PaginatedResult;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
 import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.punishment.PunishmentData;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
@@ -35,8 +38,21 @@ import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
  *
  */
 public class WrappedUser {
+	private static Dragons DRAGONS = Dragons.getInstance();
+	private static DragonsModerationTools MODTOOLS = JavaPlugin.getPlugin(DragonsModerationTools.class);
+	private static DragonsLogger LOGGER = MODTOOLS.getLogger();
 	private static Map<User, WrappedUser> wrappers = Collections.synchronizedMap(new HashMap<>());
-	private static ReportLoader reportLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+	private static ReportLoader reportLoader = DRAGONS.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+	private static PunishMessageHandler handler = MODTOOLS.getPunishMessageHandler();
+	
+	public static class AppliedPunishmentData {
+		public PunishmentType type;
+		public int id;
+		public AppliedPunishmentData(PunishmentType type, int id) {
+			this.type = type;
+			this.id = id;
+		}
+	}
 	
 	/**
 	 * The time in seconds to remove one standing level from a player.
@@ -185,6 +201,50 @@ public class WrappedUser {
 			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + "- " + p.getReason());
 			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "  " + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"));
 		}
+	}
+	
+	/**
+	 * Automatically issue the given punishment type, determining parameters,
+	 * updating standing level and punishment record, and forwarding to the
+	 * correct server as required.
+	 * 
+	 * @param code
+	 * @param extraInfo
+	 * @param issuer
+	 * @return
+	 */
+	public AppliedPunishmentData autoPunish(PunishmentCode code, String extraInfo, User issuer) {
+		int standingLevel = getStandingLevel(code.getType()) + code.getStandingLevel();
+		long duration = WrappedUser.getDurationByStandingLevel(standingLevel);
+		PunishmentType type = code.getType().getPunishmentType();
+		if(duration == 0) {
+			type = PunishmentType.WARNING;
+		}
+		return new AppliedPunishmentData(type,
+				autoPunish(type, code.getType(), code, extraInfo, issuer, duration));
+	}
+	
+	/**
+	 * Automatically issue the given punishment type, updating standing level and
+	 * punishment record, and forwarding to the correct server as required.
+	 * 
+	 * @param type
+	 * @param slType
+	 * @param code
+	 * @param extraInfo
+	 * @param issuer
+	 * @param duration
+	 * @return The zero-based punishment index
+	 */
+	public int autoPunish(PunishmentType type, StandingLevelType slType, PunishmentCode code, String extraInfo, User issuer, long duration) {
+		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
+		int id = punish(type, code, code.getStandingLevel(), extraInfo, issuer, duration);
+		raiseStandingLevel(slType, code.getStandingLevel()); // Whichever type of punishment is the kind we should be raising the SL of
+		if(getUser().getServerName() != null && !DRAGONS.getServerName().equals(getUser().getServerName())) {
+			LOGGER.trace("Forwarding punishment on " + getUser().getName() + " to " + getUser().getServerName());
+			handler.forwardPunishment(getUser(), id, type, reason, duration);
+		}
+		return id;
 	}
 	
 	/**

@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
@@ -36,11 +35,116 @@ public class HologramCommand extends DragonsCommandExecutor {
 		return hologram;
 	}
 	
+	private void listHolograms(CommandSender sender, String[] args) {
+		Collection<Hologram> results = loader.getAllHolograms();
+		Location loc = player(sender).getLocation();
+		if(args.length == 2) {
+			Integer radius = parseInt(sender, args[1]);
+			if(radius == null) return;
+			int radius2 = radius * radius;
+			results = results.stream().filter(h -> h.getLocation().distanceSquared(loc) <= radius2).toList();
+		}
+		sender.sendMessage(ChatColor.GREEN + "" + results.size() + " Results found");
+		for(Hologram hologram : results) {
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " #" + hologram.getId() + 
+					": " + StringUtil.locToString(hologram.getLocation()) + " [" + hologram.getLocation().getWorld().getName() + "] " 
+					+ hologram.getText()[0], 
+					"/hologram " + hologram.getId() + " info", hologram.getText()));
+		}
+	}
+	
+	private void createHologram(CommandSender sender, String[] args) {
+		int cmdIndex = StringUtil.getFlagIndex(args, "-cmd", 0);
+		int ccmdIndex = StringUtil.getFlagIndex(args, "-ccmd", 0);
+		if(ccmdIndex != -1 && !hasPermission(sender, SystemProfileFlag.CMD)) {
+			sender.sendMessage(ChatColor.RED + "Setting -ccmd (console command) flag requires profile flag CMD");
+			return;
+		}
+		int endTextIndex = Math.max(cmdIndex, ccmdIndex);
+		if(endTextIndex == -1) endTextIndex = args.length;
+		String text = StringUtil.concatArgs(args, 1, Math.max(cmdIndex, ccmdIndex));
+		Hologram h = loader.new Hologram(player(sender).getLocation().add(0, HologramLoader.Y_OFFSET, 0), new String[] { text });
+		sender.sendMessage(ChatColor.GREEN + "Created new hologram #" + h.getId() + " at your location");
+		if(cmdIndex != -1) {
+			String cmd = StringUtil.concatArgs(args, cmdIndex + 1);
+			h.setCmdAction(cmd);
+			sender.sendMessage(ChatColor.GRAY + "Player Cmd: " + cmd);
+		}
+		else if(ccmdIndex != -1) {
+			String cmd = StringUtil.concatArgs(args, ccmdIndex + 1);
+			h.setCcmdAction(cmd);
+			sender.sendMessage(ChatColor.GRAY + "Console Cmd: " + cmd);
+		}
+		h.spawn();		
+	}
+	
+	private void hologramInfo(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		String[] text = hologram.getText();
+		sender.sendMessage(ChatColor.GREEN + "Info for hologram #" + hologram.getId());
+		sender.sendMessage(ChatColor.GRAY + "Location: " + StringUtil.locToString(hologram.getLocation()));
+		sender.sendMessage(ChatColor.GRAY + "Click Action: " + hologram.describeActions());
+		sender.sendMessage(ChatColor.GRAY + "Text:");
+		for(int i = 0; i < text.length; i++) {
+			sender.sendMessage(ChatColor.DARK_GRAY + "#" + i + ": " + ChatColor.GRAY + StringUtil.colorize(text[i]));
+		}
+	}
+	
+	private void moveHologramHere(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		hologram.setLocation(player(sender).getLocation().add(0, HologramLoader.Y_OFFSET, 0));
+		sender.sendMessage(ChatColor.GREEN + "Moved hologram #" + hologram.getId() + " to your location");
+	}
+	
+	private void addHologramLine(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		List<String> lines = new ArrayList<>(List.of(hologram.getText()));
+		lines.add(StringUtil.concatArgs(args, 2));
+		hologram.setText(lines.toArray(new String[] {}));
+		sender.sendMessage(ChatColor.GREEN + "Added line to hologram #" + hologram.getId());
+	}
+	
+	private void insertHologramLine(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		Integer index = parseInt(sender, args[2]);
+		if(index == null) return;
+		List<String> lines = new ArrayList<>(List.of(hologram.getText()));
+		lines.add(index, StringUtil.concatArgs(args, 3));
+		hologram.setText(lines.toArray(new String[] {}));
+		sender.sendMessage(ChatColor.GREEN + "Inserted line to hologram #" + hologram.getId());
+	}
+	
+	private void removeHologramLine(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		List<String> lines = new ArrayList<>(List.of(hologram.getText()));
+		Integer lineno = parseInt(sender, args[2]);
+		if(lineno == null || lineno < 0 || lineno >= lines.size()) return;
+		lines.remove((int) lineno);
+		hologram.setText(lines.toArray(new String[] {}));
+		sender.sendMessage(ChatColor.GREEN + "Removed line " + lineno + " from hologram #" + hologram.getId());
+	}
+	
+	private void runHologramActions(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		hologram.runActions(user(sender));
+	}
+	
+	private void deleteHologram(CommandSender sender, String[] args) {
+		Hologram hologram = getHologramById(sender, args[0]);
+		if(hologram == null) return;
+		loader.deleteHologram(hologram);
+		sender.sendMessage(ChatColor.GREEN + "Removed hologram #" + hologram.getId());
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, PermissionLevel.GM)) return true; 
-		
-		Player player = player(sender);
+		if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.GM)) return true;
 		
 		if(args.length == 0) {
 			sender.sendMessage(ChatColor.GREEN + "Standalone Hologram Manager");
@@ -50,6 +154,7 @@ public class HologramCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GRAY + "/holo <#> info");
 			sender.sendMessage(ChatColor.GRAY + "/holo <#> movehere");
 			sender.sendMessage(ChatColor.GRAY + "/holo <#> addline <text>");
+			sender.sendMessage(ChatColor.GRAY + "/holo <#> insline <before#> <text>");
 			sender.sendMessage(ChatColor.GRAY + "/holo <#> remline <#>");
 			sender.sendMessage(ChatColor.GRAY + "/holo <#> runactions");
 			sender.sendMessage(ChatColor.GRAY + "/holo <#> delete");
@@ -60,45 +165,11 @@ public class HologramCommand extends DragonsCommandExecutor {
 		}
 		
 		else if(args[0].equalsIgnoreCase("list")) {
-			Collection<Hologram> results = loader.getAllHolograms();
-			Location loc = player.getLocation();
-			if(args.length == 2) {
-				Integer radius = parseInt(sender, args[1]);
-				if(radius == null) return true;
-				int radius2 = radius * radius;
-				results = results.stream().filter(h -> h.getLocation().distanceSquared(loc) <= radius2).toList();
-			}
-			sender.sendMessage(ChatColor.GREEN + "" + results.size() + " Results found");
-			for(Hologram hologram : results) {
-				sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " #" + hologram.getId() + 
-						": " + StringUtil.locToString(hologram.getLocation()) + " " + hologram.getText()[0], 
-						"/hologram " + hologram.getId() + " info", hologram.getText()));
-			}
+			listHolograms(sender, args);
 		}
 		
 		else if(args[0].equalsIgnoreCase("create")) {
-			int cmdIndex = StringUtil.getFlagIndex(args, "-cmd", 0);
-			int ccmdIndex = StringUtil.getFlagIndex(args, "-ccmd", 0);
-			if(ccmdIndex != -1 && !hasPermission(sender, SystemProfileFlag.CMD)) {
-				sender.sendMessage(ChatColor.RED + "Setting -ccmd (console command) flag requires profile flag CMD");
-				return true;
-			}
-			int endTextIndex = Math.max(cmdIndex, ccmdIndex);
-			if(endTextIndex == -1) endTextIndex = args.length;
-			String text = StringUtil.concatArgs(args, 1, Math.max(cmdIndex, ccmdIndex));
-			Hologram h = loader.new Hologram(player.getLocation().add(0, HologramLoader.Y_OFFSET, 0), new String[] { text });
-			sender.sendMessage(ChatColor.GREEN + "Created new hologram #" + h.getId() + " at your location");
-			if(cmdIndex != -1) {
-				String cmd = StringUtil.concatArgs(args, cmdIndex + 1);
-				h.setCmdAction(cmd);
-				sender.sendMessage(ChatColor.GRAY + "Player Cmd: " + cmd);
-			}
-			else if(ccmdIndex != -1) {
-				String cmd = StringUtil.concatArgs(args, ccmdIndex + 1);
-				h.setCcmdAction(cmd);
-				sender.sendMessage(ChatColor.GRAY + "Console Cmd: " + cmd);
-			}
-			h.spawn();
+			createHologram(sender, args);
 		}
 		
 		else if(args[0].equalsIgnoreCase("reload")) {
@@ -112,55 +183,31 @@ public class HologramCommand extends DragonsCommandExecutor {
 		}
 		
 		else if(args[1].equalsIgnoreCase("info")) {
-			Hologram hologram = getHologramById(sender, args[0]);
-			if(hologram == null) return true;
-			sender.sendMessage(ChatColor.GREEN + "Info for hologram #" + hologram.getId());
-			sender.sendMessage(ChatColor.GRAY + "Location: " + StringUtil.locToString(hologram.getLocation()));
-			sender.sendMessage(ChatColor.GRAY + "Click Action: " + hologram._describeActions());
-			sender.sendMessage(ChatColor.GRAY + "Text:");
-			for(String line : hologram.getText()) {
-				sender.sendMessage(ChatColor.DARK_GRAY + "- " + ChatColor.GRAY + StringUtil.colorize(line));
-			}
+			hologramInfo(sender, args);
 		}
 		
 		else if(args[1].equalsIgnoreCase("movehere")) {
-			Hologram hologram = getHologramById(sender, args[0]);
-			if(hologram == null) return true;
-			hologram.setLocation(player.getLocation().add(0, HologramLoader.Y_OFFSET, 0));
-			sender.sendMessage(ChatColor.GREEN + "Moved hologram #" + hologram.getId() + " to your location");
+			moveHologramHere(sender, args);
 		}
 		
 		else if(args[1].equalsIgnoreCase("addline")) {
-			Hologram hologram = getHologramById(sender, args[0]);
-			if(hologram == null) return true;
-			List<String> lines = new ArrayList<>(List.of(hologram.getText()));
-			lines.add(StringUtil.concatArgs(args, 2));
-			hologram.setText(lines.toArray(new String[] {}));
-			sender.sendMessage(ChatColor.GREEN + "Added line to hologram #" + hologram.getId());
+			addHologramLine(sender, args);
+		}
+		
+		else if(args[1].equalsIgnoreCase("insline")) {
+			insertHologramLine(sender, args);
 		}
 		
 		else if(args[1].equalsIgnoreCase("remline")) {
-			Hologram hologram = getHologramById(sender, args[0]);
-			if(hologram == null) return true;
-			List<String> lines = new ArrayList<>(List.of(hologram.getText()));
-			Integer lineno = parseInt(sender, args[2]);
-			if(lineno == null || lineno < 0 || lineno >= lines.size()) return true;
-			lines.remove((int) lineno);
-			hologram.setText(lines.toArray(new String[] {}));
-			sender.sendMessage(ChatColor.GREEN + "Removed line " + lineno + " from hologram #" + hologram.getId());
+			removeHologramLine(sender, args);
 		}
 		
 		else if(args[1].equalsIgnoreCase("runactions")) {
-			Hologram hologram = getHologramById(sender, args[0]);
-			if(hologram == null) return true;
-			hologram.runActions(user(sender));
+			runHologramActions(sender, args);
 		}
 		
 		else if(args[1].equalsIgnoreCase("delete")) {
-			Hologram hologram = getHologramById(sender, args[0]);
-			if(hologram == null) return true;
-			loader.deleteHologram(hologram);
-			sender.sendMessage(ChatColor.GREEN + "Removed hologram #" + hologram.getId());
+			deleteHologram(sender, args);
 		}
 		
 		return true;

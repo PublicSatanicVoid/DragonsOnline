@@ -24,7 +24,7 @@ public class InternalMessageHandler extends MessageHandler {
 		callbacks.put(uuid, callback);
 		send(new Document("action", "checkUserPing").append("uuid", uuid.toString()), server);
 		BukkitUtil.sync(() -> {
-			if(callbacks.containsKey(uuid) && callbacks.get(uuid) == callback) {
+			if(callbacks.containsKey(uuid) && callbacks.get(uuid).equals(callback)) {
 				callback.accept(Optional.empty());
 			}
 		}, 20 * 3);

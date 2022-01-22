@@ -19,19 +19,21 @@ import mc.dragons.anticheat.util.ACUtil;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.MathUtil;
+import mc.dragons.core.util.StringUtil;
 
 public class NoClip extends Check {
-	public NoClip(DragonsAntiCheat plugin) {
-		super(plugin);
-	}
-
 	private final double VL_THRESHOLD = 10;
 	private final double VL_FACTOR = 0.99;
 	private final double VL_RUBBERBAND = 5;
 	private final double VOLUME_THRESHOLD = 0.05;
-	
 	private final Set<Material> EXCLUDED_TYPES = Arrays.stream(Material.values())
-			.filter(material -> material.toString().contains("STAIRS")).collect(Collectors.toSet());
+			.filter(material -> StringUtil.equalsAnyIgnoreCase(material.toString(), "DOOR", "STAIRS"))
+			.collect(Collectors.toSet());
+	
+	public NoClip(DragonsAntiCheat plugin) {
+		super(plugin);
+	}
+	
 	
 	@Override
 	public String getName() {

@@ -45,12 +45,15 @@ public class FriendCommand extends DragonsCommandExecutor {
 		if(target == null) return;
 		sender.sendMessage("=== friend data for " + target.getName() + " ===");
 		for(User friend : FriendUtil.getFriends(target)) {
+			if(friend == null) continue;
 			sender.sendMessage("Friend: " + friend.getName() + " - " + friend.getServerName());
 		}
 		for(User out : FriendUtil.getOutgoing(target)) {
+			if(out == null) continue;
 			sender.sendMessage("Out: " + out.getName() + " - " + out.getServerName());
 		}
 		for(User in : FriendUtil.getIncoming(target)) {
+			if(in == null) continue;
 			sender.sendMessage("In: " + in.getName() + " - " + in.getServerName());
 		}
 	}
@@ -66,6 +69,7 @@ public class FriendCommand extends DragonsCommandExecutor {
 		List<User> result = PaginationUtil.paginateList(all, page, PAGE_SIZE);
 		sender.sendMessage(ChatColor.DARK_PURPLE + "You have " + all.size() + " friends. Showing page " + page + " of " + (int) Math.ceil((double) all.size() / PAGE_SIZE)); 
 		for(User friend : result) {
+			if(friend == null) continue;
 			friend.safeResyncData(); // make sure we have up-to-date information about location
 			String status = friend.getServerName() == null ? ChatColor.DARK_GRAY + "OFFLINE" : ChatColor.GRAY + "ONLINE: " + friend.getServerName();
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.LIGHT_PURPLE + friend.getName() + ChatColor.GRAY + " - " + status, "/friend remove " + friend.getName(), 

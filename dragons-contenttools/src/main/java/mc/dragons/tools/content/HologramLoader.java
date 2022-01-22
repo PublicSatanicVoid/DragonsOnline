@@ -77,7 +77,7 @@ public class HologramLoader extends AbstractLightweightLoader<Hologram> {
 			save();
 		}
 		
-		public String _describeActions() {
+		public String describeActions() {
 			String action = data.getString("action");
 			if(action.equals("none")) {
 				return "None";

@@ -11,13 +11,13 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.util.MathUtil;
 
 public class WrongMove extends Check {
-	public WrongMove(DragonsAntiCheat plugin) {
-		super(plugin);
-	}
-	
 //	private final double VL_THRESHOLD = 10;
 	private final double VL_FACTOR = 0.99;
 //	private final double VL_RUBBERBAND = 5;
+	
+	public WrongMove(DragonsAntiCheat plugin) {
+		super(plugin);
+	}
 
 	@Override
 	public String getName() {

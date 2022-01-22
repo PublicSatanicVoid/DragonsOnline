@@ -86,7 +86,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("deletereport").setExecutor(reportAdminCommands);
 		getCommand("bulkdeletereports").setExecutor(reportAdminCommands);
 		
-		punishCommand = new PunishCommand(this);
+		punishCommand = new PunishCommand();
 		getCommand("punish").setExecutor(punishCommand);
 		getCommand("punishcodes").setExecutor(new PunishCodesCommand());
 		getCommand("setstandinglevel").setExecutor(new StandingLevelCommand());

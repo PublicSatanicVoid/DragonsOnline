@@ -3,7 +3,6 @@ package mc.dragons.tools.moderation.punishment.command;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
@@ -24,15 +23,28 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		handler = plugin.getPunishMessageHandler();
 	}
 
-	// Complicated logic for bans and mutes
-	private void manual(CommandSender sender, String[] args, PunishmentType type) {
-		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return;
-		
-		String cmd = type == PunishmentType.BAN ? "ban" : "mute";
-		String action = type == PunishmentType.BAN ? "Banned" : "Muted";
-		StandingLevelType slType = type == PunishmentType.BAN ? StandingLevelType.BAN : StandingLevelType.MUTE;
+	private void safeKick(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, PermissionLevel.HELPER)) return;
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.RED + "/safekick <player> [reason]");
+			sender.sendMessage(ChatColor.GRAY + "Punishment record is NOT affected by this command");
+			return;
+		}
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return;
+		String reason = "";
+		if(args.length > 1) {
+			reason = "Reason: " + StringUtil.concatArgs(args, 1) + "\n";
+		}
+		reason = ChatColor.YELLOW + "You were kicked!\n\n" + reason + "\nThis is NOT a punishment related kick.";
+		handler.forwardSafeKick(target, reason);
+		sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ".");
+	}
+	
+	private void kick(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, SystemProfileFlag.HELPER)) return;
 		if(args.length < 2) {
-			sender.sendMessage(ChatColor.RED + "/" + cmd + " <player> <code> [extra info] [-d <#y#w#d#h#m#s|permanent>]");
+			sender.sendMessage(ChatColor.RED + "/kick <player> <code> [extra info]");
 			return;
 		}
 		
@@ -41,10 +53,67 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		
 		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
 		if(code == null) return;
+		
+		String extraInfo = StringUtil.concatArgs(args, 2);
+		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
+		
+		WrappedUser wtarget = WrappedUser.of(target);
+		int id = wtarget.punish(PunishmentType.KICK, code, code.getStandingLevel(), extraInfo, user(sender));
+		wtarget.raiseStandingLevel(code.getType(), code.getStandingLevel());
+		if(wtarget.getUser().getServerName() != null && !dragons.getServerName().equals(wtarget.getUser().getServerName())) {
+			LOGGER.trace("Forwarding punishment on " + wtarget.getUser().getName() + " to " + wtarget.getUser().getServerName());
+			handler.forwardPunishment(wtarget.getUser(), id,  PunishmentType.KICK, reason, -1L);
+		}
+		
+		sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ": " + code.getName());
+	}
+	
+	private void warn(CommandSender sender, String[] args) {
+		if(!requirePermission(sender, SystemProfileFlag.HELPER)) return;
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "/warn <player> <code> [extra info]");
+			return;
+		}
+		
+		User target = lookupUser(sender, args[0]);
+		if(target == null) return;
+		
+		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
+		if(code == null) return;
+		
+		String extraInfo = StringUtil.concatArgs(args, 2);
+		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
+		
+		WrappedUser wtarget = WrappedUser.of(target);
+		int id = wtarget.punish(PunishmentType.WARNING, code, code.getStandingLevel(), extraInfo, user(sender));
+		wtarget.raiseStandingLevel(code.getType(), code.getStandingLevel());
+		if(wtarget.getUser().getServerName() != null && !dragons.getServerName().equals(wtarget.getUser().getServerName())) {
+			LOGGER.trace("Forwarding punishment on " + wtarget.getUser().getName() + " to " + wtarget.getUser().getServerName());
+			handler.forwardPunishment(wtarget.getUser(), id,  PunishmentType.KICK, reason, -1L);
+		}
+		
+		sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ": " + code.getName());
+	}
+	
+	// Complicated logic for bans and mutes
+	private void manual(CommandSender sender, String[] args, PunishmentType type) {
+		if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return;
+
+		String cmd = type == PunishmentType.BAN ? "ban" : "mute";
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "/" + cmd + " <player> <code> [extra info] [-d <#y#w#d#h#m#s|permanent>]");
+			return;
+		}
+		
+		String action = type == PunishmentType.BAN ? "Banned" : "Muted";
+		StandingLevelType slType = type == PunishmentType.BAN ? StandingLevelType.BAN : StandingLevelType.MUTE;
+
+		User target = lookupUser(sender, args[0]);
+		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
+		if(target == null || code == null) return;
 
 		int durationIndex = StringUtil.getFlagIndex(args, "-d", 2);
 		String extraInfo = StringUtil.concatArgs(args, 2, durationIndex);
-		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
 		
 		WrappedUser wtarget = WrappedUser.of(target);
 		long duration;
@@ -62,13 +131,8 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		else {
 			duration = StringUtil.parseTimespanToSeconds(args[durationIndex + 1]);
 		}
-		int id = wtarget.punish(type, code, code.getStandingLevel(), extraInfo, user(sender), duration);
-		wtarget.raiseStandingLevel(slType, code.getStandingLevel()); // Whichever type of punishment is the kind we should be raising the SL of
-		if(wtarget.getUser().getServerName() != null && !dragons.getServerName().equals(wtarget.getUser().getServerName())) {
-			LOGGER.trace("Forwarding punishment on " + wtarget.getUser().getName() + " to " + wtarget.getUser().getServerName());
-			handler.forwardPunishment(wtarget.getUser(), id, type, reason, duration);
-		}
 		
+		wtarget.autoPunish(type, slType, code, extraInfo, user(sender), duration);
 		sender.sendMessage(ChatColor.GREEN + action + " " + target.getName() + ": " + code.getName()
 				+ " (" + StringUtil.parseSecondsToTimespan(duration) + ")");
 	}
@@ -76,75 +140,15 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(label.equalsIgnoreCase("safekick")) {
-			if(!requirePermission(sender, PermissionLevel.HELPER)) return true;
-			if(args.length == 0) {
-				sender.sendMessage(ChatColor.RED + "/safekick <player> [reason]");
-				sender.sendMessage(ChatColor.GRAY + "Local server use only");
-				sender.sendMessage(ChatColor.GRAY + "Punishment record is NOT affected by this command");
-				return true;
-			}
-			Player target = lookupPlayer(sender, args[0]);
-			if(target == null) return true;
-			String reason = "";
-			if(args.length > 1) {
-				reason = "Reason: " + StringUtil.concatArgs(args, 1) + "\n";
-			}
-			target.kickPlayer(ChatColor.YELLOW + "You were kicked!\n\n" + reason + "\nThis is NOT a punishment related kick.");
-			sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ".");
+			safeKick(sender, args);
 		}
 		
 		else if(label.equalsIgnoreCase("kick")) {
-			if(!requirePermission(sender, SystemProfileFlag.HELPER)) return true;
-			if(args.length < 2) {
-				sender.sendMessage(ChatColor.RED + "/kick <player> <code> [extra info]");
-				return true;
-			}
-			
-			User target = lookupUser(sender, args[0]);
-			if(target == null) return true;
-			
-			PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
-			if(code == null) return true;
-			
-			String extraInfo = StringUtil.concatArgs(args, 2);
-			String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
-			
-			WrappedUser wtarget = WrappedUser.of(target);
-			int id = wtarget.punish(PunishmentType.KICK, code, code.getStandingLevel(), extraInfo, user(sender));
-			wtarget.raiseStandingLevel(code.getType(), code.getStandingLevel());
-			if(wtarget.getUser().getServerName() != null && !dragons.getServerName().equals(wtarget.getUser().getServerName())) {
-				LOGGER.trace("Forwarding punishment on " + wtarget.getUser().getName() + " to " + wtarget.getUser().getServerName());
-				handler.forwardPunishment(wtarget.getUser(), id,  PunishmentType.KICK, reason, -1L);
-			}
-			
-			sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ": " + code.getName());
+			kick(sender, args);
 		}
 		
 		else if(label.equalsIgnoreCase("warn")) {
-			if(!requirePermission(sender, SystemProfileFlag.HELPER)) return true;
-			if(args.length < 2) {
-				sender.sendMessage(ChatColor.RED + "/warn <player> <code> [extra info]");
-				return true;
-			}
-			
-			User target = lookupUser(sender, args[0]);
-			if(target == null) return true;
-			
-			PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
-			if(code == null) return true;
-			
-			String extraInfo = StringUtil.concatArgs(args, 2);
-			String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
-			
-			WrappedUser wtarget = WrappedUser.of(target);
-			int id = wtarget.punish(PunishmentType.WARNING, code, code.getStandingLevel(), extraInfo, user(sender));
-			wtarget.raiseStandingLevel(code.getType(), code.getStandingLevel());
-			if(wtarget.getUser().getServerName() != null && !dragons.getServerName().equals(wtarget.getUser().getServerName())) {
-				LOGGER.trace("Forwarding punishment on " + wtarget.getUser().getName() + " to " + wtarget.getUser().getServerName());
-				handler.forwardPunishment(wtarget.getUser(), id,  PunishmentType.KICK, reason, -1L);
-			}
-			
-			sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ": " + code.getName());
+			warn(sender, args);
 		}
 		
 		else if(label.equalsIgnoreCase("mute")) {
