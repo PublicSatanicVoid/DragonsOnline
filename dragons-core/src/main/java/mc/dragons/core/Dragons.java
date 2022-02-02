@@ -387,13 +387,13 @@ public class Dragons extends DragonsJavaPlugin {
 			if (user.getPlayer() == null || !user.getPlayer().isOnline()) {
 				continue;
 			}
-			user.handleQuit(false);
 			if(PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.DEVELOPER, false)) {
 				user.getPlayer().kickPlayer(kickMessageDev);
 			}
 			else {
 				user.getPlayer().kickPlayer(kickMessage);
 			}
+			user.handleQuit(false);
 		}
 	}
 	

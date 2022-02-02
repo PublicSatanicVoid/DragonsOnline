@@ -36,11 +36,11 @@ public class PrivateMessageCommands extends DragonsCommandExecutor {
 		else if (user.getBlockedUsers().contains(target)) {
 			user.getPlayer().sendMessage(ChatColor.RED + "You can't send messages to players you've blocked.");
 		}
-		else if (!FriendUtil.getFriends(user).contains(target) && !user.getData().getBoolean("messageFriendsOnly", false) 
+		else if (!FriendUtil.getFriends(user).contains(target) && user.getData().getBoolean("messageFriendsOnly", false) 
 			&& !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
 				user.getPlayer().sendMessage(ChatColor.RED + "You can't send or receive messages from non-friends. Use /togglemsg to change this.");
 		}
-		else if (!FriendUtil.getFriends(user).contains(target) && !target.getData().getBoolean("messageFriendsOnly", false) 
+		else if (!FriendUtil.getFriends(user).contains(target) && target.getData().getBoolean("messageFriendsOnly", false) 
 				&& !hasPermission(user, PermissionLevel.HELPER) && !hasPermission(target, PermissionLevel.HELPER)) {
 					user.getPlayer().sendMessage(ChatColor.RED + "This user has blocked private messages from non-friends.");
 			}

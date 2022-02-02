@@ -58,8 +58,8 @@ commands:
   delwarp:
     description: (BUILDER) Delete a warp point.
   resetprofile:
-    description: (TESTER) Reset your game statistics. Punishment and IP history is not affected.
-    aliases: [statswipe]
+    description: (TESTER) Reset your game statistics. Punishment and IP history are not affected.
+    aliases: statswipe
   placeholder:
     description: (GM) Set a placeholder which can be used in lengthy content commands.
     aliases: ph
@@ -71,4 +71,4 @@ commands:
     description: Internal command!
   hologram:
     description: (GM) Create and manage standalone holograms.
-    aliases: holo
+    aliases: [holo, h]

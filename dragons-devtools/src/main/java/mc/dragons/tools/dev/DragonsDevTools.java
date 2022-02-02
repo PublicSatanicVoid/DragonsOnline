@@ -9,6 +9,7 @@ import mc.dragons.tools.dev.gameobject.ObjectCommands;
 import mc.dragons.tools.dev.gameobject.ReloadObjectsCommands;
 import mc.dragons.tools.dev.management.PluginManagementCommands;
 import mc.dragons.tools.dev.management.ServerOptionsCommands;
+import mc.dragons.tools.dev.management.SudoCommand;
 import mc.dragons.tools.dev.management.TerminateCommands;
 import mc.dragons.tools.dev.management.VariableCommands;
 import mc.dragons.tools.dev.monitor.CorrelationCommand;
@@ -96,6 +97,8 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("debug").setExecutor(debugCommands);
 		getCommand("streamconsole").setExecutor(debugCommands);
 		
+		getCommand("sudo").setExecutor(new SudoCommand());
+		
 		CommandExecutor experimentalCommands = new ExperimentalCommands();
 		getCommand("helditemdata").setExecutor(experimentalCommands);
 		getCommand("rawtext").setExecutor(experimentalCommands);
@@ -141,5 +144,8 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testmobai").setExecutor(experimentalCommands);
 		getCommand("testtakeitem").setExecutor(experimentalCommands);
 		getCommand("testupdateinventory").setExecutor(experimentalCommands);
+		getCommand("testnametag").setExecutor(experimentalCommands);
+		getCommand("testnametag2").setExecutor(experimentalCommands);
+		getCommand("testupdatenametag").setExecutor(experimentalCommands);
 	}
 }

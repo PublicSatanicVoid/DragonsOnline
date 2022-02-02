@@ -92,6 +92,7 @@ public class ResCommands extends DragonsCommandExecutor {
 					return true;
 				}
 				resLoader.deleteResidence(id);
+				resPointLoader.updateResHologramOn(user, res.getResPoint());
 				if(player.getWorld().getName().equals("res_temp") && user.getData().getInteger("lastResId") == id) {
 					Document saved = user.getData().get("resExitTo", Document.class);
 					Location to = StorageUtil.docToLoc(saved);

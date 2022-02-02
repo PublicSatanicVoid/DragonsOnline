@@ -23,7 +23,7 @@ public enum PunishmentCode {
 	INSTIGATION_1("IN1", "Instigation 1", "Promoting rule breaking to benefit yourself or others", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
 	SWEARING("SW", "Swearing", "Targeted use of vulgar or explicit phrases", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
 	IMPERSONATION("IM", "Impersonation", "Impersonating a staff member or another player", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 2, false),
-	INAPPROPRIATE_1("IC1", "Inappropriate 1", "Using or discussing inappropriate concepts in the server chat", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 3, false),
+	INAPPROPRIATE_1("IC1", "Inappropriate 1", "Using or discussing inappropriate concepts in the server chat", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 1, false),
 	DISCRIMINATION("DI", "Discrimination", "Discrimination against another user or group of users", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),
 	THREAT_HARM("TH", "Threatening/Harmful", "Sending threatening or harmful messages", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),
 	OFFENSIVE_POLITICS("OP", "Offensive Political Speech", "Offensive political speech", StandingLevelType.MUTE, SystemProfileFlag.HELPER, 4, false),

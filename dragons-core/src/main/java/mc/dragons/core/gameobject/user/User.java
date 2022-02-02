@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +31,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
@@ -74,7 +76,9 @@ import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
 import mc.dragons.core.storage.loader.ChangeLogLoader.ChangeLogEntry;
+import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.MathUtil;
+import mc.dragons.core.util.NametagUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.ChatMessageType;
@@ -148,6 +152,7 @@ public class User extends GameObject {
 	private Map<Quest, List<NPC>> temporaryNPCs;
 	private Table<Item, Quest, Integer> questItems;
 	private Map<Quest, Location> questRestoreLocations;
+	private ArmorStand secondaryNameTag;
 	
 	public static ConnectionMessageHandler getConnectionMessageHandler() {
 		return connectionMessageHandler;
@@ -222,6 +227,7 @@ public class User extends GameObject {
 			setData("health", player.getHealth());
 			player.getInventory().clear();
 			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
+			updatePrimaryNameTag();
 			if (getData("health") != null) {
 				player.setHealth((double) getData("health"));
 			}
@@ -1338,6 +1344,7 @@ public class User extends GameObject {
 		updateVanishStatesOnSelf();
 		updateVanillaLeveling();
 		updateTablistHeaders();
+		updatePrimaryNameTag();
 		String ip = player.getAddress().getAddress().getHostAddress();
 		setData("ip", ip);
 		
@@ -1428,6 +1435,7 @@ public class User extends GameObject {
 	public void setRank(Rank rank) {
 		setData("rank", rank.toString());
 		updateListName();
+		updatePrimaryNameTag();
 	}
 
 	public Set<Region> getRegions() {
@@ -1476,6 +1484,21 @@ public class User extends GameObject {
 	
 	public String getServerName() {
 		return (String) getData("currentServer");
+	}
+	
+	/**
+	 * Actually locates the server the user is on, as opposed to simply
+	 * returning a cached value.
+	 * 
+	 */
+	public void locate(Consumer<Optional<String>> callback) {
+		resyncData(String.class, "currentServer");
+		String server = getServerName();
+		instance.getInternalMessageHandler().sendCheckUserPing(server, getUUID(), online -> {
+			if(online.isEmpty()) callback.accept(Optional.empty()); // Timed out
+			else if(online.get()) callback.accept(Optional.of(server));
+			else callback.accept(Optional.empty()); // Not online
+		});
 	}
 
 	/**
@@ -1685,13 +1708,18 @@ public class User extends GameObject {
 		sendToFloor(floorName, false);
 	}
 
+	public String getSuffixes() {
+		return StringUtil.parseList(userHookRegistry.getHooks().stream()
+				.map(h -> h.getListNameSuffix(this))
+				.filter(name -> !name.isEmpty())
+				.collect(Collectors.toList()), " ")
+		.trim();
+	}
+	
 	public String getListName() {
-		return (getRank().getChatPrefix() + getRank().getNameColor() + " " + getName() + " " +
-				StringUtil.parseList(userHookRegistry.getHooks().stream()
-						.map(h -> h.getListNameSuffix(this))
-						.filter(name -> !name.isEmpty())
-						.collect(Collectors.toList()), " "))
-				.trim();
+		return (getRank().getChatPrefix() + getRank().getNameColor()
+				+ " " + getName()
+				+ " " + getSuffixes()).trim();
 	}
 	
 	public void updateListName() {
@@ -1699,6 +1727,28 @@ public class User extends GameObject {
 		player.setPlayerListName(getListName());
 	}
 	
+	public void setPrimaryNameTag(ChatColor nameColor, String prefix, String suffix) {
+		NametagUtil.setNameTag(player, nameColor, prefix, suffix);
+	}
+	
+	public void setSecondaryNameTag(String text) {
+		clearSecondaryNameTag();
+		secondaryNameTag = HologramUtil.makeArmorStandNameTag(player, text, 0.0, -0.7, 0.0, true);
+	}
+	
+	
+	public void clearSecondaryNameTag() {
+		if(secondaryNameTag != null) {
+			player.removePassenger(secondaryNameTag);
+			secondaryNameTag.remove();
+		}
+		secondaryNameTag = null;
+	}
+	
+	public void updatePrimaryNameTag() {
+		Rank rank = getRank();
+		setPrimaryNameTag(rank.getNameColor(), rank.getChatPrefix(), getSuffixes());
+	}
 	
 	/*
 	 * Leveling management
@@ -2051,6 +2101,12 @@ public class User extends GameObject {
 			LOGGER.warning("Resyncing data while user is online: " + getName() + " - this may overwrite local changes.");
 		}
 		storageAccess = storageManager.getStorageAccess(GameObjectType.USER, getUUID());
+	}
+	
+	public void resyncData(Class<?> clazz, String... fields) {
+		for(String field : fields) {
+			storageAccess.pull(field, clazz);
+		}
 	}
 	
 	public void safeResyncData() {

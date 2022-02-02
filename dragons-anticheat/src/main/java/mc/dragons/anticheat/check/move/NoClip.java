@@ -27,7 +27,7 @@ public class NoClip extends Check {
 	private final double VL_RUBBERBAND = 5;
 	private final double VOLUME_THRESHOLD = 0.05;
 	private final Set<Material> EXCLUDED_TYPES = Arrays.stream(Material.values())
-			.filter(material -> StringUtil.equalsAnyIgnoreCase(material.toString(), "DOOR", "STAIRS"))
+			.filter(material -> StringUtil.containsAnyIgnoreCase(material.toString(), "DOOR", "STAIRS"))
 			.collect(Collectors.toSet());
 	
 	public NoClip(DragonsAntiCheat plugin) {

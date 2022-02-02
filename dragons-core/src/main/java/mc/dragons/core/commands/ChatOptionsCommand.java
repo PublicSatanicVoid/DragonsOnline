@@ -26,6 +26,11 @@ public class ChatOptionsCommand extends DragonsCommandExecutor {
 			if(id == null) return true;
 			
 			MessageData msg = dragons.getChatMessageRegistry().get(id);
+			if(!user.getSeenMessages().contains(msg)) {
+				sender.sendMessage(ChatColor.RED + "Nope!");
+				return true;
+			}
+			
 			messageTxn.put(user, msg);
 			
 			sender.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + msg.getSender().getName() + " - " + msg.getMessage());

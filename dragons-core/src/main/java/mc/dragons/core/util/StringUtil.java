@@ -317,4 +317,11 @@ public class StringUtil {
 	public static String colorize(String str) {
 		return ChatColor.translateAlternateColorCodes('&', str);
 	}
+
+	public static boolean containsAnyIgnoreCase(String string, String... test) {
+		for(String t : test) {
+			if(string.toLowerCase().contains(t.toLowerCase())) return true;
+		}
+		return false;
+	}
 }

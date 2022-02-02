@@ -16,6 +16,7 @@ import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
 import mc.dragons.tools.moderation.punishment.StandingLevelType;
 
+// TODO: Use WrappedUser#autoPunish instead of copypasta
 public class NSPunishCommands extends DragonsCommandExecutor {
 	private PunishMessageHandler handler;
 	
@@ -89,10 +90,10 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		wtarget.raiseStandingLevel(code.getType(), code.getStandingLevel());
 		if(wtarget.getUser().getServerName() != null && !dragons.getServerName().equals(wtarget.getUser().getServerName())) {
 			LOGGER.trace("Forwarding punishment on " + wtarget.getUser().getName() + " to " + wtarget.getUser().getServerName());
-			handler.forwardPunishment(wtarget.getUser(), id,  PunishmentType.KICK, reason, -1L);
+			handler.forwardPunishment(wtarget.getUser(), id,  PunishmentType.WARNING, reason, -1L);
 		}
 		
-		sender.sendMessage(ChatColor.GREEN + "Kicked " + target.getName() + ": " + code.getName());
+		sender.sendMessage(ChatColor.GREEN + "Warned " + target.getName() + ": " + code.getName());
 	}
 	
 	// Complicated logic for bans and mutes
@@ -121,7 +122,7 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 			duration = WrappedUser.getDurationByStandingLevel(wtarget.getStandingLevel(slType) + code.getStandingLevel());
 			if(duration == 0) {
 				sender.sendMessage(ChatColor.RED + "Insufficient standing level to apply mute automatically, please specify duration");
-				sender.sendMessage(ChatColor.RED + "/" + cmd + " <player> <code> [extra info] -d <#y#w#d#h#m#s>");
+				sender.sendMessage(ChatColor.RED + "/" + cmd + " <player> <code> [extra info] -d <#y#w#d#h#m#s|permanent>");
 				return;
 			}
 		}

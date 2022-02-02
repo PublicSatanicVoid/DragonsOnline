@@ -516,6 +516,23 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			player.updateInventory();
 		}
 		
+		else if(label.equalsIgnoreCase("testnametag")) {
+			User target = lookupUser(sender, args[0]);
+			String prefix = StringUtil.colorize(args[2]);
+			String suffix = StringUtil.colorize(StringUtil.concatArgs(args, 3));
+			target.setPrimaryNameTag(ChatColor.valueOf(args[1]), prefix, suffix);
+		}
+		
+		else if(label.equalsIgnoreCase("testnametag2")) {
+			User target = lookupUser(sender, args[0]);
+			String text = StringUtil.colorize(StringUtil.concatArgs(args, 1));
+			target.setSecondaryNameTag(text);
+		}
+		
+		else if(label.equalsIgnoreCase("testupdatenametag")) {
+			user.updatePrimaryNameTag();
+		}
+		
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
 		}

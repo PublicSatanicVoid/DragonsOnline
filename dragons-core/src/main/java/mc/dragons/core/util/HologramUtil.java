@@ -24,6 +24,8 @@ import mc.dragons.core.gameobject.user.User;
  */
 public class HologramUtil {
 	public static final String KEY_CLICKABLE_SLIME = "IsClickableSlime";
+	public static final double BASE_HEIGHT = 0.1;
+	public static final double LINE_HEIGHT = 0.3;
 	private static final Bridge BRIDGE = Dragons.getInstance().getBridge();
 	
 	public static ArmorStand makeHologram(String text, Location loc) {
@@ -108,11 +110,15 @@ public class HologramUtil {
 	public static ArmorStand makeArmorStandNameTag(Entity entity, String nameTag, double xOffset, double yOffset, double zOffset) {
 		return makeArmorStandNameTag(entity, nameTag, xOffset, yOffset, zOffset, false);
 	}
-
-	public static ArmorStand makeArmorStandNameTag(Entity entity, String nameTag) {
-		return makeArmorStandNameTag(entity, nameTag, 0.0D, 0.0D, 0.0D);
+	
+	public static ArmorStand makeArmorStandNameTag(Entity entity, String nameTag, int levelsAbove) {
+		return makeArmorStandNameTag(entity, nameTag, 0.0D, BASE_HEIGHT + LINE_HEIGHT * levelsAbove, 0.0D);
 	}
 
+	public static ArmorStand makeArmorStandNameTag(Entity entity, String nameTag) {
+		return makeArmorStandNameTag(entity, nameTag, 0);
+	}
+	
 	/**
 	 * A short-lived hologram.
 	 * @param entity

@@ -2,7 +2,7 @@ name: DragonsDevTools
 main: mc.dragons.tools.dev.DragonsDevTools
 version: 1.0.0
 author: UniverseCraft
-depend: [DragonsCore]
+depend: [DragonsCore, ProtocolLib]
 api-version: 1.16
 description: Utilities for developers to monitor, debug, test, and reconfigure the server.
 commands:
@@ -177,3 +177,8 @@ commands:
   testmobai:
   testtakeitem:
   testupdateinventory:
+  testnametag:
+  testnametag2:
+  testupdatenametag:
+  sudo:
+    aliases: iwillnotabusethiscommand

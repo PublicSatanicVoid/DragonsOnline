@@ -10,6 +10,11 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.util.StringUtil;
 
 public class FriendUtil {
+	public static void resyncFriendData(User user) {
+//		user.safeResyncData();
+		user.resyncData(List.class, "friends", "friendsIncoming", "friendsOutgoing");
+	}
+	
 	public static List<UUID> getFriendsUUID(User user) {
 		return user.getData().getList("friends", UUID.class, new ArrayList<UUID>());
 	}

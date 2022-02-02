@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.tools.moderation.util.CmdUtil;
 import mc.dragons.tools.moderation.util.CmdUtil.CmdData;
 
@@ -15,7 +15,7 @@ public class EscalateCommand extends DragonsCommandExecutor {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePlayer(sender) || !requirePermission(sender, SystemProfileFlag.HELPER)) return true;
+		if(!requirePlayer(sender) || !requirePermission(sender, PermissionLevel.HELPER)) return true;
 		User reporter = user(sender);
 		
 		if(args.length < 2) {

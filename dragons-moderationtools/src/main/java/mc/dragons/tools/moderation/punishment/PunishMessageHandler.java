@@ -1,5 +1,6 @@
 package mc.dragons.tools.moderation.punishment;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.bson.Document;
@@ -52,6 +53,7 @@ public class PunishMessageHandler extends MessageHandler {
 		WrappedUser wrapped = WrappedUser.of(user);
 		
 		BukkitUtil.sync(() -> {
+			user.getStorageAccess().pull("punishmentHistory", List.class);
 			if(action.equals("punish")) {
 				int id = data.getInteger("punishmentId");
 				PunishmentType type = PunishmentType.valueOf(data.getString("punishmentType"));

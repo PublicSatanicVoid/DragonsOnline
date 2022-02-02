@@ -22,7 +22,12 @@ public class PermissionUtil {
 		}
 		if (user.getActivePermissionLevel().ordinal() < required.ordinal()) {
 			if (notify) {
-				user.getPlayer().sendMessage(ChatColor.RED + "This requires permission level " + ChatColor.ITALIC + required.toString().toLowerCase() + ChatColor.RED + " or higher.");
+				if(user.getSystemProfile() == null) {
+					user.getPlayer().sendMessage(ChatColor.RED + "This command requires a system profile!");
+				}
+				else {
+					user.getPlayer().sendMessage(ChatColor.RED + "This requires permission level " + ChatColor.ITALIC + required.toString().toLowerCase() + ChatColor.RED + " or higher.");
+				}
 			}
 			return false;
 		}
@@ -38,7 +43,12 @@ public class PermissionUtil {
 			hasFlag = user.getSystemProfile().getFlags().hasFlag(flag);
 		}
 		if (!hasFlag && notify) {
-			user.getPlayer().sendMessage(ChatColor.RED + "This requires profile flag " + ChatColor.ITALIC + flag.toString().toLowerCase() + ChatColor.RED + ".");
+			if(user.getSystemProfile() == null) {
+				user.getPlayer().sendMessage(ChatColor.RED + "This command requires a system profile!");
+			}
+			else {
+				user.getPlayer().sendMessage(ChatColor.RED + "This requires profile flag " + ChatColor.ITALIC + flag.toString().toLowerCase() + ChatColor.RED + ".");
+			}
 		}
 		return hasFlag;
 	}

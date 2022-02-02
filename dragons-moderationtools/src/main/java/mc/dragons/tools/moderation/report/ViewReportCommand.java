@@ -20,6 +20,7 @@ import mc.dragons.core.util.StringUtil;
 import mc.dragons.core.util.TableGenerator;
 import mc.dragons.core.util.TableGenerator.Alignment;
 import mc.dragons.tools.moderation.WrappedUser;
+import mc.dragons.tools.moderation.WrappedUser.AppliedPunishmentData;
 import mc.dragons.tools.moderation.hold.HoldLoader;
 import mc.dragons.tools.moderation.hold.HoldLoader.HoldEntry;
 import mc.dragons.tools.moderation.hold.HoldLoader.HoldStatus;
@@ -250,7 +251,7 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.DARK_GREEN + "Select a punishment code to apply:");
 				for(PunishmentCode code : PunishmentCode.values()) {
 					if(code.isHidden()) continue;
-					sender.spigot().sendMessage(StringUtil.clickableHoverableText(" " + code.getCode() + ChatColor.GRAY + " - " + code.getName(), "/viewreport " + id + " apply " + code.getCode(), 
+					sender.spigot().sendMessage(StringUtil.clickableHoverableText(" " + code.getCode() + ChatColor.GRAY + " - " + code.getName(), "/viewreport " + id + " apply " + code.getCode() + " ", true,
 						new String[] {
 							ChatColor.YELLOW + "" + ChatColor.BOLD + code.getName(),
 							ChatColor.GRAY + code.getDescription(),
@@ -338,8 +339,11 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 			}
 			PunishmentCode code = PunishmentCode.parseCode(sender, args[2]);
 			if(code == null) return true;
+			String extraInfo = StringUtil.concatArgs(args, 3);
+			sender.sendMessage(ChatColor.GREEN + "This report has been marked as closed. The following actions were taken:");
 			for(User target : report.getTargets()) {
-				WrappedUser.of(target).punish(code.getType().getPunishmentType(), code, code.getStandingLevel(), "Report #" + report.getId(), user(sender));
+				AppliedPunishmentData result = WrappedUser.of(target).autoPunish(code, "Report #" + report.getId() + (extraInfo.isBlank() ? "" : " - " + extraInfo), user(sender));
+				sender.sendMessage(ChatColor.GRAY + "- " + result.type + " applied to " + target.getName() + " (" + StringUtil.parseSecondsToTimespan(result.duration) + ")");
 			}
 			report.setStatus(ReportStatus.ACTION_TAKEN);
 			report.setReviewedBy(user(sender));
@@ -347,7 +351,6 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 				int holdId = report.getData().getInteger("holdId");
 				holdLoader.getHoldById(holdId).setStatus(HoldStatus.CLOSED_ACTION);
 			}
-			sender.sendMessage(ChatColor.GREEN + "This report has been marked as closed.");
 			report.getFiledBy().forEach(u -> WrappedUser.of(u).setReportHandled(true));
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " [+Punishment]", "/viewreport " + report.getId() + " confirm", "Apply another punishment to this report"),
 				nextReport);

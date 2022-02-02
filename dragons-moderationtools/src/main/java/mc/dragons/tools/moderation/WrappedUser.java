@@ -48,9 +48,11 @@ public class WrappedUser {
 	public static class AppliedPunishmentData {
 		public PunishmentType type;
 		public int id;
-		public AppliedPunishmentData(PunishmentType type, int id) {
+		public long duration;
+		public AppliedPunishmentData(PunishmentType type, int id, long duration) {
 			this.type = type;
 			this.id = id;
+			this.duration = duration;
 		}
 	}
 	
@@ -214,6 +216,7 @@ public class WrappedUser {
 	 * @return
 	 */
 	public AppliedPunishmentData autoPunish(PunishmentCode code, String extraInfo, User issuer) {
+		user.getStorageAccess().pull("punishmentHistory", List.class);
 		int standingLevel = getStandingLevel(code.getType()) + code.getStandingLevel();
 		long duration = WrappedUser.getDurationByStandingLevel(standingLevel);
 		PunishmentType type = code.getType().getPunishmentType();
@@ -221,7 +224,7 @@ public class WrappedUser {
 			type = PunishmentType.WARNING;
 		}
 		return new AppliedPunishmentData(type,
-				autoPunish(type, code.getType(), code, extraInfo, issuer, duration));
+				autoPunish(type, code.getType(), code, extraInfo, issuer, duration), duration);
 	}
 	
 	/**
@@ -237,6 +240,7 @@ public class WrappedUser {
 	 * @return The zero-based punishment index
 	 */
 	public int autoPunish(PunishmentType type, StandingLevelType slType, PunishmentCode code, String extraInfo, User issuer, long duration) {
+		user.getStorageAccess().pull("punishmentHistory", List.class);
 		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
 		int id = punish(type, code, code.getStandingLevel(), extraInfo, issuer, duration);
 		raiseStandingLevel(slType, code.getStandingLevel()); // Whichever type of punishment is the kind we should be raising the SL of

@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 
 import mc.dragons.anticheat.check.CheckRegistry;
+import mc.dragons.anticheat.check.move.FastPackets;
 import mc.dragons.anticheat.check.move.NoClip;
 import mc.dragons.anticheat.check.move.PacketSpoof;
 import mc.dragons.anticheat.check.move.WrongMove;
@@ -35,11 +36,13 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		getCommand("acresetplayer").setExecutor(ac);
 		getCommand("acstatus").setExecutor(ac);
 		getCommand("actoggle").setExecutor(ac);
+		getCommand("pps").setExecutor(ac);
 		
 		checkRegistry = new CheckRegistry();
 		checkRegistry.registerCheck(new PacketSpoof(this));
 		checkRegistry.registerCheck(new NoClip(this));
 		checkRegistry.registerCheck(new WrongMove(this));
+		checkRegistry.registerCheck(new FastPackets(this));
 		
 		PluginManager pluginManager = getServer().getPluginManager();
 		pluginManager.registerEvents(testingMoveListener = new TestingMoveListener(this), this);

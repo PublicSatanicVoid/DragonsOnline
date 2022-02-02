@@ -37,8 +37,7 @@ public enum Rank {
 	
 	HELPER("Helper", "Helper", ChatColor.GREEN + "[HELPER]", ChatColor.GREEN, ChatColor.WHITE, true),
 	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[MOD]", ChatColor.GREEN, ChatColor.WHITE, true),
-	
-	COMMUNITY_MANAGER("Community Manager", "Community Mgr", ChatColor.LIGHT_PURPLE + "[CM]", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, true),
+	COMMUNITY_MANAGER("Community Manager", "Community Mgr", ChatColor.DARK_GREEN + "[CM]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
 	
 	NEW_GM("New GM", "New GM", ChatColor.GOLD + "[NEW GM]", ChatColor.GOLD, ChatColor.WHITE, true), 
 	GM("Game Master", "Game Master", ChatColor.GOLD + "[GM]", ChatColor.GOLD, ChatColor.WHITE, true),

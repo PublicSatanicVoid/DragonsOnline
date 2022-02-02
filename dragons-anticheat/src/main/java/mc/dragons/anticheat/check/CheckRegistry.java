@@ -18,6 +18,16 @@ public class CheckRegistry {
 		return null;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public <T extends Check> T getCheckByClass(Class<T> clazz) {
+		for(Check check : checks) {
+			if(check.getClass().equals(clazz)) {
+				return (T) check;
+			}
+		}
+		return null;
+	}
+	
 	public List<Check> getChecks() {
 		return checks;
 	}

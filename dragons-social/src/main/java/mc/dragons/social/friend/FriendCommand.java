@@ -146,7 +146,7 @@ public class FriendCommand extends DragonsCommandExecutor {
 		User user = user(sender);
 		User target = lookupUser(sender, args[0]);
 		if(target == null) return;
-		target.safeResyncData();
+		FriendUtil.resyncFriendData(target);
 		if(target.equals(user) && !user.getLocalData().getBoolean("canSelfFriend", false)) {
 			sender.sendMessage(ChatColor.RED + "You can't friend yourself!");
 			return;
@@ -195,6 +195,7 @@ public class FriendCommand extends DragonsCommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePlayer(sender)) return true;
+		FriendUtil.resyncFriendData(user(sender));
 		
 		if(label.equalsIgnoreCase("toggleselffriend")) {
 			toggleSelfFriend(sender);

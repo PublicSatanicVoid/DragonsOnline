@@ -56,7 +56,7 @@ public class DevUserHook implements UserHook {
 			List<Task> myTasksToReview = taskLoader.getAllWaitingTasks();
 			user.getPlayer().sendMessage(ChatColor.GOLD + "There are " + myTasksToReview.size() + " tasks that need reviewing. " + ChatColor.YELLOW + "/tasks waiting");
 			List<Task> doneTasks = taskLoader.getAllCompletedTasks(true);
-			user.getPlayer().sendMessage(ChatColor.GOLD + "There are " + doneTasks.size() + " completed tasks that need to be closed. " + ChatColor.YELLOW + "/tasks done");
+			user.getPlayer().sendMessage(ChatColor.GOLD + "There are " + doneTasks.size() + " completed tasks ready for review. " + ChatColor.YELLOW + "/tasks done");
 		}
 		
 		/* Notify Discord when builders join the server */

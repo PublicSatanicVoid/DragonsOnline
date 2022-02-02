@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import mc.dragons.anticheat.DragonsAntiCheat;
 import mc.dragons.anticheat.check.Check;
 import mc.dragons.anticheat.check.ViolationData;
+import mc.dragons.anticheat.check.move.FastPackets;
 import mc.dragons.anticheat.check.move.MoveData;
 import mc.dragons.anticheat.util.ACUtil;
 import mc.dragons.core.commands.DragonsCommandExecutor;
@@ -164,7 +165,11 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 				check.setEnabled(!check.isEnabled());
 				sender.sendMessage(ChatColor.GREEN + (check.isEnabled() ? "Enabled" : "Disabled") + " check " + check.getName());
 			}
-			
+		}
+		
+		else if(label.equalsIgnoreCase("pps")) {
+			FastPackets check = plugin.getCheckRegistry().getCheckByClass(FastPackets.class);
+			sender.sendMessage(ChatColor.GREEN + "Your current PPS is " + check.getPPS(player));
 		}
 		
 		else {
