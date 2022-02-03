@@ -245,28 +245,30 @@ public class User extends GameObject {
 		seenMessages = new CopyOnWriteArrayList<>();
 		activePermissionLevel = PermissionLevel.USER;
 		
-		rollingAsync(() -> {
-			loadInventory(initCorrelationID, (Document) getData("inventory"));
-			loadQuests(initCorrelationID, (Document) getData("quests"));
-			rollingSync(() -> {
-				if(player != null) {
-					Scoreboard sb = instance.getSidebarManager().createScoreboard(player);
-					if(sb == null) {
-						LOGGER.warning(initCorrelationID, "Could not create scoreboard!");
-						initErrorOccurred();
+		sync(() -> {
+			rollingAsync(() -> {
+				loadInventory(initCorrelationID, (Document) getData("inventory"));
+				loadQuests(initCorrelationID, (Document) getData("quests"));
+				rollingSync(() -> {
+					if(player != null) {
+						Scoreboard sb = instance.getSidebarManager().createScoreboard(player);
+						if(sb == null) {
+							LOGGER.warning(initCorrelationID, "Could not create scoreboard!");
+							initErrorOccurred();
+						}
 					}
+					userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
+				});
+				if(initErrorOccurred) {
+					LOGGER.warning(initCorrelationID, "An error occurred during initialization of user " + getIdentifier());
 				}
-				userHookRegistry.getHooks().forEach(h -> h.onInitialize(this)); // Hooks should be able to assume they're running in the main thread
+				else {
+					LOGGER.discardCID(initCorrelationID);
+				}
+				initialized = true;
+				LOGGER.trace("Finished initializing user " + this);
 			});
-			if(initErrorOccurred) {
-				LOGGER.warning(initCorrelationID, "An error occurred during initialization of user " + getIdentifier());
-			}
-			else {
-				LOGGER.discardCID(initCorrelationID);
-			}
-			initialized = true;
-			LOGGER.trace("Finished initializing user " + this);
-		});
+		}, 10);
 		
 		return this;
 	}
@@ -1723,7 +1725,12 @@ public class User extends GameObject {
 	}
 	
 	public void updateListName() {
-		if(player == null) return;
+		if(player == null) return;	
+//		Scoreboard scoreboard = player.getScoreboard();
+//		Objective sortObjective = scoreboard.registerNewObjective("TablistSort", "dummy", "dummyTablistSort");
+//		sortObjective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+//		Team team = scoreboard.registerNewTeam((Rank.ADMIN.ordinal() - getRank().ordinal()) + "x");
+//		team.addEntry(getName());
 		player.setPlayerListName(getListName());
 	}
 	

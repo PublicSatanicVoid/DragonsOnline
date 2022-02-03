@@ -19,6 +19,7 @@ import mc.dragons.anticheat.check.CheckType;
 import mc.dragons.anticheat.check.ViolationData;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
+import mc.dragons.core.util.MathUtil;
 
 public class FastPackets extends Check {
 	private static final double VL_LAGBACK_THRESHOLD = 5;
@@ -72,6 +73,9 @@ public class FastPackets extends Check {
 					if(pps > 22) {
 						vdata.raiseVl(VL_REPORT_THRESHOLD, () -> new Document("pps", pps));
 						if(vdata.vl > VL_LAGBACK_THRESHOLD) {
+							if(FastPackets.this.plugin.isDebug()) {
+								FastPackets.this.plugin.debug(player, "FastPackets | Lagback (" + MathUtil.round(pps) + "pps, " + vdata.vl + "vl)");
+							}
 							MoveData.of(user).rubberband();
 						}
 					}

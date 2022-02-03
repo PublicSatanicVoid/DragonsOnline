@@ -12,6 +12,8 @@ import com.google.common.base.Preconditions;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Collation;
+import com.mongodb.client.model.CollationStrength;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
@@ -30,10 +32,13 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public class MongoStorageManager implements StorageManager {
+	public static final String CASE_INSENSITIVE_SEARCH = "__case_insensitive__";
+	
 	private DragonsLogger LOGGER;
 	
 	private MongoDatabase database;
 	private MongoCollection<Document> gameObjectCollection;
+	private Collation caseInsensitiveCollation = Collation.builder().locale("en").collationStrength(CollationStrength.SECONDARY).build();
 
 	public MongoStorageManager(Dragons instance) {
 		LOGGER = instance.getLogger();
@@ -48,7 +53,10 @@ public class MongoStorageManager implements StorageManager {
 
 	@Override
 	public StorageAccess getStorageAccess(GameObjectType objectType, Document search) {
+		boolean caseInsensitive = search.containsKey(CASE_INSENSITIVE_SEARCH);
+		if(caseInsensitive) search.remove(CASE_INSENSITIVE_SEARCH);
 		FindIterable<Document> results = gameObjectCollection.find(search.append("type", objectType.toString()));
+		if(caseInsensitive) results = results.collation(caseInsensitiveCollation);
 		Document result = results.first();
 		if (result == null) {
 			return null;

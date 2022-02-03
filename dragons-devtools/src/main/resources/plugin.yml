@@ -180,5 +180,6 @@ commands:
   testnametag:
   testnametag2:
   testupdatenametag:
+  testrollingasync:
   sudo:
     aliases: iwillnotabusethiscommand

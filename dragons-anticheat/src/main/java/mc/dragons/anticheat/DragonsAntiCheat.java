@@ -45,7 +45,10 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		checkRegistry.registerCheck(new FastPackets(this));
 		
 		PluginManager pluginManager = getServer().getPluginManager();
-		pluginManager.registerEvents(testingMoveListener = new TestingMoveListener(this), this);
+		
+		// Uncomment if you want spam
+		// pluginManager.registerEvents(testingMoveListener = new TestingMoveListener(this), this);
+		
 		pluginManager.registerEvents(new CheckListeners(this), this);
 	}
 	

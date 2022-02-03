@@ -147,5 +147,6 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testnametag").setExecutor(experimentalCommands);
 		getCommand("testnametag2").setExecutor(experimentalCommands);
 		getCommand("testupdatenametag").setExecutor(experimentalCommands);
+		getCommand("testrollingasync").setExecutor(experimentalCommands);
 	}
 }

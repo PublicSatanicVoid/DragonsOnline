@@ -68,9 +68,11 @@ public class NoClip extends Check {
 				if(volume < VOLUME_THRESHOLD) {
 					return true;
 				}
-				user.debug("AC: NoClip " + block.getType() + " V=" + MathUtil.round(volume) + " VL=" + MathUtil.round(violationData.vl));
-				
 				if(violationData.vl >= VL_RUBBERBAND) {
+					if(plugin.isDebug()) {
+						plugin.debug(player, "NoClip | Lagback (" + MathUtil.round(volume) + "volume, " + violationData.vl + "vl)");
+					}
+					
 					moveData.rubberband();
 				}
 				violationData.raiseVl(VL_THRESHOLD, () -> new Document("type", block.getType().toString())

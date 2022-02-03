@@ -60,7 +60,7 @@ public class EntityDamageListener implements Listener {
 	 */
 	@EventHandler
 	public void onEntityDamage(EntityDamageEvent event) {
-		LOGGER.debug("Damage event on " + StringUtil.entityToString(event.getEntity()));
+		LOGGER.trace("Damage event on " + StringUtil.entityToString(event.getEntity()));
 		Entity target = event.getEntity();
 		if(target.isInvulnerable()) event.setCancelled(true);
 		NPC npc = NPCLoader.fromBukkit(target);
@@ -79,7 +79,7 @@ public class EntityDamageListener implements Listener {
 	 */
 	@EventHandler
 	public void onEntityDamage(EntityDamageByEntityEvent event) {
-		LOGGER.debug("Damage event on " + StringUtil.entityToString(event.getEntity()) + " by " + StringUtil.entityToString(event.getDamager()));
+		LOGGER.trace("Damage event on " + StringUtil.entityToString(event.getEntity()) + " by " + StringUtil.entityToString(event.getDamager()));
 		Entity damager = event.getDamager();
 		User userDamager = null;
 		NPC npcDamager = null;

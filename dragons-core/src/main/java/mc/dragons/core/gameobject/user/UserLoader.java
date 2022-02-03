@@ -41,6 +41,7 @@ import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.loader.GlobalVarLoader;
+import mc.dragons.core.storage.mongo.MongoStorageManager;
 import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
@@ -122,7 +123,8 @@ public class UserLoader extends GameObjectLoader<User> implements Singleton {
 				return fixUser(user);
 			}
 		}
-		StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER, new Document("username", username));
+		StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER, 
+				new Document("username", username).append(MongoStorageManager.CASE_INSENSITIVE_SEARCH, true));
 		if (storageAccess == null) {
 			return null;
 		}

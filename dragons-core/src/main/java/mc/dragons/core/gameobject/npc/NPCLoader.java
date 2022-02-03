@@ -2,7 +2,9 @@ package mc.dragons.core.gameobject.npc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,12 +40,14 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	private GameObjectRegistry masterRegistry;
 	private LocalStorageManager localStorageManager;
 	private NPCClassLoader npcClassLoader;
+	private Map<UUID, NPC> uuidToNpc;
 
 	private NPCLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
 		masterRegistry = instance.getGameObjectRegistry();
 		localStorageManager = instance.getLocalStorageManager();
 		npcClassLoader = GameObjectType.NPC_CLASS.<NPCClass, NPCClassLoader>getLoader();
+		uuidToNpc = new HashMap<>();
 	}
 
 	public static NPCLoader getInstance() {
@@ -53,6 +57,11 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	
 	@Override
 	public NPC loadObject(StorageAccess storageAccess) {
+		UUID uuid = storageAccess.getIdentifier().getUUID();
+		if(uuidToNpc.containsKey(uuid)) {
+			LOGGER.debug("Prevented spawn of duplicate NPC " + uuid);
+			return uuidToNpc.get(uuid);
+		}
 		List<BukkitRunnable> spawner = new ArrayList<>();
 		NPC npc = loadObject(storageAccess, spawner);
 		spawner.get(0).runTask(Dragons.getInstance());
@@ -61,6 +70,11 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	
 	public NPC loadObject(StorageAccess storageAccess, List<BukkitRunnable> spawnRunnables) {
 		lazyLoadAllPermanent();
+		UUID uuid = storageAccess.getIdentifier().getUUID();
+		if(uuidToNpc.containsKey(uuid)) {
+			LOGGER.debug("Prevented spawn of duplicate NPC " + uuid);
+			return uuidToNpc.get(uuid);
+		}
 		LOGGER.trace("Loading NPC " + storageAccess.getIdentifier());
 		NPC.NPCType npcType = NPC.NPCType.valueOf((String) storageAccess.get("npcType"));
 		Location loc = StorageUtil.docToLoc((Document) storageAccess.get("lastLocation"));
@@ -75,6 +89,10 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	}
 	
 	public NPC loadObject(UUID uuid, UUID cid) {
+		if(uuidToNpc.containsKey(uuid)) {
+			LOGGER.debug("Prevented spawn of duplicate NPC " + uuid);
+			return uuidToNpc.get(uuid);
+		}
 		LOGGER.verbose(cid, "loading NPC with uuid " + uuid);
 		for (GameObject gameObject : masterRegistry.getRegisteredObjects(new GameObjectType[] { GameObjectType.NPC })) {
 			NPC npc = (NPC) gameObject;

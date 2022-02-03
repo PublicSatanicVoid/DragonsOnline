@@ -1,5 +1,8 @@
 package mc.dragons.tools.dev;
 
+import static mc.dragons.core.util.BukkitUtil.rollingAsync;
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
@@ -188,7 +191,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("testtabname")) {
-			player.setPlayerListName(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 0)));
+			lookupPlayer(sender, args[0]).setPlayerListName(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 1)));
 		}
 		
 		else if(label.equalsIgnoreCase("whoami")) {
@@ -531,6 +534,15 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		
 		else if(label.equalsIgnoreCase("testupdatenametag")) {
 			user.updatePrimaryNameTag();
+		}
+		
+		else if(label.equalsIgnoreCase("testrollingasync")) {
+			rollingAsync(() -> {
+				String name = Thread.currentThread().getName();
+				sync(() -> {
+					player.sendMessage("hey (" + name + ")");
+				});
+			});
 		}
 		
 		else {

@@ -20,10 +20,12 @@ import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
+import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.util.StringUtil;
 
 public class VerifyGameIntegrityCommand extends DragonsCommandExecutor {
 	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
@@ -119,6 +121,15 @@ public class VerifyGameIntegrityCommand extends DragonsCommandExecutor {
 				if(entity.getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.INTEGER)) continue;
 				if(entity instanceof Player) continue;
 				if(entity instanceof ItemFrame) continue;
+				if(!entity.isValid()) {
+					sendMessageIfNotSilent(sender, silent, ChatColor.RED + "    - Entity " + StringUtil.entityToString(entity) + " in world " + world.getName() + " is invalid");
+					if(resolve) {
+						entity.remove();
+						sendMessageIfNotSilent(sender, silent, ChatColor.DARK_GREEN + "        [Fixed]");
+						fixed++;
+					}
+				}
+				NPC npc = NPCLoader.fromBukkit(entity);
 				if(entity instanceof Item) {
 					if(ItemLoader.fromBukkit(((Item) entity).getItemStack()) == null) {
 						sendMessageIfNotSilent(sender, silent, ChatColor.RED + "    - Entity #" + entity.getEntityId() + " [type " + entity.getType().toString() + "] in world " + world.getName() + " does not correspond to a valid GameObject");
@@ -130,7 +141,7 @@ public class VerifyGameIntegrityCommand extends DragonsCommandExecutor {
 						errors++;
 					}
 				}
-				else if(NPCLoader.fromBukkit(entity) == null) {
+				else if(npc == null) {
 					if(entity.isInsideVehicle()) continue; // Riding things is OK, usually
 					if(entity.hasMetadata("partOf")) continue;
 					if(entity.hasMetadata("allow")) continue;
@@ -140,6 +151,16 @@ public class VerifyGameIntegrityCommand extends DragonsCommandExecutor {
 						entity.remove();
 						sendMessageIfNotSilent(sender, silent, ChatColor.DARK_GREEN + "        [Fixed]");
 						fixed++;
+					}
+				}
+				else {
+					if(npc.getEntity().getEntityId() != entity.getEntityId()) {
+						sendMessageIfNotSilent(sender, silent, ChatColor.RED + "    - Entity " + StringUtil.entityToString(entity) + " in world " + world.getName() + " is improperly linked to an NPC");
+						if(resolve) {
+							entity.remove();
+							sendMessageIfNotSilent(sender, silent, ChatColor.DARK_GREEN + "        [Fixed]");
+							fixed++;
+						}
 					}
 				}
 			}

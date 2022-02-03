@@ -35,8 +35,8 @@ public enum Rank {
 	BUILD_MANAGER("Build Manager", "Build Manager", ChatColor.BLUE + "[BUILD MGR]", ChatColor.BLUE, ChatColor.WHITE, true),
 	HEAD_BUILDER("Head Builder", "Head Builder", ChatColor.BLUE + "[HEAD BUILDER]", ChatColor.BLUE, ChatColor.WHITE, true),
 	
-	HELPER("Helper", "Helper", ChatColor.GREEN + "[HELPER]", ChatColor.GREEN, ChatColor.WHITE, true),
-	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[MOD]", ChatColor.GREEN, ChatColor.WHITE, true),
+	HELPER("Helper", "Helper", ChatColor.DARK_GREEN + "[HELPER]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
+	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[MOD]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
 	COMMUNITY_MANAGER("Community Manager", "Community Mgr", ChatColor.DARK_GREEN + "[CM]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
 	
 	NEW_GM("New GM", "New GM", ChatColor.GOLD + "[NEW GM]", ChatColor.GOLD, ChatColor.WHITE, true), 
@@ -60,7 +60,7 @@ public enum Rank {
 	Rank(String rankName, String shortName, String chatPrefix, ChatColor nameColor, ChatColor chatColor, boolean staff) {
 		this.rankName = rankName;
 		this.shortName = shortName;
-		this.chatPrefix = chatPrefix;
+		this.chatPrefix = (ChatColor.BLACK + "").repeat(this.ordinal()) + chatPrefix; // Will this ensure correct ordering???
 		this.nameColor = nameColor;
 		this.chatColor = chatColor;
 		this.staff = staff;

@@ -392,7 +392,7 @@ public class NPC extends GameObject {
 	}
 
 	public void regenerate(Location spawn) {
-		LOGGER.trace("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
+		LOGGER.debug("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
 		if (entity != null) {
 			entity.remove();
 		}

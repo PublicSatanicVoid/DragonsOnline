@@ -40,6 +40,7 @@ import mc.dragons.core.util.dataholder.ReusableDataMap;
  */
 public class SpawnEntityTask extends BukkitRunnable {
 	private final double SPAWN_RADIUS = 15.0D;
+	private final int MAX_SPAWN_TRIES = 5;
 	
 //	private DragonsLogger LOGGER;
 
@@ -143,7 +144,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 			
 			Location center = user.getPlayer().getLocation();
 			
-			await(() -> { return getSpawnRates(data, center, user.getLevel()); }, spawnRates -> {
+			await(() -> getSpawnRates(data, center, user.getLevel()), spawnRates -> {
 				
 				/* SYNC */
 				
@@ -187,14 +188,21 @@ public class SpawnEntityTask extends BukkitRunnable {
 					for (Entry<String, Double> spawnRate : spawnRates.entrySet()) {
 						boolean spawn = Math.random() <= spawnRate.getValue() / Math.sqrt(priority) * 100.0D;
 						if (spawn) {
-							double xOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);
-							double zOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);
-							double yOffset = 0.0D;
-							Location loc = user.getPlayer().getLocation().add(xOffset, yOffset, zOffset);
-							loc = BlockUtil.getClosestAirXZ(loc).add(0.0D, 1.0D, 0.0D);
-							
-							// Schedule for spawning
-							spawns.put(loc, spawnRate.getKey());
+							int tries = 0;
+							while(tries < MAX_SPAWN_TRIES) {
+								double xOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);
+								double zOffset = Math.signum(Math.random() - 0.5D) * (5.0D + Math.random() * SPAWN_RADIUS);
+								double yOffset = 0.0D;
+								Location loc = user.getPlayer().getLocation().add(xOffset, yOffset, zOffset);
+								loc = BlockUtil.getClosestAirXZ(loc); //.add(0.0D, 1.0D, 0.0D);
+								if(loc.getBlock().getType().isSolid()) {
+									tries++;
+									continue;
+								}
+								// Schedule for spawning
+								spawns.put(loc, spawnRate.getKey());
+								break;
+							}
 						}
 						modifiedEntityCount++;
 						modifiedEntityRadiusCount++;

@@ -52,7 +52,15 @@ public class PacketSpoof extends Check {
 		
 		double dy = delta.getY();
 		
-		if(player.isOnGround() && isActuallyOnGround && dy < 0.0) {
+		if(player.isOnGround() && !isActuallyOnGround && dy < 0.0) {
+
+			if(violationData.vl > VL_THRESHOLD) {
+				if(plugin.isDebug()) {
+					plugin.debug(player, "PacketSpoof | Lagback (NoFall, " + violationData.vl + "vl)");
+				}
+				MoveData.of(user).rubberband();
+			}
+			
 			violationData.raiseVl(VL_THRESHOLD, () -> new Document("dy", dy));
 			return false;
 		}
