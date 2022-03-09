@@ -56,7 +56,7 @@ log-format:
 
 # Settings related to in-game functionality.
 game:
-  # Use %SERVER% as a placeholder for the player's current server.
+  # Use %SERVER% as a placeholder for the player's current server, and %PING% for the player's current ping, in ms.
   tablist:
     header: '&8- &5&lDragons &f&lOnline &8-'
-    footer: '&7You are currently connected to %SERVER%'
+    footer: '&7You are currently connected to %SERVER% (ping: %PING%ms)'

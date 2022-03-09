@@ -287,6 +287,10 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return collection.updateMany(query, new Document("$set", new Document("status", ReportStatus.NO_ACTION.toString()))).getModifiedCount();
 	}
 	
+	public long skipReports(Document query) {
+		return collection.updateMany(query, new Document("$set", new Document("status", ReportStatus.SUSPENDED.toString()))).getModifiedCount();
+	}
+	
 	private List<String> getStateTokens(List<User> users) {
 		return users.stream().filter(u -> u.getPlayer() != null).map(u -> u.getState().toString()).collect(Collectors.toList());
 	}

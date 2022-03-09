@@ -40,7 +40,7 @@ public class ViolationData {
 	}
 	
 	public void raiseVl(double reportThreshold, Supplier<Document> data) {
-		user.debug("AC: Raise VL on " + check.getName());
+//		user.debug("AC: Raise VL on " + check.getName());
 		vl++;
 		if(vl > reportThreshold && System.currentTimeMillis() - lastReported > REPORT_SPAM_THRESHOLD_MS) {
 			lastReported = System.currentTimeMillis();

@@ -288,6 +288,10 @@ public class RegionCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "Flag " + args[2] + " has value " + value.toString());
 			}
 		}
+		else if(args[3].equalsIgnoreCase("REMOVE")) {
+			// TODO KJASHD KJLSAYHDLUKJHSAHDJASHLIDUKSAJHDSBAKIULJD<YHGASB DXCKUSAYHJnd
+			// Jd))
+		}
 		else {
 			Document base = Document.parse(region.getData().toJson());
 			String value = StringUtil.concatArgs(args, 3);

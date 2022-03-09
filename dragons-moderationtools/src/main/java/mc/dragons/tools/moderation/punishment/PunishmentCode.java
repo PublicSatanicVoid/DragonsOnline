@@ -46,6 +46,8 @@ public enum PunishmentCode {
 	AC_BAN("ACB", "Anticheat Ban", "Cheating through the use of blacklisted client modifications [DAC]", StandingLevelType.BAN, PermissionLevel.ADMIN, 4, true),
 	STAFF_ABUSE("SA", "Staff Abuse", "Abuse of staff privileges", StandingLevelType.BAN, PermissionLevel.ADMIN, 10, false),
 	BAD_DEV("BD", "Bad Developer", "You are a terrible developer", StandingLevelType.BAN, PermissionLevel.ADMIN, 1, true), // This is a self-own
+	
+	/* Other */
 	GENERIC_MUTE("GM", "Generic Mute", "Muted", StandingLevelType.MUTE, PermissionLevel.ADMIN, 10, true),
 	GENERIC_BAN("GB", "Generic Ban", "Banned", StandingLevelType.BAN, PermissionLevel.ADMIN, 10, true),
 	SUSPEND("SUS", "Suspended", "Your account has been suspended", StandingLevelType.BAN, SystemProfileFlag.MODERATION, 10, false);

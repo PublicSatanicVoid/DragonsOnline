@@ -17,4 +17,9 @@ commands:
   acresetplayer:
   acstatus:
   actoggle:
-  pps:
+  acping:
+  acspoofping:
+  acraytol:
+  acpps:
+  achitstats:
+  acresethitstats:

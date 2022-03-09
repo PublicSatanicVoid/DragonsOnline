@@ -249,4 +249,20 @@ public class NPCClass extends GameObject {
 		attributes.remove(attribute.toString());
 		storageAccess.update(new Document("attributes", attributes));
 	}
+	
+	public String getSkinTexture() {
+		return (String) getData("skinTexture");
+	}
+	
+	public void setSkinTexture(String texture) {
+		setData("skinTexture", texture);
+	}
+	
+	public String getSkinSignature() {
+		return (String) getData("skinSignature");
+	}
+	
+	public void setSkinSignature(String signature) {
+		setData("skinSignature", signature);
+	}
 }

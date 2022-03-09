@@ -1,5 +1,6 @@
 package mc.dragons.tools.moderation.report;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -76,6 +77,14 @@ public class ReportAdminCommands extends DragonsCommandExecutor {
 			else {
 				sender.sendMessage(ChatColor.RED + "Invalid parameters! /bulkdeletereports");
 			}
+		}
+		
+		else if(label.equalsIgnoreCase("skipallreports")) {
+			if(!requirePermission(sender, SystemProfileFlag.MODERATION)) return true;
+			long n = reportLoader.skipReports(new Document("status", ReportStatus.OPEN.toString()));
+			sender.sendMessage(ChatColor.GREEN + "Skipped " + n + " open reports. Moderation queue is cleared");
+			dragons.getStaffAlertHandler().sendGenericMessage(PermissionLevel.HELPER, 
+				ChatColor.RED + "The moderation queue was cleared by an administrator. All outstanding reports are marked as skipped.");
 		}
 		
 		return true;

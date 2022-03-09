@@ -33,7 +33,7 @@ public class TestCompanionCommand extends DragonsCommandExecutor {
 		}
 		
 		if(args[0].equalsIgnoreCase("create")) {
-			NPC companion = GameObjectType.getLoader(NPCLoader.class).registerNew(player.getWorld(), player.getLocation(), args[1]);
+			NPC companion = GameObjectType.getLoader(NPCLoader.class).registerNew(player.getLocation(), args[1]);
 			companion.getStorageAccess().set("companionOwner", user.getUUID());
 			user.getStorageAccess().set("companion", companion.getUUID());
 			return true;

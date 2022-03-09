@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="project">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="modelVersion" type="xs:string" />
+        <xs:element name="groupId" type="xs:string" />
+        <xs:element name="artifactId" type="xs:string" />
+        <xs:element name="version" type="xs:string" />
+        <xs:element name="packaging" type="xs:string" />
+        <xs:element name="name" type="xs:string" />
+        <xs:element name="description" type="xs:string" />
+        <xs:element name="url" type="xs:string" />
+        <xs:element name="properties">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="project.build.sourceEncoding" type="xs:string" />
+              <xs:element name="maven.compiler.source" type="xs:string" />
+              <xs:element name="maven.compiler.target" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="build">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="plugins">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="plugin">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="groupId" type="xs:string" />
+                          <xs:element name="artifactId" type="xs:string" />
+                          <xs:element name="version" type="xs:string" />
+                          <xs:element name="configuration" />
+                          <xs:element name="executions">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="execution">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="phase" type="xs:string" />
+                                      <xs:element name="goals">
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element name="goal" type="xs:string" />
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="repositories">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="repository" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="id" type="xs:string" />
+                    <xs:element name="url" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="dependencies">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="dependency" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="groupId" type="xs:string" />
+                    <xs:element name="artifactId" type="xs:string" />
+                    <xs:element name="version" type="xs:string" />
+                    <xs:element name="scope" type="xs:string" />
+                    <xs:element name="type" minOccurs="0" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

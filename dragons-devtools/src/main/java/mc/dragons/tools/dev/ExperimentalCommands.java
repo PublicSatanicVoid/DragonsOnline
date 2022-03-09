@@ -20,16 +20,23 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Slime;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
+
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
@@ -54,24 +61,35 @@ import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.minecraft.server.v1_16_R3.DataWatcher;
+import net.minecraft.server.v1_16_R3.EntityPlayer;
+import net.minecraft.server.v1_16_R3.EnumProtocolDirection;
+import net.minecraft.server.v1_16_R3.NetworkManager;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntityHeadRotation;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_16_R3.PacketPlayOutNamedEntitySpawn;
+import net.minecraft.server.v1_16_R3.PacketPlayOutPlayerInfo;
+import net.minecraft.server.v1_16_R3.PlayerConnection;
+import net.minecraft.server.v1_16_R3.PlayerInteractManager;
 
 public class ExperimentalCommands extends DragonsCommandExecutor {
-	
+
 	private MessageHandler debugHandler = new MessageHandler(Dragons.getInstance(), "debug") {
 		@Override
 		public void receive(String from, Document data) {
 			Bukkit.getLogger().info("DEBUG MESSAGE RECEIVED FROM " + from + ": " + data.toJson());
 		}
 	};
-	
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
-		
+		if (!requirePermission(sender, SystemProfileFlag.DEVELOPMENT))
+			return true;
+
 		Player player = player(sender);
 		User user = user(sender);
-		
-		if(label.equalsIgnoreCase("testmineregen")) {
+
+		if (label.equalsIgnoreCase("testmineregen")) {
 			int minutesPerSecond = Integer.valueOf(args[0]);
 			int radius = Integer.valueOf(args[1]);
 			double alpha = Double.valueOf(args[2]);
@@ -79,39 +97,45 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			final Player fPlayer = player;
 			final Location center = player.getLocation();
 			int maxIterations = Integer.valueOf(args[4]);
-			Bukkit.broadcastMessage("==Beginning simulation of mining regen. SimulatedMinutesPerSecond=" + minutesPerSecond + ", Radius=" + radius + ", Alpha=" + alpha + ", Beta=" + beta + ", MaxIterations=" + maxIterations);
+			Bukkit.broadcastMessage("==Beginning simulation of mining regen. SimulatedMinutesPerSecond="
+					+ minutesPerSecond + ", Radius=" + radius + ", Alpha=" + alpha + ", Beta=" + beta
+					+ ", MaxIterations=" + maxIterations);
 			new BukkitRunnable() {
 				private int iterations = 0;
-				
-				@Override public void run() {
-					int players = (int) fPlayer.getNearbyEntities(radius, radius, radius).stream().filter(e -> e.getType() == EntityType.PLAYER).count();
+
+				@Override
+				public void run() {
+					int players = (int) fPlayer.getNearbyEntities(radius, radius, radius).stream()
+							.filter(e -> e.getType() == EntityType.PLAYER).count();
 					int mined = 0;
 					int cX = center.getBlockX();
 					int cY = center.getBlockY();
 					int cZ = center.getBlockZ();
-					for(int x = cX - radius; x <= cX + radius; x++) {
-						for(int y  = cY - radius; y <= cY + radius; y++) {
-							for(int z = cZ - radius; z <= cZ + radius; z++) {
+					for (int x = cX - radius; x <= cX + radius; x++) {
+						for (int y = cY - radius; y <= cY + radius; y++) {
+							for (int z = cZ - radius; z <= cZ + radius; z++) {
 								Block block = center.getWorld().getBlockAt(x, y, z);
-								if(block.getType() == Material.AIR) {
+								if (block.getType() == Material.AIR) {
 									mined++;
 								}
 							}
 						}
 					}
-					if(mined == 0) {
-						Bukkit.broadcastMessage("==No blocks left to regenerate, ending simulation (" + iterations + " iterations)==");
+					if (mined == 0) {
+						Bukkit.broadcastMessage(
+								"==No blocks left to regenerate, ending simulation (" + iterations + " iterations)==");
 						this.cancel();
 						return;
 					}
-					int regen = (int) Math.ceil(mined *  (alpha + beta * players));
-					Bukkit.broadcastMessage("Regenerating " + regen + " blocks (players=" + players + ", mined=" + mined + ")");
+					int regen = (int) Math.ceil(mined * (alpha + beta * players));
+					Bukkit.broadcastMessage(
+							"Regenerating " + regen + " blocks (players=" + players + ", mined=" + mined + ")");
 					int done = 0;
-					for(int x = cX - radius; x <= cX + radius; x++) {
-						for(int y  = cY - radius; y <= cY + radius; y++) {
-							for(int z = cZ - radius; z <= cZ + radius; z++) {
+					for (int x = cX - radius; x <= cX + radius; x++) {
+						for (int y = cY - radius; y <= cY + radius; y++) {
+							for (int z = cZ - radius; z <= cZ + radius; z++) {
 								Block block = center.getWorld().getBlockAt(x, y, z);
-								if(block.getType() == Material.AIR && done < regen) {
+								if (block.getType() == Material.AIR && done < regen) {
 									done++;
 									block.setType(Material.GOLD_BLOCK);
 								}
@@ -119,42 +143,42 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 						}
 					}
 					iterations++;
-					if(iterations >= maxIterations) {
+					if (iterations >= maxIterations) {
 						Bukkit.broadcastMessage("==Completed simulation==");
 						this.cancel();
 					}
 				}
 			}.runTaskTimer(Dragons.getInstance(), 20L, 20L / minutesPerSecond);
 		}
-		
-		else if(label.equalsIgnoreCase("testpermission")) {
-			if(player.hasPermission(args[0])) {
+
+		else if (label.equalsIgnoreCase("testpermission")) {
+			if (player.hasPermission(args[0])) {
 				sender.sendMessage("Yes you have it");
-			}
-			else {
+			} else {
 				sender.sendMessage("No you don't have it");
 			}
 		}
-		
-		
-		else if(label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
+
+		else if (label.equalsIgnoreCase("helditemdata") || label.equalsIgnoreCase("whatamiholding")) {
 			ItemStack itemStack = player.getInventory().getItemInMainHand();
 			sender.sendMessage("pdc=" + itemStack.getItemMeta().getPersistentDataContainer());
-			sender.sendMessage("uuid=" + itemStack.getItemMeta().getPersistentDataContainer().get(Item.ITEM_UUID_KEY, PersistentDataType.STRING));
+			sender.sendMessage("uuid=" + itemStack.getItemMeta().getPersistentDataContainer().get(Item.ITEM_UUID_KEY,
+					PersistentDataType.STRING));
 			sender.sendMessage("bukkit amt=" + itemStack.getAmount());
 			Item item = ItemLoader.fromBukkit(itemStack);
 			sender.sendMessage("item=" + item);
-			if(item != null) {
+			if (item != null) {
 				sender.sendMessage("db amt=" + item.getQuantity());
 				sender.sendMessage("item class=" + item.getClassName());
 				sender.sendMessage("item data=" + item.getData().toJson());
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testlocaluserstorage")) {
+
+		else if (label.equalsIgnoreCase("testlocaluserstorage")) {
 			sender.sendMessage(ChatColor.YELLOW + "METHOD ONE (Full object scan):");
 			int n_fullscan = 0;
-			for(GameObject gameObject : Dragons.getInstance().getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER)) {
+			for (GameObject gameObject : Dragons.getInstance().getGameObjectRegistry()
+					.getRegisteredObjects(GameObjectType.USER)) {
 				User u = (User) gameObject;
 				sender.sendMessage("- User: " + u);
 				sender.sendMessage("    - name=" + u.getName());
@@ -163,112 +187,122 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			}
 			int n_cached = 0;
 			sender.sendMessage(ChatColor.YELLOW + "METHOD TWO (UserLoader cache):");
-			for(User test : UserLoader.allUsers()) {
+			for (User test : UserLoader.allUsers()) {
 				sender.sendMessage("- User: " + test);
 				sender.sendMessage("    - name=" + test.getName());
 				sender.sendMessage("    - player=" + test.getPlayer());
 				n_cached++;
 			}
-			if(n_fullscan != n_cached) {
-				sender.sendMessage(ChatColor.RED + "WARNING: Different methods gave different results (fullscan=" + n_fullscan + " vs cached=" + n_cached + ")");
+			if (n_fullscan != n_cached) {
+				sender.sendMessage(ChatColor.RED + "WARNING: Different methods gave different results (fullscan="
+						+ n_fullscan + " vs cached=" + n_cached + ")");
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testgui")) {
+
+		else if (label.equalsIgnoreCase("testgui")) {
 			GUI gui = new GUI(3, "Test GUI")
-					.add(new GUIElement(11, Material.COBBLESTONE, "I matter!", "Multi-line\nlore\n\nis cool", 2, u -> u.debug("Clicked the cobble")))
+					.add(new GUIElement(11, Material.COBBLESTONE, "I matter!", "Multi-line\nlore\n\nis cool", 2,
+							u -> u.debug("Clicked the cobble")))
 					.add(new GUIElement(13, Material.APPLE, "iApple", "", 5, u -> u.debug("Clicked da appel")))
-					.add(itemClassLoader.getItemClassByClassName("GMSword").getAsGuiElement(15, 3, 1999.99, false, u -> u.debug("Purchasing GM Sword!!!")));
+					.add(itemClassLoader.getItemClassByClassName("GMSword").getAsGuiElement(15, 3, 1999.99, false,
+							u -> u.debug("Purchasing GM Sword!!!")));
 			gui.open(user);
 		}
-		
-		else if(label.equalsIgnoreCase("testhdfont")) {
+
+		else if (label.equalsIgnoreCase("testhdfont")) {
 			player.sendMessage(StringUtil.toHdFont(StringUtil.concatArgs(args, 0)));
 		}
-		
-		else if(label.equalsIgnoreCase("rawtext")) {
+
+		else if (label.equalsIgnoreCase("rawtext")) {
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 0)));
 		}
-		
-		else if(label.equalsIgnoreCase("testtabname")) {
-			lookupPlayer(sender, args[0]).setPlayerListName(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 1)));
+
+		else if (label.equalsIgnoreCase("testtabname")) {
+			lookupPlayer(sender, args[0])
+					.setPlayerListName(ChatColor.translateAlternateColorCodes('&', StringUtil.concatArgs(args, 1)));
 		}
-		
-		else if(label.equalsIgnoreCase("whoami")) {
-			sender.sendMessage("Player="+player);
-			sender.sendMessage("User="+user);
-			for(User test : UserLoader.allUsers()) {
-				if(user.getIdentifier().equals(test.getIdentifier()) && !test.equals(user)) {
+
+		else if (label.equalsIgnoreCase("whoami")) {
+			sender.sendMessage("Player=" + player);
+			sender.sendMessage("User=" + user);
+			for (User test : UserLoader.allUsers()) {
+				if (user.getIdentifier().equals(test.getIdentifier()) && !test.equals(user)) {
 					sender.sendMessage("-Also user " + test + " => " + test.getPlayer());
 				}
 			}
-			sender.sendMessage("StorageAccess="+(user==null?"null":user.getStorageAccess()));
+			sender.sendMessage("StorageAccess=" + (user == null ? "null" : user.getStorageAccess()));
 		}
-		
-		else if(label.equalsIgnoreCase("testpathfinding")) {
-			Location spawnLoc = player.getLocation().add(player.getLocation().getDirection().clone().setY(0).normalize().multiply(10.0));
-			LivingEntity e = (LivingEntity) Bukkit.getWorld("undead_forest").spawnEntity(spawnLoc,
-					EntityType.VILLAGER);
+
+		else if (label.equalsIgnoreCase("testpathfinding")) {
+			Location spawnLoc = player.getLocation()
+					.add(player.getLocation().getDirection().clone().setY(0).normalize().multiply(10.0));
+			LivingEntity e = (LivingEntity) Bukkit.getWorld("undead_forest").spawnEntity(spawnLoc, EntityType.VILLAGER);
 			Dragons.getInstance().getBridge().setEntityAI(e, false);
-			PathfindingUtil.walkToLocation(e, player.getLocation(), 0.2, unused -> {});
+			PathfindingUtil.walkToLocation(e, player.getLocation(), 0.2, unused -> {
+			});
 		}
-		
-		else if(label.equalsIgnoreCase("testphasing")) {
+
+		else if (label.equalsIgnoreCase("testphasing")) {
 			Entity entity = player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(args[0]));
-			if(entity instanceof ArmorStand) {
+			if (entity instanceof ArmorStand) {
 				((ArmorStand) entity).setCustomName("Test test test");
 				((ArmorStand) entity).setCustomNameVisible(true);
 			}
 			Dragons.getInstance().getEntityHider().hideEntity(player, entity);
 		}
-		
-		else if(label.equalsIgnoreCase("testtpsrecord")) {
+
+		else if (label.equalsIgnoreCase("testtpsrecord")) {
 			List<Double> record = Dragons.getInstance().getTPSRecord();
 			int back = Integer.valueOf(args[0]);
 			sender.sendMessage(record.size() + " records");
 			sender.sendMessage("starting from " + back + " records back");
-			for(int i = record.size() - 1 - back; i < record.size(); i++) {
+			for (int i = record.size() - 1 - back; i < record.size(); i++) {
 				sender.sendMessage("#" + i + " = " + record.get(i) + " (" + (record.size() - 1 - i) + " frames back)");
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("stresstest")) {
+
+		else if (label.equalsIgnoreCase("stresstest")) {
 			int n = Integer.valueOf(args[0]);
-			World world = player.getWorld();
 			Location loc = player.getLocation();
-			for(int i = 0; i < n; i++) {
-				npcLoader.registerNew(world.spawnEntity(loc, EntityType.ZOMBIE), "F2-UndeadZombie");
+			for (int i = 0; i < n; i++) {
+				npcLoader.registerNew(loc, "F2-UndeadZombie");
 			}
 			player.sendMessage(ChatColor.GREEN + "Spawned " + n + " undead zombies at your location.");
 		}
-		
-		else if(label.equalsIgnoreCase("killmobs")) {
+
+		else if (label.equalsIgnoreCase("killmobs")) {
 			int n = 0;
-			for(Entity e : player.getWorld().getEntities()) {
+			for (Entity e : player.getWorld().getEntities()) {
 				NPC npc = NPCLoader.fromBukkit(e);
-				if(npc == null) continue;
-				if(npc.getNPCType().isPersistent()) continue;
+				if (npc == null)
+					continue;
+				if (npc.getNPCType().isPersistent())
+					continue;
 				npc.remove();
 				n++;
 			}
 			player.sendMessage(ChatColor.GREEN + "Killed " + n + " non-persistent mobs.");
 		}
-		
-		else if(label.equalsIgnoreCase("testarmorstandpose")) {
-			ArmorStand armorStand = (ArmorStand) player.getWorld().spawnEntity(player.getLocation(), EntityType.ARMOR_STAND);
-			armorStand.setLeftLegPose(new EulerAngle(Double.valueOf(args[0]), Double.valueOf(args[1]), Double.valueOf(args[2])));
-			armorStand.setRightLegPose(new EulerAngle(Double.valueOf(args[3]), Double.valueOf(args[4]), Double.valueOf(args[5])));
+
+		else if (label.equalsIgnoreCase("testarmorstandpose")) {
+			ArmorStand armorStand = (ArmorStand) player.getWorld().spawnEntity(player.getLocation(),
+					EntityType.ARMOR_STAND);
+			armorStand.setLeftLegPose(
+					new EulerAngle(Double.valueOf(args[0]), Double.valueOf(args[1]), Double.valueOf(args[2])));
+			armorStand.setRightLegPose(
+					new EulerAngle(Double.valueOf(args[3]), Double.valueOf(args[4]), Double.valueOf(args[5])));
 		}
-		
-		else if(label.equalsIgnoreCase("testlogging")) {
-			for(Level level : new Level[] { Level.OFF, Level.SEVERE, Level.WARNING, Level.INFO, Level.CONFIG, Level.FINE, Level.FINER, Level.FINEST, Level.ALL }) {
+
+		else if (label.equalsIgnoreCase("testlogging")) {
+			for (Level level : new Level[] { Level.OFF, Level.SEVERE, Level.WARNING, Level.INFO, Level.CONFIG,
+					Level.FINE, Level.FINER, Level.FINEST, Level.ALL }) {
 				Dragons.getInstance().getLogger().log(level, "Testing log message on level " + level);
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testleveling")) {
+
+		else if (label.equalsIgnoreCase("testleveling")) {
 			player.sendMessage("level=" + user.getLevel());
-			player.sendMessage("xp="+user.getXP());
+			player.sendMessage("xp=" + user.getXP());
 			int prevMax = User.calculateMaxXP(user.getLevel());
 			player.sendMessage("prevMax=" + prevMax);
 			int nextMax = User.calculateMaxXP(user.getLevel() + 1);
@@ -277,131 +311,135 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			int d = nextMax - prevMax;
 			player.sendMessage("numerator=" + n);
 			player.sendMessage("denominator=" + d);
-			player.sendMessage("progress=" + ((float)n / d));
-			player.sendMessage("progress=" + ((double)n / d));
+			player.sendMessage("progress=" + ((float) n / d));
+			player.sendMessage("progress=" + ((double) n / d));
 			player.sendMessage("progress=" + user.getLevelProgress());
 		}
-		
-		else if(label.equalsIgnoreCase("testexceptions")) {
+
+		else if (label.equalsIgnoreCase("testexceptions")) {
 			sender.sendMessage("Throwing an NPE");
-			((User)null).autoSave(); // Throws an NPE
+			((User) null).autoSave(); // Throws an NPE
 		}
-		
-		else if(label.equalsIgnoreCase("testuuidlookup")) {
+
+		else if (label.equalsIgnoreCase("testuuidlookup")) {
 			UserLoader.uuidFromUsername(args[0], uuid -> {
 				sender.sendMessage("UUID of " + args[0] + " is " + uuid);
 			});
 		}
-		
-		else if(label.equalsIgnoreCase("testcorrelationlogging")) {
-			CorrelationLogger loader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(CorrelationLogger.class);
+
+		else if (label.equalsIgnoreCase("testcorrelationlogging")) {
+			CorrelationLogger loader = Dragons.getInstance().getLightweightLoaderRegistry()
+					.getLoader(CorrelationLogger.class);
 			UUID id = loader.registerNewCorrelationID();
 			loader.log(id, Level.INFO, "hewwo uwu");
 			loader.log(id, Level.SEVERE, "ouch");
 			sender.sendMessage("correlation id=" + id);
 		}
-		
-		else if(label.equalsIgnoreCase("testbase64encoding")) {
+
+		else if (label.equalsIgnoreCase("testbase64encoding")) {
 			String encoded = Base64.getEncoder().encodeToString(StringUtil.concatArgs(args, 0).getBytes());
 			sender.sendMessage("encoded: " + encoded);
 			String decoded = new String(Base64.getDecoder().decode(encoded));
 			sender.sendMessage("decoded: " + decoded);
 		}
-		
-		else if(label.equalsIgnoreCase("testnetworkmessage")) {
+
+		else if (label.equalsIgnoreCase("testnetworkmessage")) {
 			debugHandler.send(new Document("payload", new Document("babey", "babey")), args[0]);
 		}
-		
-		else if(label.equalsIgnoreCase("testdocumentdelta")) {
+
+		else if (label.equalsIgnoreCase("testdocumentdelta")) {
 			Document a = new Document("a", 1).append("b", 2).append("c", new Document("x", 3).append("y", 4));
-			Document b = new Document("a", 2).append("b", 2).append("d", 3).append("c", new Document("x", 3).append("y", 2));
+			Document b = new Document("a", 2).append("b", 2).append("d", 3).append("c",
+					new Document("x", 3).append("y", 2));
 			Document delta = StorageUtil.getDelta(a, b);
 			Document result = StorageUtil.applyDelta(b, delta);
-			
+
 			sender.sendMessage("a=" + a.toJson());
 			sender.sendMessage("b=" + b.toJson());
 			sender.sendMessage("delta=" + delta.toJson());
 			sender.sendMessage("result=" + result.toJson());
 		}
-		
-		else if(label.equalsIgnoreCase("testnewfonts")) {
+
+		else if (label.equalsIgnoreCase("testnewfonts")) {
 			String[] fonts = { "minecraft:default", "minecraft:uniform", "minecraft:alt" };
 			String text = StringUtil.concatArgs(args, 0);
-			for(String font : fonts) {
+			for (String font : fonts) {
 				TextComponent tc = new TextComponent(text);
 				tc.setFont(font);
 				sender.spigot().sendMessage(new TextComponent(font + " "), tc);
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testuserlookup")) {
+
+		else if (label.equalsIgnoreCase("testuserlookup")) {
 			User target = lookupUser(sender, args[0]);
-			if(target == null) {
+			if (target == null) {
 				sender.sendMessage("Not found");
-			}
-			else {
+			} else {
 				sender.sendMessage("User is " + target);
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("writelog")) {
-			Level level = this.lookup(sender, () -> Level.parse(args[0].toUpperCase()), ChatColor.RED + "Invalid log level! /writelog <level> <message>");
+
+		else if (label.equalsIgnoreCase("writelog")) {
+			Level level = this.lookup(sender, () -> Level.parse(args[0].toUpperCase()),
+					ChatColor.RED + "Invalid log level! /writelog <level> <message>");
 			String message = StringUtil.concatArgs(args, 1);
-			if(level == null || message == null) return true;
+			if (level == null || message == null)
+				return true;
 			dragons.getLogger().log(level, message);
 			sender.sendMessage("Log entry written successfully");
 		}
-		
-		else if(label.equalsIgnoreCase("testheader")) {
+
+		else if (label.equalsIgnoreCase("testheader")) {
 			player.setPlayerListHeader(user.tablistText(StringUtil.concatArgs(args, 0)));
 		}
 
-		else if(label.equalsIgnoreCase("testfooter")) {
+		else if (label.equalsIgnoreCase("testfooter")) {
 			player.setPlayerListFooter(user.tablistText(StringUtil.concatArgs(args, 0)));
 		}
-		
-		else if(label.equalsIgnoreCase("testinvisibleslimes")) {
+
+		else if (label.equalsIgnoreCase("testinvisibleslimes")) {
 			boolean allOK = true;
-			for(Entity entity : player.getWorld().getEntities()) {
-				if(entity instanceof Slime) {
+			for (Entity entity : player.getWorld().getEntities()) {
+				if (entity instanceof Slime) {
 					Slime slime = (Slime) entity;
-					if(!slime.isInvisible()) {
-						sender.sendMessage(ChatColor.RED + "SLIME #" + slime.getEntityId() + " is NOT invisible (" + StringUtil.locToString(slime.getLocation()) + ")");
+					if (!slime.isInvisible()) {
+						sender.sendMessage(ChatColor.RED + "SLIME #" + slime.getEntityId() + " is NOT invisible ("
+								+ StringUtil.locToString(slime.getLocation()) + ")");
 						allOK = false;
-					}
-					else {
-						sender.sendMessage(ChatColor.GREEN + "SLIME #" + slime.getEntityId() + " IS invisible (" + StringUtil.locToString(slime.getLocation()) + ")");
+					} else {
+						sender.sendMessage(ChatColor.GREEN + "SLIME #" + slime.getEntityId() + " IS invisible ("
+								+ StringUtil.locToString(slime.getLocation()) + ")");
 					}
 				}
 			}
-			if(!allOK) {
+			if (!allOK) {
 				sender.sendMessage(ChatColor.RED + "-- One or more slimes in this world are visible --");
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testrevealslimes")) {
-			for(Entity entity : player.getWorld().getEntities()) {
-				if(entity instanceof Slime) {
+
+		else if (label.equalsIgnoreCase("testrevealslimes")) {
+			for (Entity entity : player.getWorld().getEntities()) {
+				if (entity instanceof Slime) {
 					Slime slime = (Slime) entity;
 					slime.setInvisible(false);
 					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
 				}
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testhideslimes")) {
-			for(Entity entity : player.getWorld().getEntities()) {
-				if(entity instanceof Slime) {
+
+		else if (label.equalsIgnoreCase("testhideslimes")) {
+			for (Entity entity : player.getWorld().getEntities()) {
+				if (entity instanceof Slime) {
 					Slime slime = (Slime) entity;
 					slime.setInvisible(true);
 					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
 				}
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testdestroyslimes")) {
-			for(Entity entity : player.getWorld().getEntities()) {
-				if(entity instanceof Slime) {
+
+		else if (label.equalsIgnoreCase("testdestroyslimes")) {
+			for (Entity entity : player.getWorld().getEntities()) {
+				if (entity instanceof Slime) {
 					Slime slime = (Slime) entity;
 					player.spawnParticle(Particle.DRIP_LAVA, slime.getLocation(), 10);
 					HologramUtil.unclickableifySlime(slime);
@@ -409,21 +447,23 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 				}
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("testbadslimes")) {
+
+		else if (label.equalsIgnoreCase("testbadslimes")) {
 			int total = 0;
-			for(World world : Bukkit.getWorlds()) {
+			for (World world : Bukkit.getWorlds()) {
 				total += world.getEntitiesByClass(Slime.class).size();
-				for(Slime slime : world.getEntitiesByClass(Slime.class)) {
-					Dragons.getInstance().getLogger().severe("BAD SLIME YOU SUCK: " + StringUtil.entityToString(slime) + " - allow:" + slime.hasMetadata("allow")
-						+ " - nRClickHandlers:" + PlayerEventListeners.getRightClickHandlers(slime) + " - ClickySlime:" + slime.hasMetadata(HologramUtil.KEY_CLICKABLE_SLIME)
-						);
+				for (Slime slime : world.getEntitiesByClass(Slime.class)) {
+					Dragons.getInstance().getLogger()
+							.severe("BAD SLIME YOU SUCK: " + StringUtil.entityToString(slime) + " - allow:"
+									+ slime.hasMetadata("allow") + " - nRClickHandlers:"
+									+ PlayerEventListeners.getRightClickHandlers(slime) + " - ClickySlime:"
+									+ slime.hasMetadata(HologramUtil.KEY_CLICKABLE_SLIME));
 				}
 			}
 			Dragons.getInstance().getLogger().debug("THERE ARE " + total + " SLIMES");
 		}
-		
-		else if(label.equalsIgnoreCase("mockuser")) {
+
+		else if (label.equalsIgnoreCase("mockuser")) {
 			Document data = Document.parse(user(sender).getData().toJson());
 			data.append("_id", UUID.randomUUID());
 			data.append("username", args[0]);
@@ -432,74 +472,84 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			dragons.getMongoConfig().getDatabase().getCollection("gameobjects").insertOne(data);
 			sender.sendMessage("UUID: " + data.get("_id", UUID.class));
 		}
-		
-		else if(label.equalsIgnoreCase("mocksudo")) {
-			Document data = dragons.getMongoConfig().getDatabase().getCollection("gameobjects").find(new Document("username", args[0])).first();
-			if(data.getBoolean("mock", false)) {
-				dragons.getRemoteAdminHandler().sendRemoteSudo(data.getString("currentServer"), data.get("_id", UUID.class), StringUtil.concatArgs(args, 1));
+
+		else if (label.equalsIgnoreCase("mocksudo")) {
+			Document data = dragons.getMongoConfig().getDatabase().getCollection("gameobjects")
+					.find(new Document("username", args[0])).first();
+			if (data.getBoolean("mock", false)) {
+				dragons.getRemoteAdminHandler().sendRemoteSudo(data.getString("currentServer"),
+						data.get("_id", UUID.class), StringUtil.concatArgs(args, 1));
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("mockinject")) {
+
+		else if (label.equalsIgnoreCase("mockinject")) {
 			StorageManager storageManager = dragons.getPersistentStorageManager();
-			StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER, new Document("username", args[0]));
+			StorageAccess storageAccess = storageManager.getStorageAccess(GameObjectType.USER,
+					new Document("username", args[0]));
 			MockPlayer mockPlayer = new MockPlayer(storageAccess.getIdentifier().getUUID(), args[0]);
 			MockUser mockUser = new MockUser(null, storageManager, storageAccess);
-			dragons.getGameObjectRegistry().getRegisteredObjects().removeIf(obj -> obj instanceof User && ((User) obj).getName().equalsIgnoreCase(args[0]));
+			dragons.getGameObjectRegistry().getRegisteredObjects()
+					.removeIf(obj -> obj instanceof User && ((User) obj).getName().equalsIgnoreCase(args[0]));
 			dragons.getGameObjectRegistry().getRegisteredObjects().add(mockUser);
 			UserLoader.allUsers().removeIf(u -> u.getName().equalsIgnoreCase(args[0]));
 			UserLoader.allUsers().add(mockUser);
 			UserLoader.assign(mockPlayer, mockUser);
 			mockUser.setPlayer(mockPlayer);
 			sender.sendMessage("UUID: " + mockUser.getUUID());
-			sender.sendMessage("Server: " + mockUser.getServerName() + " ?= " + storageAccess.get("currentServer", String.class));
+			sender.sendMessage(
+					"Server: " + mockUser.getServerName() + " ?= " + storageAccess.get("currentServer", String.class));
 			sender.sendMessage("Player: " + mockPlayer);
 			sender.sendMessage("CommandSender: " + mockUser.getCommandSender());
 			sender.sendMessage("CommandSender is player: " + (mockUser.getCommandSender() instanceof Player));
 			sender.sendMessage("Passes for player: " + (mockPlayer instanceof Player));
-			sender.sendMessage("Passes for user:"  + (mockUser instanceof User));
+			sender.sendMessage("Passes for user:" + (mockUser instanceof User));
 			sender.sendMessage("Player casted from sender: " + ((Player) mockUser.getCommandSender()));
 			sender.sendMessage("User lookup: " + UserLoader.fromPlayer(mockPlayer));
 			sender.sendMessage("User lookup by sender: " + UserLoader.fromPlayer((Player) mockUser.getCommandSender()));
 			sender.sendMessage("Exists in UserLoader cache: " + UserLoader.allUsers().contains(mockUser));
-			sender.sendMessage("Exists in game object registry: " + dragons.getGameObjectRegistry().getRegisteredObjects().contains(mockUser));
-			sender.sendMessage("Exists in filtered game object registry: " + dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER).contains(mockUser));
+			sender.sendMessage("Exists in game object registry: "
+					+ dragons.getGameObjectRegistry().getRegisteredObjects().contains(mockUser));
+			sender.sendMessage("Exists in filtered game object registry: "
+					+ dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER).contains(mockUser));
 		}
-		
-		else if(label.equalsIgnoreCase("mockdelete")) {
+
+		else if (label.equalsIgnoreCase("mockdelete")) {
 			User target = lookupUser(sender, args[0]);
-			if(target.getData().getBoolean("mock", false)) {
+			if (target.getData().getBoolean("mock", false)) {
 				dragons.getGameObjectRegistry().removeFromDatabase(target);
 				dragons.getGameObjectRegistry().getRegisteredObjects().remove(target);
 				UserLoader.allUsers().remove(target);
 				sender.sendMessage("Deleted mock user " + target.getName() + " and removed from primary local caches");
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("mocklist")) {
-			Set<User> mocks = dragons.getPersistentStorageManager().getAllStorageAccess(GameObjectType.USER, new Document("mock", true)).stream().map(sa -> userLoader.loadObject(sa)).collect(Collectors.toSet());
+
+		else if (label.equalsIgnoreCase("mocklist")) {
+			Set<User> mocks = dragons.getPersistentStorageManager()
+					.getAllStorageAccess(GameObjectType.USER, new Document("mock", true)).stream()
+					.map(sa -> userLoader.loadObject(sa)).collect(Collectors.toSet());
 			sender.sendMessage("USERNAME  -  UUID  -  CURRENT SERVER");
-			for(User mock : mocks) {
+			for (User mock : mocks) {
 				sender.sendMessage(mock.getName() + "  -  " + mock.getUUID() + "  -  " + mock.getServerName());
 			}
 		}
-		
-		else if(label.equalsIgnoreCase("mockserver")) {
-			StorageAccess storageAccess = dragons.getPersistentStorageManager().getStorageAccess(GameObjectType.USER, new Document("username", args[0]));
+
+		else if (label.equalsIgnoreCase("mockserver")) {
+			StorageAccess storageAccess = dragons.getPersistentStorageManager().getStorageAccess(GameObjectType.USER,
+					new Document("username", args[0]));
 			storageAccess.set("currentServer", args[1]);
 		}
-		
-		else if(label.equalsIgnoreCase("testitemstash")) {
+
+		else if (label.equalsIgnoreCase("testitemstash")) {
 			user.stashItems(questLoader.getQuestByName(args[0]), Material.valueOf(args[1]));
 			sender.sendMessage("Stash: " + user.getData().get("questStash", new Document()).toJson());
 		}
-		
-		else if(label.equalsIgnoreCase("testitemunstash")) {
+
+		else if (label.equalsIgnoreCase("testitemunstash")) {
 			user.unstashItems(questLoader.getQuestByName(args[0]), Material.valueOf(args[1]));
 			sender.sendMessage("Stash: " + user.getData().get("questStash", new Document()).toJson());
 		}
-		
-		else if(label.equalsIgnoreCase("testmobai")) {
+
+		else if (label.equalsIgnoreCase("testmobai")) {
 			boolean ai = Boolean.valueOf(args[0]);
 			boolean gravity = Boolean.valueOf(args[1]);
 			boolean collidable = Boolean.valueOf(args[2]);
@@ -508,35 +558,35 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			entity.setGravity(gravity);
 			entity.setCollidable(collidable);
 		}
-		
-		else if(label.equalsIgnoreCase("testtakeitem")) {
+
+		else if (label.equalsIgnoreCase("testtakeitem")) {
 			Item item = itemLoader.registerNew(args[0]);
 			int quantity = Integer.valueOf(args[1]);
 			user.takeItem(item, quantity, true, true, true);
 		}
-		
-		else if(label.equalsIgnoreCase("testupdateinventory")) {
+
+		else if (label.equalsIgnoreCase("testupdateinventory")) {
 			player.updateInventory();
 		}
-		
-		else if(label.equalsIgnoreCase("testnametag")) {
+
+		else if (label.equalsIgnoreCase("testnametag")) {
 			User target = lookupUser(sender, args[0]);
 			String prefix = StringUtil.colorize(args[2]);
 			String suffix = StringUtil.colorize(StringUtil.concatArgs(args, 3));
 			target.setPrimaryNameTag(ChatColor.valueOf(args[1]), prefix, suffix);
 		}
-		
-		else if(label.equalsIgnoreCase("testnametag2")) {
+
+		else if (label.equalsIgnoreCase("testnametag2")) {
 			User target = lookupUser(sender, args[0]);
 			String text = StringUtil.colorize(StringUtil.concatArgs(args, 1));
 			target.setSecondaryNameTag(text);
 		}
-		
-		else if(label.equalsIgnoreCase("testupdatenametag")) {
+
+		else if (label.equalsIgnoreCase("testupdatenametag")) {
 			user.updatePrimaryNameTag();
 		}
-		
-		else if(label.equalsIgnoreCase("testrollingasync")) {
+
+		else if (label.equalsIgnoreCase("testrollingasync")) {
 			rollingAsync(() -> {
 				String name = Thread.currentThread().getName();
 				sync(() -> {
@@ -544,14 +594,49 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 				});
 			});
 		}
-		
-		else {
-			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
+
+		else if (label.equalsIgnoreCase("testinternalnetworkedmsg")) {
+			User to = lookupUser(sender, args[0]);
+			dragons.getInternalMessageHandler().sendRawMsg(to.getServerName(), to.getUUID(),
+					StringUtil.concatArgs(args, 1));
 		}
-		
+
+		else if (label.equalsIgnoreCase("testplayernpc")) {
+//			PlayerNPC pnpc = new PlayerNPC116R3(StringUtil.colorize(args[0]), player.getLocation(), null, dragons.getPlayerNPCRegistry());
+//			pnpc.spawn();
+			Location location = player.getLocation();
+			UUID uniqueId = UUID.randomUUID();
+			String texture = "ewogICJ0aW1lc3RhbXAiIDogMTYzOTA5MjA5OTk1NywKICAicHJvZmlsZUlkIiA6ICIyYzEwNjRmY2Q5MTc0MjgyODRlM2JmN2ZhYTdlM2UxYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYWVtZSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84YWM2N2FmMGE4MWNiZTBkYjFiYTY5M2QzNWUzOTFlNDEwOWVmMjI5YWY2MmI4N2Y3NmIyMDQ1NWQ3MjcxYmIxIgogICAgfQogIH0KfQ==";
+			String signature = "DorvLT6YEUrX2koCFS9l13Dw8GnZZvwigRLKpLqaqMe1Y3XkGiwmE/3KlqQavkO5EiEeYgqPI579Ms9AyR1f4Al4frqDiNHssQ1CFDAnUuYGkXQu/70LHvhkHhpEnDdeAClfPQ8FElg1MUJK3s8NsRP9YS+D/+6FCsLh0Q2CDklAaxo1K4bK6UzD1GhppVGBafq/y4QSlHOfduzi56wmCZPRlDtsTQ8p4+X3sO1iCrCy5ThX+qxRNHRmy60qNMZcLuMocvZuq7hhlwV2VSxcsZJJAmYfZq/5EcTbLD/8MZB5BHsfd3BgaPfL3KDHD3BbbEZGpQHwPBO4mwSge5qbLHP9x7AhJ/4Id+blQjMLO1Lged/HFdc3IZkqaznwkav07qukp51dNK3bwCqcYSxvABCJpr/EgFos4B4d10XVG676kCGTPEK2579zUuMZDMxSWGy7VWWtI4K67ULIoVAAeHaP3gJYTZvuvHSOLWYUO5McW6nwwTDifXfw2TAgWG6cByi4DmcgwghRze+jIJ5b1TnVj7a0RtLF5GdSVDqjgrjDQ8DfMII7eXPxY5kiX6SQmLLYF3M2FggQ63PMUtenWmGlaSAUW0ntUluw5Ck0mkEpFL5YqZaxwK+VE2uPQUrVDOnO0VHy3oSXFDBjBPIKnpgd9czruBmC5NkwknHGWss=";
+			String name = "Jeff Bezos";
+			GameProfile gameProfile = new GameProfile(uniqueId, name);
+			gameProfile.getProperties().clear();
+			gameProfile.getProperties().put("textures", new Property("textures", texture, signature));
+			EntityPlayer npcCreature = new EntityPlayer(((CraftServer) Bukkit.getServer()).getServer(),
+					((CraftWorld) location.getWorld()).getHandle(), gameProfile,
+					new PlayerInteractManager(((CraftWorld) location.getWorld()).getHandle()));
+			npcCreature.playerConnection = new PlayerConnection(((CraftServer) Bukkit.getServer()).getServer(),
+					new NetworkManager(EnumProtocolDirection.SERVERBOUND), npcCreature);
+			((CraftWorld) location.getWorld()).addEntity(npcCreature, CreatureSpawnEvent.SpawnReason.CUSTOM);
+			npcCreature.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+			Bukkit.getOnlinePlayers().stream()
+					.filter(p -> p.getWorld() != null && ((CraftPlayer) p).getHandle().playerConnection != null)
+					.forEach(p -> {
+						PlayerConnection conn = ((CraftPlayer) p).getHandle().playerConnection;
+						conn.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, npcCreature));
+						conn.sendPacket(new PacketPlayOutNamedEntitySpawn(npcCreature));
+						conn.sendPacket(new PacketPlayOutEntityHeadRotation(npcCreature, (byte) ((location.getYaw() * 256.0F) / 360.0F)));
+						DataWatcher watcher = npcCreature.getDataWatcher();
+						conn.sendPacket(new PacketPlayOutEntityMetadata(npcCreature.getId(), watcher, true));
+					});
+		}
+
+		else {
+			sender.sendMessage(
+					ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
+		}
+
 		return true;
 	}
 
-	
-	
 }

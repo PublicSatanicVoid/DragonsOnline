@@ -11,6 +11,7 @@ import mc.dragons.anticheat.check.ViolationData;
 import mc.dragons.anticheat.check.move.MoveData.MoveEntry;
 import mc.dragons.anticheat.util.ACUtil;
 import mc.dragons.core.gameobject.user.User;
+import mc.dragons.core.util.MathUtil;
 
 public class PacketSpoof extends Check {
 	public PacketSpoof(DragonsAntiCheat plugin) {
@@ -56,7 +57,7 @@ public class PacketSpoof extends Check {
 
 			if(violationData.vl > VL_THRESHOLD) {
 				if(plugin.isDebug()) {
-					plugin.debug(player, "PacketSpoof | Lagback (NoFall, " + violationData.vl + "vl)");
+					plugin.debug(player, "PacketSpoof | Lagback (NoFall, " + MathUtil.round(violationData.vl) + "vl)");
 				}
 				MoveData.of(user).rubberband();
 			}

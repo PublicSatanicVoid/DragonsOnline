@@ -1,7 +1,9 @@
 package mc.dragons.tools.moderation;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
 import mc.dragons.core.networking.StaffAlertMessageHandler;
@@ -30,14 +33,19 @@ import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
 
 public class ModUserHook implements UserHook {
+	private DragonsModerationTools plugin;
 	private HoldLoader holdLoader;
 	private ReportLoader reportLoader;
 	private StaffAlertMessageHandler alertHandler;
 	
-	public ModUserHook(Dragons instance) {
-		holdLoader = instance.getLightweightLoaderRegistry().getLoader(HoldLoader.class);
-		reportLoader = instance.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
-		alertHandler = instance.getStaffAlertHandler();
+	private Map<User, Long> lastMessage;
+	
+	public ModUserHook(DragonsModerationTools plugin) {
+		this.plugin = plugin;
+		holdLoader = plugin.getDragonsInstance().getLightweightLoaderRegistry().getLoader(HoldLoader.class);
+		reportLoader = plugin.getDragonsInstance().getLightweightLoaderRegistry().getLoader(ReportLoader.class);
+		alertHandler = plugin.getDragonsInstance().getStaffAlertHandler();
+		lastMessage = new HashMap<>();
 	}
 	
 	@Override
@@ -57,11 +65,7 @@ public class ModUserHook implements UserHook {
 		if(user.getPlayer() != null) {
 			PunishmentData banData = wrapped.getActivePunishmentData(PunishmentType.BAN);
 			if (banData != null) {
-				String reasons = StringUtil.parseList(wrapped.getPunishmentHistory().stream()
-					.filter(p -> p.getType() == PunishmentType.BAN && !p.hasExpired() && !p.isRevoked())
-					.map(p -> ChatColor.RED + p.getReason() + ChatColor.GRAY + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"))
-					.collect(Collectors.toList()), "\n\n");
-				user.getPlayer().kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You are banned.\n\n" + reasons);
+				user.getPlayer().kickPlayer(ChatColor.DARK_RED + "You are banned.\n\n" + wrapped.getActiveBanReasons());
 				return;
 			}
 			HoldEntry entry = holdLoader.getHoldByUser(user, HoldType.SUSPEND);
@@ -87,6 +91,12 @@ public class ModUserHook implements UserHook {
 			user.getPlayer().sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.GRAY + "This suspension will be resolved in at most " + entry.getMaxExpiry());
 			return false;
 		}
+		if(user.getRank() == Rank.DEFAULT && System.currentTimeMillis() - lastMessage.getOrDefault(user, 0L) < 1000 * plugin.getSlowMode()) {
+			user.getPlayer().sendMessage(ChatColor.RED + "Slow mode is currently enabled! Please wait " + plugin.getSlowMode() + "s before sending another message, or "
+					+ "purchase a rank to bypass this!");
+			return false;
+		}
+		lastMessage.put(user, System.currentTimeMillis());
 		return true;
 	}
 	

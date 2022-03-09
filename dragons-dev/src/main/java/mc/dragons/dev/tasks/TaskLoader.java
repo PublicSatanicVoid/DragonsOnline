@@ -1,5 +1,6 @@
 package mc.dragons.dev.tasks;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
 import static mc.dragons.core.util.BukkitUtil.syncPeriodic;
 
 import java.time.Instant;
@@ -134,7 +135,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 			this.data = data;
 			cachedLocation = getLocation();
 			cachedAssignees = getAssignees();
-			updateMarker();
+			sync(() -> updateMarker());
 		}
 		
 		public boolean hasMarker() {
@@ -365,6 +366,7 @@ public class TaskLoader extends AbstractLightweightLoader<Task> {
 				for (User user : UserLoader.allUsers()) {
 					Player player = user.getPlayer();
 					if(player == null) continue;
+					if(!player.getWorld().equals(task.getLocation().getWorld())) continue;
 					Color color = null;
 					boolean tm = PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.TASK_MANAGER, false);
 					if(!task.isApproved() && !task.isClosed() && tm) {

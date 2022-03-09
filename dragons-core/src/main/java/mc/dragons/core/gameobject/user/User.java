@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,6 +75,7 @@ import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.storage.loader.ChangeLogLoader;
 import mc.dragons.core.storage.loader.ChangeLogLoader.ChangeLogEntry;
+import mc.dragons.core.tasks.LagMeter;
 import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.MathUtil;
 import mc.dragons.core.util.NametagUtil;
@@ -201,6 +201,9 @@ public class User extends GameObject {
 
 	public User(Player player, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
+		if(player == null) {
+			player = Bukkit.getPlayer(getUUID());
+		}
 		LOGGER.trace("Constructing user (" + player + ", " + storageManager + ", " + storageAccess + ")");
 		currentlyDebugging = new ArrayList<>();
 		joined = false;
@@ -229,7 +232,7 @@ public class User extends GameObject {
 			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
 			updatePrimaryNameTag();
 			if (getData("health") != null) {
-				player.setHealth((double) getData("health"));
+				player.setHealth(Math.min((double) getData("health"), (double) getData("maxHealth")));
 			}
 		}
 
@@ -1250,15 +1253,15 @@ public class User extends GameObject {
 		syncSetInventory(bukkitInventory);
 		boolean error = false;
 		if (broken > 0) {
-			player.sendMessage(ChatColor.RED + "" + broken + " items in your saved inventory could not be loaded.");
+			if(player != null) player.sendMessage(ChatColor.RED + "" + broken + " items in your saved inventory could not be loaded.");
 			error = true;
 		}
 		if(dups > 0) {
-			player.sendMessage(ChatColor.RED + "" + dups + " duplicated items were found in your saved inventory.");
+			if(player != null) player.sendMessage(ChatColor.RED + "" + dups + " duplicated items were found in your saved inventory.");
 			error = true;
 		}
 		if(error) {
-			player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
+			if(player != null) player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
 			initErrorOccurred();
 		}
 		return error;
@@ -1303,9 +1306,9 @@ public class User extends GameObject {
 		setData("lastJoined", System.currentTimeMillis());
 		setData("currentServer", instance.getServerName());
 		if (PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false)) {
-			player.setGameMode(getSavedGameMode());
+			sync(() -> player.setGameMode(getSavedGameMode()));
 		} else {
-			player.setGameMode(GameMode.ADVENTURE);
+			sync(() -> player.setGameMode(GameMode.ADVENTURE));
 		}
 		if (isVanished()) {
 			player.sendMessage(ChatColor.DARK_GREEN + "You are currently vanished.");
@@ -1415,7 +1418,7 @@ public class User extends GameObject {
 	}
 
 	public List<ChangeLogEntry> getUnreadChangeLogs() {
-		return changeLogLoader.getUnreadChangelogs(getLastReadChangeLogId());
+		return changeLogLoader.getUnreadChangelogs(getLastReadChangeLogId(), getFirstJoined().toInstant().toEpochMilli());
 	}
 
 	public void markChangeLogsRead() {
@@ -1493,13 +1496,13 @@ public class User extends GameObject {
 	 * returning a cached value.
 	 * 
 	 */
-	public void locate(Consumer<Optional<String>> callback) {
+	public void locate(Consumer<String> callback) {
 		resyncData(String.class, "currentServer");
 		String server = getServerName();
 		instance.getInternalMessageHandler().sendCheckUserPing(server, getUUID(), online -> {
-			if(online.isEmpty()) callback.accept(Optional.empty()); // Timed out
-			else if(online.get()) callback.accept(Optional.of(server));
-			else callback.accept(Optional.empty()); // Not online
+			if(online.isEmpty()) callback.accept(null); // Timed out
+			else if(online.get()) callback.accept(server);
+			else callback.accept(null); // Not online
 		});
 	}
 
@@ -1601,7 +1604,7 @@ public class User extends GameObject {
 	}
 	
 	public String tablistText(String raw) {
-		return StringUtil.colorize(raw).replaceAll("%SERVER%", instance.getServerName());
+		return StringUtil.colorize(raw.replaceAll("%SERVER%", instance.getServerName()).replaceAll("%PING%", "" + instance.getBridge().getPing(player)));
 	}
 	
 	public void overrideWalkSpeed(float speed) {
@@ -2060,7 +2063,9 @@ public class User extends GameObject {
 				.append("lastRes", getData().getInteger("lastResId"))
 				.append("resExitTo", getData().get("resExitTo", Document.class))
 				.append("originalUser", getUUID().toString())
-				.append("originalTime", StringUtil.dateFormatNow());
+				.append("originalTime", StringUtil.dateFormatNow())
+				.append("ping", instance.getBridge().getPing(player))
+				.append("tps", LagMeter.getRoundedTPS());
 		return stateLoader.registerStateToken(state);
 	}
 	

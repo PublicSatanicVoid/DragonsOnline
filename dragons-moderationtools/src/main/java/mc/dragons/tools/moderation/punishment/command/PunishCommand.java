@@ -41,6 +41,7 @@ public class PunishCommand extends DragonsCommandExecutor {
 		
 		int level = data.code.getStandingLevel();
 		boolean canApply = data.code.canApply(user(sender));
+		boolean notMod = !hasPermission(sender, SystemProfileFlag.MODERATION);
 		List<WrappedUser> wrapped = data.targets.stream().map(u -> WrappedUser.of(u)).collect(Collectors.toList());
 		int minEffectiveLevel = -1;
 		
@@ -68,7 +69,7 @@ public class PunishCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "Punishment applied to " + w.getUser().getName() + ": " + punishment + " for " + data.code.getName());
 			}
 			
-			if(level >= 10) {
+			if(level >= 10 && notMod) {
 				Report review = reportLoader.fileStaffReport(data.targets, user(sender), "Post Review: " + data.formatInternalReason(), "");
 				sender.sendMessage(ChatColor.GRAY + " A senior staff member will review this punishment. (Escalation Report ID: " + review.getId() + ")");
 			}

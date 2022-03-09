@@ -60,7 +60,7 @@ public enum Rank {
 	Rank(String rankName, String shortName, String chatPrefix, ChatColor nameColor, ChatColor chatColor, boolean staff) {
 		this.rankName = rankName;
 		this.shortName = shortName;
-		this.chatPrefix = (ChatColor.BLACK + "").repeat(this.ordinal()) + chatPrefix; // Will this ensure correct ordering???
+		this.chatPrefix = (ChatColor.BLACK + "").repeat(2 + this.ordinal()) + chatPrefix; // Will this ensure correct ordering???
 		this.nameColor = nameColor;
 		this.chatColor = chatColor;
 		this.staff = staff;

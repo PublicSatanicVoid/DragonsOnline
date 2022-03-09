@@ -164,6 +164,7 @@ public class PerformanceCommands extends DragonsCommandExecutor {
 			for (Entity e : w.getEntities()) {
 				if(e instanceof Player || e instanceof Item || e instanceof ItemFrame) continue;
 				if(e.getPersistentDataContainer().has(Dragons.FIXED_ENTITY_KEY, PersistentDataType.SHORT)) continue;
+				if(e.hasMetadata("allow")) continue;
 				NPC npc = NPCLoader.fromBukkit(e);
 				if(npc == null) {
 					e.remove();

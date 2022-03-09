@@ -72,3 +72,19 @@ commands:
   hologram:
     description: (GM) Create and manage standalone holograms.
     aliases: [holo, h]
+  listobjectives:
+    description: List all community objectives.
+  createobjective:
+    description: (GM) Create a new community objective.
+  unlockobjective:
+    description: (GM) Unlock a community objective.
+  lockobjective:
+    description: (GM) Lock a community objective.
+  completeobjective:
+    description: (GM) Mark a community objective as completed.
+  failobjective:
+    description: (GM) Mark a community objective as failed.
+  deleteobjective:
+    description: (GM) Delete a community objective.
+  reloadobjectives:
+    description: (GM) Reload all community objectives.

@@ -25,6 +25,10 @@
 			<id>enginehub-maven</id>
 			<url>http://maven.enginehub.org/repo/</url>
 		</repository>
+		<repository>
+			<id>nms</id>
+			<url>https://repo.codemc.io/repository/nms/</url>
+		</repository>
 	</repositories>
 
 
@@ -40,6 +44,13 @@
 			<groupId>mc.dragons</groupId>
 			<artifactId>dragons-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bukkit</groupId>
+			<artifactId>craftbukkit</artifactId>
+			<version>1.16.5-R0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

@@ -92,4 +92,7 @@ commands:
     description: Acknowledge a warning.
   recentlogins:
     description: (ADMIN) View the n most recent players who have logged in to the network.
-  
+  skipallreports:
+    description: (ADMIN) Mark all unreviewed reports as skipped (suspended).
+  slowmode:
+    description: (MODERATOR) Set a minimum delay between messages sent per unranked user.

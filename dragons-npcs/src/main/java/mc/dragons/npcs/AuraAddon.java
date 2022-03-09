@@ -3,8 +3,10 @@ package mc.dragons.npcs;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.Particle.DustOptions;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -34,7 +36,7 @@ public class AuraAddon extends NPCAddon {
 			
 			@Override public void run() {
 				Location at = entity.getLocation().add(add);
-				entity.getWorld().spawnParticle(Particle.REDSTONE, at.getX(), at.getY(), at.getZ(), 2);
+				entity.getWorld().spawnParticle(Particle.REDSTONE, at.getX(), at.getY(), at.getZ(), 2, new DustOptions(Color.RED, 1.0f));
 				add.setX(add.getX() * Math.cos(theta) - add.getZ() * Math.sin(theta));
 				add.setZ(add.getX() * Math.sin(theta) + add.getZ() * Math.cos(theta));
 				add.setY((add.getY() + y_step) % y_max);

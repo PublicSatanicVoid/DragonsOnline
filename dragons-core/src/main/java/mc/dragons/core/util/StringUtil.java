@@ -76,6 +76,7 @@ public class StringUtil {
 	}
 
 	public static int getFlagIndex(String[] args, String flag, int startIndex) {
+		if(startIndex >= args.length) return -1; 
 		for (int i = startIndex; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase(flag)) {
 				return i;
@@ -217,6 +218,14 @@ public class StringUtil {
 		return DATE_FORMAT.format(Date.from(Instant.now()));
 	}
 
+	public static String formatDate(long timestamp) {
+		return DATE_FORMAT.format(new Date(timestamp));
+	}
+	
+	public static String formatDate(Date date) {
+		return DATE_FORMAT.format(date);
+	}
+	
 	public static String encodeBase64(String str) {
 		return Base64.getEncoder().encodeToString(str.getBytes());
 	}
@@ -323,5 +332,26 @@ public class StringUtil {
 			if(string.toLowerCase().contains(t.toLowerCase())) return true;
 		}
 		return false;
+	}
+	
+	public static String breakWords(String string, int wordsPerLine) {
+		String[] parts = string.split(" ");
+		String result = "";
+		int pos = 1;
+		for(String part : parts) {
+			result += part;
+			if(part.contains("\n")) {
+				pos = 1;
+				result += " ";
+			} else if(pos == wordsPerLine) {
+				pos = 1;
+				result += "\n";
+			}
+			else {
+				pos++;
+				result += " ";
+			}
+		}
+		return result;
 	}
 }

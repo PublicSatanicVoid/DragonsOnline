@@ -24,7 +24,7 @@ public class IWannaCompanionCommand extends DragonsCommandExecutor {
 			return true;
 		}
 		
-		NPC companion = GameObjectType.NPC.<NPC, NPCLoader>getLoader().registerNew(player.getWorld(), player.getLocation(), "Companion-Kitty");
+		NPC companion = GameObjectType.NPC.<NPC, NPCLoader>getLoader().registerNew(player.getLocation(), "Companion-Kitty");
 		companion.getStorageAccess().set("companionOwner", user.getUUID());
 		user.getStorageAccess().set("companion", companion.getUUID());
 		

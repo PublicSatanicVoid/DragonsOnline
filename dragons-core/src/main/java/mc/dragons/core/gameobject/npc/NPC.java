@@ -22,6 +22,10 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.bridge.Bridge;
+import mc.dragons.core.bridge.PlayerNPC;
+import mc.dragons.core.bridge.PlayerNPC.Recipient;
+import mc.dragons.core.bridge.impl.PlayerNPC116R3;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectRegistry;
 import mc.dragons.core.gameobject.GameObjectType;
@@ -127,13 +131,18 @@ public class NPC extends GameObject {
 	}	
 	
 	protected Entity entity;
+	protected PlayerNPC pnpc;
 	protected Entity healthIndicator;
 	protected boolean isDamageExternalized = false;
 
+	// Yeah yeah it's static abuse, but would you really prefer storing instances of these for EVERY NPC?
+	// Yeah, didn't think so.
 	protected static GameObjectRegistry registry = Dragons.getInstance().getGameObjectRegistry();
 	protected static NPCClassLoader npcClassLoader = GameObjectType.NPC_CLASS.getLoader();
 	protected static EntityHider entityHider = Dragons.getInstance().getEntityHider();
-
+	protected static PlayerNPCRegistry playerNPCRegistry = Dragons.getInstance().getPlayerNPCRegistry();
+	protected static Bridge bridge = Dragons.getInstance().getBridge();
+	
 	/**
 	 * Lazy construction of the NPC. It will exist in memory but the NPC will not
 	 * be spawned until the async spawn handler is called.
@@ -149,9 +158,26 @@ public class NPC extends GameObject {
 		asyncSpawnHandler.add(new BukkitRunnable() {
 			@Override public void run() {
 				long start = System.currentTimeMillis();
-				entity = loc.getWorld().spawnEntity(loc, EntityType.valueOf((String) storageAccess.get("entityType")));
-				entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
-				initializeEntity();
+				EntityType type = getEntityType();
+				if(type == EntityType.PLAYER) {
+					if(getName().length() > 16) {
+						Bukkit.getLogger().warning("Truncating name of player NPC to 16 characters (" + getName() + ")");
+					}
+					pnpc = new PlayerNPC116R3(getName().substring(0, Math.min(16, getName().length())), loc, NPC.this);
+					NPCClass npcClass = getNPCClass();
+					String texture = npcClass.getSkinTexture();
+					String signature = npcClass.getSkinSignature();
+					if(texture != null && signature != null) {
+						pnpc.setSkin(texture, signature);
+					}
+					pnpc.spawn();
+
+				}
+				else {
+					entity = loc.getWorld().spawnEntity(loc, type);
+					entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
+					initializeEntity();
+				}
 				initializeAddons();
 				long duration = System.currentTimeMillis() - start;
 				LOGGER.verbose("Spawned " + getUUID() + " - " + getNPCClass().getClassName() + " in " + duration + "ms (" + StringUtil.entityToString(entity) + ")");
@@ -159,8 +185,16 @@ public class NPC extends GameObject {
 		});
 	}
 	
+	/**
+	 * @deprecated May miss key init logic depending on the entity type.
+	 * @param entity
+	 * @param storageManager
+	 * @param storageAccess
+	 */
+	@Deprecated
 	public NPC(Entity entity, StorageManager storageManager, StorageAccess storageAccess) {
 		super(storageManager, storageAccess);
+		LOGGER.warning("Do not construct NPCs with the (Entity, StorageManager, StorageAccess) constructor!");
 		LOGGER.verbose("Constructing NPC (" + StringUtil.entityToString(entity) + ", " + storageManager + ", " + storageAccess + ")");
 		this.entity = entity;
 		initializeEntity();
@@ -171,6 +205,7 @@ public class NPC extends GameObject {
 	 * Call once when the backing Bukkit entity is set or changed.
 	 */
 	public void initializeEntity() {
+		if(getEntityType() == EntityType.PLAYER) return;
 		entity.setCustomName(getDecoratedName());
 		entity.setCustomNameVisible(true);
 		healthIndicator = entity;
@@ -204,6 +239,14 @@ public class NPC extends GameObject {
 		getNPCClass().getAddons().forEach(addon -> addon.initialize(this));
 	}
 
+	/**
+	 * 
+	 * @return The Bukkit entity type of this NPC.
+	 */
+	public EntityType getEntityType() {
+		return EntityType.valueOf((String) storageAccess.get("entityType"));
+	}
+	
 	/**
 	 * 
 	 * @return Whether damage to this NPC comes from other entities.
@@ -350,7 +393,12 @@ public class NPC extends GameObject {
 	}
 
 	public void remove() {
-		entity.remove();
+		if(entity != null) {
+			entity.remove();
+		}
+		if(pnpc != null) {
+			pnpc.destroy();
+		}
 		registry.removeFromDatabase(this);
 	}
 
@@ -361,12 +409,19 @@ public class NPC extends GameObject {
 	 */
 	public void phase(Player playerFor) {
 		LOGGER.trace("Phasing NPC " + getIdentifier() + " for " + playerFor.getName());
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			if (!p.equals(playerFor)) {
-				entityHider.hideEntity(p, entity);
-			}
+		if(getEntityType() == EntityType.PLAYER) {
+			pnpc.setRecipientType(Recipient.LISTED_RECIPIENTS);
+			pnpc.addRecipient(playerFor);
+			pnpc.reload();
 		}
-		entityHider.showEntity(playerFor, entity);
+		else {
+			for (Player p : Bukkit.getOnlinePlayers()) {
+				if (!p.equals(playerFor)) {
+					entityHider.hideEntity(p, entity);
+				}
+			}
+			entityHider.showEntity(playerFor, entity);
+		}
 	}
 
 	/**
@@ -375,7 +430,13 @@ public class NPC extends GameObject {
 	 * @param playerFor
 	 */
 	public void unphase(Player playerFor) {
-		entityHider.hideEntity(playerFor, entity);
+		if(getEntityType() == EntityType.PLAYER) {
+			pnpc.removeRecipient(playerFor);
+			pnpc.reload();
+		}
+		else {
+			entityHider.hideEntity(playerFor, entity);
+		}
 	}
 
 	public void setEntity(Entity entity) {
@@ -390,14 +451,21 @@ public class NPC extends GameObject {
 	public Entity getEntity() {
 		return entity;
 	}
+	
+	public PlayerNPC getPlayerNPC() {
+		return pnpc;
+	}
 
 	public void regenerate(Location spawn) {
 		LOGGER.debug("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
 		if (entity != null) {
 			entity.remove();
+			setEntity(spawn.getWorld().spawnEntity(spawn, getNPCClass().getEntityType()));
+			healthIndicator = entity;
+			initializeEntity();
 		}
-		setEntity(spawn.getWorld().spawnEntity(spawn, getNPCClass().getEntityType()));
-		healthIndicator = entity;
-		initializeEntity();
+		if (pnpc != null) {
+			pnpc.reload();
+		}
 	}
 }

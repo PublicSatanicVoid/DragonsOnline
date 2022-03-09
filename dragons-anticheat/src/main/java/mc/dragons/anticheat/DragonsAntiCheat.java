@@ -12,6 +12,7 @@ import mc.dragons.anticheat.check.move.PacketSpoof;
 import mc.dragons.anticheat.check.move.WrongMove;
 import mc.dragons.anticheat.command.AntiCheatCommand;
 import mc.dragons.anticheat.event.CheckListeners;
+import mc.dragons.anticheat.event.CombatRewinder;
 import mc.dragons.anticheat.event.TestingMoveListener;
 import mc.dragons.core.DragonsJavaPlugin;
 
@@ -19,10 +20,13 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 	private boolean debug;
 	private TestingMoveListener testingMoveListener;
 	private CheckRegistry checkRegistry;
+	private CombatRewinder combatRewinder;
 	
 	@Override
 	public void onEnable() {
 		enableDebugLogging();
+		
+		combatRewinder = new CombatRewinder(this);
 		
 		CommandExecutor ac = new AntiCheatCommand(this);
 		getCommand("ac").setExecutor(ac);
@@ -36,7 +40,12 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		getCommand("acresetplayer").setExecutor(ac);
 		getCommand("acstatus").setExecutor(ac);
 		getCommand("actoggle").setExecutor(ac);
-		getCommand("pps").setExecutor(ac);
+		getCommand("acping").setExecutor(ac);
+		getCommand("acspoofping").setExecutor(ac);
+		getCommand("acraytol").setExecutor(ac);
+		getCommand("acpps").setExecutor(ac);
+		getCommand("achitstats").setExecutor(ac);
+		getCommand("acresethitstats").setExecutor(ac);
 		
 		checkRegistry = new CheckRegistry();
 		checkRegistry.registerCheck(new PacketSpoof(this));
@@ -63,6 +72,7 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 	
 	public void debug(CommandSender sender, String message) {
 		if(debug) {
+			getLogger().info("[AC] " + message);
 			sender.sendMessage(ChatColor.DARK_RED + "* " + ChatColor.RESET + message);
 		}
 	}
@@ -73,5 +83,9 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 	
 	public CheckRegistry getCheckRegistry() {
 		return checkRegistry;
+	}
+	
+	public CombatRewinder getCombatRewinder() {
+		return combatRewinder;
 	}
 }

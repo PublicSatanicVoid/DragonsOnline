@@ -1,8 +1,6 @@
 package mc.dragons.core.storage.loader;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.bson.Document;
@@ -10,6 +8,7 @@ import org.bson.Document;
 import com.mongodb.client.FindIterable;
 
 import mc.dragons.core.storage.mongo.MongoConfig;
+import mc.dragons.core.util.StringUtil;
 
 public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.ChangeLogEntry> {
 	public static class ChangeLogEntry {
@@ -52,11 +51,13 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 		super(config, "changelogs", "changelogs");
 	}
 
-	public List<ChangeLogEntry> getUnreadChangelogs(int lastReadChangelog) {
+	public List<ChangeLogEntry> getUnreadChangelogs(int lastReadChangelog, long firstJoinDate) {
 		List<ChangeLogEntry> result = new ArrayList<>();
-		FindIterable<Document> dbResults = collection.find(new Document("_id", new Document("$gt", Integer.valueOf(lastReadChangelog))));
+		FindIterable<Document> dbResults = collection.find(new Document("_id", new Document("$gt", Integer.valueOf(lastReadChangelog)))
+				.append("date", new Document("$gt", firstJoinDate)));
 		for (Document d : dbResults) {
-			result.add(new ChangeLogEntry(d.getInteger("_id").intValue(), d.getString("date"), d.getString("by"), d.getString("title"), d.getList("changelog", String.class)));
+			result.add(new ChangeLogEntry(d.getInteger("_id").intValue(), StringUtil.formatDate(d.getLong("date")), d.getString("by"), 
+					d.getString("title"), d.getList("changelog", String.class)));
 		}
 		return result;
 	}
@@ -66,7 +67,7 @@ public class ChangeLogLoader extends AbstractLightweightLoader<ChangeLogLoader.C
 	}
 
 	public void addChangeLog(String by, String title, List<String> changelog) {
-		String date = Date.from(Instant.now()).toString();
-		collection.insertOne(new Document("_id", Integer.valueOf(reserveNextId())).append("date", date).append("by", by).append("title", title).append("changelog", changelog));
+		collection.insertOne(new Document("_id", reserveNextId()).append("date", System.currentTimeMillis()).append("by", by)
+				.append("title", title).append("changelog", changelog));
 	}
 }

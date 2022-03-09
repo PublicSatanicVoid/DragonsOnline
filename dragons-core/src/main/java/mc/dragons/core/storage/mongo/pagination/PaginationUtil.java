@@ -34,7 +34,17 @@ public class PaginationUtil {
 	 * @return How many pages are in the given result set
 	 */
 	public static <E> int pageCount(List<E> results, int pageSize) {
-		return (int) Math.ceil((double) results.size() / pageSize);
+		return pageCount(results.size(), pageSize);
+	}
+
+	/**
+	 * 
+	 * @param total
+	 * @param pageSize
+	 * @return How many pages are in the given result set
+	 */
+	public static int pageCount(int total, int pageSize) {
+		return (int) Math.ceil((double) total / pageSize);
 	}
 	
 	/**

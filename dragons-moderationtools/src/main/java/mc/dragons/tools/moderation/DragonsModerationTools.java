@@ -6,6 +6,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.tools.moderation.abilities.FlyCommand;
 import mc.dragons.tools.moderation.abilities.GodModeCommand;
+import mc.dragons.tools.moderation.abilities.SlowModeCommand;
 import mc.dragons.tools.moderation.abilities.UnVanishCommand;
 import mc.dragons.tools.moderation.abilities.VanishCommand;
 import mc.dragons.tools.moderation.analysis.IPHistoryCommand;
@@ -43,6 +44,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 	private PunishMessageHandler punishMessageHandler;
 	private HoldMessageHandler holdMessageHandler;
 	private PunishCommand punishCommand;
+	private int slowModeSeconds;
 	
 	public void onEnable() {
 		enableDebugLogging();
@@ -52,8 +54,10 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		holdMessageHandler = new HoldMessageHandler(dragons);
 		dragons.getLightweightLoaderRegistry().register(new ReportLoader(dragons.getMongoConfig()));
 		dragons.getLightweightLoaderRegistry().register(new HoldLoader(this));
-		dragons.getUserHookRegistry().registerHook(new ModUserHook(dragons));
+		dragons.getUserHookRegistry().registerHook(new ModUserHook(this));
 		punishMessageHandler = new PunishMessageHandler();
+		
+		slowModeSeconds = 0;
 		
 		new PeriodicNotificationTask(dragons).runTaskTimer(this, 20L, 20L * 60 * 10);
 		
@@ -85,6 +89,7 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		getCommand("toggleselfreport").setExecutor(reportAdminCommands);
 		getCommand("deletereport").setExecutor(reportAdminCommands);
 		getCommand("bulkdeletereports").setExecutor(reportAdminCommands);
+		getCommand("skipallreports").setExecutor(reportAdminCommands);
 		
 		punishCommand = new PunishCommand();
 		getCommand("punish").setExecutor(punishCommand);
@@ -109,6 +114,8 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 		
 		getCommand("vanish").setExecutor(new VanishCommand());
 		getCommand("unvanish").setExecutor(new UnVanishCommand());	
+		
+		getCommand("slowmode").setExecutor(new SlowModeCommand(this));
 	}
 	
 	public PunishMessageHandler getPunishMessageHandler() {
@@ -121,5 +128,13 @@ public class DragonsModerationTools extends DragonsJavaPlugin {
 	
 	public PunishCommand getPunishCommand() {
 		return punishCommand;
+	}
+	
+	public void setSlowMode(int seconds) {
+		slowModeSeconds = seconds;
+	}
+	
+	public int getSlowMode() {
+		return slowModeSeconds;
 	}
 }

@@ -160,10 +160,11 @@ public class WrappedUser {
 		Player player = user.getPlayer();
 		if (player != null) {
 			if (punishmentType == PunishmentType.BAN) {
-				player.kickPlayer(ChatColor.DARK_RED + "" + ChatColor.BOLD + "You have been banned.\n\n" + getActiveBanReasons());
+				player.kickPlayer(ChatColor.DARK_RED + "You have been banned.\n\n" + getActiveBanReasons());
 			} else if (punishmentType == PunishmentType.KICK) {
-				player.kickPlayer(ChatColor.DARK_RED + "You were kicked!\n\n" + (reason.equals("") ? "" : ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + "\n\n") + ChatColor.YELLOW
-						+ "Repeated kicks may result in a ban.");
+				player.kickPlayer(ChatColor.DARK_RED + "You were kicked!\n\n" + StringUtil.breakWords((reason.equals("") ? "" : ChatColor.GRAY 
+						+ "Reason: " + ChatColor.WHITE + reason + "\n\n") + ChatColor.YELLOW
+						+ "Repeated kicks may result in a ban.", 6));
 			} else if (punishmentType == PunishmentType.WARNING) {
 				player.sendMessage(" ");
 				player.sendMessage(PunishCommand.RECEIVE_PREFIX + ChatColor.BOLD + "You have received a warning.");
@@ -188,10 +189,10 @@ public class WrappedUser {
 	 * @return Information about all active bans on the player
 	 */
 	public String getActiveBanReasons() {
-		return StringUtil.parseList(getPunishmentHistory().stream()
+		return StringUtil.breakWords(StringUtil.parseList(getPunishmentHistory().stream()
 				.filter(p -> p.getType() == PunishmentType.BAN && !p.hasExpired() && !p.isRevoked())
-				.map(p -> ChatColor.RED + p.getReason() + ChatColor.GRAY + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"))
-				.collect(Collectors.toList()), "\n\n");
+				.map(p -> ChatColor.RED + p.getReason() + "\n" + ChatColor.GRAY + (p.isPermanent() ? " (Permanent)" : " (Expires in " + p.getTimeToExpiry() + ")"))
+				.collect(Collectors.toList()), "\n\n"), 6);
 	}
 	
 	/**

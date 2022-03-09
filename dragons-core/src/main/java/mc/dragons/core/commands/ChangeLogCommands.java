@@ -24,7 +24,7 @@ public class ChangeLogCommands extends DragonsCommandExecutor {
 	
 	private void viewNews(CommandSender sender, User user) {
 		if(!requirePlayer(sender)) return;
-		List<ChangeLogEntry> unread = changeLogLoader.getUnreadChangelogs(user.getLastReadChangeLogId());
+		List<ChangeLogEntry> unread = changeLogLoader.getUnreadChangelogs(user.getLastReadChangeLogId(), user.getFirstJoined().toInstant().toEpochMilli());
 		if (unread.size() == 0) {
 			sender.sendMessage(ChatColor.RED + "You have no unread announcements or changelogs!");
 			return;

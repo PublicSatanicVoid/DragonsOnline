@@ -116,7 +116,7 @@ public class HologramUtil {
 	}
 
 	public static ArmorStand makeArmorStandNameTag(Entity entity, String nameTag) {
-		return makeArmorStandNameTag(entity, nameTag, 0);
+		return makeArmorStandNameTag(entity, nameTag, 1);
 	}
 	
 	/**

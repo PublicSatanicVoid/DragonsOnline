@@ -139,6 +139,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("mockserver").setExecutor(experimentalCommands);
 		getCommand("mockdelete").setExecutor(experimentalCommands);
 		getCommand("mocklist").setExecutor(experimentalCommands);
+		getCommand("mockuninject").setExecutor(experimentalCommands);
 		getCommand("testitemstash").setExecutor(experimentalCommands);
 		getCommand("testitemunstash").setExecutor(experimentalCommands);
 		getCommand("testmobai").setExecutor(experimentalCommands);
@@ -148,5 +149,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testnametag2").setExecutor(experimentalCommands);
 		getCommand("testupdatenametag").setExecutor(experimentalCommands);
 		getCommand("testrollingasync").setExecutor(experimentalCommands);
+		getCommand("testinternalnetworkedmsg").setExecutor(experimentalCommands);
+		getCommand("testplayernpc").setExecutor(experimentalCommands);
 	}
 }

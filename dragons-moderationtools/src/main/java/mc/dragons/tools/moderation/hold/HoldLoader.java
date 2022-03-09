@@ -24,6 +24,7 @@ import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
 import mc.dragons.tools.moderation.report.ReportLoader;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
+import mc.dragons.tools.moderation.report.ReportLoader.ReportStatus;
 
 public class HoldLoader extends AbstractLightweightLoader<HoldEntry> {
 	public static final long HOLD_DURATION_HOURS = 48;
@@ -105,8 +106,29 @@ public class HoldLoader extends AbstractLightweightLoader<HoldEntry> {
 			save();
 		}
 		
+		/**
+		 * The logic gets a little complicated here because the report status may be overridden
+		 * if the correlated report is updated without updating the corresponding hold.
+		 * 
+		 * If action has already been taken on the hold, then that supersedes the hold status.
+		 * If the hold is still pending, closing or deleting the report will override the hold.
+		 * 
+		 * @return
+		 */
 		public HoldStatus getStatus() {
-			return HoldStatus.valueOf(data.getString("status"));
+			HoldStatus status = HoldStatus.valueOf(data.getString("status"));
+			if(status == HoldStatus.PENDING) {
+				Report report = reportLoader.getReportById(getReportId());
+				if(report == null || report.getStatus() == ReportStatus.NO_ACTION || report.getStatus() == ReportStatus.SUSPENDED) {
+					setStatus(HoldStatus.CLOSED_NOACTION);
+					return HoldStatus.CLOSED_NOACTION;
+				}
+				else if(report.getStatus() == ReportStatus.ACTION_TAKEN) {
+					setStatus(HoldStatus.CLOSED_ACTION);
+					return HoldStatus.CLOSED_ACTION;
+				}
+			}
+			return status;
 		}
 		
 		public HoldType getType() {

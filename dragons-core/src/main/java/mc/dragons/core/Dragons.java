@@ -55,6 +55,7 @@ import mc.dragons.core.gameobject.floor.FloorLoader;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.npc.PlayerNPCRegistry;
 import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.SidebarManager;
@@ -134,6 +135,7 @@ public class Dragons extends DragonsJavaPlugin {
 	private SidebarManager sidebarManager;
 	private EntityHider entityHider;
 	private ChatMessageRegistry chatMessageRegistry;
+	private PlayerNPCRegistry playerNPCRegistry;
 	private MessageDispatcher messageDispatcher;
 
 	private InternalMessageHandler internalMessageHandler;
@@ -243,7 +245,8 @@ public class Dragons extends DragonsJavaPlugin {
 	@Override
 	public void onEnable() {
 		BukkitUtil.initRollingSync();
-
+		playerNPCRegistry = new PlayerNPCRegistry(this);
+		
 		// Game objects must be loaded from database in a particular sequence, to ensure
 		// all dependencies are ready.
 		// For example, items cannot be loaded before their item classes have been loaded,
@@ -365,6 +368,8 @@ public class Dragons extends DragonsJavaPlugin {
 		lagMeter.runTaskTimer(this, 100L, 1L);
 		lagMonitorTask.runTaskAsynchronously(this);
 		updateScoreboardTask.runTaskTimer(this, 100L, 20L);
+		BukkitUtil.syncPeriodic(() -> Bukkit.getOnlinePlayers().stream()
+				.map(p -> UserLoader.fromPlayer(p)).forEach(u -> u.updateTablistHeaders()), 20 * 10, 20 * 5);
 
 		getLogger().info("Registering message handlers...");
 		internalMessageHandler = new InternalMessageHandler(this);
@@ -523,6 +528,14 @@ public class Dragons extends DragonsJavaPlugin {
 	 */
 	public ChatMessageRegistry getChatMessageRegistry() {
 		return chatMessageRegistry;
+	}
+	
+	/**
+	 * 
+	 * @return The central registry of all human NPCs
+	 */
+	public PlayerNPCRegistry getPlayerNPCRegistry() {
+		return playerNPCRegistry;
 	}
 	
 	/**

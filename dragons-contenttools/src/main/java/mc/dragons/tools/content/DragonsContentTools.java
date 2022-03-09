@@ -7,6 +7,7 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
 import mc.dragons.core.addon.Addon;
 import mc.dragons.tools.content.addon.NPCIdentifierAddon;
+import mc.dragons.tools.content.command.CommunityObjectiveCommands;
 import mc.dragons.tools.content.command.PlaceholderCommand;
 import mc.dragons.tools.content.command.builder.ClearInventoryCommand;
 import mc.dragons.tools.content.command.builder.FixedCommand;
@@ -40,8 +41,12 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		PUSH_FOLDER = getConfig().getString("push-folder", "C:\\DragonsPush\\");
 		
 		Dragons dragons = getDragonsInstance();
+		COLoader coLoader = new COLoader(dragons);
 		dragons.getLightweightLoaderRegistry().register(new AuditLogLoader(dragons.getMongoConfig()));
 		dragons.getLightweightLoaderRegistry().register(new HologramLoader(dragons.getMongoConfig()));
+		dragons.getLightweightLoaderRegistry().register(coLoader);
+		
+		dragons.getUserHookRegistry().registerHook(new ContentUserHook(coLoader));
 		
 		getCommand("region").setExecutor(new RegionCommand());
 		getCommand("npc").setExecutor(new NPCCommand());
@@ -78,6 +83,16 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		getCommand("setwarp").setExecutor(warpCommandsExecutor);
 		getCommand("warp").setExecutor(warpCommandsExecutor);
 		getCommand("warps").setExecutor(warpCommandsExecutor);
+		
+		CommandExecutor coCommandsExecutor = new CommunityObjectiveCommands(coLoader);
+		getCommand("createobjective").setExecutor(coCommandsExecutor);
+		getCommand("listobjectives").setExecutor(coCommandsExecutor);
+		getCommand("unlockobjective").setExecutor(coCommandsExecutor);
+		getCommand("lockobjective").setExecutor(coCommandsExecutor);
+		getCommand("completeobjective").setExecutor(coCommandsExecutor);
+		getCommand("failobjective").setExecutor(coCommandsExecutor);
+		getCommand("deleteobjective").setExecutor(coCommandsExecutor);
+		getCommand("reloadobjectives").setExecutor(coCommandsExecutor);
 		
 		Addon npcIdentifierAddon = new NPCIdentifierAddon();
 		dragons.getAddonRegistry().register(npcIdentifierAddon);

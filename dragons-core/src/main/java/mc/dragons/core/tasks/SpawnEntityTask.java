@@ -217,7 +217,7 @@ public class SpawnEntityTask extends BukkitRunnable {
 					/* SYNC */
 					
 					finalSpawns.forEach((loc, npcClassName) -> {
-						npcLoader.registerNew(((Location) loc).getWorld(), (Location) loc, (String) npcClassName);
+						npcLoader.registerNew((Location) loc, (String) npcClassName);
 					});
 				});
 				

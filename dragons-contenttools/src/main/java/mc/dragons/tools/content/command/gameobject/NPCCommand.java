@@ -44,6 +44,7 @@ import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.quest.Quest;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
+import mc.dragons.core.util.HttpUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.tools.content.AuditLogLoader;
 
@@ -67,6 +68,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Pathfinding behavior will still be enabled when triggered by the RPG");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> immortal <IsImmortal>" + ChatColor.GRAY + " set whether the NPC is immortal");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> loot [<RegionName> <ItemClassName> <Chance%|DEL>]" + ChatColor.GRAY + " manage NPC class loot table");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> skin <SkinDataURL>" + ChatColor.GRAY + " set player NPC skin");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b [<CLICK|HIT> <add|remove <#>>]" + ChatColor.GRAY + " add/remove/view NPC behaviors");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> condition <add [!]<ConditionType> <ConditionParams...>|<#> del>" + ChatColor.GRAY + " add/remove conditions on an NPC behavior");
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Adding a ! before the ConditionType will negate the condition.");
@@ -143,7 +145,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		}
 		int remaining = quantity;
 		while(remaining > 0) {
-			spawned.add(npcLoader.registerNew(player.getWorld(), player.getLocation(), args[1]));
+			spawned.add(npcLoader.registerNew(player.getLocation(), args[1]));
 			remaining--;
 		}
 		AUDIT_LOG.saveEntry(FloorLoader.fromLocation(player.getLocation()), user(sender), "Picked up NPC spawn of class " + args[1]); // this counts as a modification to the floor.
@@ -708,6 +710,28 @@ public class NPCCommand extends DragonsCommandExecutor {
 		propagateRevisions(npcClass);
 	}
 	
+	private void setSkin(CommandSender sender, String[] args) {
+		NPCClass npcClass = lookupNPCClass(sender, args[0]);
+		if(npcClass == null) return;
+		
+		if(args.length == 2) {
+			sender.sendMessage(ChatColor.RED + "/npc <ClassName> skin <SkinDataURL>");
+			sender.sendMessage(ChatColor.RED + "The URL should be a raw text file with the first line being the texture and the second being the signature. E.g. https://pastebin.com/raw/wgNpXfvH");
+			return;
+		}
+		
+		Document base = Document.parse(npcClass.getData().toJson());
+		String data = HttpUtil.get(args[2]);
+		String[] parts = data.split("\n");
+		String texture = parts[0];
+		String signature = parts[1];
+		npcClass.setSkinTexture(texture);
+		npcClass.setSkinSignature(signature);
+		sender.sendMessage(ChatColor.GREEN + "Updated entity skin data successfully.");
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity skin data");
+		propagateRevisions(npcClass);
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.GM_NPC)) return true;
@@ -768,6 +792,9 @@ public class NPCCommand extends DragonsCommandExecutor {
 		}
 		else if(args[1].equalsIgnoreCase("immortal")) {
 			setImmortal(sender, args);
+		}
+		else if(args[1].equalsIgnoreCase("skin")) {
+			setSkin(sender, args);
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid usage! /npc");

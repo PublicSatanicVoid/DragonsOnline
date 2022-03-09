@@ -2,6 +2,7 @@ package mc.dragons.core.commands;
 
 import java.util.UUID;
 
+import org.bson.Document;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -50,12 +51,17 @@ public class StateCommands extends DragonsCommandExecutor {
 			}
 			
 			UUID token = parseUUID(sender, args[0]);
-			if(stateLoader.getState(token) == null) {
+			Document state = stateLoader.getState(token);
+			if(state == null) {
 				sender.sendMessage(ChatColor.RED + "Invalid state token!");
 				return true;
 			}
 			UUID backup = targetUser.setState(token);
-			sender.sendMessage(ChatColor.GREEN + "State data applied successfully.");
+			User fromUser = userLoader.loadObject(UUID.fromString(state.getString("originalUser")));
+			Integer ping = state.getInteger("ping");
+			Double tps = state.getDouble("tps");
+			sender.sendMessage(ChatColor.GREEN + "Snapshot: " + fromUser.getName() + ", " + state.getString("originalTime") 
+			+ " (" + (ping == null ? "??" : ping) + "ms, " + (tps == null ? "??" : tps) + "tps)");
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + " [Restore]", "/setstate " + backup + " " + targetUser.getName(), true, "Restore prior state"));
 		}
 		

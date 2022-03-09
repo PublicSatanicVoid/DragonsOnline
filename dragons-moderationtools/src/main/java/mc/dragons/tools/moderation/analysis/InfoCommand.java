@@ -59,7 +59,7 @@ public class InfoCommand extends DragonsCommandExecutor {
 		TextComponent hold = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Place Hold] ", "/hold " + targetUser.getName() + " ", true, 
 			"Click to suspend this account for " + HoldLoader.HOLD_DURATION_HOURS + " hours pending review");
 		TextComponent punish = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Punish] ", "/punish " + targetUser.getName(), "Click to punish this user");
-		TextComponent escalate = !helper ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Escalate] ", "/escalate " + targetUser.getName() + " ", 
+		TextComponent escalate = StringUtil.clickableHoverableText(ChatColor.GRAY + "[Escalate] ", "/escalate " + targetUser.getName() + " ", 
 			"Click to escalate an issue with this user", "for review by a senior staff member");
 		TextComponent watchlist = !mod ? StringUtil.plainText("") : StringUtil.clickableHoverableText(ChatColor.GRAY + "[Watchlist] ", "/watchlist add " + targetUser.getName() + " ", true, 
 			"Click to add this user to the watch list.", "You will be prompted to enter a reason.");
@@ -132,9 +132,9 @@ public class InfoCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "Health: " + ChatColor.RESET + targetPlayer.getHealth() + " / " + targetPlayer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
 		}
 		sender.sendMessage(ChatColor.YELLOW + "Skills: " + ChatColor.RESET + skills);
-		sender.sendMessage(ChatColor.YELLOW + "First Join: " + ChatColor.RESET + targetUser.getFirstJoined().toString());
-		sender.sendMessage(ChatColor.YELLOW + "Last Join: " + ChatColor.RESET + targetUser.getLastJoined().toString());
-		sender.sendMessage(ChatColor.YELLOW + "Last Seen: " + ChatColor.RESET + targetUser.getLastSeen().toString());
+		sender.sendMessage(ChatColor.YELLOW + "First Join: " + ChatColor.RESET + StringUtil.formatDate(targetUser.getFirstJoined()));
+		sender.sendMessage(ChatColor.YELLOW + "Last Join: " + ChatColor.RESET + StringUtil.formatDate(targetUser.getLastJoined()));
+		sender.sendMessage(ChatColor.YELLOW + "Last Seen: " + ChatColor.RESET + StringUtil.formatDate(targetUser.getLastSeen()));
 		
 		if(mod) {
 			if(goodStanding) {

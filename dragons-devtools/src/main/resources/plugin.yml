@@ -172,6 +172,8 @@ commands:
     description: (ADMIN) Delete a mock user.
   mocklist:
     description: (ADMIN) List all mock users.
+  mockuninject:
+    description: (ADMIN) Un-inject a fake user locally without deleting them from the database.
   testitemstash:
   testitemunstash:
   testmobai:
@@ -181,5 +183,7 @@ commands:
   testnametag2:
   testupdatenametag:
   testrollingasync:
+  testinternalnetworkedmsg:
   sudo:
     aliases: iwillnotabusethiscommand
+  testplayernpc:

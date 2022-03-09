@@ -1,5 +1,8 @@
 package mc.dragons.core.gameobject.npc;
 
+import static mc.dragons.core.util.BukkitUtil.async;
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,7 +12,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -27,8 +29,8 @@ import mc.dragons.core.logging.DragonsLogger;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.storage.StorageUtil;
+import mc.dragons.core.storage.local.LocalStorageAccess;
 import mc.dragons.core.storage.local.LocalStorageManager;
-import mc.dragons.core.util.StringUtil;
 import mc.dragons.core.util.singletons.Singleton;
 import mc.dragons.core.util.singletons.Singletons;
 
@@ -41,6 +43,7 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	private LocalStorageManager localStorageManager;
 	private NPCClassLoader npcClassLoader;
 	private Map<UUID, NPC> uuidToNpc;
+	private List<BukkitRunnable> liveSpawner = new ArrayList<>();
 
 	private NPCLoader(Dragons instance, StorageManager storageManager) {
 		super(instance, storageManager);
@@ -110,17 +113,17 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 		return loadObject(storageAccess);
 	}
 
-	public NPC registerNew(Entity entity, String npcClassName) {
-		return registerNew(entity, npcClassLoader.getNPCClassByClassName(npcClassName));
+//	public NPC registerNew(Entity entity, String npcClassName) {
+//		return registerNew(entity, npcClassLoader.getNPCClassByClassName(npcClassName));
+//	}
+
+	public NPC registerNew(Location spawnLocation, String npcClassName) {
+		return registerNew(spawnLocation.getWorld(), spawnLocation, npcClassLoader.getNPCClassByClassName(npcClassName));
 	}
 
-	public NPC registerNew(World world, Location spawnLocation, String npcClassName) {
-		return registerNew(world, spawnLocation, npcClassLoader.getNPCClassByClassName(npcClassName));
-	}
-
-	public NPC registerNew(Entity entity, NPCClass npcClass) {
-		return registerNew(entity, npcClass.getClassName(), npcClass.getName(), npcClass.getMaxHealth(), npcClass.getLevel(), npcClass.getNPCType(), npcClass.hasAI(), npcClass.isImmortal());
-	}
+//	public NPC registerNew(Entity entity, NPCClass npcClass) {
+//		return registerNew(entity, npcClass.getClassName(), npcClass.getName(), npcClass.getMaxHealth(), npcClass.getLevel(), npcClass.getNPCType(), npcClass.hasAI(), npcClass.isImmortal());
+//	}
 
 	public NPC registerNew(World world, Location spawnLocation, NPCClass npcClass) {
 		return registerNew(world, spawnLocation, npcClass.getEntityType(), npcClass.getClassName(), npcClass.getName(), npcClass.getMaxHealth(), npcClass.getLevel(), npcClass.getNPCType(),
@@ -128,8 +131,8 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 	}
 
 	public NPC registerNew(World world, Location spawnLocation, EntityType entityType, String className, String name, double maxHealth, int level, NPC.NPCType npcType, boolean ai, boolean immortal) {
-		Entity e = world.spawnEntity(spawnLocation, entityType);
-		return registerNew(e, className, name, maxHealth, level, npcType, ai, immortal);
+//		Entity e = world.spawnEntity(spawnLocation, entityType);
+		return registerNew(spawnLocation, entityType, className, name, maxHealth, level, npcType, ai, immortal);
 	}
 
 	public static NPC fromBukkit(Entity entity) {
@@ -149,25 +152,35 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 		return null;
 	}
 
-	public NPC registerNew(Entity entity, String className, String name, double maxHealth, int level, NPC.NPCType npcType, boolean ai, boolean immortal) {
-		LOGGER.trace("Registering new NPC of class " + className + " using Bukkit entity " + StringUtil.entityToString(entity));
+	public NPC registerNew(Location location, EntityType entType, String className, String name, double maxHealth, int level, NPC.NPCType npcType, boolean ai, boolean immortal) {
+		LOGGER.trace("Registering new NPC of class " + className);
 		lazyLoadAllPermanent();
-		Document data = new Document("_id", UUID.randomUUID()).append("className", className).append("name", name).append("entityType", entity.getType().toString())
-				.append("maxHealth", Double.valueOf(maxHealth)).append("lastLocation", StorageUtil.locToDoc(entity.getLocation())).append("level", Integer.valueOf(level))
+		
+		Document data = new Document("_id", UUID.randomUUID()).append("className", className).append("name", name).append("entityType", entType.toString())
+				.append("maxHealth", Double.valueOf(maxHealth)).append("lastLocation", StorageUtil.locToDoc(location)).append("level", Integer.valueOf(level))
 				.append("npcType", npcType.toString()).append("ai", Boolean.valueOf(ai)).append("immortal", Boolean.valueOf(immortal)).append("lootTable", new Document());
+		
 		npcClassLoader.getNPCClassByClassName(className).getAddons().forEach(a -> a.onCreateStorageAccess(data));
 		StorageAccess storageAccess = npcType.isPersistent() ? storageManager.getNewStorageAccess(GameObjectType.NPC, data)
 				: localStorageManager.getNewStorageAccess(GameObjectType.NPC, data);
-		NPC npc = new NPC(entity, npcType.isPersistent() ? storageManager : (StorageManager) localStorageManager, storageAccess);
-		if (storageAccess instanceof mc.dragons.core.storage.local.LocalStorageAccess) {
+		
+		NPC npc = new NPC(location, liveSpawner, npcType.isPersistent() ? storageManager : localStorageManager, storageAccess);
+		liveSpawner.forEach(r -> r.run());
+		liveSpawner.clear();
+		
+		if (storageAccess instanceof LocalStorageAccess) {
 			LOGGER.verbose("- Using local storage access for NPC of type " + npcType + " (" + storageAccess + ")");
 		}
 		if (storageAccess == null) {
 			LOGGER.warning("- Could not construct storage access for NPC of type " + npcType + " and class " + className);
 		}
+		
 		npc.setMaxHealth(maxHealth);
 		npc.setHealth(maxHealth);
-		entity.setMetadata("handle", new FixedMetadataValue(plugin, npc));
+		if(npc.getEntity() != null) {
+			npc.getEntity().setMetadata("handle", new FixedMetadataValue(plugin, npc));
+		}
+		
 		masterRegistry.getRegisteredObjects().add(npc);
 		return npc;
 	}
@@ -196,26 +209,32 @@ public class NPCLoader extends GameObjectLoader<NPC> implements Singleton {
 					LOGGER.verbose("- Loaded permanent NPC: " + npc.getIdentifier() + " of class " + npc.getNPCClass().getClassName());
 					masterRegistry.getRegisteredObjects().add(npc);
 				});
-		Bukkit.getScheduler().runTaskLaterAsynchronously(Dragons.getInstance(), () -> {
+		async(() -> {
+			long start = System.currentTimeMillis();
 			int batchSize = 5;
+			int max = (int) Math.ceil((double) asyncSpawnerRunnables.size() / batchSize);
 			LOGGER.info("We have " + asyncSpawnerRunnables.size() + " persistent NPCs to spawn");
-			for(int i = 0; i < (int) Math.ceil((double) asyncSpawnerRunnables.size() / batchSize); i++) {
+			for(int i = 1; i <= max; i++) {
 				final int fi = i;
-				Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
-					long start = System.currentTimeMillis();
+				sync(() -> {
+					long batchStart = System.currentTimeMillis();
 					LOGGER.verbose("==SPAWNING BATCH #" + fi + "==");
-					for(int j = fi * batchSize; j < Math.min(asyncSpawnerRunnables.size(), (fi + 1) * batchSize); j++) {
+					for(int j = (fi - 1) * batchSize; j < Math.min(asyncSpawnerRunnables.size(), fi * batchSize); j++) {
 						LOGGER.verbose("===Spawning #" + j);
 						asyncSpawnerRunnables.get(j).run();
 					}
-					long duration = System.currentTimeMillis() - start;
+					long now = System.currentTimeMillis();
+					long duration = now - batchStart;
 					LOGGER.verbose("===Finished batch #" + fi + " in " + duration + "ms");
 					if(duration > 1000) {
 						LOGGER.warning("Spawn of batch #" + fi + " took " + duration + "ms (batch size: " + batchSize + ")");
 					}
-				}, i * 2);
+					if(fi == max) {
+						LOGGER.info("Spawning of persistent NPCs complete (took " + (now - start) + "ms)");
+					}
+				}, i * 3);
 			}
-		}, 1L);
+		}, 1);
 		LOGGER.info("Initial entity count: " + Dragons.getInstance().getEntities().size());
 	}
 

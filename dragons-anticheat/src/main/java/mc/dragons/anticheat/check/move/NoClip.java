@@ -70,7 +70,7 @@ public class NoClip extends Check {
 				}
 				if(violationData.vl >= VL_RUBBERBAND) {
 					if(plugin.isDebug()) {
-						plugin.debug(player, "NoClip | Lagback (" + MathUtil.round(volume) + "volume, " + violationData.vl + "vl)");
+						plugin.debug(player, "NoClip | Lagback (" + MathUtil.round(volume) + "volume, " + MathUtil.round(violationData.vl) + "vl)");
 					}
 					
 					moveData.rubberband();

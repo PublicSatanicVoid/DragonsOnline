@@ -127,6 +127,10 @@ public class EntityDamageListener implements Listener {
 		}
 		if (target instanceof Player) {
 			userTarget = UserLoader.fromPlayer((Player) target);
+			if(userTarget == null) {
+				event.setCancelled(true);
+				return;
+			}
 			if(userTarget.isGodMode()) {
 				immortalTarget(target, userDamager);
 				userTarget.debug("- God mode, cancelling");

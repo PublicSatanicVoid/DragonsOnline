@@ -45,6 +45,7 @@ public class EntityMoveListener extends PacketAdapter {
 		for (Entity e : entity.getNearbyEntities(2.0D, 2.0D, 2.0D)) {
 			if (e instanceof Player) {
 				User user = UserLoader.fromPlayer((Player) e);
+				if(user == null) return;
 				if (user.hasDeathCountdown()) {
 					entity.setVelocity(entity.getLocation().toVector().subtract(e.getLocation().toVector()).normalize().multiply(5.0D));
 				}

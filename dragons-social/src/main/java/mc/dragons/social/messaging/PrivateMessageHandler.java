@@ -48,13 +48,23 @@ public class PrivateMessageHandler extends MessageHandler {
 	}
 	
 	public void send(User from, User to, String message) {
-		if(from.getPlayer() != null) doLocalSend(from, to.getName(), message);
-		informLocalSpies(from.getName(), to.getName(), message);
 		if(to.getPlayer() == null) {
-			to.safeResyncData();
-			send(new Document("from", from.getUUID().toString()).append("to", to.getUUID().toString()).append("message", message), to.getServerName());
+			to.locate(toServer -> {
+				if(toServer == null) {
+					from.getPlayer().sendMessage(ChatColor.RED + "Could not deliver message: " + to.getName() + " is not connected to any server!");
+					return;
+				}
+				to.safeResyncData();
+				if(from.getPlayer() != null) doLocalSend(from, to.getName(), message);
+				informLocalSpies(from.getName(), to.getName(), message);
+				send(new Document("from", from.getUUID().toString()).append("to", to.getUUID().toString()).append("message", message), to.getServerName());
+			});
 		}
-		else doLocalReceive(to, from, message);
+		else {
+			if(from.getPlayer() != null) doLocalSend(from, to.getName(), message);
+			doLocalReceive(to, from, message);
+			informLocalSpies(to.getName(), from.getName(), message);
+		}
 	}
 	
 	@Override
@@ -65,11 +75,27 @@ public class PrivateMessageHandler extends MessageHandler {
 		
 		if(from == null || to == null) {
 			plugin.getLogger().warning("Cannot handle private message receipt from " + serverFrom + ": missing data (from=" + from + ", to=" + to + ")");
+			UUID cid = plugin.getLogger().newCID();
+			plugin.getLogger().warning(cid, "Could not deliver message from " + serverFrom + " to " + plugin.getDragonsInstance().getServerName());
+			plugin.getLogger().warning(cid, "Target user: " + to.getName() + " - " + to.getUUID() + " - " + to.getServerName());
+			to.locate(realServer -> {
+				if(realServer == null) {
+					plugin.getLogger().warning(cid, "Target user is not really online anywhere");
+				}
+				else {
+					plugin.getLogger().warning(cid, "Target user is really online at " + realServer);
+				}
+			});
+			plugin.getDragonsInstance().getInternalMessageHandler().sendRawMsg(serverFrom, from.getUUID(), ChatColor.RED + "Could not deliver message: An internal error occurred!"
+					+ StringUtil.toHdFont("Correlation ID: " + cid));
+			
+			
 			return;
 		}
 		
 		if(to.getPlayer() == null) {
 			plugin.getLogger().warning("Cannot handle private message receipt from " + serverFrom + ": recipient is not online locally (" + to.getName() + ")");
+			plugin.getDragonsInstance().getInternalMessageHandler().sendRawMsg(serverFrom, from.getUUID(), ChatColor.RED + "Could not deliver message: Recipient is no longer online!");
 			return;
 		}
 		
