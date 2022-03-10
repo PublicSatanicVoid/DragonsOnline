@@ -5,13 +5,19 @@ import static mc.dragons.core.util.BukkitUtil.sync;
 
 import java.util.List;
 
+import org.bson.Document;
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.Item;
+import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
+import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.dev.notifier.DiscordNotifier;
@@ -21,11 +27,13 @@ import net.md_5.bungee.api.ChatColor;
 
 public class DevUserHook implements UserHook {
 	private TaskLoader taskLoader;
+	private ItemLoader itemLoader;
 	private DiscordNotifier buildNotifier;
 	private boolean loadedTasks = false;
 	
 	public DevUserHook() {
 		taskLoader = Dragons.getInstance().getLightweightLoaderRegistry().getLoader(TaskLoader.class);
+		itemLoader = GameObjectType.getLoader(ItemLoader.class);
 		buildNotifier = JavaPlugin.getPlugin(DragonsDev.class).getBuildNotifier();
 	}
 	
@@ -71,8 +79,20 @@ public class DevUserHook implements UserHook {
 			user.getStorageAccess().set("stars", 0);
 		}
 		user.getPlayer().sendMessage(ChatColor.GOLD + "You are have " + user.getData().getInteger("stars", 0) + " stars in your balance");
-		
-
+	}
+	
+	@Override
+	public void onAutoSave(User user, Document data) {
+		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.BUILDER, false)) return;
+		for(ItemStack is : user.getPlayer().getInventory()) {
+			if(is == null) continue;
+			if(!is.getType().isItem()) continue;
+			Item item = ItemLoader.fromBukkit(is);
+			if(item == null) {
+				itemLoader.makeFromVanilla(is);
+			}
+		}
+		data.append("inventory", user.getInventoryAsDocument());
 	}
 	
 	public static int getStars(User user) {

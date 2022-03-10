@@ -21,6 +21,8 @@ commands:
     description: (BUILDER) Alias for /gammemode adventure
   gotofloor:
     description: (BUILDER) Go to the specified floor.
+  sign:
+    description: (BUILDER) Edit the text of a sign.
   item:
     aliases: i
     description: (GM) Manage items and item classes.

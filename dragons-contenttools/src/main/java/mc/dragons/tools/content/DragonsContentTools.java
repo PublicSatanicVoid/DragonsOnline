@@ -14,6 +14,7 @@ import mc.dragons.tools.content.command.builder.FixedCommand;
 import mc.dragons.tools.content.command.builder.GamemodeCommand;
 import mc.dragons.tools.content.command.builder.GoToFloorCommand;
 import mc.dragons.tools.content.command.builder.HologramCommand;
+import mc.dragons.tools.content.command.builder.SignCommand;
 import mc.dragons.tools.content.command.builder.SpeedCommand;
 import mc.dragons.tools.content.command.builder.WarpCommands;
 import mc.dragons.tools.content.command.gameobject.FloorCommand;
@@ -29,7 +30,7 @@ import mc.dragons.tools.content.command.statistics.ResetProfileCommand;
 import mc.dragons.tools.content.command.statistics.RestatCommand;
 import mc.dragons.tools.content.command.statistics.UpdateStatsCommand;
 import mc.dragons.tools.content.command.testing.TestQuestCommand;
-import mc.dragons.tools.content.event.PlayerChangedWorldListener;
+import mc.dragons.tools.content.event.ContentToolsListeners;
 
 public class DragonsContentTools extends DragonsJavaPlugin {
 	public static String PUSH_FOLDER;
@@ -64,6 +65,7 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		getCommand("objmeta").setExecutor(new ObjectMetadataCommand());
 		getCommand("deletenpc").setExecutor(new DeleteNPCCommand());
 		getCommand("hologram").setExecutor(new HologramCommand(this));
+		getCommand("sign").setExecutor(new SignCommand());
 		
 		CommandExecutor gamemodeCommandExecutor = new GamemodeCommand();
 		getCommand("gamemode").setExecutor(gamemodeCommandExecutor);
@@ -98,6 +100,6 @@ public class DragonsContentTools extends DragonsJavaPlugin {
 		dragons.getAddonRegistry().register(npcIdentifierAddon);
 		npcIdentifierAddon.apply();
 		
-		Bukkit.getPluginManager().registerEvents(new PlayerChangedWorldListener(), this);
+		Bukkit.getPluginManager().registerEvents(new ContentToolsListeners(), this);
 	}
 }

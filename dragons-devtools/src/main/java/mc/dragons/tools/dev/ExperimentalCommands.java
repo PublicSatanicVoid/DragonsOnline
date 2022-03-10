@@ -27,12 +27,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Slime;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.bridge.PlayerNPC;
 import mc.dragons.core.commands.DragonsCommandExecutor;
 import mc.dragons.core.events.PlayerEventListeners;
 import mc.dragons.core.gameobject.GameObject;
@@ -69,7 +69,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!requirePermission(sender, SystemProfileFlag.DEVELOPMENT))
 			return true;
-
+		
 		Player player = player(sender);
 		User user = user(sender);
 
@@ -585,13 +585,32 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 					StringUtil.concatArgs(args, 1));
 		}
 
-		else if (label.equalsIgnoreCase("testplayernpc")) {
-			NPC npc = npcLoader.registerNew(player.getLocation(), "Test-player");
-			ArmorStand hologram = HologramUtil.makeHologram("ABC ABC ABC ABC ABC ABC ABC", npc.getEntity().getLocation().add(0, 1, 0));
-			hologram.setMetadata("followDY", new FixedMetadataValue(dragons, 1.0));
-			npc.getEntity().setMetadata("shadow", new FixedMetadataValue(dragons, hologram));
-//			PlayerNPC pnpc = new PlayerNPC116R3(StringUtil.colorize(args[0]), player.getLocation(), null, dragons.getPlayerNPCRegistry());
-//			pnpc.spawn();
+		else if (StringUtil.equalsAnyIgnoreCase(label, "testplayernpc", "npctool")) {
+			if(args.length == 0) {
+				sender.sendMessage("/" + label + " <rot|loc|info|set <pitch> <yaw>>  (all changes are local)");
+				return true;
+			}
+			for(Entity e : player.getNearbyEntities(30, 30, 30)) {
+				NPC npc = NPCLoader.fromBukkit(e);
+				if(npc == null) continue;
+				if(npc.getEntityType() == EntityType.PLAYER) {
+					PlayerNPC pnpc = npc.getPlayerNPC();
+					if(args[0].equalsIgnoreCase("rot")) {
+						pnpc.refreshRotationFor(player);
+					}
+					else if(args[0].equalsIgnoreCase("loc")) {
+						pnpc.updateLocationFor(player, e.getLocation().getPitch(), e.getLocation().getYaw());
+					}
+					else if(args[0].equalsIgnoreCase("set")) {
+						pnpc.updateLocationFor(player, parseFloat(sender, args[1]), parseFloat(sender, args[2]));
+					}
+					else if(args[0].equalsIgnoreCase("info")) {
+						player.sendMessage(e.getEntityId() + ": " + StringUtil.locToString(e.getLocation())
+							+ " [" + e.getLocation().getPitch() + ", " + e.getLocation().getYaw() + "]");
+					}
+				}
+			}
+			player.sendMessage("You: " + player.getLocation().getPitch() + ", " + player.getLocation().getYaw());
 		}
 
 		else if (label.equalsIgnoreCase("testrevealallinvisible")) {

@@ -368,7 +368,7 @@ public class EntityDamageListener implements Listener {
 		}
 		if (npcDamager != null) {
 			if(npcDamager.getEntityType() == EntityType.PLAYER) {
-				npcDamager.getPlayerNPC().setAnimation(NPCAnimation.SWING_MAIN_HAND);
+				npcDamager.getPlayerNPC().playAnimation(NPCAnimation.SWING_MAIN_HAND);
 			}
 			npcDamager.getNPCClass().handleDealDamage(npcDamager, npcTarget != null ? (GameObject) npcTarget : (GameObject) userTarget, damage);
 		}

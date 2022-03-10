@@ -1,6 +1,5 @@
 package mc.dragons.core.bridge;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.bukkit.Location;
@@ -12,6 +11,16 @@ import org.bukkit.inventory.ItemStack;
 import mc.dragons.core.gameobject.npc.NPC;
 
 /**
+ * Representation of a server-side player entity.
+ * 
+ * <p>Refer to the {@link mc.dragons.core.gameobject.npc.NPC NPC} class
+ * for a more-abstracted version that wraps this functionality for the
+ * case that its entity type is <code>PLAYER</code>.
+ * 
+ * <p>NPCs registered only through this interface will lack key features
+ * of NPCs and will not behave properly. Use {@link mc.dragons.core.gameobject.npc.NPCLoader NPCLoader}
+ * to properly construct an NPC.
+ * 
  * @author DanielTheDev https://gist.github.com/DanielTheDev/cb51c11bd2551fd9a6700c582d12ff48
  * @author Adam
  *
@@ -52,29 +61,25 @@ public interface PlayerNPC {
 	}
 
 	public static class Action {
-
-		private boolean on_fire, crouched, sprinting, invisible, glowing, flying_elytra;
+		private boolean onFire, crouched, sprinting, invisible, glowing, flyingElytra;
 		private byte result = 0;
 
 		public Action(boolean on_fire, boolean crouched, boolean sprinting, boolean invisible, boolean glowing,
 				boolean flying_elytra) {
-			this.on_fire = on_fire;
+			this.onFire = on_fire;
 			this.crouched = crouched;
 			this.sprinting = sprinting;
 			this.invisible = invisible;
 			this.glowing = glowing;
-			this.flying_elytra = flying_elytra;
+			this.flyingElytra = flying_elytra;
 		}
 
-		public Action() {
+		public boolean isOnFire() {
+			return onFire;
 		}
 
-		public boolean isOn_fire() {
-			return on_fire;
-		}
-
-		public Action setOn_fire(boolean on_fire) {
-			this.on_fire = on_fire;
+		public Action setOnFire(boolean onFire) {
+			this.onFire = onFire;
 			return this;
 		}
 
@@ -114,23 +119,23 @@ public interface PlayerNPC {
 			return this;
 		}
 
-		public boolean isFlying_elytra() {
-			return flying_elytra;
+		public boolean isFlyingElytra() {
+			return flyingElytra;
 		}
 
-		public Action setFlying_elytra(boolean flying_elytra) {
-			this.flying_elytra = flying_elytra;
+		public Action setFlyingElytra(boolean flyingElytra) {
+			this.flyingElytra = flyingElytra;
 			return this;
 		}
 
 		public byte build() {
 			result = 0;
-			result = add(this.on_fire, (byte) 0x01);
+			result = add(this.onFire, (byte) 0x01);
 			result = add(this.crouched, (byte) 0x02);
 			result = add(this.sprinting, (byte) 0x08);
 			result = add(this.invisible, (byte) 0x20);
 			result = add(this.glowing, (byte) 0x40);
-			result = add(this.flying_elytra, (byte) 0x80);
+			result = add(this.flyingElytra, (byte) 0x80);
 			return result;
 		}
 
@@ -138,40 +143,209 @@ public interface PlayerNPC {
 			return (byte) (result += (condition ? amount : 0x00));
 		}
 	}
-	
-	public List<Player> getRecipients();
+
+	/**
+	 * 
+	 * @return The entity ID of the backing Minecraft entity.
+	 */
 	public int getEntityId();
-	public Location getLocation();
+	
+	/**
+	 * 
+	 * @return Whether all players or only a list of players
+	 * can see this NPC.
+	 */
 	public Recipient getRecipientType();
-	public String getDisplayName();
-	public String getTablistName();
-	public boolean isDestroyed();
-	public void addRecipient(Player p);
-	public void removeRecipient(Player p);
-	public void setRecipientType(Recipient type);
-	public void spawn();
-	public void spawnFor(Player player);
-	public void setDisplayNameAboveHead(String name) throws IOException;
-	public void setDisplayName(String name) throws IOException;
-	public void setTablistName(String name);
-	public void reload();
-	public void setSkin(String texture, String signature);
-	public void removeFromTablist();
-	public void updateToTablist();
-	public void addToTablist();
-	public void setEquipment(EquipmentSlot slot, ItemStack item);
-	public void destroy();
-	@Deprecated public void setStatus(byte status);
-	public void setStatus(NPCStatus status);
-	@Deprecated public void setAnimation(byte animation);
-	public void setAnimation(NPCAnimation animation);
+	
+	/**
+	 * 
+	 * @return All players authorized to see the NPC.
+	 * If the recipient mode is <code>ALL</code>, this
+	 * is meaningless.
+	 */
+	public List<Player> getRecipients();
+	
+	/**
+	 * Teleport the NPC to the specified location.
+	 * 
+	 * @param location
+	 * @param onGround
+	 */
 	public void teleport(Location location, boolean onGround);
-	public void rotateHead(float pitch, float yaw);
-	public void refreshRotationFor(Player player);
-	public NPC getDragonsNPC();
-	public Entity getEntity();
-	public void removeFromTablistFor(Player player);
+	
+	/**
+	 * 
+	 * @return The current location of the NPC.
+	 */
+	public Location getLocation();
+	
+	/**
+	 * 
+	 * @return The name of this NPC in the tablist.
+	 */
+	public String getTablistName();
+	
+	/**
+	 * Add a player to the NPC's whitelist.
+	 * 
+	 * @param p
+	 */
+	public void addRecipient(Player p);
+	
+	/**
+	 * Remove a player from the NPC's whitelist.
+	 * 
+	 * <p>Does not hide this NPC if the recipient type is <code>ALL</code>.
+	 * 
+	 * @param p
+	 */
+	public void removeRecipient(Player p);
+	
+	/**
+	 * Set whether all players or only a list of players can see this NPC.
+	 * 
+	 * @param type
+	 */
+	public void setRecipientType(Recipient type);
+	
+	/**
+	 * Spawn the NPC server-side, and also client-side for any players within
+	 * the spawn range.
+	 * 
+	 * <p>If the NPC should have a skin, make sure you have called <code>setSkin</code>
+	 * before calling this.
+	 */
+	public void spawn();
+	
+	/**
+	 * Render the NPC client-side for the specified player.
+	 * 
+	 * <p>Not needed if the player was within the spawn range
+	 * when the NPC was spawned.
+	 * 
+	 * <p>If unsure, rely on {@link mc.dragons.core.gameobject.npc.PlayerNPCRegistry PlayerNPCRegistry}
+	 * to take care of all this.
+	 * 
+	 * @param player
+	 */
+	public void spawnFor(Player player);
+	
+	/**
+	 * Set the name of the NPC in the tablist.
+	 * 
+	 * <p>Does not show the NPC in the tablist to
+	 * players who do not already see it.
+	 * 
+	 * @param name
+	 */
+	public void setTablistName(String name);
+	
+	/**
+	 * Make sure the player sees the NPC's correct and current location.
+	 * @param player
+	 * @param pitch
+	 * @param yaw
+	 */
 	public void updateLocationFor(Player player, float pitch, float yaw);
+	
+	/**
+	 * Refresh this NPC from the client perspective. Nothing is affected
+	 * server-side.
+	 * 
+	 * <p>This should not generally need to be used.
+	 */
+	public void reload();
+	
+	/**
+	 * Set the NPC's skin.
+	 * 
+	 * @apiNote This must be called <b>before</b> the NPC is spawned,
+	 * or it will have no effect.
+	 * 
+	 * @param texture The texture data of the skin
+	 * @param signature The signature data of the skin
+	 */
+	public void setSkin(String texture, String signature);
+	
+	/**
+	 * Remove this NPC from the tablist for all players.
+	 */
+	public void removeFromTablist();
+	
+	/**
+	 * Remove this NPC from the tablist for the specified player.
+	 * @param player
+	 */
+	public void removeFromTablistFor(Player player);
+	
+	/**
+	 * Refresh this NPC's display name on the tablist.
+	 */
+	public void updateToTablist();
+	
+	/**
+	 * Add this NPC to the tablist.
+	 */
+	public void addToTablist();
+	
+	/**
+	 * Set an equipment slot.
+	 * @param slot
+	 * @param item
+	 */
+	public void setEquipment(EquipmentSlot slot, ItemStack item);
+	
+	/**
+	 * Remove the NPC.
+	 * 
+	 * @implNote Does NOT remove the Dragons NPC; only
+	 * removes the Minecraft entity and removes from the client.
+	 */
+	public void destroy();
+	
+	/**
+	 * 
+	 * @return Whether the NPC has been removed.
+	 */
+	public boolean isDestroyed();
+	
+	/**
+	 * Set the NPC's status (hurt/dead).
+	 * @param status
+	 */
+	public void setStatus(NPCStatus status);
+	
+	/**
+	 * Play an animation for this NPC.
+	 * @param animation
+	 */
+	public void playAnimation(NPCAnimation animation);
+	
+	/**
+	 * Update the NPC's head rotation.
+	 * @param pitch
+	 * @param yaw
+	 */
+	public void rotateHead(float pitch, float yaw);
+	
+	/**
+	 * Make sure the player sees the NPC's correct and current head rotation.
+	 * @param player
+	 */
+	public void refreshRotationFor(Player player);
+	
+	/**
+	 * The associated Dragons (GameObject) {@link mc.dragons.core.gameobject.npc.NPC NPC}
+	 * associated with this NPC.
+	 * @return
+	 */
+	public NPC getDragonsNPC();
+	
+	/**
+	 * 
+	 * @return The Bukkit entity backing this NPC.
+	 */
+	public Entity getEntity();
 	
 	/**
 	 * Gives the specified entity the same visibility as this NPC,

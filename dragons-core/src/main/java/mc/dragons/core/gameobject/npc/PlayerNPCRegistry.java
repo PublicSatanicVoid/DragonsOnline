@@ -28,10 +28,17 @@ import com.comphenix.protocol.events.PacketEvent;
 import mc.dragons.core.Dragons;
 import mc.dragons.core.bridge.PlayerNPC;
 
+/**
+ * Keeps track of player-model NPCs and makes sure that they are rendered
+ * properly by the client.
+ * 
+ * @author Adam
+ *
+ */
 public class PlayerNPCRegistry implements Listener {
 	public static final int SPAWN_RADIUS = 30;
 	private static final int MIN_SPAWN_INTERVAL_MS = 200;
-	private static final double EYE_TOLERANCE = 43 * Math.PI / 180;
+	private static final double EYE_TOLERANCE = 40 * Math.PI / 180;
 	private Map<World, List<PlayerNPC>> registry = new HashMap<>();
 	private Map<Integer, PlayerNPC> ids = new HashMap<>();
 	private Map<Player, List<PlayerNPC>> spawnedFor = new HashMap<>();

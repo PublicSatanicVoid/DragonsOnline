@@ -175,4 +175,19 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 		if(uuid == null) return null;
 		return uuidToItem.get(uuid);
 	}
+	
+	/**
+	 * Makes an RPG item from the given item stack, for use by builders.
+	 * 
+	 * @param itemStack
+	 * @return
+	 */
+	public Item makeFromVanilla(ItemStack itemStack) {
+		Item item = registerNew(ItemConstants.VANILLA_ITEM_CLASS);
+		item.setItemStack(itemStack);
+		item.setMaterial(itemStack.getType());
+		item.setName(itemStack.getType().toString() + " (" + itemStack.getType().ordinal() + ")");
+		item.autoSave();
+		return item;
+	}
 }

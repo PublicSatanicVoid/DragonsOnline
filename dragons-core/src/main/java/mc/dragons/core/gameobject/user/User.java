@@ -89,7 +89,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 /**
  * Represents a player in the RPG.
  * 
- * <p>Like all {@link mc.dragons.core.gameobject.GameObject}s,
+ * <p>Like all {@link mc.dragons.core.gameobject.GameObject GameObjects},
  * users are backed by the database.
  * 
  * <p>In addition to the standard properties of players, users
@@ -1725,7 +1725,7 @@ public class User extends GameObject {
 	}
 	
 	public String getListName() {
-		return (getRank().getChatPrefix() + (getRank().getChatPrefix().isEmpty() ? "" : " ")
+		return (getRank().getChatPrefix() + (ChatColor.stripColor(getRank().getChatPrefix()).isEmpty() ? "" : " ")
 				+ getRank().getNameColor() + getName()
 				+ " " + getSuffixes()).trim();
 	}

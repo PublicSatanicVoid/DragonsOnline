@@ -60,6 +60,10 @@ import mc.dragons.core.util.StringUtil;
  * while QUEST, SHOP, PERSISTENT, and COMPANION refer to
  * "characters".
  * 
+ * <p>An NPC may look like a player, and if its entity type is
+ * a player, may require special handling elsewhere although
+ * most of the internals are abstracted away.
+ * 
  * <p>Some NPCs may be persistent and only exist in one fixed
  * place, while others may be non-persistent and spawn regularly
  * in a given region. This all depends upon their function in
@@ -81,12 +85,12 @@ public class NPC extends GameObject {
 	 *
 	 */
 	public enum NPCType {
-		HOSTILE(ChatColor.RED, "", false, false, true, false, false),
-		NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false),
-		QUEST(ChatColor.DARK_GREEN, ChatColor.DARK_GREEN + "[NPC] ", true, true, false, true, true), 
-		SHOP(ChatColor.DARK_AQUA, ChatColor.DARK_AQUA + "", true, true, false, true, true),
-		PERSISTENT(ChatColor.YELLOW, "", true, true, true, true, true), 
-		COMPANION(ChatColor.GOLD, ChatColor.GOLD + "[COMPANION] ", true, false, true, false, true);
+		HOSTILE(ChatColor.RED, "", false, false, true, false, false, true),
+		NEUTRAL(ChatColor.YELLOW, "", false, false, true, false, false, true),
+		QUEST(ChatColor.DARK_GREEN, ChatColor.DARK_GREEN + "[NPC] ", true, true, false, true, true, false), 
+		SHOP(ChatColor.DARK_AQUA, ChatColor.DARK_AQUA + "", true, true, false, true, true, false),
+		PERSISTENT(ChatColor.YELLOW, "", true, true, true, true, true, true), 
+		COMPANION(ChatColor.GOLD, ChatColor.GOLD + "[COMPANION] ", true, false, true, false, true, true);
 
 		private ChatColor nameColor;
 		private String prefix;
@@ -95,8 +99,10 @@ public class NPC extends GameObject {
 		private boolean aiByDefault;
 		private boolean loadImmediately;
 		private boolean respawnOnDeath;
+		private boolean showLevel;
 
-		NPCType(ChatColor nameColor, String prefix, boolean persistent, boolean immortalByDefault, boolean aiByDefault, boolean loadImmediately, boolean respawnOnDeath) {
+		NPCType(ChatColor nameColor, String prefix, boolean persistent, boolean immortalByDefault,
+				boolean aiByDefault, boolean loadImmediately, boolean respawnOnDeath, boolean showLevel) {
 			this.nameColor = nameColor;
 			this.prefix = prefix;
 			this.persistent = persistent;
@@ -104,6 +110,7 @@ public class NPC extends GameObject {
 			this.aiByDefault = aiByDefault;
 			this.loadImmediately = loadImmediately;
 			this.respawnOnDeath = respawnOnDeath;
+			this.showLevel = showLevel;
 		}
 
 		public ChatColor getNameColor() {
@@ -132,6 +139,10 @@ public class NPC extends GameObject {
 
 		public boolean canRespawnOnDeath() {
 			return respawnOnDeath;
+		}
+		
+		public boolean showLevel() {
+			return showLevel;
 		}
 	}	
 	
@@ -168,10 +179,7 @@ public class NPC extends GameObject {
 				long start = System.currentTimeMillis();
 				EntityType type = getEntityType();
 				if(type == EntityType.PLAYER) {
-					if(getName().length() > 16) {
-						Bukkit.getLogger().warning("Truncating name of player NPC to 16 characters (" + getName() + ")");
-					}
-					pnpc = new PlayerNPC116R3(getName().substring(0, Math.min(16, getName().length())), loc, NPC.this);
+					pnpc = new PlayerNPC116R3(getName(), loc, NPC.this);
 					NPCClass npcClass = getNPCClass();
 					String texture = npcClass.getSkinTexture();
 					String signature = npcClass.getSkinSignature();
@@ -400,7 +408,7 @@ public class NPC extends GameObject {
 	}
 
 	public String getDecoratedName() {
-		return getNPCType().getPrefix() + getNPCType().getNameColor() + getName() + ChatColor.GRAY + " Lv " + getLevel();
+		return getNPCType().getPrefix() + getNPCType().getNameColor() + getName() + (getNPCType().showLevel() ?  ChatColor.GRAY + " Lv " + getLevel() : "");
 	}
 
 	public NPCType getNPCType() {

@@ -2,7 +2,6 @@ package mc.dragons.core.bridge.impl;
 
 import static mc.dragons.core.util.BukkitUtil.sync;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_16_R3.scoreboard.CraftScoreboard;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftChatMessage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -43,6 +43,7 @@ import net.minecraft.server.v1_16_R3.NetworkManager;
 import net.minecraft.server.v1_16_R3.Packet;
 import net.minecraft.server.v1_16_R3.PacketPlayOutAnimation;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntity;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntity.PacketPlayOutEntityLook;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityEffect;
@@ -53,8 +54,11 @@ import net.minecraft.server.v1_16_R3.PacketPlayOutEntityStatus;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityTeleport;
 import net.minecraft.server.v1_16_R3.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_16_R3.PacketPlayOutPlayerInfo;
+import net.minecraft.server.v1_16_R3.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.minecraft.server.v1_16_R3.PlayerInteractManager;
+import net.minecraft.server.v1_16_R3.ScoreboardTeam;
+import net.minecraft.server.v1_16_R3.ScoreboardTeamBase;
 import net.minecraft.server.v1_16_R3.WorldServer;
 
 /**
@@ -77,7 +81,6 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	private List<Player> recipients;
 	private Recipient recipientType = Recipient.ALL;
 
-	private String displayName;
 	private String tablistName;
 
 	private String texture = null;
@@ -87,6 +90,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	private List<Entity> sameVisibility = new ArrayList<>();
 	
 	private boolean isDestroyed;
+	private float originalYaw; // NMS does some scuffed conversions, so we need to preserve this separately
 	private NPC npc;
 	public EntityPlayer handle;
 	
@@ -94,13 +98,9 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		this.npc = npc;
 		this.recipientType = Recipient.ALL;
 		this.recipients = new ArrayList<Player>();
-		try {
-			setDisplayName(name);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		this.tablistName = name;
 		this.location = location;
+		this.originalYaw = location.getYaw();
 	}
 
 	public List<Player> getRecipients() {
@@ -114,11 +114,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	public Recipient getRecipientType() {
 		return recipientType;
 	}
-
-	public String getDisplayName() {
-		return displayName;
-	}
-
+	
 	public String getTablistName() {
 		return tablistName;
 	}
@@ -175,31 +171,31 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	public void spawnFor(Player player) {
 		if(isDestroyed) return;
 		location = getEntity().getLocation(); // resync
+		location.setYaw(originalYaw);
 		handle.setCustomNameVisible(false);
 		sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, handle), player);
 		sync(() -> sendPacket(new PacketPlayOutNamedEntitySpawn(handle), player), 1);
-		PacketPlayOutEntityTeleport tp1 = new PacketPlayOutEntityTeleport();
-		Location inFrontOfPlayer = player.getLocation().add(player.getEyeLocation().getDirection().normalize().multiply(0.1));
-		setField(tp1, "a", getEntityId());
-		setField(tp1, "b", inFrontOfPlayer.getX());
-		setField(tp1, "c", inFrontOfPlayer.getY());
-		setField(tp1, "d", inFrontOfPlayer.getZ());
-		setField(tp1, "e", (byte) 0); // Don't care
-		setField(tp1, "f", (byte) 0); // Don't care
-		setField(tp1, "g", true); // Don't care
-		PacketPlayOutEntityTeleport tp2 = new PacketPlayOutEntityTeleport();
-		setField(tp2, "a", getEntityId());
-		setField(tp2, "b", location.getX());
-		setField(tp2, "c", location.getY());
-		setField(tp2, "d", location.getZ());
-		setField(tp2, "e", getPacketRotation(location.getYaw()));
-		setField(tp2, "f", getPacketRotation(location.getPitch()));
-		setField(tp2, "g", handle.isOnGround());
+		PacketPlayOutEntityTeleport tp = new PacketPlayOutEntityTeleport();
+		setField(tp, "a", getEntityId());
+		setField(tp, "b", location.getX());
+		setField(tp, "c", location.getY());
+		setField(tp, "d", location.getZ());
+		setField(tp, "e", getPacketRotation(location.getYaw()));
+		setField(tp, "f", getPacketRotation(location.getPitch()));
+		setField(tp, "g", handle.isOnGround());
 		sync(() -> sendPacket(new PacketPlayOutEntityMetadata(handle.getId(), handle.getDataWatcher(), true), player), 2);
 		sync(() -> setTablistName(getTablistName()), 2);
+		sync(() -> sendPacket(tp, player), 3);
 		sync(() -> sendPacket(new PacketPlayOutEntityHeadRotation(handle, getPacketRotation(location.getYaw())), player), 6);
 		sync(() -> removeFromTablistFor(player), 20 + (int) Math.ceil(2 * bridge.getPing(player) * 20 / 1000));
 		lastSeenLocation.put(player, location.clone());
+
+		// https://www.spigotmc.org/threads/remove-nameplate-of-an-nms-player-entity.436099/ (Phaze)
+		ScoreboardTeam team = new ScoreboardTeam(((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle(), player.getName());
+		team.setNameTagVisibility(ScoreboardTeamBase.EnumNameTagVisibility.NEVER);
+		sendPacket(new PacketPlayOutScoreboardTeam(team, 1), player);
+		sendPacket(new PacketPlayOutScoreboardTeam(team, 0), player);
+		sendPacket(new PacketPlayOutScoreboardTeam(team, List.of(handle.getName()), 3), player);
 	}
 	
 	public void updateLocationFor(Player player, float pitch, float yaw) {
@@ -208,13 +204,14 @@ public class PlayerNPC116R3 implements PlayerNPC {
 			return;
 		}
 		location = getEntity().getLocation(); // resync
+		location.setYaw(originalYaw);
 		byte byaw = getPacketRotation(yaw);
 		byte bpitch = getPacketRotation(pitch);
 		Vector move = getEntity().getLocation().subtract(lastSeenLocation.get(player)).toVector();
 		
 		// It's occasionally a good idea to completely resync the NPC's location,
 		// since error in the dx/dy/dz's can accumulate or get desynced with the client.
-		if(move.lengthSquared() > 10 * 10 || System.currentTimeMillis() - lastForceRefresh.getOrDefault(player, 0L) > FORCE_REFRESH_LOCATION_INTERVAL_MS) {
+		if(move.lengthSquared() > 63.996 || System.currentTimeMillis() - lastForceRefresh.getOrDefault(player, 0L) > FORCE_REFRESH_LOCATION_INTERVAL_MS) {
 			PacketPlayOutEntityTeleport tp = new PacketPlayOutEntityTeleport();
 			setField(tp, "a", getEntityId());
 			setField(tp, "b", location.getX());
@@ -243,6 +240,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 
 	public void refreshRotationFor(Player player) {
 		location = getEntity().getLocation(); // resync
+		location.setYaw(originalYaw);
 		PacketPlayOutEntityTeleport tp = new PacketPlayOutEntityTeleport();
 		setField(tp, "a", getEntityId());
 		setField(tp, "b", location.getX());
@@ -251,17 +249,10 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		setField(tp, "e", getPacketRotation(location.getYaw()));
 		setField(tp, "f", getPacketRotation(location.getPitch()));
 		setField(tp, "g", handle.isOnGround());
+		PacketPlayOutEntityLook look = new PacketPlayOutEntityLook(getEntityId(), getPacketRotation(location.getYaw()), getPacketRotation(location.getPitch()), handle.isOnGround());
 		sync(() -> sendPacket(tp, player));
+		sync(() -> sendPacket(look, player));
 		sync(() -> sendPacket(new PacketPlayOutEntityHeadRotation(handle, getPacketRotation(location.getYaw())), player));
-	}
-	
-	public void setDisplayNameAboveHead(String name) throws IOException {
-		if(name.length() > 16) throw new IOException("Name cannot be longer than 16 characters.");
-		this.displayName = name;
-	}
-	
-	public void setDisplayName(String name) throws IOException {
-		this.setDisplayNameAboveHead(name);
 	}
 
 	public void setTablistName(String name) {
@@ -365,7 +356,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		this.sendPacket(packet);
 	}
 	
-	/*
+	/**
 	 * Does NOT delete the Dragons NPC underlying it;
 	 * use NPC#remove to do both.
 	 */
@@ -389,19 +380,19 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		this.setStatus((byte) status.getId());
 	}
 
-	public void setEffect(MobEffect effect) {
+	public void playEffect(MobEffect effect) {
 		this.sendPacket(new PacketPlayOutEntityEffect(handle.getId(), effect));
 	}
 
-	public void setAnimation(byte animation) {
+	public void playAnimation(byte animation) {
 		PacketPlayOutAnimation packet = new PacketPlayOutAnimation();
 		this.setField(packet, "a", handle.getId());
 		this.setField(packet, "b", animation);
 		this.sendPacket(packet);
 	}
 	
-	public void setAnimation(NPCAnimation animation) {
-		this.setAnimation((byte) animation.getId());
+	public void playAnimation(NPCAnimation animation) {
+		this.playAnimation((byte) animation.getId());
 	}
 
 	public void teleport(Location location, boolean onGround) {
@@ -465,7 +456,6 @@ public class PlayerNPC116R3 implements PlayerNPC {
 				this.sendPacket(packet, p);
 			}
 		}
-
 	}
 	
 	public NPC getDragonsNPC() {

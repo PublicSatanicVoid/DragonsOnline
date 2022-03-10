@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
 import mc.dragons.core.gameobject.floor.Floor;
@@ -12,8 +13,16 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.util.PermissionUtil;
+import mc.dragons.core.util.StringUtil;
 
-public class PlayerChangedWorldListener implements Listener {
+public class ContentToolsListeners implements Listener {
+	
+	@EventHandler
+	public void onSignEdit(SignChangeEvent e) {
+		for(int i = 0; i < e.getLines().length; i++) {
+			e.setLine(i, StringUtil.colorize(e.getLine(i)));
+		}
+	}
 	
 	@EventHandler
 	public void onChangeWorld(PlayerChangedWorldEvent e) {

@@ -1,5 +1,7 @@
 package mc.dragons.core.events;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.persistence.PersistentDataType;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.bridge.PlayerNPC.NPCStatus;
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
@@ -71,11 +74,14 @@ public class EntityDeathListener implements Listener {
 		if (npc == null) {
 			return;
 		}
+		if(npc.getEntityType() == EntityType.PLAYER) {
+			npc.getPlayerNPC().setStatus(NPCStatus.DIE);
+		}
 		if (npc.isImmortal() || npc.getNPCType().canRespawnOnDeath()) {
 			npc.regenerate(livingEntity.getLocation());
 		} else {
 			npc.getNPCClass().handleDeath(npc);
-			npc.remove();
+			sync(() -> npc.remove(), 5);
 		}
 		npc.updateHealthBar();
 		if (player == null) {

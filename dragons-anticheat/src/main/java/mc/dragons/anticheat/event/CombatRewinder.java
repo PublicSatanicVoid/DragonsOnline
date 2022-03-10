@@ -309,7 +309,9 @@ public class CombatRewinder {
 			last = test;
 			buf = loc;
 		}
-		plugin.getLogger().warning("WARN: Couldn't interpolate " + StringUtil.entityToString(entity) + " -" + ms + "ms (look=" + look + ")");
+		if(plugin.isDebug()) {
+			plugin.getLogger().warning("Couldn't interpolate " + StringUtil.entityToString(entity) + " -" + ms + "ms (look=" + look + ")");
+		}
 		return new Location[] { look ? ((LivingEntity) entity).getEyeLocation() : entity.getLocation() };
 	}
 	
