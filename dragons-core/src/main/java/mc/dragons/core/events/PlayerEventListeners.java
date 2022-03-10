@@ -299,7 +299,6 @@ public class PlayerEventListeners implements Listener {
 				if (item.getClassName().equals(ItemConstants.IMMORTAL_OVERRIDE_ITEM_CLASS)) {
 					user.debug("- Destroy the NPC");
 					npc.remove();
-					plugin.getGameObjectRegistry().removeFromDatabase(npc);
 					user.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 					return;
 				}

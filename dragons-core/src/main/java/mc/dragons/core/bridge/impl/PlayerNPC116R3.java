@@ -20,12 +20,10 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftChatMessage;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 
 import com.mojang.authlib.GameProfile;
@@ -36,7 +34,7 @@ import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.PlayerNPC;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.PlayerNPCRegistry;
-import mc.dragons.core.util.HologramUtil;
+import net.minecraft.server.v1_16_R3.DedicatedServer;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.EnumGamemode;
 import net.minecraft.server.v1_16_R3.EnumProtocolDirection;
@@ -57,6 +55,7 @@ import net.minecraft.server.v1_16_R3.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_16_R3.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.minecraft.server.v1_16_R3.PlayerInteractManager;
+import net.minecraft.server.v1_16_R3.WorldServer;
 
 /**
  * 
@@ -67,6 +66,7 @@ import net.minecraft.server.v1_16_R3.PlayerInteractManager;
  */
 public class PlayerNPC116R3 implements PlayerNPC {
 	private static int FORCE_REFRESH_LOCATION_INTERVAL_MS = 1000 * 5;
+	private static int SPAWN_RADIUS = PlayerNPCRegistry.SPAWN_RADIUS;
 	private static Dragons dragons = Dragons.getInstance();
 	private static Bridge bridge = dragons.getBridge();
 	private static PlayerNPCRegistry registry = dragons.getPlayerNPCRegistry();
@@ -84,6 +84,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	private String signature = null;
 	private Map<Player, Location> lastSeenLocation = new HashMap<>();
 	private Map<Player, Long> lastForceRefresh = new HashMap<>();
+	private List<Entity> sameVisibility = new ArrayList<>();
 	
 	private boolean isDestroyed;
 	private NPC npc;
@@ -93,7 +94,6 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		this.npc = npc;
 		this.recipientType = Recipient.ALL;
 		this.recipients = new ArrayList<Player>();
-		this.uuid = UUID.randomUUID();
 		try {
 			setDisplayName(name);
 		} catch (IOException e) {
@@ -129,14 +129,17 @@ public class PlayerNPC116R3 implements PlayerNPC {
 
 	public void addRecipient(Player p) {
 		this.recipients.add(p);
+		updateIdenticalVisibilityFor(p);
 	}
 	
 	public void removeRecipient(Player p) {
 		this.recipients.remove(p);
+		updateIdenticalVisibilityFor(p);
 	}
 	
 	public void setRecipientType(Recipient recipientType) {
 		this.recipientType = recipientType;
+		updateIdenticalVisibility();
 	}
 	
 	public int getEntityId() {
@@ -144,29 +147,29 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	}
 	
 	public void spawn() {
+		registry.unregister(this);
+		uuid = UUID.randomUUID();
 		this.isDestroyed = false;
-		String texture = this.texture;
-		String signature = this.signature;
+		DedicatedServer server = ((CraftServer) Bukkit.getServer()).getServer();
+		WorldServer world = ((CraftWorld) location.getWorld()).getHandle();
 		GameProfile gameProfile = new GameProfile(uuid, ""); // displayName);
 		gameProfile.getProperties().clear();
 		gameProfile.getProperties().put("textures", new Property("textures", texture, signature));
-		this.handle = new EntityPlayer(((CraftServer) Bukkit.getServer()).getServer(),
-				((CraftWorld) location.getWorld()).getHandle(), gameProfile,
-				new PlayerInteractManager(((CraftWorld) location.getWorld()).getHandle()));
+		this.handle = new EntityPlayer(server, world, gameProfile, new PlayerInteractManager(world));
 		handle.persist = true;
 		handle.collides = false;
 		handle.setCustomNameVisible(false);
 		handle.setInvulnerable(npc.isImmortal());
-		handle.getBukkitEntity().setMetadata("handle", new FixedMetadataValue(dragons, npc));
 		handle.playerConnection = new PlayerConnection(((CraftServer) Bukkit.getServer()).getServer(),
 				new NetworkManager(EnumProtocolDirection.SERVERBOUND), handle);
 		((CraftWorld) location.getWorld()).addEntity(handle, CreatureSpawnEvent.SpawnReason.CUSTOM);
 		handle.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 		registry.register(this);
-		ArmorStand hologram = HologramUtil.makeHologram(npc.getDecoratedName(), getEntity().getLocation().add(0, 0.8, 0));
-		hologram.setMetadata("followDY", new FixedMetadataValue(dragons, 0.8));
-		npc.getEntity().setMetadata("shadow", new FixedMetadataValue(dragons, hologram));
-		npc.setExternalHealthIndicator(hologram);
+		for(Entity e : getEntity().getNearbyEntities(SPAWN_RADIUS, SPAWN_RADIUS, SPAWN_RADIUS)) {
+			if(e instanceof Player) {
+				registry.updateSpawns((Player) e, true);
+			}
+		}
 	}
 	
 	public void spawnFor(Player player) {
@@ -272,6 +275,33 @@ public class PlayerNPC116R3 implements PlayerNPC {
 			this.sendPacket(packet);
 			this.spawn();
 		}	
+	}
+	
+	public void setVisibilitySame(Entity e) {
+		sameVisibility.add(e);
+		updateIdenticalVisibility();
+	}
+	
+	private void updateIdenticalVisibilityFor(Player p) {
+		for(Entity e : sameVisibility) {
+			if(recipientType == Recipient.LISTED_RECIPIENTS) {
+				if(recipients.contains(p)) {
+					dragons.getEntityHider().showEntity(p, e);
+				}
+				else {
+					dragons.getEntityHider().hideEntity(p, e);
+				}
+			}
+			else {
+				dragons.getEntityHider().showEntity(p, e);
+			}
+		}
+	}
+	
+	private void updateIdenticalVisibility() {
+		for(Player p : Bukkit.getOnlinePlayers()) {
+			updateIdenticalVisibilityFor(p);
+		}
 	}
 	
 	public void setSkin(String texture, String signature) {

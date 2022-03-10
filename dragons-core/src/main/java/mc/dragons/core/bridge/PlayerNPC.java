@@ -172,4 +172,13 @@ public interface PlayerNPC {
 	public Entity getEntity();
 	public void removeFromTablistFor(Player player);
 	public void updateLocationFor(Player player, float pitch, float yaw);
+	
+	/**
+	 * Gives the specified entity the same visibility as this NPC,
+	 * i.e. each player will either see both this NPC and the specified
+	 * entity, or neither.
+	 * 
+	 * @param entity
+	 */
+	public void setVisibilitySame(Entity entity);
 }

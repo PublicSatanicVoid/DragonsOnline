@@ -29,8 +29,8 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.bridge.PlayerNPC;
 
 public class PlayerNPCRegistry implements Listener {
+	public static final int SPAWN_RADIUS = 30;
 	private static final int MIN_SPAWN_INTERVAL_MS = 200;
-	private static final int SPAWN_RADIUS = 30;
 	private static final double EYE_TOLERANCE = 43 * Math.PI / 180;
 	private Map<World, List<PlayerNPC>> registry = new HashMap<>();
 	private Map<Integer, PlayerNPC> ids = new HashMap<>();
@@ -63,8 +63,15 @@ public class PlayerNPCRegistry implements Listener {
 	}
 
 	public void unregister(PlayerNPC npc) {
-		registry.get(npc.getLocation().getWorld()).remove(npc);
-		ids.remove(npc.getEntityId());
+		ArrayList<PlayerNPC> dummy = new ArrayList<>();
+		registry.getOrDefault(npc.getLocation().getWorld(), dummy).remove(npc);
+		if(ids.containsValue(npc)) {
+			ids.remove(npc.getEntityId());
+		}
+		for(Player p : spawnedFor.keySet()) {
+			spawnedFor.getOrDefault(p, dummy).remove(npc);
+			refreshedFor.getOrDefault(p, dummy).remove(npc);
+		}
 	}
 	
 	@EventHandler

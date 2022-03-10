@@ -16,12 +16,14 @@ import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
+import mc.dragons.core.gameobject.npc.PlayerNPCRegistry;
 import mc.dragons.core.gameobject.region.Region;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 
 public class EntityMoveListener extends PacketAdapter {
+	private static int SPAWN_RADIUS = PlayerNPCRegistry.SPAWN_RADIUS;
 	private RegionLoader regionLoader;
 
 	public EntityMoveListener(Dragons instance) {
@@ -32,6 +34,7 @@ public class EntityMoveListener extends PacketAdapter {
 	@Override
 	public void onPacketSending(PacketEvent event) {
 		Entity entity = event.getPacket().getEntityModifier(event.getPlayer().getWorld()).read(0);
+		if(entity == null) return;
 		NPC npc = NPCLoader.fromBukkit(entity);
 		if(entity.hasMetadata("shadow")) {
 			for(MetadataValue s : entity.getMetadata("shadow")) {
@@ -45,7 +48,7 @@ public class EntityMoveListener extends PacketAdapter {
 				NPC npcShadow = NPCLoader.fromBukkit(shadow);
 				if(npcShadow != null && npcShadow.getEntityType() == EntityType.PLAYER) {
 					Set<Entity> nearby = new HashSet<>(entity.getNearbyEntities(30, 30, 30));
-					nearby.addAll(shadow.getNearbyEntities(30, 30, 30));
+					nearby.addAll(shadow.getNearbyEntities(SPAWN_RADIUS, SPAWN_RADIUS, SPAWN_RADIUS));
 					for(Entity e : nearby) {
 						if(e instanceof Player && UserLoader.fromPlayer((Player) e) != null) {
 							npcShadow.getPlayerNPC().updateLocationFor((Player) e, entity.getLocation().getPitch(), entity.getLocation().getYaw());

@@ -17,6 +17,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -35,6 +36,7 @@ import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.storage.StorageAccess;
 import mc.dragons.core.storage.StorageManager;
 import mc.dragons.core.util.EntityHider;
+import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.ProgressBarUtil;
 import mc.dragons.core.util.StringUtil;
 
@@ -178,13 +180,16 @@ public class NPC extends GameObject {
 					}
 					pnpc.spawn();
 					entity = pnpc.getEntity();
-					((Player) entity).setHealth(getMaxHealth());
-					Material heldItemType = getNPCClass().getHeldItemType();
-					if(heldItemType != null) {
-						pnpc.setEquipment(EquipmentSlot.HAND, new ItemStack(heldItemType));
-					}
 					if(getNPCType() == NPCType.HOSTILE) {
 						Zombie hidden = (Zombie) loc.getWorld().spawnEntity(loc, EntityType.ZOMBIE);
+						hidden.setInvisible(true);
+						hidden.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
+						hidden.setMetadata("partOf", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
+						hidden.setMetadata("shadow", new FixedMetadataValue(Dragons.getInstance(), pnpc.getEntity()));
+						pnpcGuide = hidden;
+					}
+					else if(getNPCClass().hasAI()) {
+						Villager hidden = (Villager) loc.getWorld().spawnEntity(loc, EntityType.VILLAGER);
 						hidden.setInvisible(true);
 						hidden.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
 						hidden.setMetadata("partOf", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
@@ -195,8 +200,8 @@ public class NPC extends GameObject {
 				else {
 					entity = loc.getWorld().spawnEntity(loc, type);
 					entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
-					initializeEntity();
 				}
+				initializeEntity();
 				initializeAddons();
 				long duration = System.currentTimeMillis() - start;
 				LOGGER.verbose("Spawned " + getUUID() + " - " + getNPCClass().getClassName() + " in " + duration + "ms (" + StringUtil.entityToString(entity) + ")");
@@ -224,31 +229,45 @@ public class NPC extends GameObject {
 	 * Call once when the backing Bukkit entity is set or changed.
 	 */
 	public void initializeEntity() {
-		if(getEntityType() == EntityType.PLAYER) return;
-		entity.setCustomName(getDecoratedName());
-		entity.setCustomNameVisible(true);
-		healthIndicator = entity;
-		Dragons.getInstance().getBridge().setEntityAI(entity, getNPCClass().hasAI());
-		Dragons.getInstance().getBridge().setEntityInvulnerable(entity, isImmortal());
-		// TODO configurable baby status if ageable
-		if(entity instanceof Ageable) {
-			Ageable ageable = (Ageable) entity;
-			ageable.setAdult();
+		if(getEntityType() == EntityType.PLAYER) {
+			((Player) entity).setHealth(getMaxHealth());
+			Material heldItemType = getNPCClass().getHeldItemType();
+			if(heldItemType != null) {
+				pnpc.setEquipment(EquipmentSlot.HAND, new ItemStack(heldItemType));
+			}
+			ArmorStand hologram = HologramUtil.makeHologram(getDecoratedName(), getEntity().getLocation().add(0, 0.8, 0));
+			pnpc.setVisibilitySame(hologram);
+			hologram.setMetadata("followDY", new FixedMetadataValue(Dragons.getInstance(), 0.8));
+			getEntity().setMetadata("shadow", new FixedMetadataValue(Dragons.getInstance(), hologram));
+			setExternalHealthIndicator(hologram);
 		}
-		if (entity.isInsideVehicle()) {
-			entity.getVehicle().eject();
-		}
-		if (entity instanceof Attributable) {
-			Attributable att = (Attributable) entity;
-			for (Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet()) {
-				att.getAttribute(a.getKey()).setBaseValue(a.getValue());
+		else {
+			entity.setCustomName(getDecoratedName());
+			entity.setCustomNameVisible(true);
+			healthIndicator = entity;
+			Dragons.getInstance().getBridge().setEntityAI(entity, getNPCClass().hasAI());
+			Dragons.getInstance().getBridge().setEntityInvulnerable(entity, isImmortal());
+			// TODO configurable baby status if ageable
+			if(entity instanceof Ageable) {
+				Ageable ageable = (Ageable) entity;
+				ageable.setAdult();
+			}
+			if (entity.isInsideVehicle()) {
+				entity.getVehicle().eject();
+			}
+			if (entity instanceof Attributable) {
+				Attributable att = (Attributable) entity;
+				for (Entry<Attribute, Double> a : getNPCClass().getCustomAttributes().entrySet()) {
+					att.getAttribute(a.getKey()).setBaseValue(a.getValue());
+				}
+			}
+			Material heldItemType = getNPCClass().getHeldItemType();
+			if (heldItemType != null) {
+				setHeldItem(new ItemStack(heldItemType));
 			}
 		}
-		Material heldItemType = getNPCClass().getHeldItemType();
-		if (heldItemType != null) {
-			setHeldItem(new ItemStack(heldItemType));
-		}
 		entity.setMetadata("handle", new FixedMetadataValue(Dragons.getInstance(), this));
+		
 	}
 	
 	/**
@@ -364,7 +383,7 @@ public class NPC extends GameObject {
 		}
 		healthIndicator = indicator;
 		indicator.setCustomNameVisible(true);
-		updateHealthBar(0.0D);
+		updateHealthBar();
 	}
 
 	public void updateHealthBar() {
@@ -372,7 +391,7 @@ public class NPC extends GameObject {
 	}
 
 	public void updateHealthBar(double additionalDamage) {
-		healthIndicator.setCustomName(getDecoratedName() + (isImmortal() ? ChatColor.LIGHT_PURPLE + " [Immortal]"
+		healthIndicator.setCustomName(getDecoratedName() + (isImmortal() ? ""
 				: ChatColor.DARK_GRAY + " [" + ProgressBarUtil.getHealthBar(getHealth() - additionalDamage, getMaxHealth()) + ChatColor.DARK_GRAY + "]"));
 	}
 
@@ -430,6 +449,9 @@ public class NPC extends GameObject {
 		}
 		if(pnpc != null) {
 			pnpc.destroy();
+		}
+		if(healthIndicator != null) {
+			healthIndicator.remove();
 		}
 		registry.removeFromDatabase(this);
 	}
@@ -495,14 +517,19 @@ public class NPC extends GameObject {
 
 	public void regenerate(Location spawn) {
 		LOGGER.debug("Regenerating NPC " + getIdentifier() + " at " + StringUtil.locToString(spawn));
-		if (entity != null) {
+		if (pnpc != null) {
+			pnpc.destroy();
+			pnpc.spawn();
+			entity = pnpc.getEntity();
+			pnpcGuide.removeMetadata("shadow", Dragons.getInstance());
+			pnpcGuide.setMetadata("shadow", new FixedMetadataValue(Dragons.getInstance(), pnpc.getEntity()));
+			initializeEntity();
+		}
+		else {
 			entity.remove();
 			setEntity(spawn.getWorld().spawnEntity(spawn, getNPCClass().getEntityType()));
 			healthIndicator = entity;
 			initializeEntity();
-		}
-		if (pnpc != null) {
-			pnpc.reload();
 		}
 	}
 }

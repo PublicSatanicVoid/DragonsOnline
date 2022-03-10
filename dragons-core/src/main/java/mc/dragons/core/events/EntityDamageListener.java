@@ -1,5 +1,7 @@
 package mc.dragons.core.events;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.Set;
 
 import org.bukkit.ChatColor;
@@ -16,6 +18,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
+import mc.dragons.core.bridge.PlayerNPC.NPCAnimation;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.item.Item;
@@ -272,15 +275,13 @@ public class EntityDamageListener implements Listener {
 								+ ProgressBarUtil.getCountdownBar(percentRemaining) + ChatColor.DARK_GRAY + "]";
 						fUserDamager.getPlayer().getInventory().setItemInMainHand(fAttackerHeldItem.localRename(cooldownName));
 						if (!fAttackerHeldItem.hasCooldownRemaining()) {
-							new BukkitRunnable() {
-								@Override public void run() {
-									Item currentHeldItem = ItemLoader.fromBukkit(fUserDamager.getPlayer().getInventory().getItemInMainHand());
-									if (currentHeldItem == null || !currentHeldItem.equals(fAttackerHeldItem)) {
-										return;
-									}
-									fUserDamager.getPlayer().getInventory().setItemInMainHand(fAttackerHeldItem.localRename(fAttackerHeldItem.getDecoratedName()));
+							sync(() -> {
+								Item currentHeldItem2 = ItemLoader.fromBukkit(fUserDamager.getPlayer().getInventory().getItemInMainHand());
+								if (currentHeldItem2 == null || !currentHeldItem2.equals(fAttackerHeldItem)) {
+									return;
 								}
-							}.runTaskLater(dragons, 10L);
+								fUserDamager.getPlayer().getInventory().setItemInMainHand(fAttackerHeldItem.localRename(fAttackerHeldItem.getDecoratedName()));
+							}, 10);
 							cancel();
 						}
 					}
@@ -366,6 +367,9 @@ public class EntityDamageListener implements Listener {
 			}
 		}
 		if (npcDamager != null) {
+			if(npcDamager.getEntityType() == EntityType.PLAYER) {
+				npcDamager.getPlayerNPC().setAnimation(NPCAnimation.SWING_MAIN_HAND);
+			}
 			npcDamager.getNPCClass().handleDealDamage(npcDamager, npcTarget != null ? (GameObject) npcTarget : (GameObject) userTarget, damage);
 		}
 	}
