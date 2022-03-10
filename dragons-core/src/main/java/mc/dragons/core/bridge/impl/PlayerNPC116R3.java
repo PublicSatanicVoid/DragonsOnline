@@ -5,7 +5,9 @@ import static mc.dragons.core.util.BukkitUtil.sync;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -18,11 +20,13 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftChatMessage;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.util.Vector;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -32,6 +36,7 @@ import mc.dragons.core.bridge.Bridge;
 import mc.dragons.core.bridge.PlayerNPC;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.PlayerNPCRegistry;
+import mc.dragons.core.util.HologramUtil;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.EnumGamemode;
 import net.minecraft.server.v1_16_R3.EnumProtocolDirection;
@@ -40,6 +45,7 @@ import net.minecraft.server.v1_16_R3.NetworkManager;
 import net.minecraft.server.v1_16_R3.Packet;
 import net.minecraft.server.v1_16_R3.PacketPlayOutAnimation;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntity;
+import net.minecraft.server.v1_16_R3.PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityEffect;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityEquipment;
@@ -60,6 +66,7 @@ import net.minecraft.server.v1_16_R3.PlayerInteractManager;
  *
  */
 public class PlayerNPC116R3 implements PlayerNPC {
+	private static int FORCE_REFRESH_LOCATION_INTERVAL_MS = 1000 * 5;
 	private static Dragons dragons = Dragons.getInstance();
 	private static Bridge bridge = dragons.getBridge();
 	private static PlayerNPCRegistry registry = dragons.getPlayerNPCRegistry();
@@ -75,6 +82,8 @@ public class PlayerNPC116R3 implements PlayerNPC {
 
 	private String texture = null;
 	private String signature = null;
+	private Map<Player, Location> lastSeenLocation = new HashMap<>();
+	private Map<Player, Long> lastForceRefresh = new HashMap<>();
 	
 	private boolean isDestroyed;
 	private NPC npc;
@@ -138,7 +147,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		this.isDestroyed = false;
 		String texture = this.texture;
 		String signature = this.signature;
-		GameProfile gameProfile = new GameProfile(uuid, displayName);
+		GameProfile gameProfile = new GameProfile(uuid, ""); // displayName);
 		gameProfile.getProperties().clear();
 		gameProfile.getProperties().put("textures", new Property("textures", texture, signature));
 		this.handle = new EntityPlayer(((CraftServer) Bukkit.getServer()).getServer(),
@@ -146,17 +155,24 @@ public class PlayerNPC116R3 implements PlayerNPC {
 				new PlayerInteractManager(((CraftWorld) location.getWorld()).getHandle()));
 		handle.persist = true;
 		handle.collides = false;
-		handle.setInvulnerable(true);
+		handle.setCustomNameVisible(false);
+		handle.setInvulnerable(npc.isImmortal());
 		handle.getBukkitEntity().setMetadata("handle", new FixedMetadataValue(dragons, npc));
 		handle.playerConnection = new PlayerConnection(((CraftServer) Bukkit.getServer()).getServer(),
 				new NetworkManager(EnumProtocolDirection.SERVERBOUND), handle);
 		((CraftWorld) location.getWorld()).addEntity(handle, CreatureSpawnEvent.SpawnReason.CUSTOM);
 		handle.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 		registry.register(this);
+		ArmorStand hologram = HologramUtil.makeHologram(npc.getDecoratedName(), getEntity().getLocation().add(0, 0.8, 0));
+		hologram.setMetadata("followDY", new FixedMetadataValue(dragons, 0.8));
+		npc.getEntity().setMetadata("shadow", new FixedMetadataValue(dragons, hologram));
+		npc.setExternalHealthIndicator(hologram);
 	}
 	
 	public void spawnFor(Player player) {
 		if(isDestroyed) return;
+		location = getEntity().getLocation(); // resync
+		handle.setCustomNameVisible(false);
 		sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, handle), player);
 		sync(() -> sendPacket(new PacketPlayOutNamedEntitySpawn(handle), player), 1);
 		PacketPlayOutEntityTeleport tp1 = new PacketPlayOutEntityTeleport();
@@ -180,10 +196,50 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		sync(() -> setTablistName(getTablistName()), 2);
 		sync(() -> sendPacket(new PacketPlayOutEntityHeadRotation(handle, getPacketRotation(location.getYaw())), player), 6);
 		sync(() -> removeFromTablistFor(player), 20 + (int) Math.ceil(2 * bridge.getPing(player) * 20 / 1000));
+		lastSeenLocation.put(player, location.clone());
+	}
+	
+	public void updateLocationFor(Player player, float pitch, float yaw) {
+		if(!lastSeenLocation.containsKey(player)) {
+			spawnFor(player);
+			return;
+		}
+		location = getEntity().getLocation(); // resync
+		byte byaw = getPacketRotation(yaw);
+		byte bpitch = getPacketRotation(pitch);
+		Vector move = getEntity().getLocation().subtract(lastSeenLocation.get(player)).toVector();
 		
+		// It's occasionally a good idea to completely resync the NPC's location,
+		// since error in the dx/dy/dz's can accumulate or get desynced with the client.
+		if(move.lengthSquared() > 10 * 10 || System.currentTimeMillis() - lastForceRefresh.getOrDefault(player, 0L) > FORCE_REFRESH_LOCATION_INTERVAL_MS) {
+			PacketPlayOutEntityTeleport tp = new PacketPlayOutEntityTeleport();
+			setField(tp, "a", getEntityId());
+			setField(tp, "b", location.getX());
+			setField(tp, "c", location.getY());
+			setField(tp, "d", location.getZ());
+			setField(tp, "e", byaw);
+			setField(tp, "f", bpitch);
+			setField(tp, "g", handle.isOnGround());
+			sync(() -> sendPacket(tp, player));
+			lastForceRefresh.put(player, System.currentTimeMillis());
+		}
+		
+		// But usually we can just send dx/dy/dz, resulting in smoother movement
+		// and smaller packets
+		else {
+			int dx = (int) move.getX() * 4096;
+			int dy = (int) move.getY() * 4096;
+			int dz = (int) move.getZ() * 4096;
+			boolean onGround = handle.isOnGround();
+			PacketPlayOutRelEntityMoveLook packet = new PacketPlayOutRelEntityMoveLook(getEntityId(), (short) dx, (short) dy, (short) dz, byaw, bpitch, onGround);
+			sendPacket(packet, player);
+		}
+		sync(() -> sendPacket(new PacketPlayOutEntityHeadRotation(handle, byaw), player));
+		lastSeenLocation.put(player, location);
 	}
 
 	public void refreshRotationFor(Player player) {
+		location = getEntity().getLocation(); // resync
 		PacketPlayOutEntityTeleport tp = new PacketPlayOutEntityTeleport();
 		setField(tp, "a", getEntityId());
 		setField(tp, "b", location.getX());
@@ -288,6 +344,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(new int[] { handle.getId() });
 		this.removeFromTablist();
 		this.sendPacket(packet);
+		handle.killEntity();
 		this.isDestroyed = true;
 	}
 

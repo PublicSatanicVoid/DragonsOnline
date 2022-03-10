@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -77,16 +78,22 @@ public class PlayerNPCRegistry implements Listener {
 	}
 	
 	@EventHandler
+	public void onQuit(PlayerQuitEvent event) {
+		spawnedFor.remove(event.getPlayer());
+		refreshedFor.remove(event.getPlayer());
+	}
+	
+	@EventHandler
 	public void onMove(PlayerMoveEvent event) {
 		updateSpawns(event.getPlayer(), false);
 	}
 	
 	public void updateSpawns(Player p, boolean force) {
 		if(!force && System.currentTimeMillis() - lastUpdatedSpawns.getOrDefault(p, 0L) < MIN_SPAWN_INTERVAL_MS) return;
+		if(!force && System.currentTimeMillis() - lastChangedWorlds.getOrDefault(p, 0L) < 1000) return;
 		lastUpdatedSpawns.put(p, System.currentTimeMillis());
 		Location ploc = p.getLocation();
 		int i = 0;
-		if(System.currentTimeMillis() - lastChangedWorlds.getOrDefault(p, 0L) < 1000) return;
 		List<PlayerNPC> spawned = spawnedFor.computeIfAbsent(p, pp -> new ArrayList<>());
 		List<PlayerNPC> refreshed = refreshedFor.computeIfAbsent(p, pp -> new ArrayList<>());
 		for(PlayerNPC npc : registry.getOrDefault(p.getWorld(), new ArrayList<>())) {

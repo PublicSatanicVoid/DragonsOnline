@@ -59,11 +59,16 @@ public class EntityDeathListener implements Listener {
 			return;
 		}
 		if (npc.isImmortal() || npc.getNPCType().canRespawnOnDeath()) {
-			npc.setEntity(livingEntity.getLocation().getWorld().spawnEntity(livingEntity.getLocation(), npc.getEntity().getType()));
-			npc.initializeEntity();
+			if(npc.getEntityType() == EntityType.PLAYER) {
+				npc.getPlayerNPC().spawn();
+				npc.setEntity(npc.getPlayerNPC().getEntity());
+			} else {
+				npc.setEntity(livingEntity.getLocation().getWorld().spawnEntity(livingEntity.getLocation(), npc.getEntity().getType()));
+				npc.initializeEntity();
+			}
 		} else {
-			registry.removeFromDatabase(npc);
 			npc.getNPCClass().handleDeath(npc);
+			npc.remove();
 		}
 		npc.updateHealthBar();
 		if (player == null) {

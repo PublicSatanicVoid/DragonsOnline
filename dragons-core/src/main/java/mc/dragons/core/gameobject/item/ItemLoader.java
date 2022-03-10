@@ -1,10 +1,14 @@
 package mc.dragons.core.gameobject.item;
 
+import static mc.dragons.core.util.BukkitUtil.async;
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
@@ -67,9 +71,12 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 	 * 
 	 * <p>Indexed by UUID for convenience.
 	 * 
+	 * @deprecated Use async method to avoid blocking main thread.
+	 * 
 	 * @param uuids
 	 * @return
 	 */
+	@Deprecated
 	public Map<UUID, Item> loadObjects(Set<UUID> uuids) {
 		LOGGER.trace("Loading items by UUID " + uuids.toArray());
 		Map<UUID, Item> result = new HashMap<>();
@@ -78,6 +85,31 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 			result.put(sa.getIdentifier().getUUID(), loadObject(sa));
 		}
 		return result;
+	}
+	
+
+	/**
+	 * Loads all items matching the given UUIDs in a single database query.
+	 * 
+	 * <p>Indexed by UUID for convenience.
+	 * 
+	 * @implNote Database query performed asynchronously.
+	 * 
+	 * @param uuids
+	 * @param callback
+	 */
+	public void loadObjects(Set<UUID> uuids, Consumer<Map<UUID, Item>> callback) {
+		async(() -> {
+			LOGGER.trace("Loading items async by UUID " + uuids.toArray());
+			Map<UUID, Item> result = new HashMap<>();
+			Set<StorageAccess> results = storageManager.getAllStorageAccess(GameObjectType.ITEM, new Document("_id", new Document("$in", uuids)));
+			sync(() -> {
+				for(StorageAccess sa : results) {
+					result.put(sa.getIdentifier().getUUID(), loadObject(sa));
+				}
+				callback.accept(result);
+			});
+		});
 	}
 
 	public Item registerNew(ItemClass itemClass) {

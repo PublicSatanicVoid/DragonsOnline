@@ -171,5 +171,5 @@ public interface PlayerNPC {
 	public NPC getDragonsNPC();
 	public Entity getEntity();
 	public void removeFromTablistFor(Player player);
-
+	public void updateLocationFor(Player player, float pitch, float yaw);
 }

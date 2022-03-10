@@ -17,8 +17,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Zombie;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import mc.dragons.core.Dragons;
@@ -132,6 +135,7 @@ public class NPC extends GameObject {
 	
 	protected Entity entity;
 	protected PlayerNPC pnpc;
+	protected Entity pnpcGuide;
 	protected Entity healthIndicator;
 	protected boolean isDamageExternalized = false;
 
@@ -146,6 +150,8 @@ public class NPC extends GameObject {
 	/**
 	 * Lazy construction of the NPC. It will exist in memory but the NPC will not
 	 * be spawned until the async spawn handler is called.
+	 * 
+	 * <p>This is the strongly preferred method of spawning NPCs.
 	 * 
 	 * @param loc The location to spawn the NPC at.
 	 * @param asyncSpawnHandler List of async spawn handlers to add this NPC's spawn
@@ -171,7 +177,20 @@ public class NPC extends GameObject {
 						pnpc.setSkin(texture, signature);
 					}
 					pnpc.spawn();
-
+					entity = pnpc.getEntity();
+					((Player) entity).setHealth(getMaxHealth());
+					Material heldItemType = getNPCClass().getHeldItemType();
+					if(heldItemType != null) {
+						pnpc.setEquipment(EquipmentSlot.HAND, new ItemStack(heldItemType));
+					}
+					if(getNPCType() == NPCType.HOSTILE) {
+						Zombie hidden = (Zombie) loc.getWorld().spawnEntity(loc, EntityType.ZOMBIE);
+						hidden.setInvisible(true);
+						hidden.setMetadata("allow", new FixedMetadataValue(Dragons.getInstance(), true));
+						hidden.setMetadata("partOf", new FixedMetadataValue(Dragons.getInstance(), NPC.this));
+						hidden.setMetadata("shadow", new FixedMetadataValue(Dragons.getInstance(), pnpc.getEntity()));
+						pnpcGuide = hidden;
+					}
 				}
 				else {
 					entity = loc.getWorld().spawnEntity(loc, type);
@@ -314,7 +333,7 @@ public class NPC extends GameObject {
 			Damageable damageable = (Damageable) entity;
 			return damageable.getHealth();
 		}
-		return 0.0D;
+		return getMaxHealth();
 	}
 
 	public ItemStack getHeldItem() {
@@ -340,7 +359,9 @@ public class NPC extends GameObject {
 	 * @param indicator
 	 */
 	public void setExternalHealthIndicator(ArmorStand indicator) {
-		healthIndicator.setCustomNameVisible(false);
+		if(healthIndicator != null) {
+			healthIndicator.setCustomNameVisible(false);
+		}
 		healthIndicator = indicator;
 		indicator.setCustomNameVisible(true);
 		updateHealthBar(0.0D);
@@ -394,7 +415,18 @@ public class NPC extends GameObject {
 
 	public void remove() {
 		if(entity != null) {
-			entity.remove();
+			if(entity.hasMetadata("shadow")) {
+				for(MetadataValue shadow : entity.getMetadata("shadow")) {
+					Entity e = (Entity) shadow.value();
+					e.remove();
+				}
+			}
+			if(entity.getType() != EntityType.PLAYER) {
+				entity.remove();
+			}
+		}
+		if(pnpcGuide != null) {
+			pnpcGuide.remove();
 		}
 		if(pnpc != null) {
 			pnpc.destroy();
@@ -449,7 +481,12 @@ public class NPC extends GameObject {
 	}
 
 	public Entity getEntity() {
-		return entity;
+		if(this.entity != null) {
+			return entity;
+		}
+		else {
+			return pnpc.getEntity();
+		}
 	}
 	
 	public PlayerNPC getPlayerNPC() {

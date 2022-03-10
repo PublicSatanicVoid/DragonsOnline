@@ -1,9 +1,12 @@
 package mc.dragons.core.events;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -30,6 +33,27 @@ public class EntityMoveListener extends PacketAdapter {
 	public void onPacketSending(PacketEvent event) {
 		Entity entity = event.getPacket().getEntityModifier(event.getPlayer().getWorld()).read(0);
 		NPC npc = NPCLoader.fromBukkit(entity);
+		if(entity.hasMetadata("shadow")) {
+			for(MetadataValue s : entity.getMetadata("shadow")) {
+				Entity shadow = (Entity) s.value();
+				if(shadow.hasMetadata("followDY")) {
+					shadow.teleport(entity.getLocation().add(0, shadow.getMetadata("followDY").get(0).asDouble(), 0));
+				}
+				else {
+					shadow.teleport(entity.getLocation());
+				}
+				NPC npcShadow = NPCLoader.fromBukkit(shadow);
+				if(npcShadow != null && npcShadow.getEntityType() == EntityType.PLAYER) {
+					Set<Entity> nearby = new HashSet<>(entity.getNearbyEntities(30, 30, 30));
+					nearby.addAll(shadow.getNearbyEntities(30, 30, 30));
+					for(Entity e : nearby) {
+						if(e instanceof Player && UserLoader.fromPlayer((Player) e) != null) {
+							npcShadow.getPlayerNPC().updateLocationFor((Player) e, entity.getLocation().getPitch(), entity.getLocation().getYaw());
+						}
+					}
+				}
+			}
+		}
 		if (npc == null) {
 			return;
 		}
@@ -39,6 +63,7 @@ public class EntityMoveListener extends PacketAdapter {
 			for (Region region : regions) {
 				if (!Boolean.valueOf(region.getFlags().getString("allowhostile"))) {
 					npc.remove();
+					// TODO Push back or turn away rather than destroy
 				}
 			}
 		}

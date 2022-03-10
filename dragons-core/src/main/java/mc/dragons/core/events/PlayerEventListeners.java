@@ -187,6 +187,7 @@ public class PlayerEventListeners implements Listener {
 		LOGGER.debug("Death event from " + event.getEntity().getName());
 		Player player = event.getEntity();
 		final User user = UserLoader.fromPlayer(player);
+		if(user == null) return;
 		user.debug("death!");
 		player.sendMessage(ChatColor.DARK_RED + "You died!");
 		final int countdown = plugin.getServerOptions().getDeathCountdown();
@@ -297,7 +298,7 @@ public class PlayerEventListeners implements Listener {
 				}
 				if (item.getClassName().equals(ItemConstants.IMMORTAL_OVERRIDE_ITEM_CLASS)) {
 					user.debug("- Destroy the NPC");
-					npc.getEntity().remove();
+					npc.remove();
 					plugin.getGameObjectRegistry().removeFromDatabase(npc);
 					user.getPlayer().sendMessage(ChatColor.GREEN + "Removed NPC successfully.");
 					return;

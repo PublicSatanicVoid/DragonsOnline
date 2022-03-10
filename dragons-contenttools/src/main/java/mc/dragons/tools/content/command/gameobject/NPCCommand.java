@@ -69,6 +69,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> immortal <IsImmortal>" + ChatColor.GRAY + " set whether the NPC is immortal");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> loot [<RegionName> <ItemClassName> <Chance%|DEL>]" + ChatColor.GRAY + " manage NPC class loot table");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> skin <SkinDataURL>" + ChatColor.GRAY + " set player NPC skin");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> locate" + ChatColor.GRAY + " locate persistent NPCs");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b [<CLICK|HIT> <add|remove <#>>]" + ChatColor.GRAY + " add/remove/view NPC behaviors");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> behavior|b <CLICK|HIT> <#> condition <add [!]<ConditionType> <ConditionParams...>|<#> del>" + ChatColor.GRAY + " add/remove conditions on an NPC behavior");
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Adding a ! before the ConditionType will negate the condition.");
@@ -732,6 +733,23 @@ public class NPCCommand extends DragonsCommandExecutor {
 		propagateRevisions(npcClass);
 	}
 	
+	private void locate(CommandSender sender, String[] args) {
+		NPCClass npcClass = lookupNPCClass(sender, args[0]);
+		if(npcClass == null) return;
+		if(!npcClass.getNPCType().isPersistent()) {
+			sender.sendMessage(ChatColor.RED + "Can only locate persistent NPCs!");
+			return;
+		}
+		List<NPC> result = gameObjectRegistry.getRegisteredObjects(GameObjectType.NPC).stream()
+				.map(o -> (NPC) o)
+				.filter(npc -> npc.getNPCClass().equals(npcClass))
+				.collect(Collectors.toList());
+		sender.sendMessage(ChatColor.GREEN + "" + result.size() + " results for class " + npcClass.getClassName() + ":");
+		for(NPC npc : result) {
+			sender.sendMessage(ChatColor.GRAY + StringUtil.locToString(npc.getEntity().getLocation()) + ", " + npc.getEntity().getWorld().getName());
+		}
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.GM_NPC)) return true;
@@ -765,6 +783,9 @@ public class NPCCommand extends DragonsCommandExecutor {
 		}
 		else if(args[1].equalsIgnoreCase("behavior") || args[1].equalsIgnoreCase("b")) {
 			manageBehavior(sender, args);
+		}
+		else if(args[1].equalsIgnoreCase("locate")) {
+			locate(sender, args);
 		}
 		else if(args.length == 2) {
 			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /npc <ClassName> <Property> <Value>");

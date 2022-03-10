@@ -20,23 +20,17 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Slime;
-import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
-
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.commands.DragonsCommandExecutor;
@@ -61,16 +55,6 @@ import mc.dragons.core.util.HologramUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_16_R3.DataWatcher;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.EnumProtocolDirection;
-import net.minecraft.server.v1_16_R3.NetworkManager;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityHeadRotation;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
-import net.minecraft.server.v1_16_R3.PacketPlayOutNamedEntitySpawn;
-import net.minecraft.server.v1_16_R3.PacketPlayOutPlayerInfo;
-import net.minecraft.server.v1_16_R3.PlayerConnection;
-import net.minecraft.server.v1_16_R3.PlayerInteractManager;
 
 public class ExperimentalCommands extends DragonsCommandExecutor {
 
@@ -602,38 +586,24 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		}
 
 		else if (label.equalsIgnoreCase("testplayernpc")) {
+			NPC npc = npcLoader.registerNew(player.getLocation(), "Test-player");
+			ArmorStand hologram = HologramUtil.makeHologram("ABC ABC ABC ABC ABC ABC ABC", npc.getEntity().getLocation().add(0, 1, 0));
+			hologram.setMetadata("followDY", new FixedMetadataValue(dragons, 1.0));
+			npc.getEntity().setMetadata("shadow", new FixedMetadataValue(dragons, hologram));
 //			PlayerNPC pnpc = new PlayerNPC116R3(StringUtil.colorize(args[0]), player.getLocation(), null, dragons.getPlayerNPCRegistry());
 //			pnpc.spawn();
-			Location location = player.getLocation();
-			UUID uniqueId = UUID.randomUUID();
-			String texture = "ewogICJ0aW1lc3RhbXAiIDogMTYzOTA5MjA5OTk1NywKICAicHJvZmlsZUlkIiA6ICIyYzEwNjRmY2Q5MTc0MjgyODRlM2JmN2ZhYTdlM2UxYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYWVtZSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84YWM2N2FmMGE4MWNiZTBkYjFiYTY5M2QzNWUzOTFlNDEwOWVmMjI5YWY2MmI4N2Y3NmIyMDQ1NWQ3MjcxYmIxIgogICAgfQogIH0KfQ==";
-			String signature = "DorvLT6YEUrX2koCFS9l13Dw8GnZZvwigRLKpLqaqMe1Y3XkGiwmE/3KlqQavkO5EiEeYgqPI579Ms9AyR1f4Al4frqDiNHssQ1CFDAnUuYGkXQu/70LHvhkHhpEnDdeAClfPQ8FElg1MUJK3s8NsRP9YS+D/+6FCsLh0Q2CDklAaxo1K4bK6UzD1GhppVGBafq/y4QSlHOfduzi56wmCZPRlDtsTQ8p4+X3sO1iCrCy5ThX+qxRNHRmy60qNMZcLuMocvZuq7hhlwV2VSxcsZJJAmYfZq/5EcTbLD/8MZB5BHsfd3BgaPfL3KDHD3BbbEZGpQHwPBO4mwSge5qbLHP9x7AhJ/4Id+blQjMLO1Lged/HFdc3IZkqaznwkav07qukp51dNK3bwCqcYSxvABCJpr/EgFos4B4d10XVG676kCGTPEK2579zUuMZDMxSWGy7VWWtI4K67ULIoVAAeHaP3gJYTZvuvHSOLWYUO5McW6nwwTDifXfw2TAgWG6cByi4DmcgwghRze+jIJ5b1TnVj7a0RtLF5GdSVDqjgrjDQ8DfMII7eXPxY5kiX6SQmLLYF3M2FggQ63PMUtenWmGlaSAUW0ntUluw5Ck0mkEpFL5YqZaxwK+VE2uPQUrVDOnO0VHy3oSXFDBjBPIKnpgd9czruBmC5NkwknHGWss=";
-			String name = "Jeff Bezos";
-			GameProfile gameProfile = new GameProfile(uniqueId, name);
-			gameProfile.getProperties().clear();
-			gameProfile.getProperties().put("textures", new Property("textures", texture, signature));
-			EntityPlayer npcCreature = new EntityPlayer(((CraftServer) Bukkit.getServer()).getServer(),
-					((CraftWorld) location.getWorld()).getHandle(), gameProfile,
-					new PlayerInteractManager(((CraftWorld) location.getWorld()).getHandle()));
-			npcCreature.playerConnection = new PlayerConnection(((CraftServer) Bukkit.getServer()).getServer(),
-					new NetworkManager(EnumProtocolDirection.SERVERBOUND), npcCreature);
-			((CraftWorld) location.getWorld()).addEntity(npcCreature, CreatureSpawnEvent.SpawnReason.CUSTOM);
-			npcCreature.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-			Bukkit.getOnlinePlayers().stream()
-					.filter(p -> p.getWorld() != null && ((CraftPlayer) p).getHandle().playerConnection != null)
-					.forEach(p -> {
-						PlayerConnection conn = ((CraftPlayer) p).getHandle().playerConnection;
-						conn.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, npcCreature));
-						conn.sendPacket(new PacketPlayOutNamedEntitySpawn(npcCreature));
-						conn.sendPacket(new PacketPlayOutEntityHeadRotation(npcCreature, (byte) ((location.getYaw() * 256.0F) / 360.0F)));
-						DataWatcher watcher = npcCreature.getDataWatcher();
-						conn.sendPacket(new PacketPlayOutEntityMetadata(npcCreature.getId(), watcher, true));
-					});
 		}
 
+		else if (label.equalsIgnoreCase("testrevealallinvisible")) {
+			for(Entity e : player.getWorld().getEntities()) {
+				if(e instanceof LivingEntity) {
+					((LivingEntity) e).setInvisible(false);
+				}
+			}
+		}
+		
 		else {
-			sender.sendMessage(
-					ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
+			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
 		}
 
 		return true;

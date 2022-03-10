@@ -3,7 +3,6 @@ package mc.dragons.core.events;
 import java.util.Set;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -67,7 +66,7 @@ public class EntityDamageListener implements Listener {
 		if(npc != null && npc.isImmortal()) event.setCancelled(true);
 		if(target instanceof Player) {
 			User user = UserLoader.fromPlayer((Player) target);
-			if(user.isGodMode()) event.setCancelled(true);
+			if(user != null && user.isGodMode()) event.setCancelled(true);
 		}
 	}
 	
@@ -104,6 +103,9 @@ public class EntityDamageListener implements Listener {
 		} else {
 			npcDamager = NPCLoader.fromBukkit(damager);
 		}
+		if(damager.hasMetadata("partOf")) {
+			npcDamager = (NPC) damager.getMetadata("partOf").get(0).value();
+		}
 		if (npcDamager != null && npcDamager.getNPCType() != NPC.NPCType.HOSTILE) {
 			event.setCancelled(true);
 			return;
@@ -128,28 +130,28 @@ public class EntityDamageListener implements Listener {
 		if (target instanceof Player) {
 			userTarget = UserLoader.fromPlayer((Player) target);
 			if(userTarget == null) {
-				event.setCancelled(true);
-				return;
+				npcTarget = NPCLoader.fromBukkit(target);
+				if(npcTarget == null) {
+					event.setCancelled(true);
+					return;
+				}
 			}
-			if(userTarget.isGodMode()) {
+			else if(userTarget.isGodMode()) {
 				immortalTarget(target, userDamager);
 				userTarget.debug("- God mode, cancelling");
 				event.setCancelled(true);
 				return;
 			}
-		} else if (target instanceof ArmorStand) {
-			
-			/*
-			 * Complex entities are rendered as composites of simpler entities.
-			 * When a player attacks a complex entity, one of those component
-			 * entities actually receives the damage. We route it to the appropriate
-			 * actual entity by checking for the appropriate metadata.
-			 */
-			if (target.hasMetadata("partOf")) {
-				LOGGER.trace("-Target is part of a complex entity!");
-				npcTarget = (NPC) target.getMetadata("partOf").get(0).value();
-				external = true;
-			}
+		/*
+		 * Complex entities are rendered as composites of simpler entities.
+		 * When a player attacks a complex entity, one of those component
+		 * entities actually receives the damage. We route it to the appropriate
+		 * actual entity by checking for the appropriate metadata.
+		 */
+		} else if (target.hasMetadata("partOf")) {
+			LOGGER.trace("-Target is part of a complex entity!");
+			npcTarget = (NPC) target.getMetadata("partOf").get(0).value();
+			external = true;
 		} else {
 			npcTarget = NPCLoader.fromBukkit(target);
 			if (npcTarget != null) {

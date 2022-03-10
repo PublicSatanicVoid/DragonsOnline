@@ -1,5 +1,7 @@
 package mc.dragons.core.gameobject.item;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -132,7 +134,8 @@ public class Item extends GameObject {
 		itemStack.setItemMeta(meta);
 		itemStack.setAmount(getQuantity());
 		this.itemStack = itemStack;
-		getItemClass().getAddons().forEach(addon -> addon.initialize(this));
+//		sync(() -> updateItemStackData(), 1);
+		sync(() -> getItemClass().getAddons().forEach(addon -> addon.initialize(this)), 1);
 	}
 
 	/**

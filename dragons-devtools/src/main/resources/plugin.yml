@@ -187,3 +187,4 @@ commands:
   sudo:
     aliases: iwillnotabusethiscommand
   testplayernpc:
+  testrevealallinvisible:

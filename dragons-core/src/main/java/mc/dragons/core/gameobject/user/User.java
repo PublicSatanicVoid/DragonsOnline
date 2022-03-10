@@ -893,20 +893,21 @@ public class User extends GameObject {
 	public void unstashItems(Quest quest, Material type) {
 		Document stash = getData().get("questStash", new Document());
 		List<UUID> stashed = stash.get(quest.getName(), new ArrayList<>());
-		Map<UUID, Item> items = itemLoader.loadObjects(Set.copyOf(stashed));
-		int restored = 0;
-		for(Item item : items.values()) {
-			if(type == null || item.getMaterial() == type) {
-				giveItem(item, true, false, true);
-				stashed.remove(item.getUUID());
-				restored++;
+		itemLoader.loadObjects(Set.copyOf(stashed), items -> {
+			int restored = 0;
+			for(Item item : items.values()) {
+				if(type == null || item.getMaterial() == type) {
+					giveItem(item, true, false, true);
+					stashed.remove(item.getUUID());
+					restored++;
+				}
 			}
-		}
-		stash.append(quest.getName(), stashed);
-		storageAccess.set("questStash", stash);
-		if(restored > 0) {
-			player.sendMessage(ChatColor.GREEN + "" + restored + " items were returned to your inventory.");
-		}
+			stash.append(quest.getName(), stashed);
+			storageAccess.set("questStash", stash);
+			if(restored > 0) {
+				player.sendMessage(ChatColor.GREEN + "" + restored + " items were returned to your inventory.");
+			}
+		});
 	}
 	
 	/**
@@ -1218,53 +1219,55 @@ public class User extends GameObject {
 	 * @param cid
 	 * @return whether an error occurred.
 	 */
-	public boolean loadInventory(UUID cid, Document inventory) {
+	public void loadInventory(UUID cid, Document inventory) {
 		LOGGER.verbose(cid, "Stored inventory data: " + inventory);
 		List<UUID> usedItems = new ArrayList<>();
-		int dups = 0;
-		int broken = 0;
 		Set<UUID> uuids = inventory.entrySet().stream().map(e -> (UUID) e.getValue()).collect(Collectors.toSet());
-		Map<UUID, Item> items = itemLoader.loadObjects(uuids);
-		
-		Map<Integer, ItemStack> bukkitInventory = new HashMap<>();
-		
-		for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
-			String[] labels = entry.getKey().split(DASH_PATTERN_QUOTED);
-			String part = labels[0];
-			int slot = Integer.valueOf(labels[1]);
-			UUID id = (UUID) entry.getValue();
-			if(usedItems.contains(id)) {
-				dups++;
-				LOGGER.warning(cid, "Duplicated item: " + id);
-				continue;
-			}
-			Item item = items.get(id);
-			if (item == null) {
-				broken++;
-				LOGGER.warning(cid, "Could not load item: " + id);
-				continue;
-			}
-			ItemStack itemStack = item.getItemStack();
-			if (part.equals("I")) {
-				bukkitInventory.put(slot, itemStack);
-				continue;
-			}
-		}
-		syncSetInventory(bukkitInventory);
-		boolean error = false;
-		if (broken > 0) {
-			if(player != null) player.sendMessage(ChatColor.RED + "" + broken + " items in your saved inventory could not be loaded.");
-			error = true;
-		}
-		if(dups > 0) {
-			if(player != null) player.sendMessage(ChatColor.RED + "" + dups + " duplicated items were found in your saved inventory.");
-			error = true;
-		}
-		if(error) {
-			if(player != null) player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
-			initErrorOccurred();
-		}
-		return error;
+
+		itemLoader.loadObjects(uuids, items -> {
+			rollingAsync(() -> {
+				int dups = 0;
+				int broken = 0;
+				Map<Integer, ItemStack> bukkitInventory = new HashMap<>();
+				
+				for (Entry<String, Object> entry : (Iterable<Entry<String, Object>>) inventory.entrySet()) {
+					String[] labels = entry.getKey().split(DASH_PATTERN_QUOTED);
+					String part = labels[0];
+					int slot = Integer.valueOf(labels[1]);
+					UUID id = (UUID) entry.getValue();
+					if(usedItems.contains(id)) {
+						dups++;
+						LOGGER.warning(cid, "Duplicated item: " + id);
+						continue;
+					}
+					Item item = items.get(id);
+					if (item == null) {
+						broken++;
+						LOGGER.warning(cid, "Could not load item: " + id);
+						continue;
+					}
+					ItemStack itemStack = item.getItemStack();
+					if (part.equals("I")) {
+						bukkitInventory.put(slot, itemStack);
+						continue;
+					}
+				}
+				syncSetInventory(bukkitInventory);
+				boolean error = false;
+				if (broken > 0) {
+					if(player != null) player.sendMessage(ChatColor.RED + "" + broken + " items in your saved inventory could not be loaded.");
+					error = true;
+				}
+				if(dups > 0) {
+					if(player != null) player.sendMessage(ChatColor.RED + "" + dups + " duplicated items were found in your saved inventory.");
+					error = true;
+				}
+				if(error) {
+					if(player != null) player.sendMessage(ChatColor.RED + "Use this error code in any communications with staff: " + StringUtil.toHdFont("Correlation ID: " + cid));
+					initErrorOccurred();
+				}
+			});
+		});
 	}
 	
 	private void syncSetInventory(Map<Integer, ItemStack> inventory) {
@@ -1722,8 +1725,8 @@ public class User extends GameObject {
 	}
 	
 	public String getListName() {
-		return (getRank().getChatPrefix() + getRank().getNameColor()
-				+ " " + getName()
+		return (getRank().getChatPrefix() + (getRank().getChatPrefix().isEmpty() ? "" : " ")
+				+ getRank().getNameColor() + getName()
 				+ " " + getSuffixes()).trim();
 	}
 	
