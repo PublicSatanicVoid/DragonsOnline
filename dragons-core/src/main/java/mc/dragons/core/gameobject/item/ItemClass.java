@@ -10,6 +10,7 @@ import org.bukkit.Material;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.addon.Addon;
+import mc.dragons.core.addon.AddonRegistry;
 import mc.dragons.core.addon.ItemAddon;
 import mc.dragons.core.gameobject.GameObject;
 import mc.dragons.core.gameobject.user.User;
@@ -30,8 +31,9 @@ public class ItemClass extends GameObject {
 	
 	@SuppressWarnings("unchecked")
 	public void reloadAddons() {
+		AddonRegistry registry = Dragons.getInstance().getAddonRegistry();
 		addons = ((List<String>) getData("addons")).stream()
-				.map(addonName -> (ItemAddon) Dragons.getInstance().getAddonRegistry().getAddonByName(addonName)).collect(Collectors.toList());
+				.map(addonName -> (ItemAddon) registry.getAddonByName(addonName)).collect(Collectors.toList());
 	}
 	
 	public boolean verifyAddons() {

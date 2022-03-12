@@ -8,3 +8,4 @@ description: Implements spells, a series of addons that allow custom actions to 
 commands:
   bindspell:
     description: (GM) Bind a spell to your held item.
+  testspellbinding:

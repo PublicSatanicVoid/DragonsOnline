@@ -7,6 +7,11 @@ import java.util.List;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,6 +22,7 @@ import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.user.Rank;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHook;
+import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.util.PermissionUtil;
@@ -25,7 +31,7 @@ import mc.dragons.dev.tasks.TaskLoader;
 import mc.dragons.dev.tasks.TaskLoader.Task;
 import net.md_5.bungee.api.ChatColor;
 
-public class DevUserHook implements UserHook {
+public class DevUserHook implements UserHook, Listener {
 	private TaskLoader taskLoader;
 	private ItemLoader itemLoader;
 	private DiscordNotifier buildNotifier;
@@ -83,6 +89,18 @@ public class DevUserHook implements UserHook {
 	
 	@Override
 	public void onAutoSave(User user, Document data) {
+		tryUnvanillify(user, data);
+	}
+	
+	@EventHandler
+	public void onInventoryPlace(InventoryClickEvent event) {
+		if(event.getAction() == InventoryAction.PLACE_ALL || event.getAction() == InventoryAction.PLACE_ONE
+				|| event.getAction() == InventoryAction.PLACE_SOME) {
+			sync(() -> tryUnvanillify(UserLoader.fromPlayer((Player) event.getWhoClicked()), new Document()), 10);
+		}
+	}
+	
+	public void tryUnvanillify(User user, Document data) {
 		if(!PermissionUtil.verifyActivePermissionLevel(user, PermissionLevel.BUILDER, false)) return;
 		for(ItemStack is : user.getPlayer().getInventory()) {
 			if(is == null) continue;

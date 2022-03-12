@@ -3,11 +3,12 @@ package mc.dragons.spells.spells;
 import java.util.List;
 
 import org.bson.Document;
+import org.bukkit.entity.Player;
 
 import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.spells.DragonsSpells;
-import mc.dragons.spells.SpellCastAddon;
+import mc.dragons.spells.util.SpellUtil;
 
 public abstract class Spell {
 	public static enum BindStatus {
@@ -17,7 +18,6 @@ public abstract class Spell {
 		DISALLOWED
 	}
 	
-	private SpellCastAddon spellCastAddon;
 	private SpellRegistry spellRegistry;
 	
 	private String spellName;
@@ -30,7 +30,6 @@ public abstract class Spell {
 		this.spellCombo = spellCombo;
 		instance.getSpellRegistry().register(this);
 		spellRegistry = instance.getSpellRegistry();
-		spellCastAddon = instance.getSpellCastAddon();
 	}
 	
 	public String getSpellName() {
@@ -56,13 +55,13 @@ public abstract class Spell {
 		return BindStatus.CAPABLE;
 	}
 	
-	public void bind(Item item) {
+	public void bind(Player player, Item item) {
 		BindStatus status = bindStatus(item);
 		if(status != BindStatus.CAPABLE) return; 
 		List<String> boundSpells = item.getStorageAccess().getDocument().getList("spells", String.class);
 		boundSpells.add(spellName);
 		item.getStorageAccess().update(new Document("spells", boundSpells));
-		spellCastAddon.updateItemData(item);
+		SpellUtil.updateItemData(spellRegistry, player, SpellUtil.getSlotOfItemStack(player, item.getItemStack()), item);
 	}
 	
 	public abstract void execute(User user);

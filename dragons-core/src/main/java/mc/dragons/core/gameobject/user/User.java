@@ -1108,13 +1108,13 @@ public class User extends GameObject {
 					testItem.setQuantity(quantity);
 					player.getInventory().setItem(i, testItem.getItemStack());
 					item.setQuantity(item.getQuantity() - added);
+					item.getItemClass().getAddons().forEach(addon -> addon.initialize(this, item));
 					debug("-Quantity: " + testItem.getQuantity() + "=" + testItem.getItemStack().getAmount());
 					if (remaining == 0) {
 						break;
 					}
 					debug(" - " + remaining + " remaining to dispense");
 				}
-				
 			}
 			
 			// If we can't fit everything in to existing items, add new ones
@@ -1128,6 +1128,7 @@ public class User extends GameObject {
 				Item r = itemLoader.registerNew(item);
 				r.setQuantity(quantity);
 				player.getInventory().addItem(new ItemStack[] { r.getItemStack() });
+				item.getItemClass().getAddons().forEach(addon -> addon.initialize(this, item));
 				debug(" - " + remaining + " remaining to dispense");
 			}
 		}
@@ -1280,7 +1281,7 @@ public class User extends GameObject {
 	}
 	public void clearInventory() {
 		player.getInventory().clear();
-		setData("inventory", new ArrayList<>());
+		setData("inventory", new Document());
 		sendActionBar(ChatColor.DARK_RED + "- All items have been lost! -");
 	}
 	
@@ -1362,6 +1363,7 @@ public class User extends GameObject {
 		}
 		setData("ipHistory", ipHistory);
 		connectionMessageHandler.logConnect(this);
+		player.updateInventory();
 		LOGGER.exiting("User", "handleJoin");
 	}
 

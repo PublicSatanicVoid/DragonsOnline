@@ -27,13 +27,10 @@ import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
-import mc.dragons.core.gameobject.user.User;
-import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.util.FileUtil;
-import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
 import mc.dragons.dev.build.BackupCommand;
 import mc.dragons.dev.build.StartTrialCommand;
@@ -98,11 +95,7 @@ public class DragonsDev extends DragonsJavaPlugin {
 				}
 				else {
 					user.giveItem(itemLoader.registerNew(itemClass));
-					for(User test : UserLoader.allUsers()) {
-						if(test.getPlayer() != null && PermissionUtil.verifyActivePermissionLevel(test, PermissionLevel.TESTER, false)) {
-							test.getPlayer().sendMessage(ChatColor.GOLD + user.getName() + " redeemed " + price + TaskLoader.STAR + " for a " + itemClass.getDecoratedName() + "!");
-						}
-					}
+					dragons.getStaffAlertHandler().sendGenericMessage(PermissionLevel.TESTER, ChatColor.GOLD + user.getName() + " redeemed " + price + TaskLoader.STAR + " for a " + itemClass.getDecoratedName() + "!");
 					DevUserHook.addStars(user, -price);
 				}
 			});
@@ -117,7 +110,10 @@ public class DragonsDev extends DragonsJavaPlugin {
 		
 		TaskLoader taskLoader = new TaskLoader(dragons);
 		dragons.getLightweightLoaderRegistry().register(taskLoader);
-		dragons.getUserHookRegistry().registerHook(new DevUserHook());
+		
+		DevUserHook hook = new DevUserHook();
+		dragons.getUserHookRegistry().registerHook(hook);
+		Bukkit.getPluginManager().registerEvents(hook, this);
 		
 		CommandExecutor taskCommands = new TaskCommands(this);
 		getCommand("task").setExecutor(taskCommands);

@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.gameobject.GameObjectType;
+import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.logging.DragonsLogger;
@@ -30,8 +31,8 @@ import mc.dragons.core.storage.StorageManager;
  *
  */
 public abstract class ItemAddon implements Addon {
-	private static final int MAX_COMBO_TIME_MS = 2000;
-	private static final int COMBO_LENGTH = 3;
+	public static final int MAX_COMBO_TIME_MS = 2000;
+	public static final int COMBO_LENGTH = 3;
 	
 	private Map<User, String> combos;
 	private Map<User, Long> comboStartTimes;
@@ -75,7 +76,7 @@ public abstract class ItemAddon implements Addon {
 			}
 			combos.put(user, combos.get(user) + "L");
 			onPrepareCombo(user, combos.get(user));
-			if (combos.get(user).length() == 3) {
+			if (combos.get(user).length() == COMBO_LENGTH) {
 				onCombo(user, combos.get(user));
 				resetCombo(user);
 			}
@@ -130,8 +131,22 @@ public abstract class ItemAddon implements Addon {
 
 	/**
 	 * Called whenever the user executes a combo.
+	 * 
 	 * @param user
 	 * @param combo The full combo, e.g. "RLL"
 	 */
 	public abstract void onCombo(User user, String combo);
+	
+	/**
+	 * Called whenever the item is initialized for a user.
+	 * Called after super.initialize(Item).
+	 * 
+	 * <p>May not be called every time an item is initialized,
+	 * e.g. if no user is associated. There may also be a delay
+	 * from when the item is constructed.
+	 * 
+	 * @param user
+	 * @param item
+	 */
+	public abstract void initialize(User user, Item item);
 }

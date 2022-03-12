@@ -104,7 +104,8 @@ public class CombatRewinder {
 				if(!debug_hitStats.getOrDefault(p, false)) continue;
 				double rej = debug_rejectedCount.getOrDefault(p, 0);
 				double tot = debug_hitCount.getOrDefault(p, 0);
-				p.spigot().sendMessage(ChatMessageType.ACTION_BAR, StringUtil.plainText("Hit rejection ratio: " + (tot == 0 ? "N/A" : MathUtil.round(100 * rej / tot))));
+				int ping = getInstantaneousPing(p);
+				p.spigot().sendMessage(ChatMessageType.ACTION_BAR, StringUtil.plainText("Hit rejection ratio: " + (tot == 0 ? "N/A" : MathUtil.round(100 * rej / tot) + "%") + " (ping: " + ping + "ms)"));
 			}
 		}, 20);
 		

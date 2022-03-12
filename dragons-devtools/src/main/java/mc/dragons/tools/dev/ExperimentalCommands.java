@@ -156,8 +156,19 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 				sender.sendMessage("item class=" + item.getClassName());
 				sender.sendMessage("item data=" + item.getData().toJson());
 			}
+			if(args.length > 0 && args[0].equalsIgnoreCase("-verbose")) {
+				sender.sendMessage("item stack data=" + itemStack);		
+			}
 		}
 
+		else if (label.equalsIgnoreCase("getitemuuid")) {
+			Item item = ItemLoader.fromBukkit(player.getInventory().getItemInMainHand());
+			if(item == null) return true;
+			sender.spigot().sendMessage(StringUtil.clickableHoverableText("" + item.getUUID(), "" + item.getUUID(), true, "Click to copy"),
+					StringUtil.clickableHoverableText(" (" + item.getClassName() + ")", "/item " + item.getClassName() + " ", true, "Click to manage class"));
+		}
+
+		
 		else if (label.equalsIgnoreCase("testlocaluserstorage")) {
 			sender.sendMessage(ChatColor.YELLOW + "METHOD ONE (Full object scan):");
 			int n_fullscan = 0;
@@ -619,6 +630,39 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 					((LivingEntity) e).setInvisible(false);
 				}
 			}
+		}
+		
+		else if(label.equalsIgnoreCase("testinventoryreload")) {
+			if(args.length == 0) {
+				sender.sendMessage("/" + label + " <simple|full>");
+			}
+			else if(args[0].equalsIgnoreCase("simple")) {
+				player.updateInventory();
+			}
+			else if(args[0].equalsIgnoreCase("full")) {
+				Document inv = new Document(user.getInventoryAsDocument());
+				player.getInventory().clear();
+				user.loadInventory(LOGGER.newCID(), inv);
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("tptoentity")) {
+			if(args.length == 0) {
+				sender.sendMessage("/tptoentity <entity id>");
+				return true;
+			}
+			int id = parseInt(sender, args[0]);
+			for(Entity entity : dragons.getEntities()) {
+				if(entity.getEntityId() == id) {
+					player.teleport(entity);
+					NPC npc = NPCLoader.fromBukkit(entity);
+					if(npc != null) {
+						player.sendMessage("NPC: " + npc.getNPCClass().getClassName());
+					}
+					return true;
+				}
+			}
+			player.sendMessage("Not found");
 		}
 		
 		else {

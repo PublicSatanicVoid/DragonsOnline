@@ -186,7 +186,9 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 		Item item = registerNew(ItemConstants.VANILLA_ITEM_CLASS);
 		item.setItemStack(itemStack);
 		item.setMaterial(itemStack.getType());
-		item.setName(itemStack.getType().toString() + " (" + itemStack.getType().ordinal() + ")");
+		item.setName(itemStack.getType().toString());
+		item.setCustom(true);
+		item.updateItemStackData();
 		item.autoSave();
 		return item;
 	}

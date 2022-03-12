@@ -9,6 +9,7 @@ import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
@@ -23,6 +24,7 @@ import mc.dragons.spells.SpellConstants;
 import mc.dragons.spells.spells.Spell;
 import mc.dragons.spells.spells.Spell.BindStatus;
 import mc.dragons.spells.spells.SpellRegistry;
+import mc.dragons.spells.util.SpellUtil;
 
 public class SpellListeners implements Listener {
 	private SpellRegistry registry;
@@ -31,6 +33,16 @@ public class SpellListeners implements Listener {
 		registry = instance.getSpellRegistry();
 	}
 	
+	
+	@EventHandler
+	public void onInventoryClose(InventoryCloseEvent e) {
+		Player player = (Player) e.getPlayer();
+		User user = UserLoader.fromPlayer(player);
+		if(e.getView().getTitle().equals(SpellConstants.ENCHANTER_MENU_TITLE)) {
+			user.debug("enchanter menu closed");
+			SpellUtil.updateAllSpellItems(registry, player);
+		}
+	}
 	
 	@SuppressWarnings("deprecation")
 	@EventHandler
@@ -46,8 +58,7 @@ public class SpellListeners implements Listener {
 			for(ItemStack is : cc.getContents()) {
 				user.debug(i + ": " + is);
 				i++;
-			}
-			
+			}	
 		}
 		if(e.getView().getTitle().equals(SpellConstants.ENCHANTER_MENU_TITLE)) {
 			user.debug("Interacted with the Enchanter menu. SlotType="+e.getSlotType());
@@ -106,7 +117,7 @@ public class SpellListeners implements Listener {
 						return;
 					}
 					user.takeGold(100.0);
-					spell.bind(item);
+					spell.bind(player, item);
 					cc.setItem(0, new ItemStack(Material.AIR));
 					cc.setItem(1, new ItemStack(Material.AIR));
 					cc.setItem(2, item.getItemStack());

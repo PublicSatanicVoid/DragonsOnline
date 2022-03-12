@@ -1,6 +1,7 @@
 package mc.dragons.spells;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandExecutor;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
@@ -28,12 +29,16 @@ public class DragonsSpells extends DragonsJavaPlugin {
 		registry.register(spellCastAddon = new SpellCastAddon(this));
 		registry.register(spellScrollAddon = new SpellScrollAddon());
 		
+		dragons.getUserHookRegistry().registerHook(new SpellUserHook(this));
+		
 		// Instantiate all spells here
 		new TestSpell(this);
 	}
 	
 	public void onEnable() {
-		getCommand("bindspell").setExecutor(new BindSpellCommand(this));
+		CommandExecutor bindSpellCommand = new BindSpellCommand(this);
+		getCommand("bindspell").setExecutor(bindSpellCommand);
+		getCommand("testspellbinding").setExecutor(bindSpellCommand);
 		Bukkit.getPluginManager().registerEvents(new SpellListeners(this), this);
 	}
 	

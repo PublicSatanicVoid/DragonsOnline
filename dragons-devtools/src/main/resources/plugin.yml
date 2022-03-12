@@ -189,3 +189,6 @@ commands:
   testplayernpc:
     aliases: npctool
   testrevealallinvisible:
+  testinventoryreload:
+  getitemuuid:
+  tptoentity:

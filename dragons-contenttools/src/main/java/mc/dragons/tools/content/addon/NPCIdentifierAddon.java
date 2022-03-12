@@ -5,6 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.addon.ItemAddon;
+import mc.dragons.core.gameobject.item.Item;
 import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
@@ -42,5 +43,8 @@ public class NPCIdentifierAddon extends ItemAddon {
 
 	@Override
 	public void onCombo(User user, String combo) { /* do nothing */ }
+
+	@Override
+	public void initialize(User user, Item item) { /* do nothing */ }
 
 }

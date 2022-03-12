@@ -152,5 +152,8 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testinternalnetworkedmsg").setExecutor(experimentalCommands);
 		getCommand("testplayernpc").setExecutor(experimentalCommands);
 		getCommand("testrevealallinvisible").setExecutor(experimentalCommands);
+		getCommand("testinventoryreload").setExecutor(experimentalCommands);
+		getCommand("getitemuuid").setExecutor(experimentalCommands);
+		getCommand("tptoentity").setExecutor(experimentalCommands);
 	}
 }
