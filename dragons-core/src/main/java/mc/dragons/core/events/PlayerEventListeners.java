@@ -333,6 +333,7 @@ public class PlayerEventListeners implements Listener {
 				firstJoin = true;
 				plugin.getLogger().info("Player " + player.getName() + " joined for the first time");
 				user = userLoader.registerNew(player);
+				plugin.getTablistManager().handleJoin(player);
 				user.sendToFloor("BeginnerTown");
 				int i = 1;
 				final User fUser = user;

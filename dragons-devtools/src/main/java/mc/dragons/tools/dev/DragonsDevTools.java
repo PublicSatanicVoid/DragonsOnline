@@ -7,6 +7,7 @@ import mc.dragons.tools.dev.debug.DebugCommands;
 import mc.dragons.tools.dev.gameobject.AddonCommand;
 import mc.dragons.tools.dev.gameobject.ObjectCommands;
 import mc.dragons.tools.dev.gameobject.ReloadObjectsCommands;
+import mc.dragons.tools.dev.lab.LabCommand;
 import mc.dragons.tools.dev.management.PluginManagementCommands;
 import mc.dragons.tools.dev.management.ServerOptionsCommands;
 import mc.dragons.tools.dev.management.SudoCommand;
@@ -98,6 +99,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("streamconsole").setExecutor(debugCommands);
 		
 		getCommand("sudo").setExecutor(new SudoCommand());
+		getCommand("lab").setExecutor(new LabCommand());
 		
 		CommandExecutor experimentalCommands = new ExperimentalCommands();
 		getCommand("helditemdata").setExecutor(experimentalCommands);
@@ -155,5 +157,8 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("testinventoryreload").setExecutor(experimentalCommands);
 		getCommand("getitemuuid").setExecutor(experimentalCommands);
 		getCommand("tptoentity").setExecutor(experimentalCommands);
+		getCommand("dumpteams").setExecutor(experimentalCommands);
+		getCommand("getprotocolversion").setExecutor(experimentalCommands);
+		getCommand("testtabsorting").setExecutor(experimentalCommands);
 	}
 }

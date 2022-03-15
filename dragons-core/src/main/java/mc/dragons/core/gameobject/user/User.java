@@ -122,6 +122,7 @@ public class User extends GameObject {
 	private static SystemProfileLoader systemProfileLoader = instance.getLightweightLoaderRegistry().getLoader(SystemProfileLoader.class);
 	private static StateLoader stateLoader = instance.getLightweightLoaderRegistry().getLoader(StateLoader.class);
 	private static FileConfiguration config = instance.getConfig();
+	private static TablistManager tablistManager = instance.getTablistManager();
 	
 	private Player player; // The underlying Bukkit player associated with this User, or null if the user is offline.
 	private Set<Region> cachedRegions; // Last-known occupied regions.
@@ -632,6 +633,20 @@ public class User extends GameObject {
 			}
 			currentDialogueCompletionHandlers.clear();
 		}
+	}
+	
+	/**
+	 * Clear the user's current dialogue batch
+	 * <i>without firing completion handlers.</i>
+	 */
+	public void clearDialogue() {
+		if(currentDialogueBatch == null) {
+			return;
+		}
+		currentDialogueSpeaker = null;
+		currentDialogueBatch = null;
+		currentDialogueIndex = 0;
+		currentDialogueCompletionHandlers.clear();
 	}
 
 	/**
@@ -1364,6 +1379,7 @@ public class User extends GameObject {
 		setData("ipHistory", ipHistory);
 		connectionMessageHandler.logConnect(this);
 		player.updateInventory();
+		sync(() -> tablistManager.updateAll(p -> p.canSee(player)), 1);
 		LOGGER.exiting("User", "handleJoin");
 	}
 
@@ -1374,6 +1390,7 @@ public class User extends GameObject {
 	public void handleQuit(boolean removeFromLocalRegistry) {
 		setData("totalOnlineTime", getTotalOnlineTime() + getLocalOnlineTime());
 		setData("currentServer", null);
+		clearDialogue();
 		if (!isVanished() && joined) {
 			Bukkit.broadcastMessage(ChatColor.GRAY + player.getName() + " left!");
 		}
@@ -1446,6 +1463,7 @@ public class User extends GameObject {
 		setData("rank", rank.toString());
 		updateListName();
 		updatePrimaryNameTag();
+		tablistManager.updateAll(p -> p.canSee(player));
 	}
 
 	public Set<Region> getRegions() {
@@ -1727,8 +1745,9 @@ public class User extends GameObject {
 	}
 	
 	public String getListName() {
-		return (getRank().getChatPrefix() + (ChatColor.stripColor(getRank().getChatPrefix()).isEmpty() ? "" : " ")
-				+ getRank().getNameColor() + getName()
+		Rank rank = getRank();
+		return (rank.getChatPrefix() + (rank.hasChatPrefix() ? " " : "")
+				+ rank.getNameColor() + getName()
 				+ " " + getSuffixes()).trim();
 	}
 	

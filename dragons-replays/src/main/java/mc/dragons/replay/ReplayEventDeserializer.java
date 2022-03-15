@@ -1,6 +1,5 @@
 package mc.dragons.replay;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import org.bson.Document;

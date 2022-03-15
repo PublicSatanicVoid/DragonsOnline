@@ -18,7 +18,7 @@ public enum Rank {
 	FRIEND("Friend", "Friend", ChatColor.AQUA + "[FRIEND]", ChatColor.AQUA, ChatColor.WHITE, false),
 	
 	PATRON("Patron", "Patron", ChatColor.DARK_AQUA + "[PATRON]", ChatColor.AQUA, ChatColor.WHITE, false),
-	PATRON_PLUS("Patron+", "Patron+", ChatColor.DARK_AQUA + "[PATRON" + ChatColor.YELLOW + "+" + ChatColor.DARK_AQUA + "]", ChatColor.AQUA, ChatColor.WHITE, false),
+	PATRON_PLUS("Patron+", "Patron+", ChatColor.DARK_AQUA + "[PATRON" + ChatColor.AQUA + "+" + ChatColor.DARK_AQUA + "]", ChatColor.AQUA, ChatColor.WHITE, false),
 	INVESTOR("Investor", "Investor", ChatColor.GOLD + "[INVESTOR]", ChatColor.YELLOW, ChatColor.WHITE, false),
 	
 	YOUTUBE("YouTuber", "YouTuber", ChatColor.RED + "[YOU" + ChatColor.WHITE + "TUBE" + ChatColor.RED + "]", ChatColor.RED, ChatColor.WHITE, false),
@@ -31,11 +31,11 @@ public enum Rank {
 	NEW_BUILDER("New Builder", "New Builder", ChatColor.BLUE + "[NEW BUILDER]", ChatColor.BLUE, ChatColor.WHITE, true),
 	BUILDER("Builder", "Builder", ChatColor.BLUE + "[BUILDER]", ChatColor.BLUE, ChatColor.WHITE, true),
 	CMD("Command Block Editor", "CMD", ChatColor.DARK_PURPLE + "[CMD]", ChatColor.DARK_PURPLE, ChatColor.WHITE, true),
-	BUILDER_CMD("Builder + CMD", "Builder + CMD", ChatColor.BLUE + "[BUILD" + ChatColor.DARK_GRAY + "+" + ChatColor.DARK_PURPLE + "CMD" + ChatColor.BLUE + "]", ChatColor.BLUE, ChatColor.WHITE, true),
+	BUILDER_CMD("Builder + CMD", "Builder + CMD", ChatColor.BLUE + "[BUILD" + ChatColor.DARK_PURPLE + "+CMD" + ChatColor.BLUE + "]", ChatColor.BLUE, ChatColor.WHITE, true),
 	BUILD_MANAGER("Build Manager", "Build Manager", ChatColor.BLUE + "[BUILD MGR]", ChatColor.BLUE, ChatColor.WHITE, true),
 	HEAD_BUILDER("Head Builder", "Head Builder", ChatColor.BLUE + "[HEAD BUILDER]", ChatColor.BLUE, ChatColor.WHITE, true),
 	
-	HELPER("Helper", "Helper", ChatColor.DARK_GREEN + "[HELPER]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
+	HELPER("Helper", "Helper", ChatColor.DARK_GREEN + "[HELPER]", ChatColor.GREEN, ChatColor.WHITE, true),
 	MODERATOR("Moderator", "Moderator", ChatColor.DARK_GREEN + "[MOD]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
 	COMMUNITY_MANAGER("Community Manager", "Community Mgr", ChatColor.DARK_GREEN + "[CM]", ChatColor.DARK_GREEN, ChatColor.WHITE, true),
 	
@@ -60,7 +60,7 @@ public enum Rank {
 	Rank(String rankName, String shortName, String chatPrefix, ChatColor nameColor, ChatColor chatColor, boolean staff) {
 		this.rankName = rankName;
 		this.shortName = shortName;
-		this.chatPrefix = (ChatColor.BLACK + "").repeat(2 + this.ordinal()) + chatPrefix; // Will this ensure correct ordering???
+		this.chatPrefix = chatPrefix;
 		this.nameColor = nameColor;
 		this.chatColor = chatColor;
 		this.staff = staff;

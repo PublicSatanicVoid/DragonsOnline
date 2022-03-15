@@ -69,7 +69,7 @@ import net.minecraft.server.v1_16_R3.WorldServer;
  *
  */
 public class PlayerNPC116R3 implements PlayerNPC {
-	private static int FORCE_REFRESH_LOCATION_INTERVAL_MS = 1000 * 5;
+	private static int FORCE_REFRESH_LOCATION_INTERVAL_MS = 1000 * 3;
 	private static int SPAWN_RADIUS = PlayerNPCRegistry.SPAWN_RADIUS;
 	private static Dragons dragons = Dragons.getInstance();
 	private static Bridge bridge = dragons.getBridge();
@@ -327,7 +327,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	public void updateToTablist() {
 		PacketPlayOutPlayerInfo packet = new PacketPlayOutPlayerInfo();
 		PacketPlayOutPlayerInfo.PlayerInfoData data = packet.new PlayerInfoData(this.handle.getProfile(), 0,
-				EnumGamemode.NOT_SET, CraftChatMessage.fromString( ChatColor.BLACK + "" + ChatColor.DARK_GRAY + "NPC: " + ChatColor.stripColor(tablistName))[0]);
+				EnumGamemode.NOT_SET, CraftChatMessage.fromString(ChatColor.DARK_GRAY + "NPC: " + ChatColor.stripColor(tablistName))[0]);
 		@SuppressWarnings("unchecked")
 		List<PacketPlayOutPlayerInfo.PlayerInfoData> players = (List<PacketPlayOutPlayerInfo.PlayerInfoData>) getField(packet, "b");
 		players.add(data);

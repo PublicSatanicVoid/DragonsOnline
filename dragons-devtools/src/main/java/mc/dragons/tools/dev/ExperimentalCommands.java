@@ -5,10 +5,12 @@ import static mc.dragons.core.util.BukkitUtil.sync;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -29,7 +31,10 @@ import org.bukkit.entity.Slime;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.EulerAngle;
+
+import com.comphenix.protocol.ProtocolLibrary;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.bridge.PlayerNPC;
@@ -623,7 +628,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			}
 			player.sendMessage("You: " + player.getLocation().getPitch() + ", " + player.getLocation().getYaw());
 		}
-
+		
 		else if (label.equalsIgnoreCase("testrevealallinvisible")) {
 			for(Entity e : player.getWorld().getEntities()) {
 				if(e instanceof LivingEntity) {
@@ -664,6 +669,25 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			}
 			player.sendMessage("Not found");
 		}
+
+		else if(label.equalsIgnoreCase("dumpteams")) {
+			for(Team team : player.getScoreboard().getTeams()) {
+				player.sendMessage(team.getName());
+				for(String entry : team.getEntries()) {
+					if(ChatColor.stripColor(entry).strip().isEmpty()) continue;
+					player.sendMessage("- " + entry);
+				}
+			}
+		}
+		
+		else if(label.equalsIgnoreCase("getprotocolversion")) {
+			player.sendMessage("Protocol version: " + ProtocolLibrary.getProtocolManager().getProtocolVersion(player));
+		}
+		
+		else if(label.equalsIgnoreCase("testtabsorting")) {
+			User[] tab = Stream.of(args).map(name -> lookupUser(sender, name)).filter(Objects::nonNull).collect(Collectors.toList()).toArray(new User[0]);
+			dragons.getTablistManager().updatePlayer(player, tab);
+		}
 		
 		else {
 			sender.sendMessage(ChatColor.RED + "Invalid experimental command! Was it removed or registered improperly?");
@@ -671,5 +695,4 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 
 		return true;
 	}
-
 }

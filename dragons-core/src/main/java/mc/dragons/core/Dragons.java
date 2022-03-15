@@ -60,6 +60,7 @@ import mc.dragons.core.gameobject.quest.QuestLoader;
 import mc.dragons.core.gameobject.region.RegionLoader;
 import mc.dragons.core.gameobject.user.SidebarManager;
 import mc.dragons.core.gameobject.user.StateLoader;
+import mc.dragons.core.gameobject.user.TablistManager;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserHookRegistry;
 import mc.dragons.core.gameobject.user.UserLoader;
@@ -137,6 +138,7 @@ public class Dragons extends DragonsJavaPlugin {
 	private ChatMessageRegistry chatMessageRegistry;
 	private PlayerNPCRegistry playerNPCRegistry;
 	private MessageDispatcher messageDispatcher;
+	private TablistManager tablistManager;
 
 	private InternalMessageHandler internalMessageHandler;
 	private RemoteAdminMessageHandler remoteAdminHandler;
@@ -213,6 +215,7 @@ public class Dragons extends DragonsJavaPlugin {
 		sidebarManager = new SidebarManager(this);
 		chatMessageRegistry = new ChatMessageRegistry();
 		messageDispatcher = new MessageDispatcher(this);
+		tablistManager = new TablistManager(this);
 		setCustomLoggingProvider(new CustomLoggingProvider(this));
 		
 		autoSaveRunnable = new AutoSaveTask(this);
@@ -552,6 +555,14 @@ public class Dragons extends DragonsJavaPlugin {
 	 */
 	public MessageDispatcher getMessageDispatcher() {
 		return messageDispatcher;
+	}
+	
+	/**
+	 * 
+	 * @return The tablist manager
+	 */
+	public TablistManager getTablistManager() {
+		return tablistManager;
 	}
 	
 	/**

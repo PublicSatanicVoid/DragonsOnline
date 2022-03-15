@@ -192,3 +192,7 @@ commands:
   testinventoryreload:
   getitemuuid:
   tptoentity:
+  dumpteams:
+  lab:
+  getprotocolversion:
+  testtabsorting:

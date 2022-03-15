@@ -36,6 +36,10 @@ public class ReplayInstance {
 		}, 20L, 1L);
 	}
 	
+	public List<User> getViewing() {
+		return viewing;
+	}
+	
 	public void terminate() {
 		started = false;
 	}
