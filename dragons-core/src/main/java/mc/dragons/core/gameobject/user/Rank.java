@@ -24,7 +24,7 @@ public enum Rank {
 	
 	UNSPECIFIED_STAFF("Staff", "Staff", ChatColor.YELLOW + "[STAFF]", ChatColor.YELLOW, ChatColor.WHITE, true),
 	
-	CONTENT_TEAM("Content Team", "Content Team", ChatColor.BLUE + "[CONTENT TEAM]", ChatColor.BLUE, ChatColor.WHITE, true),
+	CONTENT_TEAM("Content Team", "Content Team", ChatColor.BLUE + "[CT]", ChatColor.BLUE, ChatColor.WHITE, true),
 	TRIAL_BUILDER("Trial Builder", "Trial Builder", ChatColor.WHITE + "[TRIAL BUILDER]", ChatColor.GRAY, ChatColor.WHITE, false),
 	NEW_BUILDER("New Builder", "New Builder", ChatColor.BLUE + "[" + ChatColor.GREEN + "NEW " + ChatColor.BLUE + "BUILDER]", ChatColor.BLUE, ChatColor.WHITE, true),
 	BUILDER("Builder", "Builder", ChatColor.BLUE + "[BUILDER]", ChatColor.BLUE, ChatColor.WHITE, true),
@@ -40,7 +40,6 @@ public enum Rank {
 	GM("Game Master", "Game Master", ChatColor.GOLD + "[GM]", ChatColor.GOLD, ChatColor.WHITE, true),
 	
 	DEVELOPER("Developer", "Developer", ChatColor.DARK_RED + "[DEV]", ChatColor.RED, ChatColor.WHITE, true),
-	LEAD_DEVELOPER("Lead Developer", "Lead Developer", ChatColor.DARK_RED + "[LEAD DEV]", ChatColor.RED, ChatColor.WHITE, true),
 	
 	ADMIN("Administrator", "Admin", ChatColor.DARK_RED + "[ADMIN]", ChatColor.RED, ChatColor.WHITE, true);
 

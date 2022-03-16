@@ -148,7 +148,7 @@ public class CombatRewinder {
 		return false;
 	}
 	
-	private void handleMove(Player player, PacketContainer packet) {
+	private void handleMove(Player player) {
 		long time = System.currentTimeMillis();
 		Map<Long, Location> history = entityHistory.computeIfAbsent(player, p -> new TreeMap<>());
 		history.putIfAbsent(time, player.getLocation());
@@ -235,8 +235,7 @@ public class CombatRewinder {
 				|| event.getPacketType() == PacketType.Play.Client.POSITION_LOOK
 				|| event.getPacketType() == PacketType.Play.Client.BOAT_MOVE
 				|| event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
-			
-			handleMove(player, packet);
+			handleMove(player);
 		}
 		
 		else {
