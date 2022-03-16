@@ -42,7 +42,7 @@ public abstract class MessageHandler {
 			return;
 		}
 		if(!instance.getMessageDispatcher().isActive()) return;
-		Document message = new Document(MessageConstants.TYPE_FIELD, type.toString())
+		Document message = new Document(MessageConstants.TYPE_FIELD, type)
 				.append(MessageConstants.ORIG_FIELD, instance.getServerName())
 				.append(MessageConstants.DEST_FIELD, destServer)
 				.append(MessageConstants.TIME_FIELD, new Date().getTime())

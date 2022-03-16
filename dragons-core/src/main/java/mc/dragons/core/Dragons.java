@@ -164,7 +164,7 @@ public class Dragons extends DragonsJavaPlugin {
 	 * 
 	 * @apiNote This needs to be public for Bukkit to load it.
 	 * 
-	 * @throws SingletonReInstantiationException, if an instance
+	 * @throws SingletonReInstantiationException if an instance
 	 * of Dragons already exists.
 	 * 
 	 */

@@ -72,6 +72,8 @@ public class GamemodeCommand extends DragonsCommandExecutor {
 				sender.sendMessage(ChatColor.RED + "Invalid gamemode! /" + label + " <adventure|creative|survival|spectator>" + (hasModPermission ? " [player]" : ""));
 				return true;
 			}
+		default:
+			break;
 		}
 		
 		if((gameMode == GameMode.CREATIVE || gameMode == GameMode.SURVIVAL) && !isAdminFloor && !PermissionUtil.verifyActiveProfileFlag(user, SystemProfileFlag.BUILD, false)) {

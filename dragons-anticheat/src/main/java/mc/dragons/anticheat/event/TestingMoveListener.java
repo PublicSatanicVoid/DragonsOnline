@@ -30,6 +30,7 @@ public class TestingMoveListener implements Listener {
 	private List<String> log = new ArrayList<>();
 	private boolean logEnabled = false;
 	
+	private Map<User, MoveContext> contextMap = new HashMap<>();
 	
 	private static double rad(double deg) {
 		return deg * Math.PI / 180;
@@ -132,8 +133,6 @@ public class TestingMoveListener implements Listener {
 			return (d0 * d2 - d1 * d1) / (d1 - d2);
 		}
 	}
-	
-	private Map<User, MoveContext> contextMap = new HashMap<>();
 	
 	public TestingMoveListener(DragonsAntiCheat instance) {
 		plugin = instance;

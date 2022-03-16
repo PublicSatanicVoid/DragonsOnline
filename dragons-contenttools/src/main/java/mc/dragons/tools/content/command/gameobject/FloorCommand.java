@@ -39,6 +39,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 public class FloorCommand extends DragonsCommandExecutor {
 	private static final String LOCAL_FLOOR_WARNING = ChatColor.RED + " (Warning: Dynamically injected floor!)";
 	private AuditLogLoader AUDIT_LOG = dragons.getLightweightLoaderRegistry().getLoader(AuditLogLoader.class);
+	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	private static void pushFloor(Floor floor) {
 		Bukkit.getLogger().info("Pushing floor " + floor.getDisplayName());
@@ -49,8 +50,6 @@ public class FloorCommand extends DragonsCommandExecutor {
 		File sourceFolder = world.getWorldFolder();
 		FileUtil.copyFolder(sourceFolder, pushFolder);
  	}
-	
-	private GameObjectRegistry registry = dragons.getGameObjectRegistry();
 	
 	private void showHelp(CommandSender sender) {
 		boolean gmGeneral = hasPermission(sender, PermissionLevel.GM);

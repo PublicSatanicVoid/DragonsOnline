@@ -181,6 +181,8 @@ public class NPCAction {
 		case OPEN_SHOP:
 			result.append("name", shopName).append("items", shopItems.stream().map(item -> item.toDocument()).collect(Collectors.toList()));
 			break;
+		default:
+			break;
 		}
 		return result;
 	}
@@ -249,6 +251,8 @@ public class NPCAction {
 				}
 			}
 			shop.open(user);
+			break;
+		default:
 			break;
 		}
 	}

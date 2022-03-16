@@ -13,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import mc.dragons.core.Dragons;
-import mc.dragons.core.util.BukkitUtil;
 import mc.dragons.core.util.StringUtil;
 
 public class InternalMessageHandler extends MessageHandler {
@@ -43,7 +42,7 @@ public class InternalMessageHandler extends MessageHandler {
 	public void sendCheckUserPing(String server, UUID uuid, Consumer<Optional<Boolean>> callback) {
 		callbacks.put(uuid, callback);
 		send(new Document("action", "checkUserPing").append("uuid", uuid.toString()), server);
-		BukkitUtil.sync(() -> {
+		sync(() -> {
 			if(callbacks.containsKey(uuid) && callbacks.get(uuid).equals(callback)) {
 				callback.accept(Optional.empty());
 			}

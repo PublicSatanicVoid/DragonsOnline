@@ -87,8 +87,8 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 	 * 
 	 * @param param
 	 */
-	protected void unusedParameters(Object... params) {}
-	protected void unusedParameter(Object param) {}
+	protected void unusedParameters(Object... params) { /* unused */ }
+	protected void unusedParameter(Object param) { /* unused */ }
 	
 	protected Player player(CommandSender sender) {
 		if(sender instanceof Player) return (Player) sender;

@@ -39,14 +39,14 @@ public class GuildLoader extends AbstractLightweightLoader<Guild> {
 	private static DragonsSocial plugin = JavaPlugin.getPlugin(DragonsSocial.class);
 	private static Dragons dragons = plugin.getDragonsInstance();
 	private static GuildMessageHandler guildMessageHandler;
+
+	private Map<Integer, Guild> guildPool = new HashMap<>();
 	
 	private static synchronized void lazyLoadMessageHandler() {
 		if(guildMessageHandler == null) {
 			guildMessageHandler = new GuildMessageHandler(plugin);
 		}
 	}
-	
-	private Map<Integer, Guild> guildPool = new HashMap<>();
 	
 	public static enum GuildAccessLevel {
 		ALL("Public"),

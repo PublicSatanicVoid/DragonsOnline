@@ -691,7 +691,8 @@ public class QuestCommand extends DragonsCommandExecutor {
 					+ ChatColor.GRAY + "    - Quantity: " + ChatColor.GREEN + action.getQuantity() + "\n"
 					+ ChatColor.GRAY + "    - Radius: " + ChatColor.GREEN + action.getRadius() + "\n"
 					+ ChatColor.GRAY + "    - " + (action.isPhased() ? "Phased for player" : "Not phased");
+		default:
+			return "";
 		}
-		return "";
 	}
 }

@@ -14,12 +14,12 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.util.MathUtil;
 
 public class PacketSpoof extends Check {
+	private final double VL_THRESHOLD = 10;
+	private final double VL_FACTOR = 0.5;
+	
 	public PacketSpoof(DragonsAntiCheat plugin) {
 		super(plugin);
 	}
-
-	private final double VL_THRESHOLD = 10;
-	private final double VL_FACTOR = 0.5;
 	
 	@Override
 	public String getName() {

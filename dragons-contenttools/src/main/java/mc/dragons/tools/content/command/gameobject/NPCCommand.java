@@ -345,7 +345,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 			changed = removeBehavior(sender, args, behaviors, conditionals, trigger, npcClass, parsedBehaviors);
 		}
 		else {
-			changed = manageBehavior(sender, args, behaviors, conditionals, trigger, npcClass, behaviorsLocal);
+			changed = manageBehavior(sender, args, behaviors, conditionals, npcClass, behaviorsLocal);
 		}
 		if(changed) {
 			AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Updated behaviors");
@@ -377,7 +377,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		return true;
 	}
 
-	private boolean manageBehavior(CommandSender sender, String[] args, List<Document> behaviors, Document conditionals, NPCTrigger trigger, NPCClass npcClass, NPCConditionalActions behaviorsLocal) {
+	private boolean manageBehavior(CommandSender sender, String[] args, List<Document> behaviors, Document conditionals, NPCClass npcClass, NPCConditionalActions behaviorsLocal) {
 		User user = user(sender);
 		Player player = player(sender);
 		

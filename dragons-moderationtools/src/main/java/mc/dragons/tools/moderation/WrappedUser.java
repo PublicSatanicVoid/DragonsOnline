@@ -38,12 +38,19 @@ import mc.dragons.tools.moderation.report.ReportLoader.ReportType;
  *
  */
 public class WrappedUser {
+	/**
+	 * The time in seconds to remove one standing level from a player.
+	 */
+	public static long STANDING_LEVEL_DECAY_PERIOD = 60 * 60 * 24 * 7;
+	
 	private static Dragons DRAGONS = Dragons.getInstance();
 	private static DragonsModerationTools MODTOOLS = JavaPlugin.getPlugin(DragonsModerationTools.class);
 	private static DragonsLogger LOGGER = MODTOOLS.getLogger();
 	private static Map<User, WrappedUser> wrappers = Collections.synchronizedMap(new HashMap<>());
 	private static ReportLoader reportLoader = DRAGONS.getLightweightLoaderRegistry().getLoader(ReportLoader.class);
 	private static PunishMessageHandler handler = MODTOOLS.getPunishMessageHandler();
+
+	private User user;
 	
 	public static class AppliedPunishmentData {
 		public PunishmentType type;
@@ -55,13 +62,6 @@ public class WrappedUser {
 			this.duration = duration;
 		}
 	}
-	
-	/**
-	 * The time in seconds to remove one standing level from a player.
-	 */
-	public static long STANDING_LEVEL_DECAY_PERIOD = 60 * 60 * 24 * 7;
-
-	private User user;
 	
 	/**
 	 * 
