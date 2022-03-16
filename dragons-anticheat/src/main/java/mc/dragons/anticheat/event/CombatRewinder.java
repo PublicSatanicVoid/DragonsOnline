@@ -299,7 +299,7 @@ public class CombatRewinder {
 			}
 			long test = entry.getKey();
 			Location loc = entry.getValue();
-			if(test >= search) {
+			if(test >= search && buf != null) {
 				long lerpa = search - last;
 				long lerpb = test - search;
 				double weighta = (double) lerpa / (lerpa + lerpb);
