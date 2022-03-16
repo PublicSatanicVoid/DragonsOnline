@@ -50,6 +50,7 @@ public class CombatRewinder {
 	public double rayTraceTolerance = 0.2;
 	
 	private DragonsAntiCheat plugin;
+	private ProtocolManager protocolManager;
 	private Map<Player, Map<Long, Long>> lastSent;
 	private Map<Player, Long> lastPing;
 	private Map<Entity, Map<Long, Location>> entityHistory;
@@ -78,12 +79,33 @@ public class CombatRewinder {
 		debug_rejectedCount = new HashMap<>();
 		entityHistory = new HashMap<>();
 		lookHistory = new HashMap<>();
-		ProtocolManager pm = ProtocolLibrary.getProtocolManager();
+		protocolManager = ProtocolLibrary.getProtocolManager();
 		
+		initKeepAliveTask();
+		initDebugStatsTask();
+		
+		// Packet level interaction handling
+		protocolManager.addPacketListener(new PacketAdapter(plugin, new PacketType[] { 
+				PacketType.Play.Client.USE_ENTITY, PacketType.Play.Client.KEEP_ALIVE, PacketType.Play.Server.KEEP_ALIVE,
+				PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.BOAT_MOVE, PacketType.Play.Client.VEHICLE_MOVE,
+				PacketType.Play.Server.REL_ENTITY_MOVE, PacketType.Play.Server.REL_ENTITY_MOVE_LOOK  }) {
+			
+			@Override
+			public void onPacketReceiving(PacketEvent event) {
+				handlePacketReceive(event);
+			}
+			
+			// Build record of player interacts
+			@Override
+			public void onPacketSending(PacketEvent event) {
+				handlePacketSend(event);
+			}
+		});
+	}
+	
+	private void initKeepAliveTask() {
 		// Check ping more frequently to increase accuracy
 		syncPeriodic(() -> {
-			//CombatRewinder.this.plugin.getLogger().info("Periodic thingy");
-			//pm.broadcastServerPacket(packet);
 			for(Player p : Bukkit.getOnlinePlayers()) {
 				PacketContainer packet = new PacketContainer(PacketType.Play.Server.KEEP_ALIVE);
 				packet.getModifier().writeDefaults();
@@ -91,14 +113,15 @@ public class CombatRewinder {
 				packet.getLongs().write(0, id);
 				lastSent.computeIfAbsent(p, pp -> new HashMap<>()).put(id, System.currentTimeMillis());
 				try {
-					pm.sendServerPacket(p, packet);
+					protocolManager.sendServerPacket(p, packet);
 				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		}, PING_POLLING_PERIOD_TICKS);
-		
+	}
+	
+	private void initDebugStatsTask() {
 		syncPeriodic(() -> {
 			for(Player p : Bukkit.getOnlinePlayers()) {
 				if(!debug_hitStats.getOrDefault(p, false)) continue;
@@ -108,153 +131,133 @@ public class CombatRewinder {
 				p.spigot().sendMessage(ChatMessageType.ACTION_BAR, StringUtil.plainText("Hit rejection ratio: " + (tot == 0 ? "N/A" : MathUtil.round(100 * rej / tot) + "%") + " (ping: " + ping + "ms)"));
 			}
 		}, 20);
+	}
+	
+	/**
+	 * 
+	 * @param player
+	 * @param packet
+	 * @return Whether to cancel the packet
+	 */
+	private boolean handleKeepAliveReceive(Player player, PacketContainer packet) {
+		long id = packet.getLongs().read(0);
+		if(packet.getLongs().read(0) <= MAX_PACKET_ID) {
+			lastPing.put(player, System.currentTimeMillis() - lastSent.get(player).get(id));
+			return true; // If it was sent by us, don't pass it on to Bukkit
+		}
+		return false;
+	}
+	
+	private void handleMove(Player player, PacketContainer packet) {
+		long time = System.currentTimeMillis();
+		Map<Long, Location> history = entityHistory.computeIfAbsent(player, p -> new TreeMap<>());
+		history.putIfAbsent(time, player.getLocation());
+		Map<Long, Location> lookHistory = null;
+		lookHistory = CombatRewinder.this.lookHistory.computeIfAbsent(player, p -> new TreeMap<>());
+		lookHistory.putIfAbsent(time, player.getEyeLocation());
+		if(time - lastCleanup > CLEANUP_INTERVAL_MS) {
+			entityHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
+			CombatRewinder.this.lookHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
+			lastCleanup = time;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param player
+	 * @param packet
+	 * @return Whether to cancel the packet
+	 */
+	private boolean handleInteract(Player player, PacketContainer packet) {
+		if(LagMeter.getEstimatedTPS() < TPS_DISABLEBELOW) return false;
 		
-		// Packet level interaction handling
-		pm.addPacketListener(new PacketAdapter(plugin, new PacketType[] { 
-				PacketType.Play.Client.USE_ENTITY, PacketType.Play.Client.KEEP_ALIVE, PacketType.Play.Server.KEEP_ALIVE,
-				PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.BOAT_MOVE, PacketType.Play.Client.VEHICLE_MOVE,
-				PacketType.Play.Server.REL_ENTITY_MOVE, PacketType.Play.Server.REL_ENTITY_MOVE_LOOK  }) {
-			
-			@Override
-			public void onPacketReceiving(PacketEvent event) {
-				Player player = event.getPlayer();
-				PacketContainer packet = event.getPacket();
-				
-				// Update player ping
-				if(event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
-					long id = event.getPacket().getLongs().read(0);
-					if(packet.getLongs().read(0) <= MAX_PACKET_ID) {
-						lastPing.put(event.getPlayer(), System.currentTimeMillis() - lastSent.get(event.getPlayer()).get(id));
-						event.setCancelled(true); // If it was sent by us, don't pass it on to Bukkit
-					}
-					
-					return;
+		debug_hitCount.put(player, debug_hitCount.getOrDefault(player, 0) + 1);
+		
+		// Verify an interaction
+		World world = player.getWorld();
+		Entity target = packet.getEntityModifier(world).read(0);
+		if(target == null) {
+			return false;
+		}
+		int playerPing = getInstantaneousPing(player);
+		
+		Location[] playerRewound = interpolateLocation(player, playerPing, false);
+		Location[] playerLookRewound = interpolateLocation(player, playerPing, true);
+		Location[] targetRewound = interpolateLocation(target, playerPing, false);
+	
+		boolean cancel = true;
+		double dist2 = -1.0;
+		
+		// Loop through possibilities
+		for(int i = 0; i < playerRewound.length; i++) {
+			Location playerLook = playerLookRewound[i];
+			for(Location targetPos : targetRewound) {
+				BoundingBox targetRewoundBB = target.getBoundingBox().shift(targetPos.clone().subtract(target.getLocation()));
+				targetRewoundBB.expand(rayTraceTolerance);
+				dist2 = playerLook.distanceSquared(targetPos);
+				if(dist2 < MAX_DISTANCE_SQ && !ENFORCE_LOOKING_DIR) {
+					cancel = false;
+					break;
 				}
-				
-				else if(event.getPacketType() == PacketType.Play.Client.POSITION
-						|| event.getPacketType() == PacketType.Play.Client.POSITION_LOOK
-						|| event.getPacketType() == PacketType.Play.Client.BOAT_MOVE
-						|| event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
-					long time = System.currentTimeMillis();
-					Map<Long, Location> history = entityHistory.computeIfAbsent(player, p -> new TreeMap<>());
-					history.putIfAbsent(time, player.getLocation());
-					Map<Long, Location> lookHistory = null;
-					lookHistory = CombatRewinder.this.lookHistory.computeIfAbsent(player, p -> new TreeMap<>());
-					lookHistory.putIfAbsent(time, player.getEyeLocation());
-					if(time - lastCleanup > CLEANUP_INTERVAL_MS) {
-						entityHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
-						CombatRewinder.this.lookHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
-						lastCleanup = time;
-					}
-					
-					return;
+				if(dist2 > MAX_DISTANCE_SQ) {
+					continue;
 				}
-				
-				if(LagMeter.getEstimatedTPS() < TPS_DISABLEBELOW) return;
-				
-				debug_hitCount.put(player, debug_hitCount.getOrDefault(player, 0) + 1);
-				
-				// Verify an interaction
-				World world = player.getWorld();
-				Entity target = packet.getEntityModifier(world).read(0);
-				if(target == null) {
-					return;
-				}
-				int playerPing = getInstantaneousPing(player);
-				
-				// To find what A saw when they attacked:
-				// - Rewind to A.ping
-				// 		- This is what the SERVER saw at that time
-				// - Rewind again
-				//		- This is what the player likely RECEIVED at that time
-				// Target's ping doesn't matter, because it's the same offset for both the server receiving and the client receiving
-				// since the client just receives from the server
-				
-				Location[] playerRewound = interpolateLocation(player, playerPing, false);
-				Location[] playerLookRewound = interpolateLocation(player, playerPing, true);
-				Location[] targetRewound = interpolateLocation(target, playerPing, false);
-			
-				boolean cancel = true;
-				double dist2 = -1.0;
-				
-				// Loop through possibilities
-				for(int i = 0; i < playerRewound.length; i++) {
-//					Location playerPos = playerRewound[i];
-					Location playerLook = playerLookRewound[i];
-					for(Location targetPos : targetRewound) {
-						BoundingBox targetRewoundBB = target.getBoundingBox().shift(targetPos.clone().subtract(target.getLocation()));
-						targetRewoundBB.expand(rayTraceTolerance);
-						dist2 = playerLook.distanceSquared(targetPos);
-						if(dist2 < MAX_DISTANCE_SQ && !ENFORCE_LOOKING_DIR) {
-							cancel = false;
-							break;
-						}
-						if(dist2 > MAX_DISTANCE_SQ) {
-							continue;
-						}
-						if(ENFORCE_LOOKING_DIR) {
-							boolean intersects = rayTrace(playerLook, playerLook.getDirection(), targetRewoundBB);
-							if(intersects) {
-								cancel = false;
-								break;
-							}
-						}
-					}
-				}
-				
-//				BoundingBox targetRewoundBB = target.getBoundingBox().shift(targetRewound.clone().subtract(target.getLocation()));
-//				targetRewoundBB.expand(rayTraceTolerance);
-//				
-//				boolean cancel;
-//				double dist2 = playerRewound.distanceSquared(targetRewound);
-//				if(ENFORCE_LOOKING_DIR) {
-//					// TODO: Actual calculation of eye location using secondary record system
-////					RayTraceResult result = targetRewoundBB.rayTrace(playerRewound.toVector(), playerRewound.getDirection().clone().add(new Vector(0, 1.62, 0)), MAX_DISTANCE);
-//					cancel = !rayTrace(playerLookRewound, playerLookRewound.getDirection().clone(), targetRewoundBB);
-//				}
-//				else {
-//					cancel = dist2 > MAX_DISTANCE_SQ;
-//				}
-				
-				if(cancel) {
-					event.setCancelled(true);
-					debug_rejectedCount.put(player, debug_rejectedCount.getOrDefault(player, 0) + 1);
-					CombatRewinder.this.plugin.debug(player, "CombatRewind | Cancelled interaction (ping=" + playerPing + ", dist2=" + MathUtil.round(dist2) + ")");
-//					placeMarker(player, playerRewound, "YOU (-" + playerPing + "ms)");
-//					placeMarker(player, targetRewound, "TARGET (-" + (playerPing) + "ms)");
-				}
-			}
-			
-			// Build record of player interacts
-			@Override
-			public void onPacketSending(PacketEvent event) {
-				PacketType type = event.getPacketType();
-				PacketContainer packet = event.getPacket();
-				if(type == PacketType.Play.Server.KEEP_ALIVE) {
-					if(packet.getLongs().read(0) != 99999L) { // Cancel other packets
-//						packet.getLongs().write(0, 12345L);
-//						event.setCancelled(true);
-//						CombatRewinder.this.plugin.debug(event.getPlayer(), "CANCELLED DEFAULT PING");
-//						return;
-					}
-					else {
-//						packet.getLongs().write(0, System.nanoTime() / 1_000_000);
-					}
-//					lastSent.put(event.getPlayer(), System.currentTimeMillis());
-				}
-				else {
-					Entity entity = packet.getEntityModifier(event.getPlayer().getWorld()).read(0);
-					long time = System.currentTimeMillis();
-					Map<Long, Location> history = entityHistory.computeIfAbsent(entity, e -> new TreeMap<>());
-					history.putIfAbsent(time, entity.getLocation());
-					if(time - lastCleanup > CLEANUP_INTERVAL_MS) {
-						entityHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
-						CombatRewinder.this.lookHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
-						lastCleanup = time;
+				if(ENFORCE_LOOKING_DIR) {
+					boolean intersects = rayTrace(playerLook, playerLook.getDirection(), targetRewoundBB);
+					if(intersects) {
+						cancel = false;
+						break;
 					}
 				}
 			}
-		});
+		}
+		
+		if(cancel) {
+			debug_rejectedCount.put(player, debug_rejectedCount.getOrDefault(player, 0) + 1);
+			CombatRewinder.this.plugin.debug(player, "CombatRewind | Cancelled interaction (ping=" + playerPing + ", dist2=" + MathUtil.round(dist2) + ")");
+			return true;
+//			placeMarker(player, playerRewound, "YOU (-" + playerPing + "ms)");
+//			placeMarker(player, targetRewound, "TARGET (-" + (playerPing) + "ms)");
+		}
+		return false;
+	}
+	
+	private void handlePacketReceive(PacketEvent event) {
+		Player player = event.getPlayer();
+		PacketContainer packet = event.getPacket();
+		
+		// Update player ping
+		if(event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
+			event.setCancelled(handleKeepAliveReceive(player, packet));
+		}
+		
+		else if(event.getPacketType() == PacketType.Play.Client.POSITION
+				|| event.getPacketType() == PacketType.Play.Client.POSITION_LOOK
+				|| event.getPacketType() == PacketType.Play.Client.BOAT_MOVE
+				|| event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+			
+			handleMove(player, packet);
+		}
+		
+		else {
+			event.setCancelled(handleInteract(player, packet));
+		}
+	}
+	
+	private void handlePacketSend(PacketEvent event) {
+		PacketType type = event.getPacketType();
+		PacketContainer packet = event.getPacket();
+		if(type != PacketType.Play.Server.KEEP_ALIVE) {
+			Entity entity = packet.getEntityModifier(event.getPlayer().getWorld()).read(0);
+			long time = System.currentTimeMillis();
+			Map<Long, Location> history = entityHistory.computeIfAbsent(entity, e -> new TreeMap<>());
+			history.putIfAbsent(time, entity.getLocation());
+			if(time - lastCleanup > CLEANUP_INTERVAL_MS) {
+				entityHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
+				CombatRewinder.this.lookHistory.forEach((k,h) -> h.keySet().removeIf(t -> t < time - MAX_RETENTION_MS));
+				lastCleanup = time;
+			}
+		}
 	}
 	
 //	private void placeMarker(Player phaseFor, Location loc, String title) {

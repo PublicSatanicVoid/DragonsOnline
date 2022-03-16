@@ -61,7 +61,12 @@ public interface PlayerNPC {
 	}
 
 	public static class Action {
-		private boolean onFire, crouched, sprinting, invisible, glowing, flyingElytra;
+		private boolean onFire;
+		private boolean crouched;
+		private boolean sprinting;
+		private boolean invisible;
+		private boolean glowing;
+		private boolean flyingElytra;
 		private byte result = 0;
 
 		public Action(boolean on_fire, boolean crouched, boolean sprinting, boolean invisible, boolean glowing,

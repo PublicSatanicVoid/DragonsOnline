@@ -81,6 +81,8 @@ public class COLoader extends AbstractLightweightLoader<CommunityObjective> {
 						ChatColor.DARK_RED + "" + ChatColor.BOLD + "Community Objective Failed: " +
 						ChatColor.RED + getTitle(), getDescription());
 				break;
+			default:
+				break;
 			}
 			save();
 		}

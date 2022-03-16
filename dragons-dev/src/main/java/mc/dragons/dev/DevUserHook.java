@@ -75,8 +75,7 @@ public class DevUserHook implements UserHook, Listener {
 		
 		/* Notify Discord when builders join the server */
 		Rank rank = user.getRank();
-		if(rank == Rank.BUILDER || rank == Rank.BUILDER_CMD || rank == Rank.BUILD_MANAGER
-				|| rank == Rank.HEAD_BUILDER || rank == Rank.NEW_BUILDER) {
+		if(rank == Rank.BUILDER || rank == Rank.BUILDER_CMD || rank == Rank.BUILD_MANAGER || rank == Rank.NEW_BUILDER) {
 			buildNotifier.sendNotification("[Builder Join] " + rank.getRankName() + " " + user.getName() + " joined the server!");
 		}
 		

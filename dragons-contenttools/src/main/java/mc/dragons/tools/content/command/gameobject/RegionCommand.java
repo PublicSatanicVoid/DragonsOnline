@@ -277,7 +277,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		if(region == null) return;
 		
 		if(args.length == 2) {
-			sender.sendMessage(ChatColor.RED + "Specify a flag name! /region <RegionName> flag <FlagName> [Value]");
+			sender.sendMessage(ChatColor.RED + "Specify a flag name! /region <RegionName> flag <FlagName> [Value|REMOVE]");
 		}
 		else if(args.length == 3) {
 			Object value = region.getFlags().get(args[2]);
@@ -289,8 +289,10 @@ public class RegionCommand extends DragonsCommandExecutor {
 			}
 		}
 		else if(args[3].equalsIgnoreCase("REMOVE")) {
-			// TODO KJASHD KJLSAYHDLUKJHSAHDJASHLIDUKSAJHDSBAKIULJD<YHGASB DXCKUSAYHJnd
-			// Jd))
+			Document base = Document.parse(region.getData().toJson());
+			region.removeFlag(args[2]);
+			sender.sendMessage(ChatColor.GREEN + "Removed flag " + args[2]);
+			AUDIT_LOG.saveEntry(region, user(sender), base, "Removed flag " + args[2]);
 		}
 		else {
 			Document base = Document.parse(region.getData().toJson());

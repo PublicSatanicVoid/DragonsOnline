@@ -68,23 +68,21 @@ public class FastPackets extends Check {
 				Player player = event.getPlayer();
 				packetLog.computeIfAbsent(player, p -> new ArrayList<>()).add(System.currentTimeMillis());
 				List<Long> packets = packetLog.get(player);
-				if(LagMeter.getEstimatedTPS() >= TPS_DISABLEBELOW) {
-					if(packets.size() > 20 * 2) {
-						User user = UserLoader.fromPlayer(player);
-						ViolationData vdata = ViolationData.of(FastPackets.this, user);
-						double pps = 1000.0 * (double) packets.size() / (packets.get(packets.size() - 1) - packets.get(0));
-						if(pps > 22) {
-							vdata.raiseVl(VL_REPORT_THRESHOLD, () -> new Document("pps", pps));
-							if(vdata.vl > VL_LAGBACK_THRESHOLD) {
-								if(FastPackets.this.plugin.isDebug()) {
-									FastPackets.this.plugin.debug(player, "FastPackets | Lagback (" + MathUtil.round(pps) + "pps, " + MathUtil.round(vdata.vl) + "vl)");
-								}
-								MoveData.of(user).rubberband();
+				if(LagMeter.getEstimatedTPS() >= TPS_DISABLEBELOW && packets.size() > 20 * 2) {
+					User user = UserLoader.fromPlayer(player);
+					ViolationData vdata = ViolationData.of(FastPackets.this, user);
+					double pps = 1000.0 * (double) packets.size() / (packets.get(packets.size() - 1) - packets.get(0));
+					if(pps > 22) {
+						vdata.raiseVl(VL_REPORT_THRESHOLD, () -> new Document("pps", pps));
+						if(vdata.vl > VL_LAGBACK_THRESHOLD) {
+							if(FastPackets.this.plugin.isDebug()) {
+								FastPackets.this.plugin.debug(player, "FastPackets | Lagback (" + MathUtil.round(pps) + "pps, " + MathUtil.round(vdata.vl) + "vl)");
 							}
+							MoveData.of(user).rubberband();
 						}
-						else {
-							vdata.vl *= VL_DECAY;
-						}
+					}
+					else {
+						vdata.vl *= VL_DECAY;
 					}
 				}
 				if(packets.size() > 20 * PPS_INTEGRATION_WINDOW_SEC) {

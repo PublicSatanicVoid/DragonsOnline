@@ -176,6 +176,13 @@ public class Region extends GameObject {
 		flags.append(flag, value);
 		storageAccess.update(update);
 	}
+	
+	public void removeFlag(String flag) {
+		Document update = storageAccess.getDocument();
+		Document flags = (Document) update.get("flags");
+		flags.remove(flag);
+		storageAccess.update(update);
+	}
 
 	public Map<String, Double> getSpawnRates() {
 		return regionData.getSpawnRates();

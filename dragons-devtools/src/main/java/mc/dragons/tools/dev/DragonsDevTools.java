@@ -102,63 +102,24 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("lab").setExecutor(new LabCommand());
 		
 		CommandExecutor experimentalCommands = new ExperimentalCommands();
-		getCommand("helditemdata").setExecutor(experimentalCommands);
-		getCommand("rawtext").setExecutor(experimentalCommands);
-		getCommand("whoami").setExecutor(experimentalCommands);
-		getCommand("stresstest").setExecutor(experimentalCommands);
-		getCommand("killmobs").setExecutor(experimentalCommands);
-		getCommand("testexceptions").setExecutor(experimentalCommands);
-		getCommand("testmineregen").setExecutor(experimentalCommands);
-		getCommand("testpermission").setExecutor(experimentalCommands);
-		getCommand("testlocaluserstorage").setExecutor(experimentalCommands);
-		getCommand("testgui").setExecutor(experimentalCommands);
-		getCommand("testhdfont").setExecutor(experimentalCommands);
-		getCommand("testtabname").setExecutor(experimentalCommands);
-		getCommand("testtpsrecord").setExecutor(experimentalCommands);
-		getCommand("testpathfinding").setExecutor(experimentalCommands);
-		getCommand("testphasing").setExecutor(experimentalCommands);
-		getCommand("testarmorstandpose").setExecutor(experimentalCommands);
-		getCommand("testleveling").setExecutor(experimentalCommands);
-		getCommand("testlogging").setExecutor(experimentalCommands);
-		getCommand("testuuidlookup").setExecutor(experimentalCommands);
-		getCommand("testcorrelationlogging").setExecutor(experimentalCommands);
-		getCommand("testbase64encoding").setExecutor(experimentalCommands);
-		getCommand("testnetworkmessage").setExecutor(experimentalCommands);
-		getCommand("testdocumentdelta").setExecutor(experimentalCommands);
-		getCommand("testnewfonts").setExecutor(experimentalCommands);
-		getCommand("testuserlookup").setExecutor(experimentalCommands);
-		getCommand("writelog").setExecutor(experimentalCommands);
-		getCommand("testheader").setExecutor(experimentalCommands);
-		getCommand("testfooter").setExecutor(experimentalCommands);
-		getCommand("testinvisibleslimes").setExecutor(experimentalCommands);
-		getCommand("testrevealslimes").setExecutor(experimentalCommands);
-		getCommand("testhideslimes").setExecutor(experimentalCommands);
-		getCommand("testdestroyslimes").setExecutor(experimentalCommands);
-		getCommand("testbadslimes").setExecutor(experimentalCommands);
-		getCommand("mockuser").setExecutor(experimentalCommands);
-		getCommand("mocksudo").setExecutor(experimentalCommands);
-		getCommand("mockinject").setExecutor(experimentalCommands);
-		getCommand("mockserver").setExecutor(experimentalCommands);
-		getCommand("mockdelete").setExecutor(experimentalCommands);
-		getCommand("mocklist").setExecutor(experimentalCommands);
-		getCommand("mockuninject").setExecutor(experimentalCommands);
-		getCommand("testitemstash").setExecutor(experimentalCommands);
-		getCommand("testitemunstash").setExecutor(experimentalCommands);
-		getCommand("testmobai").setExecutor(experimentalCommands);
-		getCommand("testtakeitem").setExecutor(experimentalCommands);
-		getCommand("testupdateinventory").setExecutor(experimentalCommands);
-		getCommand("testnametag").setExecutor(experimentalCommands);
-		getCommand("testnametag2").setExecutor(experimentalCommands);
-		getCommand("testupdatenametag").setExecutor(experimentalCommands);
-		getCommand("testrollingasync").setExecutor(experimentalCommands);
-		getCommand("testinternalnetworkedmsg").setExecutor(experimentalCommands);
-		getCommand("testplayernpc").setExecutor(experimentalCommands);
-		getCommand("testrevealallinvisible").setExecutor(experimentalCommands);
-		getCommand("testinventoryreload").setExecutor(experimentalCommands);
-		getCommand("getitemuuid").setExecutor(experimentalCommands);
-		getCommand("tptoentity").setExecutor(experimentalCommands);
-		getCommand("dumpteams").setExecutor(experimentalCommands);
-		getCommand("getprotocolversion").setExecutor(experimentalCommands);
-		getCommand("testtabsorting").setExecutor(experimentalCommands);
+		String[] experimentalCommandsList = {
+				"helditemdata", "rawtext", "whoami", "stresstest", "killmobs",
+				"testexceptions", "testmineregen", "testpermission", "testlocaluserstorage",
+				"testgui", "testhdfont", "testtabname", "testtpsrecord", "testpathfinding",
+				"testphasing", "testarmorstandpose", "testleveling", "testlogging", "testuuidlookup",
+				"testcorrelationlogging", "testbase64encoding", "testnetworkmessage",
+				"testdocumentdelta", "testnewfonts", "testuserlookup", "writelog",
+				"testheader", "testfooter", "testinvisibleslimes", "testrevealslimes",
+				"testhideslimes", "testdestroyslimes", "testbadslimes", "mockuser", "mocksudo",
+				"mockinject", "mockserver", "mockdelete", "mocklist", "mockuninject",
+				"testitemstash", "testitemunstash", "testmobai", "testtakeitem", 
+				"testupdateinventory", "testnametag", "testnametag2", "testupdatenametag",
+				"testrollingasync", "testinternalnetworkedmsg", "testplayernpc",
+				"testrevealallinvisible", "testinventoryreload", "getitemuuid", "tptoentity",
+				"dumpteams", "getprotocolversion", "testtabsorting"
+		};
+		for(String cmd : experimentalCommandsList) {
+			getCommand(cmd).setExecutor(experimentalCommands);
+		}
 	}
 }

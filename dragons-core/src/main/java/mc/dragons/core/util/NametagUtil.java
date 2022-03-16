@@ -15,6 +15,8 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.utility.MinecraftReflection;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 
+import mc.dragons.core.exception.DragonsInternalException;
+
 /**
  * 
  * @author comphenix
@@ -38,7 +40,7 @@ public class NametagUtil {
 			try {
 				ProtocolLibrary.getProtocolManager().sendServerPacket(p, packet);
 			} catch (InvocationTargetException e) {
-				throw new RuntimeException("Cannot send packet " + packet, e);
+				throw new DragonsInternalException("Cannot send packet " + packet, e);
 			}
 		}
 	}

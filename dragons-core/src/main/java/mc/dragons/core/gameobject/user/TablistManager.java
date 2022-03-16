@@ -153,9 +153,9 @@ public class TablistManager {
 		message.getPlayerInfoAction().write(0, action);
 		List<PlayerInfoData> pInfoData = new ArrayList<>();
 		if (gameProfile != null) {
-			gameProfile = gameProfile.withName(nameToSortBy);
-			prevTab.get(p)[slotId] = gameProfile;
-			pInfoData.add(new PlayerInfoData(gameProfile, 10, EnumWrappers.NativeGameMode.SURVIVAL,
+			WrappedGameProfile wrapped = gameProfile.withName(nameToSortBy);
+			prevTab.get(p)[slotId] = wrapped;
+			pInfoData.add(new PlayerInfoData(wrapped, ping, EnumWrappers.NativeGameMode.SURVIVAL,
 					WrappedChatComponent.fromText(nameToShow)));
 		}
 		message.getPlayerInfoDataLists().write(0, pInfoData);

@@ -50,7 +50,7 @@ public class ChatMessageHandler extends MessageHandler {
 		
 		String messageSenderInfo = "";
 		if(user.isVerified()) {
-			messageSenderInfo = ChatColor.GREEN + "✓ " + ChatColor.GRAY;
+			messageSenderInfo = ChatColor.GREEN + "✔ " + ChatColor.GRAY;
 		}
 		if (user.getRank().hasChatPrefix()) {
 			messageSenderInfo += user.getRank().getChatPrefix() + " ";
