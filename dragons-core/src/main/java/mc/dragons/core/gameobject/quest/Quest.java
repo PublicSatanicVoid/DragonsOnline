@@ -130,6 +130,10 @@ public class Quest extends GameObject {
 		return referenceNames.get(user, referenceName);
 	}
 
+	public void removeNPCReference(User user, String npcReferenceName) {
+		referenceNames.remove(user, npcReferenceName);
+	}
+
 	public String getQuestName() {
 		return (String) getData("questName");
 	}

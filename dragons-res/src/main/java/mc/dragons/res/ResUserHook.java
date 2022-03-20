@@ -1,7 +1,8 @@
 package mc.dragons.res;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import org.bson.Document;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import mc.dragons.core.Dragons;
@@ -20,11 +21,11 @@ public class ResUserHook implements UserHook {
 	@Override
 	public void onVerifiedJoin(User user) {
 		// Update residence holograms
-		Bukkit.getScheduler().runTaskLater(Dragons.getInstance(), () -> {
+		sync(() -> {
 			for(ResPoint resPoint : resPointLoader.getAllResPoints()) {
 				resPointLoader.updateResHologramOn(user, resPoint);
 			}
-		}, 20L);
+		}, 20);
 		
 		// Exit residence if re-joining, to avoid phasing issues
 		Document saved = user.getData().get("resExitTo", Document.class);

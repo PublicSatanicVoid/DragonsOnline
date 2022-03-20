@@ -253,6 +253,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.RED + "Insufficient arguments!");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action TELEPORT_PLAYER");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add SPAWN_NPC <NpcClass> [NpcReferenceName [Phased?]]");
+		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add REMOVE_NPC <NpcReferenceName>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add TELEPORT_NPC <NpcReferenceName>");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add PATHFIND_NPC <NpcReferenceName> [GotoStage#WhenComplete]");
 		sender.sendMessage(ChatColor.RED + "/quest <ShortName> stage <Stage#> action add BEGIN_DIALOGUE <NpcClass>");
@@ -278,12 +279,14 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Quest quest = lookupQuest(sender, args[0]);
 		Integer stepNo = parseInt(sender, args[2]);
 		if(quest == null || stepNo == null) return;
-		QuestStep step = quest.getSteps().get(stepNo);
-		Document base = Document.parse(quest.getData().toJson());
-		QuestAction action = makeAction(quest, sender, Arrays.copyOfRange(args, 5, args.length));
-		step.addAction(action);
-		sender.sendMessage(ChatColor.GREEN + "Added new action to quest stage successfully.");
-		AUDIT_LOG.saveEntry(quest, user(sender), base, "Added action to stage " + args[2]);
+		wrappedTry(sender, () -> {
+			QuestStep step = quest.getSteps().get(stepNo);
+			Document base = Document.parse(quest.getData().toJson());
+			QuestAction action = makeAction(quest, sender, Arrays.copyOfRange(args, 5, args.length));
+			step.addAction(action);
+			sender.sendMessage(ChatColor.GREEN + "Added new action to quest stage successfully.");
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Added action to stage " + args[2]);
+		});
 	}
 	
 	private void insertAction(CommandSender sender, String[] args) {
@@ -291,12 +294,14 @@ public class QuestCommand extends DragonsCommandExecutor {
 		Integer stepNo = parseInt(sender, args[2]);
 		Integer actionNo = parseInt(sender, args[5]);
 		if(quest == null || stepNo == null || actionNo == null) return;
-		QuestStep step = quest.getSteps().get(stepNo);
-		QuestAction action = makeAction(quest, sender, Arrays.copyOfRange(args, 6, args.length));
-		step.insertAction(action, actionNo);
-		Document base = Document.parse(quest.getData().toJson());
-		sender.sendMessage(ChatColor.GREEN + "Inserted new action to quest stage successfully.");
-		AUDIT_LOG.saveEntry(quest, user(sender), base, "Inserted action before " + args[5] + " to stage " + args[2]);
+		wrappedTry(sender, () -> {
+			QuestStep step = quest.getSteps().get(stepNo);
+			QuestAction action = makeAction(quest, sender, Arrays.copyOfRange(args, 6, args.length));
+			step.insertAction(action, actionNo);
+			Document base = Document.parse(quest.getData().toJson());
+			sender.sendMessage(ChatColor.GREEN + "Inserted new action to quest stage successfully.");
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Inserted action before " + args[5] + " to stage " + args[2]);
+		});
 	}
 	
 	private void editDialogue(CommandSender sender, String[] args) {
@@ -539,11 +544,13 @@ public class QuestCommand extends DragonsCommandExecutor {
 	private QuestAction makeAction(Quest quest, CommandSender sender, String... args) {
 		User user = user(sender);
 		if(StringUtil.equalsAnyIgnoreCase(args[0], "TELEPORT_PLAYER", "TeleportPlayer")) {
-			if(!requirePlayer(sender)) return null;
 			return QuestAction.teleportPlayerAction(quest, user.getPlayer().getLocation());
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[0], "SPAWN_NPC", "SpawnNPC")) {
 			return QuestAction.spawnNPCAction(quest, npcClassLoader.getNPCClassByClassName(args[1]), user.getPlayer().getLocation(), args.length <= 2 ? "" : args[2], args.length <= 3 ? false : Boolean.valueOf(args[3]));
+		}
+		else if(StringUtil.equalsAnyIgnoreCase(args[0], "REMOVE_NPC", "RemoveNPC")) {
+			return QuestAction.removeNPCAction(quest, args[1]);
 		}
 		else if(StringUtil.equalsAnyIgnoreCase(args[0], "TELEPORT_NPC", "TeleportNPC")) {
 			if(!requirePlayer(sender)) return null;

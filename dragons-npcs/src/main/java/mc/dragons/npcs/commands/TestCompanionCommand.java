@@ -1,7 +1,5 @@
 package mc.dragons.npcs.commands;
 
-import java.util.UUID;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,7 +10,7 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
-import mc.dragons.core.util.StringUtil;
+import mc.dragons.core.util.CompanionUtil;
 import mc.dragons.npcs.CompanionAddon;
 
 public class TestCompanionCommand extends DragonsCommandExecutor {
@@ -34,33 +32,28 @@ public class TestCompanionCommand extends DragonsCommandExecutor {
 		
 		if(args[0].equalsIgnoreCase("create")) {
 			NPC companion = GameObjectType.getLoader(NPCLoader.class).registerNew(player.getLocation(), args[1]);
-			companion.getStorageAccess().set("companionOwner", user.getUUID());
-			user.getStorageAccess().set("companion", companion.getUUID());
+			CompanionUtil.addCompanion(user, companion);
 			return true;
 		}
 		
-		UUID companionUUID = user.getStorageAccess().getDocument().get("companion", UUID.class);
-		if(companionUUID == null) {
-			sender.sendMessage("You don't have a companion");
-			return true;
-		}
-		
-		NPC companion = GameObjectType.getLoader(NPCLoader.class).loadObject(companionUUID);
-		
-		if(args[0].equalsIgnoreCase("mine")) {
-			sender.sendMessage("companionUUID=" + companionUUID);
-			sender.sendMessage("companion name=" + companion.getName());
-			sender.sendMessage("companion location=" + StringUtil.locToString(companion.getEntity().getLocation()));
+		else if(args[0].equalsIgnoreCase("mine")) {
+			for(NPC npc : CompanionUtil.getCompanions(user)) {
+				sender.sendMessage("- " + npc.getNPCClass().getClassName() + " " + npc.getUUID());
+			}
 		}
 		
 		else if(args[0].equalsIgnoreCase("tphere")) {
-			companion.getEntity().teleport(player);
+			for(NPC npc : CompanionUtil.getCompanions(user)) {
+				if(npc.getEntity() == null) continue;
+				npc.getEntity().teleport(player);
+			}
 		}
 		
 		else if(args[0].equalsIgnoreCase("remove")) {
-			user.getStorageAccess().set("companion", null);
-			companion.remove();
-			addon.getCompanions().remove(companion);
+			for(NPC npc : CompanionUtil.getCompanions(user)) {
+				CompanionUtil.removeCompanion(user, npc);
+				npc.remove();
+			}
 		}
 		
 		else {

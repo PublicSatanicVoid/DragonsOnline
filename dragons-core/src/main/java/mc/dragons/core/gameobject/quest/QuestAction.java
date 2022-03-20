@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import org.bson.Document;
 import org.bukkit.ChatColor;
@@ -28,6 +29,7 @@ import mc.dragons.core.gameobject.item.ItemClass;
 import mc.dragons.core.gameobject.item.ItemClassLoader;
 import mc.dragons.core.gameobject.item.ItemLoader;
 import mc.dragons.core.gameobject.npc.NPC;
+import mc.dragons.core.gameobject.npc.NPC.NPCType;
 import mc.dragons.core.gameobject.npc.NPCClass;
 import mc.dragons.core.gameobject.npc.NPCClassLoader;
 import mc.dragons.core.gameobject.npc.NPCLoader;
@@ -35,6 +37,7 @@ import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
 import mc.dragons.core.storage.StorageUtil;
 import mc.dragons.core.util.BlockUtil;
+import mc.dragons.core.util.CompanionUtil;
 import mc.dragons.core.util.PathfindingUtil;
 import mc.dragons.core.util.PermissionUtil;
 import mc.dragons.core.util.StringUtil;
@@ -105,7 +108,8 @@ public class QuestAction {
 
 	public enum QuestActionType {
 		TELEPORT_PLAYER(true),
-		SPAWN_NPC(false), 
+		SPAWN_NPC(false),
+		REMOVE_NPC(false),
 		TELEPORT_NPC(true), 
 		PATHFIND_NPC(true), 
 		BEGIN_DIALOGUE(true),
@@ -151,6 +155,9 @@ public class QuestAction {
 			questAction.npcReferenceName = action.getString("npcReferenceName");
 			questAction.phased = action.getBoolean("phased");
 			questAction.to = StorageUtil.docToLoc(action.get("location", Document.class));
+		}
+		else if (questAction.action == QuestActionType.REMOVE_NPC) {
+			questAction.npcReferenceName = action.getString("npcReferenceName");
 		}
 		else if (questAction.action == QuestActionType.BEGIN_DIALOGUE) {
 			questAction.npcClass = null;
@@ -230,6 +237,14 @@ public class QuestAction {
 		action.npcReferenceName = referenceName;
 		action.to = loc;
 		action.phased = phased;
+		return action;
+	}
+	
+	public static QuestAction removeNPCAction(Quest quest, String referenceName) {
+		QuestAction action = new QuestAction();
+		action.action = QuestActionType.REMOVE_NPC;
+		action.quest = quest;
+		action.npcReferenceName = referenceName;
 		return action;
 	}
 
@@ -389,6 +404,9 @@ public class QuestAction {
 			document.append("npcClass", npcClass.getClassName()).append("phased", phased).append("npcReferenceName", npcReferenceName)
 				.append("location", StorageUtil.locToDoc(to));
 			break;
+		case REMOVE_NPC:
+			document.append("npcReferenceName", npcReferenceName);
+			break;
 		case GIVE_XP:
 			document.append("xp", xpAmount);
 			break;
@@ -530,7 +548,23 @@ public class QuestAction {
 			if(!npc.getNPCType().isPersistent()) {
 				user.markNPCForCleanup(quest, npc);
 			}
+			if(npc.getNPCType() == NPCType.COMPANION) {
+				CompanionUtil.addCompanion(user, npc);
+			}
 			quest.registerNPCReference(user, npc, npcReferenceName);
+		}
+		else if (action == QuestActionType.REMOVE_NPC) {
+			NPC npc = quest.getNPCByReference(user, npcReferenceName);
+			if(npc == null) {
+				user.logQuestEvent(quest, Level.WARNING, "Could not remove NPC with reference name '" + npcReferenceName + "'");
+			}
+			else {
+				if(npc.getNPCType() == NPCType.COMPANION) {
+					CompanionUtil.removeCompanion(user, npc);
+				}
+				npc.remove();
+			}
+			quest.removeNPCReference(user, npcReferenceName);
 		}
 		else if (action == QuestActionType.BEGIN_DIALOGUE) {
 			npcClassDeferredLoad();

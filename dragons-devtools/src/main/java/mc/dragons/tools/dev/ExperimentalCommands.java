@@ -33,6 +33,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.EulerAngle;
+import org.bukkit.util.Vector;
 
 import com.comphenix.protocol.ProtocolLibrary;
 
@@ -687,6 +688,10 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		else if(label.equalsIgnoreCase("testtabsorting")) {
 			User[] tab = Stream.of(args).map(name -> lookupUser(sender, name)).filter(Objects::nonNull).collect(Collectors.toList()).toArray(new User[0]);
 			dragons.getTablistManager().updatePlayer(player, tab);
+		}
+		
+		else if(label.equalsIgnoreCase("testvelocity")) {
+			player.setVelocity(new Vector(parseDouble(sender, args[0]), parseDouble(sender, args[1]), parseDouble(sender, args[2])));
 		}
 		
 		else {

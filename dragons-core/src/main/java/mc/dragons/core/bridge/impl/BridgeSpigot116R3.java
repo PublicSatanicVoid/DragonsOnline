@@ -1,24 +1,25 @@
 package mc.dragons.core.bridge.impl;
 
+import static mc.dragons.core.util.BukkitUtil.syncPeriodic;
+
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 import io.github.bananapuncher714.nbteditor.NBTEditor;
-import mc.dragons.core.Dragons;
 import mc.dragons.core.bridge.Bridge;
-import mc.dragons.core.logging.DragonsLogger;
-import mc.dragons.core.util.StringUtil;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
+import net.minecraft.server.v1_16_R3.EntityInsentient;
 
 public class BridgeSpigot116R3 implements Bridge {
-	private DragonsLogger LOGGER = Dragons.getInstance().getLogger();
-
 	@Override
 	public String getAPIVersion() {
 		return "1_16_R3";
@@ -38,7 +39,6 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void respawnPlayer(Player player) {
 		player.spigot().respawn();
-		LOGGER.trace("BRIDGE: Respawning player " + player.getName());
 	}
 
 	@Override
@@ -49,7 +49,6 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void setEntityAI(Entity entity, boolean ai) {
 		NBTEditor.set(entity, (byte) (!ai ? 1 : 0), "NoAI");
-		LOGGER.trace("BRIDGE: Set AI on entity " + StringUtil.entityToString(entity) + " to " + ai);
 	}
 	
 	@Override
@@ -60,7 +59,6 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void setItemStackUnbreakable(ItemStack itemStack, boolean unbreakable) {
 		NBTEditor.set(itemStack, unbreakable ? 1 : 0, "Unbreakable");
-		LOGGER.trace("BRIDGE: Set Unbreakability on item stack " + itemStack + " to " + unbreakable);
 	}
 
 	@Override
@@ -73,11 +71,24 @@ public class BridgeSpigot116R3 implements Bridge {
 	@Override
 	public void setEntityInvulnerable(Entity entity, boolean immortal) {
 		entity.setInvulnerable(immortal);
-		LOGGER.trace("BRIDGE: Set Invulnerability on entity " + StringUtil.entityToString(entity) + " to " + immortal);
 	}
 
 	@Override
 	public int getPing(Player player) {
 		return ((CraftPlayer) player).getHandle().ping;
+	}
+	
+	@Override
+	public BukkitTask followEntity(Entity entity, LivingEntity target, double speed) {
+        return syncPeriodic(() ->  {
+        	try {
+        		Location loc = target.getLocation();
+        		
+        		// https://bukkit.org/threads/make-a-mob-follow-a-player.351739/
+                ((EntityInsentient) ((CraftEntity) entity).getHandle()).getNavigation().a(loc.getX(), loc.getY(), loc.getZ(), speed);
+        	} catch(Exception ex) {
+        		
+        	}
+        }, 0, 2 * 20);
 	}
 }

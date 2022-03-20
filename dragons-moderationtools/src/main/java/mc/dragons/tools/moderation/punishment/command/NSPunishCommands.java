@@ -15,6 +15,7 @@ import mc.dragons.tools.moderation.punishment.PunishMessageHandler;
 import mc.dragons.tools.moderation.punishment.PunishmentCode;
 import mc.dragons.tools.moderation.punishment.PunishmentType;
 import mc.dragons.tools.moderation.punishment.StandingLevelType;
+import mc.dragons.tools.moderation.util.ModActionUtil;
 
 // TODO: Use WrappedUser#autoPunish instead of copypasta
 public class NSPunishCommands extends DragonsCommandExecutor {
@@ -33,6 +34,8 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		}
 		User target = lookupUser(sender, args[0]);
 		if(target == null) return;
+		if(!ModActionUtil.checkCanPunish(sender, target)) return;
+		
 		String reason = "";
 		if(args.length > 1) {
 			reason = "Reason: " + StringUtil.concatArgs(args, 1) + "\n";
@@ -54,6 +57,7 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		
 		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
 		if(code == null) return;
+		if(!ModActionUtil.checkCanPunish(sender, target)) return;
 		
 		String extraInfo = StringUtil.concatArgs(args, 2);
 		String reason = code.getDescription() + (extraInfo.isEmpty() ? "" : " (" + extraInfo + ")");
@@ -78,6 +82,7 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		
 		User target = lookupUser(sender, args[0]);
 		if(target == null) return;
+		if(!ModActionUtil.checkCanPunish(sender, target)) return;
 		
 		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
 		if(code == null) return;
@@ -112,6 +117,7 @@ public class NSPunishCommands extends DragonsCommandExecutor {
 		User target = lookupUser(sender, args[0]);
 		PunishmentCode code = PunishmentCode.parseCode(sender, args[1]);
 		if(target == null || code == null) return;
+		if(!ModActionUtil.checkCanPunish(sender, target)) return;
 
 		int durationIndex = StringUtil.getFlagIndex(args, "-d", 2);
 		String extraInfo = StringUtil.concatArgs(args, 2, durationIndex);

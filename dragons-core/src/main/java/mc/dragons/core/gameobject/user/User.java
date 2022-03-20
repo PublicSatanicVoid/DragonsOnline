@@ -1674,6 +1674,10 @@ public class User extends GameObject {
 	public void setDeathCountdown(int seconds) {
 		setData("deathCountdown", seconds);
 		setData("deathTime", System.currentTimeMillis());
+		player.removePotionEffect(PotionEffectType.BLINDNESS);
+		player.removePotionEffect(PotionEffectType.SLOW);
+		player.removePotionEffect(PotionEffectType.INVISIBILITY);
+		player.removePotionEffect(PotionEffectType.JUMP);
 		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20 * seconds, 10, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * seconds, 10, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20 * seconds, 10, false, false));

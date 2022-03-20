@@ -2,8 +2,10 @@ package mc.dragons.core.bridge;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Abstraction layer for version-dependent OBC/NMS API calls.
@@ -110,4 +112,12 @@ public interface Bridge {
 	 * @return The estimated ping of the specified player, in ms
 	 */
 	int getPing(Player player);
+	
+	/**
+	 * 
+	 * @param entity
+	 * @param target
+	 * @return The Bukkit task to cancel when the entity can stop following the player.
+	 */
+	BukkitTask followEntity(Entity entity, LivingEntity target, double speed);
 }

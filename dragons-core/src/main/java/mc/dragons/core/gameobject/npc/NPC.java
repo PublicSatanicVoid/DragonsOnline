@@ -511,11 +511,14 @@ public class NPC extends GameObject {
 	}
 
 	public Entity getEntity() {
-		if(this.entity != null) {
+		if(entity != null) {
 			return entity;
 		}
-		else {
+		else if(pnpc != null) {
 			return pnpc.getEntity();
+		}
+		else {
+			return null;
 		}
 	}
 	

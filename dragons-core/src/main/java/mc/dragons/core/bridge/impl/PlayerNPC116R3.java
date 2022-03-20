@@ -28,6 +28,7 @@ import org.bukkit.util.Vector;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.datafixers.util.Pair;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.bridge.Bridge;
@@ -37,7 +38,9 @@ import mc.dragons.core.gameobject.npc.PlayerNPCRegistry;
 import net.minecraft.server.v1_16_R3.DedicatedServer;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.EnumGamemode;
+import net.minecraft.server.v1_16_R3.EnumItemSlot;
 import net.minecraft.server.v1_16_R3.EnumProtocolDirection;
+import net.minecraft.server.v1_16_R3.ItemStack;
 import net.minecraft.server.v1_16_R3.MobEffect;
 import net.minecraft.server.v1_16_R3.NetworkManager;
 import net.minecraft.server.v1_16_R3.Packet;
@@ -88,6 +91,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	private Map<Player, Location> lastSeenLocation = new HashMap<>();
 	private Map<Player, Long> lastForceRefresh = new HashMap<>();
 	private List<Entity> sameVisibility = new ArrayList<>();
+	private List<Pair<EnumItemSlot, ItemStack>> equipmentCache = new ArrayList<>();
 	
 	private boolean isDestroyed;
 	private float originalYaw; // NMS does some scuffed conversions, so we need to preserve this separately
@@ -188,6 +192,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		sync(() -> sendPacket(tp, player), 3);
 		sync(() -> sendPacket(new PacketPlayOutEntityHeadRotation(handle, getPacketRotation(location.getYaw())), player), 6);
 		sync(() -> removeFromTablistFor(player), 20 + (int) Math.ceil(2 * bridge.getPing(player) * 20 / 1000));
+		sync(() -> sendEquipmentUpdateFor(player), 8);
 		lastSeenLocation.put(player, location.clone());
 
 		// https://www.spigotmc.org/threads/remove-nameplate-of-an-nms-player-entity.436099/ (Phaze)
@@ -196,6 +201,7 @@ public class PlayerNPC116R3 implements PlayerNPC {
 		sendPacket(new PacketPlayOutScoreboardTeam(team, 1), player);
 		sendPacket(new PacketPlayOutScoreboardTeam(team, 0), player);
 		sendPacket(new PacketPlayOutScoreboardTeam(team, List.of(handle.getName()), 3), player);
+		
 	}
 	
 	public void updateLocationFor(Player player, float pitch, float yaw) {
@@ -349,11 +355,20 @@ public class PlayerNPC116R3 implements PlayerNPC {
 	}
 
 	public void setEquipment(EquipmentSlot slot, org.bukkit.inventory.ItemStack item) {
-		PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment();
-		this.setField(packet, "a", handle.getId());
-		this.setField(packet, "b", CraftEquipmentSlot.getNMS(slot));
-		this.setField(packet, "c", CraftItemStack.asNMSCopy(item));
+		equipmentCache.add(Pair.of(CraftEquipmentSlot.getNMS(slot), CraftItemStack.asNMSCopy(item)));
+		sendEquipmentUpdate();
+	}
+	
+	private void sendEquipmentUpdate() {
+		if(equipmentCache.isEmpty()) return;
+		PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(handle.getId(), equipmentCache);
 		this.sendPacket(packet);
+	}
+	
+	private void sendEquipmentUpdateFor(Player player) {
+		if(equipmentCache.isEmpty()) return;
+		PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(handle.getId(), equipmentCache);
+		this.sendPacket(packet, player);
 	}
 	
 	/**

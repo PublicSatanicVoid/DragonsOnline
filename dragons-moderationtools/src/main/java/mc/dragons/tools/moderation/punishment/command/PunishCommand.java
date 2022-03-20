@@ -19,6 +19,7 @@ import mc.dragons.tools.moderation.punishment.StandingLevelType;
 import mc.dragons.tools.moderation.report.ReportLoader;
 import mc.dragons.tools.moderation.report.ReportLoader.Report;
 import mc.dragons.tools.moderation.util.CmdUtil;
+import mc.dragons.tools.moderation.util.ModActionUtil;
 import mc.dragons.tools.moderation.util.CmdUtil.CmdData;
 
 public class PunishCommand extends DragonsCommandExecutor {
@@ -46,6 +47,7 @@ public class PunishCommand extends DragonsCommandExecutor {
 		int minEffectiveLevel = -1;
 		
 		for(WrappedUser w : wrapped) {
+			if(!ModActionUtil.checkCanPunish(sender, w.getUser())) continue;
 			w.updateStandingLevels();
 			
 			if(canApply) {

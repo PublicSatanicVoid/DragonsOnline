@@ -10,6 +10,7 @@ import mc.dragons.core.gameobject.npc.NPC;
 import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.permission.PermissionLevel;
+import mc.dragons.core.util.CompanionUtil;
 
 public class IWannaCompanionCommand extends DragonsCommandExecutor {
 
@@ -19,14 +20,13 @@ public class IWannaCompanionCommand extends DragonsCommandExecutor {
 		Player player = player(sender);
 		User user = user(sender);
 			
-		if(user.getStorageAccess().get("companion") != null) {
+		if(CompanionUtil.hasCompanion(user)) {
 			sender.sendMessage("You already have a companion");
 			return true;
 		}
 		
-		NPC companion = GameObjectType.NPC.<NPC, NPCLoader>getLoader().registerNew(player.getLocation(), "Companion-Kitty");
-		companion.getStorageAccess().set("companionOwner", user.getUUID());
-		user.getStorageAccess().set("companion", companion.getUUID());
+		NPC companion = GameObjectType.getLoader(NPCLoader.class).registerNew(player.getLocation(), "Companion-Kitty");
+		CompanionUtil.addCompanion(user, companion);
 		
 		sender.sendMessage("Spawned a companion (companion uuid: " + companion.getUUID() + ")");
 		return true;

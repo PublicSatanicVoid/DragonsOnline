@@ -116,7 +116,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 				"testupdateinventory", "testnametag", "testnametag2", "testupdatenametag",
 				"testrollingasync", "testinternalnetworkedmsg", "testplayernpc",
 				"testrevealallinvisible", "testinventoryreload", "getitemuuid", "tptoentity",
-				"dumpteams", "getprotocolversion", "testtabsorting"
+				"dumpteams", "getprotocolversion", "testtabsorting", "testvelocity"
 		};
 		for(String cmd : experimentalCommandsList) {
 			getCommand(cmd).setExecutor(experimentalCommands);

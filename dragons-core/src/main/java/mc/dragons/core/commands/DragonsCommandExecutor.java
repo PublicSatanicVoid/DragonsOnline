@@ -209,6 +209,15 @@ public abstract class DragonsCommandExecutor implements CommandExecutor {
 		return result;
 	}
 	
+	protected void wrappedTry(CommandSender sender, Runnable runnable) {
+		try {
+			runnable.run();
+		} catch (Exception e) {
+			UUID cid = reportException(e);
+			sender.sendMessage(ERR_EXCEPTION_OCCURRED_W_CORREL + cid);
+		}
+	}
+	
 	protected User lookupUser(CommandSender sender, String lookup) {
 		return lookup(sender, () -> userLoader.loadObject(lookup), ERR_USER_NOT_FOUND);
 	}
