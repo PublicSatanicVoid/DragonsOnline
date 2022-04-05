@@ -306,7 +306,7 @@ public class QuestCommand extends DragonsCommandExecutor {
 	
 	private void editDialogue(CommandSender sender, String[] args) {
 		if(args.length < 8) {
-			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <Stage#> action dialogue [list <Action#> | add <Action#> <Dialogue Line> | remove <Action#> <Line#>]");
+			sender.sendMessage(ChatColor.RED + "Insufficient arguments! /quest <QuestName> stage <Stage#> action dialogue [list <Action#> | add <Action#> <Dialogue Line> | remove <Action#> <Line#> | insert <Action#> <LineBefore#> <Dialogue Line>]");
 			return;
 		}
 		Quest quest = lookupQuest(sender, args[0]);
@@ -335,6 +335,20 @@ public class QuestCommand extends DragonsCommandExecutor {
 			step.addDialogue(Integer.valueOf(args[6]), dialogue);
 			sender.sendMessage(ChatColor.GREEN + "Added dialogue to quest stage action successfully.");
 			AUDIT_LOG.saveEntry(quest, user(sender), base, "Added dialogue to action " + args[6] + " of stage " + args[2]);
+		}
+		else if(args[5].equalsIgnoreCase("insert")) {
+			Integer action = parseInt(sender, args[6]);
+			Integer pos = parseInt(sender, args[7]);
+			String dialogue = StringUtil.concatArgs(args, 8);
+			User user = user(sender);
+			if(isPlayer(sender)) {
+				dialogue = dialogue.replaceAll(Pattern.quote("%PH%"), user.getLocalData().get("placeholder", "(Empty placeholder)"));
+			}
+			Document base = Document.parse(quest.getData().toJson());
+			step.insertDialogue(action, pos, dialogue);
+			sender.sendMessage(ChatColor.GREEN + "Added dialogue to quest stage action successfully.");
+			AUDIT_LOG.saveEntry(quest, user(sender), base, "Inserted dialogue to action " + args[6] + " of stage " + args[2] + " before position " + pos);
+			
 		}
 		else if(args[5].equalsIgnoreCase("remove")) {
 			Document base = Document.parse(quest.getData().toJson());

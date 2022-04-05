@@ -125,7 +125,7 @@ public class RegionCommand extends DragonsCommandExecutor {
 		if(region == null) return;
 		
 		sender.sendMessage(ChatColor.GREEN + "=== Region: " + region.getName() + " ===");
-		sender.sendMessage(ChatColor.GRAY + "Database identifier: " + ChatColor.GREEN + region.getIdentifier().toString());
+		sender.sendMessage(ChatColor.GRAY + "DBID: " + ChatColor.GREEN + region.getIdentifier().toString());
 		sender.sendMessage(ChatColor.GRAY + "World: " + ChatColor.GREEN + region.getWorld().getName());
 		sender.sendMessage(ChatColor.GRAY + "Min: " + ChatColor.GREEN + StringUtil.locToString(region.getMin()));
 		sender.sendMessage(ChatColor.GRAY + "Max: " + ChatColor.GREEN + StringUtil.locToString(region.getMax()));

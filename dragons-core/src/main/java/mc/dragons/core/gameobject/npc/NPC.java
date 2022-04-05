@@ -248,6 +248,9 @@ public class NPC extends GameObject {
 			hologram.setMetadata("followDY", new FixedMetadataValue(Dragons.getInstance(), 0.8));
 			getEntity().setMetadata("shadow", new FixedMetadataValue(Dragons.getInstance(), hologram));
 			setExternalHealthIndicator(hologram);
+			if(pnpcGuide != null) {
+				pnpcGuide.setGravity(hasGravity());
+			}
 		}
 		else {
 			entity.setCustomName(getDecoratedName());
@@ -255,6 +258,7 @@ public class NPC extends GameObject {
 			healthIndicator = entity;
 			Dragons.getInstance().getBridge().setEntityAI(entity, getNPCClass().hasAI());
 			Dragons.getInstance().getBridge().setEntityInvulnerable(entity, isImmortal());
+			entity.setGravity(hasGravity());
 			// TODO configurable baby status if ageable
 			if(entity instanceof Ageable) {
 				Ageable ageable = (Ageable) entity;
@@ -381,6 +385,20 @@ public class NPC extends GameObject {
 		return (boolean) getData("immortal");
 	}
 
+	public boolean hasGravity() {
+		return getData().getBoolean("gravity", true);
+	}
+	
+	public void setGravity(boolean gravity) {
+		setData("gravity", gravity);
+		if(entity != null) {
+			entity.setGravity(true);
+		}
+		else if(pnpcGuide != null) {
+			pnpcGuide.setGravity(true);
+		}
+	}
+	
 	/**
 	 * Specify an armor stand to show this NPC's health status.
 	 * @param indicator
@@ -537,7 +555,9 @@ public class NPC extends GameObject {
 			initializeEntity();
 		}
 		else {
-			entity.remove();
+			if(entity != null) {
+				entity.remove();
+			}
 			setEntity(spawn.getWorld().spawnEntity(spawn, getNPCClass().getEntityType()));
 			healthIndicator = entity;
 			initializeEntity();

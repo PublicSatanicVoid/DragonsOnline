@@ -2,13 +2,14 @@ package mc.dragons.core.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.npc.NPC;
-import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.npc.NPC.NPCType;
+import mc.dragons.core.gameobject.npc.NPCLoader;
 import mc.dragons.core.gameobject.user.User;
 import mc.dragons.core.gameobject.user.UserLoader;
 
@@ -17,7 +18,7 @@ public class CompanionUtil {
 		NPCLoader npcLoader = GameObjectType.getLoader(NPCLoader.class);
 		List<UUID> companions = user.getData().getList("companions", UUID.class);
 		if(companions == null) return new ArrayList<>();
-		return companions.stream().map(uuid -> npcLoader.loadObject(uuid, cid)).collect(Collectors.toList());
+		return companions.stream().map(uuid -> npcLoader.loadObject(uuid, cid)).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 	
 	public static List<NPC> getCompanions(User user) {

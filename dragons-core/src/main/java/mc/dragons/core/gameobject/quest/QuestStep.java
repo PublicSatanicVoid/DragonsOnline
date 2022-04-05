@@ -78,6 +78,12 @@ public class QuestStep {
 		quest.getStorageAccess().update(new Document("steps", steps));
 	}
 
+	public void insertDialogue(int actionIndex, int posBefore, String dialogue) {
+		actions.get(actionIndex).getDialogue().add(posBefore, dialogue);
+		List<Document> steps = quest.getStepsAsDoc();
+		quest.getStorageAccess().update(new Document("steps", steps));
+	}
+	
 	public boolean removeDialogue(int actionIndex, int dialogueIndex) {
 		List<String> dialogue = actions.get(actionIndex).getDialogue();
 		if (dialogue == null) {

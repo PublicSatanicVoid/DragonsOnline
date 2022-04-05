@@ -94,7 +94,7 @@ public class DragonsDevTools extends DragonsJavaPlugin {
 		getCommand("manifest").setExecutor(performanceCommands);
 		getCommand("getsystemproperties").setExecutor(performanceCommands);
 		
-		CommandExecutor debugCommands = new DebugCommands();
+		CommandExecutor debugCommands = new DebugCommands(this);
 		getCommand("debug").setExecutor(debugCommands);
 		getCommand("streamconsole").setExecutor(debugCommands);
 		

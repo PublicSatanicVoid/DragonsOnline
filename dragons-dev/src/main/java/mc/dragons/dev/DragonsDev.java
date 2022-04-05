@@ -20,6 +20,7 @@ import org.bukkit.command.CommandExecutor;
 
 import mc.dragons.core.Dragons;
 import mc.dragons.core.DragonsJavaPlugin;
+import mc.dragons.core.addon.Addon;
 import mc.dragons.core.gameobject.GameObjectType;
 import mc.dragons.core.gameobject.floor.Floor;
 import mc.dragons.core.gameobject.floor.FloorLoader;
@@ -32,6 +33,7 @@ import mc.dragons.core.gui.GUI;
 import mc.dragons.core.gui.GUIElement;
 import mc.dragons.core.util.FileUtil;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.dev.addon.BoopStickAddon;
 import mc.dragons.dev.build.BackupCommand;
 import mc.dragons.dev.build.StartTrialCommand;
 import mc.dragons.dev.notifier.AdviceBroadcaster;
@@ -69,6 +71,10 @@ public class DragonsDev extends DragonsJavaPlugin {
 		BACKUP_RETENTION_DAYS = getConfig().getInt("backup.retention-days", 30);
 		MAX_STARS = getConfig().getInt("stars.max-stars", 5);
 		MAX_ASSIGN_STARS = getConfig().getInt("stars.max-assign-stars", 10);
+		
+		Addon boopStickAddon = new BoopStickAddon(dragons);
+		dragons.getAddonRegistry().register(boopStickAddon);
+		boopStickAddon.apply();
 		
 		Map<String, Object> shop = getConfig().getConfigurationSection("stars.staff-shop").getValues(false);
 		ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();

@@ -266,6 +266,7 @@ public class EntityDamageListener implements Listener {
 				final Item fAttackerHeldItem = attackerHeldItem;
 				new BukkitRunnable() {
 					@Override public void run() {
+						if(fUserDamager == null) return;
 						Item currentHeldItem = ItemLoader.fromBukkit(fUserDamager.getPlayer().getInventory().getItemInMainHand());
 						if (currentHeldItem == null || !currentHeldItem.equals(fAttackerHeldItem)) {
 							return;

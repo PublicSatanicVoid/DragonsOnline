@@ -1,6 +1,8 @@
 package mc.dragons.core.networking;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -47,8 +49,9 @@ public class StaffAlertMessageHandler extends MessageHandler {
 	 * @param reportId
 	 * @param message A short description of the report
 	 */
-	public void sendReportMessage(int reportId, String message) {
-		sendAll(new Document("permissionLevel", PermissionLevel.MODERATOR.toString()).append("subtype", "report").append("reportId", reportId).append("message", message));
+	public void sendReportMessage(int reportId, UUID by, List<UUID> targets, String message) {
+		sendAll(new Document("permissionLevel", PermissionLevel.MODERATOR.toString()).append("subtype", "report")
+				.append("reportId", reportId).append("message", message).append("by", by).append("targets", targets));
 	}
 	
 	/**
@@ -102,8 +105,10 @@ public class StaffAlertMessageHandler extends MessageHandler {
 		final PermissionLevel fLevel = level;
 		
 		UserLoader.allUsers().stream().filter(u -> PermissionUtil.verifyActivePermissionLevel(u, fLevel, false)).forEach(u -> {
-			if(subtype.equals("report") && (!PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false) || !u.getData().getEmbedded(Arrays.asList("modnotifs", "reports"), true))) return;
-			if(subtype.equals("susjoin") && (!PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false) || !u.getData().getEmbedded(Arrays.asList("modnotifs", "susjoin"), true))) return;
+			if(subtype.equals("report") && (!PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false) || u.getUUID().equals(data.get("by", UUID.class)) 
+					|| data.getList("targets", UUID.class).contains(u.getUUID()) || !u.getData().getEmbedded(Arrays.asList("modnotifs", "reports"), true))) return;
+			if(subtype.equals("susjoin") && (!PermissionUtil.verifyActiveProfileFlag(u, SystemProfileFlag.MODERATION, false) 
+					|| !u.getData().getEmbedded(Arrays.asList("modnotifs", "susjoin"), true))) return;
 			u.getPlayer().spigot().sendMessage(new TextComponent(ChatColor.RED + "" + ChatColor.BOLD + "Staff Alert: " + ChatColor.RESET), message);
 		});
 	}

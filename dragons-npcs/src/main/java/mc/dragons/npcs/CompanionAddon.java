@@ -1,5 +1,7 @@
 package mc.dragons.npcs;
 
+import static mc.dragons.core.util.BukkitUtil.sync;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,7 +42,7 @@ public class CompanionAddon extends NPCAddon {
 	private Map<NPC, BukkitTask> followTasks = new HashMap<>();
 	public Set<NPC> getCompanions() { return companions; }
 	
-	private void fixCompanion(NPC companion, Player owner) {
+	private void validateCompanion(NPC companion, Player owner) {
 		User user = UserLoader.fromPlayer(owner);
 		if(!CompanionUtil.isCompanionOf(companion, user)) {
 			user.debug("Companion was removed from userdata, removing ingame");
@@ -50,8 +52,8 @@ public class CompanionAddon extends NPCAddon {
 			followTasks.remove(companion);
 		}
 		else {
+			if(companion.getEntity() == null || companion.getEntity().isDead() || !companion.getEntity().isValid()) companion.regenerate(owner.getLocation());
 			if(companion.getEntity().getWorld() != owner.getWorld()) companion.getEntity().teleport(owner);
-			if(companion.getEntity().isDead()) companion.regenerate(owner.getLocation());
 		}
 	}
 
@@ -79,7 +81,7 @@ public class CompanionAddon extends NPCAddon {
 					if(companion.getEntity().isDead()) continue;
 					followTasks.computeIfAbsent(companion, c -> BRIDGE.followEntity(companion.getEntity(), owner.getPlayer(), FOLLOW_SPEED));
 					LOGGER.verbose("Checking position of companion " + companion.getIdentifier() + " [entity " + StringUtil.entityToString(companion.getEntity()) + "]");
-					fixCompanion(companion, owner.getPlayer());
+					validateCompanion(companion, owner.getPlayer());
 					if(owner.getPlayer().getLocation().distanceSquared(companion.getEntity().getLocation()) > 5.0 * 5.0) {
 						Vector move = owner.getPlayer().getLocation().subtract(companion.getEntity().getLocation()).toVector();
 						move.multiply(Math.random() * 0.9);
@@ -99,9 +101,11 @@ public class CompanionAddon extends NPCAddon {
 					if(owner.getPlayer() == null) continue;
 					if(!owner.getPlayer().isOnline()) continue;
 					LOGGER.verbose("Running health boost from companion " + companion.getIdentifier() + " [entity " + StringUtil.entityToString(companion.getEntity()) + "]");
-					fixCompanion(companion, owner.getPlayer());
-					owner.getPlayer().setHealth(Math.min(owner.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), 
-							owner.getPlayer().getHealth() + 0.25 * owner.getPlayer().getLocation().distance(companion.getEntity().getLocation())));
+					sync(() -> {
+						validateCompanion(companion, owner.getPlayer());
+						owner.getPlayer().setHealth(Math.min(owner.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), 
+								owner.getPlayer().getHealth() + 0.25 * owner.getPlayer().getLocation().distance(companion.getEntity().getLocation())));
+					}, 1);
 				}
 			}
 		}.runTaskTimer(dragons, 20L, 20L * 10);
@@ -131,7 +135,7 @@ public class CompanionAddon extends NPCAddon {
 						}
 						return;
 					}
-					fixCompanion(on, player);
+					validateCompanion(on, player);
 					Vector move = player.getLocation().subtract(companion.getLocation()).toVector().normalize().multiply(0.1).add(new Vector(0, 0.5, 0));
 					companion.teleport(companion.getLocation().add(move));
 					companion.getWorld().spawnParticle(Particle.CRIT_MAGIC, companion.getLocation().add(0, 1, 0), 10);

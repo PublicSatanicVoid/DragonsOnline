@@ -1,6 +1,8 @@
 package mc.dragons.tools.dev.debug;
 
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +18,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scheduler.BukkitWorker;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.events.PacketListener;
 import com.sun.management.ThreadMXBean;
 
 import mc.dragons.core.Dragons;
@@ -28,10 +35,37 @@ import mc.dragons.core.gameobject.user.UserLoader;
 import mc.dragons.core.gameobject.user.permission.SystemProfile.SystemProfileFlags.SystemProfileFlag;
 import mc.dragons.core.logging.LogLevel;
 import mc.dragons.core.util.StringUtil;
+import mc.dragons.tools.dev.DragonsDevTools;
 import net.md_5.bungee.api.ChatColor;
 
 public class DebugCommands extends DragonsCommandExecutor {
-
+	private PacketType[] allTypes;
+	// Spammy packets we don't want to log
+	private PacketType[] excludedTypes = { PacketType.Play.Server.WORLD_PARTICLES, PacketType.Play.Server.LIGHT_UPDATE, PacketType.Play.Server.MAP_CHUNK, PacketType.Play.Server.SCOREBOARD_TEAM };
+	private PacketListener packetListener;
+	
+	public DebugCommands(DragonsDevTools plugin) {
+		List<PacketType> packetTypes = new ArrayList<>();
+		for(PacketType type : PacketType.values()) {
+			packetTypes.add(type);
+		}
+		for(PacketType type : excludedTypes) {
+			packetTypes.remove(type);
+		}
+		allTypes = packetTypes.toArray(new PacketType[0]);
+		packetListener = new PacketAdapter(plugin, allTypes) {
+			@Override
+			public void onPacketSending(PacketEvent event) {
+				Bukkit.getLogger().info("PACKET SEND:" + event.getPlayer().getName() + " - " + event.getPacketType());
+			}
+			
+			@Override
+			public void onPacketReceiving(PacketEvent event) {
+				Bukkit.getLogger().info("PACKET RECV: " + event.getPlayer().getName() + " - " + event.getPacketType());
+			}
+		};
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!requirePermission(sender, SystemProfileFlag.DEVELOPMENT)) return true;
@@ -61,6 +95,7 @@ public class DebugCommands extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump threads");
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump workers [Plugin]");
 			sender.sendMessage(ChatColor.YELLOW + "/debug dump pendingtasks [Plugin]");
+			sender.sendMessage(ChatColor.YELLOW + "/debug packets <on|off>");
 //			sender.sendMessage(ChatColor.YELLOW + "/debug errors [-stop]");
 			sender.sendMessage(ChatColor.YELLOW + "/debug <attach|detach> <Player>");
 		}
@@ -193,6 +228,23 @@ public class DebugCommands extends DragonsCommandExecutor {
 //			user.setDebuggingErrors(on);
 //			sender.sendMessage(ChatColor.GREEN + "You will " + (on ? "now" : "no longer") + " receive errors from console in chat.");
 //		}
+		
+		else if(args[0].equalsIgnoreCase("packets")) {
+			if(args.length == 1) {
+				sender.sendMessage(ChatColor.RED + "Specify whether to turn this on or off! /debug packets <on|off>");
+				return true;
+			}
+			
+			if(args[1].equalsIgnoreCase("on")) {
+				ProtocolLibrary.getProtocolManager().addPacketListener(packetListener);
+				sender.sendMessage(ChatColor.GREEN + "Started debugging packets. Warning: Console spam incoming!");
+			}
+			else {
+				ProtocolLibrary.getProtocolManager().removePacketListener(packetListener);
+				sender.sendMessage(ChatColor.GREEN + "Stopped debugging packets.");
+			}
+			
+		}
 		
 		else if(args[0].equalsIgnoreCase("attach")) {
 			if(args.length == 1) {

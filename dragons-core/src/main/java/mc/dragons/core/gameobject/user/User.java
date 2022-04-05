@@ -27,6 +27,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -104,7 +105,7 @@ public class User extends GameObject {
 	// Increasing this will theoretically decrease server load
 	public static final double MIN_DISTANCE_TO_UPDATE_STATE = 2.0D;
 	
-	// Avoid re-allocating the same object a gazillion times
+	// Avoid re-allocating the same objects a gazillion times
 	private static final String DASH_PATTERN_QUOTED = Pattern.quote("-");
 	
 	private static Dragons instance = Dragons.getInstance();
@@ -153,6 +154,9 @@ public class User extends GameObject {
 	private Map<Quest, List<NPC>> temporaryNPCs;
 	private Table<Item, Quest, Integer> questItems;
 	private Map<Quest, Location> questRestoreLocations;
+	private ChatColor cachedNameTagColor;
+	private String cachedNameTagPrefix;
+	private String cachedNameTagSuffix;
 	private ArmorStand secondaryNameTag;
 	
 	public static ConnectionMessageHandler getConnectionMessageHandler() {
@@ -161,6 +165,10 @@ public class User extends GameObject {
 	
 	public static List<User> asUsers(List<UUID> uuids) {
 		return uuids.stream().map(uuid -> userLoader.loadObject(uuid)).collect(Collectors.toList());
+	}
+	
+	public static List<UUID> asUUIDs(List<User> users) {
+		return users.stream().map(user -> user.getUUID()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -231,7 +239,7 @@ public class User extends GameObject {
 			setData("health", player.getHealth());
 			player.getInventory().clear();
 			player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(calculateMaxHealth(getLevel()));
-			updatePrimaryNameTag();
+			updatePrimaryNameTag(false);
 			if (getData("health") != null) {
 				player.setHealth(Math.min((double) getData("health"), (double) getData("maxHealth")));
 			}
@@ -1368,7 +1376,6 @@ public class User extends GameObject {
 		updateVanishStatesOnSelf();
 		updateVanillaLeveling();
 		updateTablistHeaders();
-		updatePrimaryNameTag();
 		String ip = player.getAddress().getAddress().getHostAddress();
 		setData("ip", ip);
 		
@@ -1379,6 +1386,7 @@ public class User extends GameObject {
 		setData("ipHistory", ipHistory);
 		connectionMessageHandler.logConnect(this);
 		player.updateInventory();
+		updatePrimaryNameTag(false);
 		sync(() -> tablistManager.updateAll(p -> p.canSee(player)), 1);
 		LOGGER.exiting("User", "handleJoin");
 	}
@@ -1413,6 +1421,8 @@ public class User extends GameObject {
 		}
 		player.getInventory().clear();
 		player.getInventory().setArmorContents(new ItemStack[4]);
+		Player temp = player;
+		sync(() -> tablistManager.updateAll(p -> p.canSee(temp)));
 		player = null;
 	}
 
@@ -1462,7 +1472,7 @@ public class User extends GameObject {
 	public void setRank(Rank rank) {
 		setData("rank", rank.toString());
 		updateListName();
-		updatePrimaryNameTag();
+		updatePrimaryNameTag(false);
 		tablistManager.updateAll(p -> p.canSee(player));
 	}
 
@@ -1765,15 +1775,20 @@ public class User extends GameObject {
 		player.setPlayerListName(getListName());
 	}
 	
-	public void setPrimaryNameTag(ChatColor nameColor, String prefix, String suffix) {
-		NametagUtil.setNameTag(player, nameColor, prefix, suffix);
+	public void broadcastPrimaryNameTag() {
+		if(player == null) return;
+		NametagUtil.setNameTag(player, cachedNameTagColor, cachedNameTagPrefix, cachedNameTagSuffix);
+	}
+	
+	public void broadcastPrimaryNameTagFor(Player playerFor) {
+		if(player == null) return;
+		NametagUtil.updateNameTagFor(player, playerFor, cachedNameTagColor, cachedNameTagPrefix, cachedNameTagSuffix);
 	}
 	
 	public void setSecondaryNameTag(String text) {
 		clearSecondaryNameTag();
 		secondaryNameTag = HologramUtil.makeArmorStandNameTag(player, text, 0.0, -0.7, 0.0, true);
 	}
-	
 	
 	public void clearSecondaryNameTag() {
 		if(secondaryNameTag != null) {
@@ -1783,9 +1798,14 @@ public class User extends GameObject {
 		secondaryNameTag = null;
 	}
 	
-	public void updatePrimaryNameTag() {
+	public void updatePrimaryNameTag(boolean broadcast) {
 		Rank rank = getRank();
-		setPrimaryNameTag(rank.getNameColor(), rank.getChatPrefix(), getSuffixes());
+		this.cachedNameTagColor = rank.getNameColor();
+		this.cachedNameTagPrefix = rank.getChatPrefix();
+		this.cachedNameTagSuffix = getSuffixes();
+		if(broadcast) {
+			broadcastPrimaryNameTag();
+		}
 	}
 	
 	/*
@@ -2163,10 +2183,13 @@ public class User extends GameObject {
 		}
 		sendActionBar(ChatColor.GREEN + "Autosaving...");
 		Document autoSaveData = new Document("lastSeen", System.currentTimeMillis())
-				.append("maxHealth", player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue())
 				.append("health", player.getHealth())
 				.append("gamemode", joined ? player.getGameMode().toString() : getSavedGameMode().toString())
 				.append("inventory", getInventoryAsDocument());
+		AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+		if(maxHealth != null) {
+			autoSaveData.append("maxHealth", player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+		}
 		if (joined) {
 			String key = PermissionUtil.verifyActivePermissionLevel(this, PermissionLevel.TESTER, false) ? "lastStaffLocation" : "lastLocation";
 			Floor floor = FloorLoader.fromLocation(player.getLocation());

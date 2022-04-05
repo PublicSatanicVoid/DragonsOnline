@@ -143,15 +143,14 @@ public class ItemCommand extends DragonsCommandExecutor {
 		if(itemClass == null) return;
 		
 		sender.sendMessage(ChatColor.GREEN + "=== Item Class: " + itemClass.getClassName() + " ===");
-		sender.sendMessage(ChatColor.GRAY + "Database identifier: " + ChatColor.GREEN + itemClass.getIdentifier().toString());
+		sender.sendMessage(ChatColor.GRAY + "DBID: " + ChatColor.GREEN + itemClass.getIdentifier().toString());
 		sender.sendMessage(ChatColor.GRAY + "Display name: " + ChatColor.GREEN + itemClass.getDecoratedName());
 		sender.sendMessage(ChatColor.GRAY + "Level min: " + ChatColor.GREEN + itemClass.getLevelMin());
 		sender.sendMessage(ChatColor.GRAY + "Material type: " + ChatColor.GREEN + itemClass.getMaterial().toString());
 		sender.sendMessage(ChatColor.GRAY + "Damage: " + ChatColor.GREEN + itemClass.getDamage() + ChatColor.GRAY + " - Armor: " + ChatColor.GREEN + itemClass.getArmor());
 		sender.sendMessage(ChatColor.GRAY + "Cooldown: " + ChatColor.GREEN + itemClass.getCooldown());
 		sender.sendMessage(ChatColor.GRAY + "Walk Speed Boost: " + ChatColor.GREEN + itemClass.getSpeedBoost());
-		sender.sendMessage(ChatColor.GRAY + "Unbreakable: " + ChatColor.GREEN + itemClass.isUnbreakable());
-		sender.sendMessage(ChatColor.GRAY + "Undroppable: " + ChatColor.GREEN + itemClass.isUndroppable());
+		sender.sendMessage(ChatColor.GRAY + "Unbreakable: " + ChatColor.GREEN + itemClass.isUnbreakable() + ChatColor.GRAY + " - Undroppable: " + ChatColor.GREEN + itemClass.isUndroppable());
 		sender.sendMessage(ChatColor.GRAY + "GM Locked: " + ChatColor.GREEN + itemClass.isGMLocked());
 		sender.sendMessage(ChatColor.GRAY + "Max. Stack Size: " + ChatColor.GREEN + itemClass.getMaxStackSize());
 		sender.sendMessage(ChatColor.GRAY + "Lore:");

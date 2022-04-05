@@ -205,6 +205,14 @@ public class NPCClass extends GameObject {
 	public void setAI(boolean hasAI) {
 		setData("ai", hasAI);
 	}
+	
+	public boolean hasGravity() {
+		return getData().getBoolean("gravity", true);
+	}
+	
+	public void setGravity(boolean gravity) {
+		setData("gravity", gravity);
+	}
 
 	public double getMaxHealth() {
 		return (double) getData("maxHealth");

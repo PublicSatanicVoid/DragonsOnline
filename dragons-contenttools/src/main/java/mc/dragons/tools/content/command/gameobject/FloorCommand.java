@@ -144,7 +144,7 @@ public class FloorCommand extends DragonsCommandExecutor {
 			String editable = floor.isGMLocked() ? ChatColor.RED + "Closed to editing" : ChatColor.GREEN + "Open to editing";
 			sender.sendMessage(usable + ChatColor.GRAY + " - " + editable);
 			sender.spigot().sendMessage(StringUtil.clickableHoverableText(ChatColor.GRAY + "[Go To Floor]", "/floor goto " + floor.getFloorName(), "Click to go to floor " + floor.getFloorName()));
-			sender.sendMessage(ChatColor.GRAY + "Database identifier: " + ChatColor.GREEN + floor.getIdentifier().toString());
+			sender.sendMessage(ChatColor.GRAY + "DBID: " + ChatColor.GREEN + floor.getIdentifier().toString());
 			sender.sendMessage(ChatColor.GRAY + "Floor Name: " + ChatColor.GREEN + floor.getFloorName());
 			sender.sendMessage(ChatColor.GRAY + "Display Name: " + ChatColor.GREEN + floor.getDisplayName());
 			sender.sendMessage(ChatColor.GRAY + "Status: " + ChatColor.GREEN + floor.getFloorStatus());

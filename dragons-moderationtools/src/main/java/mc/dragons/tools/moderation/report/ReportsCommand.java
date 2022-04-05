@@ -78,6 +78,10 @@ public class ReportsCommand extends DragonsCommandExecutor {
 			}
 			User filter = lookupUser(sender, args[1]);
 			if(filter == null) return true;
+			if(filter.equals(user(sender)) && !hasPermission(sender, PermissionLevel.ADMIN)) {
+				sender.sendMessage(ChatColor.RED + "You cannot look up reports filed by yourself!");
+				return true;
+			}
 			results = reportLoader.getReportsByFiler(filter, page);
 		}
 		else if(args[0].equalsIgnoreCase("on")) {

@@ -74,8 +74,8 @@ public class PlayerEventListeners implements Listener {
 	private static ItemClassLoader itemClassLoader = GameObjectType.ITEM_CLASS.getLoader();
 	public static ItemClass[] DEFAULT_INVENTORY = new ItemClass[] { itemClassLoader.getItemClassByClassName("LousyStick") };
 	
-	private long commandSpamThreshold = 1000L;
-	private long chatSpamThreshold = 1000L;
+	private long commandSpamThreshold = 500L;
+	private long chatSpamThreshold = 500L;
 	
 	private Dragons plugin;
 	private DragonsLogger LOGGER;
@@ -358,7 +358,7 @@ public class PlayerEventListeners implements Listener {
 					fUser.setGameMode(restoreTo, false);
 					fUser.sendToFloor("Staff");
 					player.setPlayerListName(ChatColor.DARK_GRAY + "" + ChatColor.MAGIC + "[Staff Joining]");
-					fUser.updatePrimaryNameTag();
+					fUser.updatePrimaryNameTag(false);
 				});
 				player.sendMessage(ChatColor.AQUA + "Please login to your system profile or select \"Join as player\".");
 			} else {

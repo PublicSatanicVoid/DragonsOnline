@@ -46,6 +46,7 @@ public class DragonsAntiCheat extends DragonsJavaPlugin {
 		getCommand("acpps").setExecutor(ac);
 		getCommand("achitstats").setExecutor(ac);
 		getCommand("acresethitstats").setExecutor(ac);
+		getCommand("actogglerewind").setExecutor(ac);
 		
 		checkRegistry = new CheckRegistry();
 		checkRegistry.registerCheck(new PacketSpoof(this));

@@ -66,6 +66,7 @@ public class NPCCommand extends DragonsCommandExecutor {
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> holding <MaterialType|NONE>" + ChatColor.GRAY + " set item type the NPC is holding");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> ai <HasAI>" + ChatColor.GRAY + " set whether the NPC has AI");
 		sender.sendMessage(ChatColor.DARK_GRAY + " * Pathfinding behavior will still be enabled when triggered by the RPG");
+		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> gravity <HasGravity>" + ChatColor.GRAY + " set whether the NPC obeys gravity (default: always)");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> immortal <IsImmortal>" + ChatColor.GRAY + " set whether the NPC is immortal");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> loot [<RegionName> <ItemClassName> <Chance%|DEL>]" + ChatColor.GRAY + " manage NPC class loot table");
 		sender.sendMessage(ChatColor.YELLOW + "/npc <ClassName> skin <SkinDataURL>" + ChatColor.GRAY + " set player NPC skin");
@@ -163,14 +164,12 @@ public class NPCCommand extends DragonsCommandExecutor {
 		if(npcClass == null) return;
 		
 		sender.sendMessage(ChatColor.GREEN + "=== NPC Class: " + npcClass.getClassName() + " ===");
-		sender.sendMessage(ChatColor.GRAY + "Database identifier: " + ChatColor.GREEN + npcClass.getIdentifier().toString());
+		sender.sendMessage(ChatColor.GRAY + "DBID: " + ChatColor.GREEN + npcClass.getIdentifier().toString());
 		sender.sendMessage(ChatColor.GRAY + "Display name: " + ChatColor.GREEN + npcClass.getName());
-		sender.sendMessage(ChatColor.GRAY + "Entity type: " + ChatColor.GREEN + npcClass.getEntityType().toString());
-		sender.sendMessage(ChatColor.GRAY + "Max health: " + ChatColor.GREEN + npcClass.getMaxHealth());
-		sender.sendMessage(ChatColor.GRAY + "Level: " + ChatColor.GREEN + npcClass.getLevel());
-		sender.sendMessage(ChatColor.GRAY + "NPC type: " + ChatColor.GREEN + npcClass.getNPCType().toString());
-		sender.sendMessage(ChatColor.GRAY + "AI: " + ChatColor.GREEN + npcClass.hasAI());
-		sender.sendMessage(ChatColor.GRAY + "Immortal: " + ChatColor.GREEN + npcClass.isImmortal());
+		sender.sendMessage(ChatColor.GRAY + "NPC type: " + ChatColor.GREEN + npcClass.getNPCType().toString() + ChatColor.GRAY + " - Entity type: " + ChatColor.GREEN + npcClass.getEntityType().toString());
+		sender.sendMessage(ChatColor.GRAY + "Max health: " + ChatColor.GREEN + npcClass.getMaxHealth() + ChatColor.GRAY + " - Level: " + ChatColor.GREEN + npcClass.getLevel());
+		sender.sendMessage(ChatColor.GRAY + "AI: " + ChatColor.GREEN + npcClass.hasAI() + ChatColor.GRAY + " - Immortal: " + ChatColor.GREEN + npcClass.isImmortal()
+								+ ChatColor.GRAY + " - Gravity: " + ChatColor.GREEN + npcClass.hasGravity());
 		Material heldItemType = npcClass.getHeldItemType();
 		String heldItemTypeName = "Nothing";
 		if(heldItemType != null) {
@@ -698,6 +697,18 @@ public class NPCCommand extends DragonsCommandExecutor {
 		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity AI to " + ai);
 		propagateRevisions(npcClass);
 	}
+
+	private void setGravity(CommandSender sender, String[] args) {
+		NPCClass npcClass = lookupNPCClass(sender, args[0]);
+		Boolean gravity = parseBoolean(sender, args[2]);
+		if(npcClass == null || gravity == null) return;
+
+		Document base = Document.parse(npcClass.getData().toJson());
+		npcClass.setGravity(gravity);
+		sender.sendMessage(ChatColor.GREEN + "Updated entity gravity successfully.");
+		AUDIT_LOG.saveEntry(npcClass, user(sender), base, "Set entity gravity to " + gravity);
+		propagateRevisions(npcClass);
+	}
 	
 	private void setImmortal(CommandSender sender, String[] args) {
 		NPCClass npcClass = lookupNPCClass(sender, args[0]);
@@ -810,6 +821,9 @@ public class NPCCommand extends DragonsCommandExecutor {
 		}
 		else if(args[1].equalsIgnoreCase("ai")) {
 			setAI(sender, args);
+		}
+		else if(args[1].equalsIgnoreCase("gravity")) {
+			setGravity(sender, args);
 		}
 		else if(args[1].equalsIgnoreCase("immortal")) {
 			setImmortal(sender, args);

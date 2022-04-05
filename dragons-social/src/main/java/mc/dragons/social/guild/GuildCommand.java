@@ -398,7 +398,7 @@ public class GuildCommand extends DragonsCommandExecutor {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were kicked from the guild " + ChatColor.YELLOW + guild.getName());
 				}
 				target.updateListName();
-				target.updatePrimaryNameTag();
+				target.updatePrimaryNameTag(true);
 			}
 			else if(args[0].equalsIgnoreCase("ban")) {
 				if(guild.getOwner().equals(target.getUUID())) {
@@ -414,7 +414,7 @@ public class GuildCommand extends DragonsCommandExecutor {
 					target.getPlayer().sendMessage(ChatColor.RED + "You were banned from the guild " + ChatColor.YELLOW + guild.getName());
 				}
 				target.updateListName();
-				target.updatePrimaryNameTag();
+				target.updatePrimaryNameTag(true);
 			}
 			else if(args[0].equalsIgnoreCase("unban")) {
 				guild.getBlacklist().remove(target.getUUID());
@@ -505,8 +505,8 @@ public class GuildCommand extends DragonsCommandExecutor {
 			guild.update(GuildEvent.TRANSFER_OWNERSHIP, target);
 			user.updateListName();
 			target.updateListName();
-			user.updatePrimaryNameTag();
-			target.updatePrimaryNameTag();
+			user.updatePrimaryNameTag(true);
+			target.updatePrimaryNameTag(true);
 		}
 		
 		else if(args[0].equalsIgnoreCase("leave")) {
@@ -540,7 +540,7 @@ public class GuildCommand extends DragonsCommandExecutor {
 			guild.save();
 			sender.sendMessage(ChatColor.GREEN + "Left guild " + ChatColor.AQUA + guild.getName() + ChatColor.GREEN + " successfully.");
 			user.updateListName();
-			user.updatePrimaryNameTag();
+			user.updatePrimaryNameTag(true);
 			return true;
 		}
 		

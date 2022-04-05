@@ -235,6 +235,11 @@ public class AntiCheatCommand extends DragonsCommandExecutor {
 			sender.sendMessage(ChatColor.GREEN + "Reset your hit rejection stats");
 		}
 		
+		else if(label.equalsIgnoreCase("actogglerewind")) {
+			plugin.getCombatRewinder().active = !plugin.getCombatRewinder().active;
+			sender.sendMessage(ChatColor.GREEN + "Toggled combat rewinding (now " + plugin.getCombatRewinder().active + ")");
+		}
+		
 		else {
 			sender.sendMessage(ChatColor.GREEN + "Dragons Online custom anti-cheat (ALPHA)");
 		}

@@ -163,7 +163,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 				sender.sendMessage("item data=" + item.getData().toJson());
 			}
 			if(args.length > 0 && args[0].equalsIgnoreCase("-verbose")) {
-				sender.sendMessage("item stack data=" + itemStack);		
+				sender.sendMessage("item stack data=" + itemStack);
 			}
 		}
 
@@ -513,6 +513,14 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 			sender.sendMessage("Exists in filtered game object registry: "
 					+ dragons.getGameObjectRegistry().getRegisteredObjects(GameObjectType.USER).contains(mockUser));
 		}
+		
+		else if (label.equalsIgnoreCase("mockuninject")) {
+			User mockUser = userLoader.loadObject(args[0]);
+			if(mockUser instanceof MockUser) {
+				UserLoader.allUsers().remove(mockUser);
+				dragons.getGameObjectRegistry().getRegisteredObjects().remove(mockUser);
+			}
+		}
 
 		else if (label.equalsIgnoreCase("mockdelete")) {
 			User target = lookupUser(sender, args[0]);
@@ -571,10 +579,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		}
 
 		else if (label.equalsIgnoreCase("testnametag")) {
-			User target = lookupUser(sender, args[0]);
-			String prefix = StringUtil.colorize(args[2]);
-			String suffix = StringUtil.colorize(StringUtil.concatArgs(args, 3));
-			target.setPrimaryNameTag(ChatColor.valueOf(args[1]), prefix, suffix);
+			sender.sendMessage("nah");
 		}
 
 		else if (label.equalsIgnoreCase("testnametag2")) {
@@ -584,7 +589,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		}
 
 		else if (label.equalsIgnoreCase("testupdatenametag")) {
-			user.updatePrimaryNameTag();
+			user.updatePrimaryNameTag(true);
 		}
 
 		else if (label.equalsIgnoreCase("testrollingasync")) {
@@ -686,6 +691,7 @@ public class ExperimentalCommands extends DragonsCommandExecutor {
 		}
 		
 		else if(label.equalsIgnoreCase("testtabsorting")) {
+			sender.sendMessage("---");
 			User[] tab = Stream.of(args).map(name -> lookupUser(sender, name)).filter(Objects::nonNull).collect(Collectors.toList()).toArray(new User[0]);
 			dragons.getTablistManager().updatePlayer(player, tab);
 		}

@@ -47,6 +47,8 @@ public class CombatRewinder {
 	public Map<Player, Integer> debug_hitCount;
 	public Map<Player, Integer> debug_rejectedCount;
 	
+	public boolean active = true;
+	
 	public double rayTraceTolerance = 0.2;
 	
 	private DragonsAntiCheat plugin;
@@ -169,6 +171,7 @@ public class CombatRewinder {
 	 * @return Whether to cancel the packet
 	 */
 	private boolean handleInteract(Player player, PacketContainer packet) {
+		if(!active) return false;
 		if(LagMeter.getEstimatedTPS() < TPS_DISABLEBELOW) return false;
 		
 		debug_hitCount.put(player, debug_hitCount.getOrDefault(player, 0) + 1);

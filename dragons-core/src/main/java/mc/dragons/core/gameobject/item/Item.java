@@ -545,6 +545,11 @@ public class Item extends GameObject {
 	public void autoSave() {
 		super.autoSave();
 		setData("quantity", itemStack.getAmount());
+		
+		// If the item is custom, any of its data could be unexpectedly modified.
+		if(isCustom()) {
+			update(getData());
+		}
 	}
 
 	/**

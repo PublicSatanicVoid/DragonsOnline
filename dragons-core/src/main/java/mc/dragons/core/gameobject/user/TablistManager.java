@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -45,7 +46,7 @@ import mc.dragons.core.bridge.Bridge;
  * @author Adam (Heavy modifications)
  *
  */
-public class TablistManager {
+public class TablistManager implements Listener {
 	private static final int DEFAULT_PING = 10;
 	
 	private ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
@@ -56,9 +57,9 @@ public class TablistManager {
 	public TablistManager(Dragons instance) {
 		bridge = instance.getBridge();
 	}
-
+	
 	/**
-	 * Clear the default tablist for the player
+	 * Clear the default tablist for the player.
 	 * 
 	 * @implNote Needs separate logic from {@code clearTab} because we haven't yet
 	 *           rendered the tablist
@@ -86,9 +87,7 @@ public class TablistManager {
 	}
 
 	/**
-	 * Update the tablist for all players
-	 * 
-	 * @apiNote It is not necessary to run this when a player leaves.
+	 * Update the tablist for all players.
 	 */
 	public void updateAll() {
 		User[] utab = getUnfilteredTablist();
@@ -128,23 +127,30 @@ public class TablistManager {
 			return;
 		clearTab(p, prevTab.get(p));
 		prevTab.put(p, new WrappedGameProfile[tab.length]);
+		List<String> sortedNames = Stream.of(tab).map(u -> u.getName()).sorted((a,b)->a.toLowerCase().compareTo(b.toLowerCase())).collect(Collectors.toList());
+		
+		// Hotfix because the player's own name is always sorted at the bottom of the list according to this method
+		sortedNames.remove(p.getName());
+		sortedNames.add(p.getName());
+		
 		for (int i = 0; i < tab.length; i++) {
 			User u = tab[i];
+			u.broadcastPrimaryNameTagFor(p);
 			String msg = u.getListName();
 			GameProfile gameProfile = new GameProfile(tab[i].getUUID(), u.getName());
 			addProperties(gameProfile, u.getUUID());
 			WrappedGameProfile wrapped = WrappedGameProfile.fromHandle(gameProfile);
-			createAndBufferPacket(p, msg, i, wrapped, true, u.getPlayer() == null ? DEFAULT_PING : bridge.getPing(u.getPlayer()));
+//			p.sendMessage(sortedNames.get(i) + " -> " + u.getName());
+			createAndBufferPacket(p, msg, sortedNames.get(i), i, wrapped, true, u.getPlayer() == null ? DEFAULT_PING : bridge.getPing(u.getPlayer()));
 		}
 		sync(() -> flushPackets(p), 5);
 	}
 
-	private void createAndBufferPacket(Player p, String listName, int slotId, WrappedGameProfile gameProfile,
+	private void createAndBufferPacket(Player p, String listName, String nameToSortBy, int slotId, WrappedGameProfile gameProfile,
 			boolean add, int ping) {
 		EnumWrappers.PlayerInfoAction action;
 		PacketContainer message = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
 		String nameToShow = listName;
-		String nameToSortBy = String.format("%03d", slotId);
 		if (add) {
 			action = EnumWrappers.PlayerInfoAction.ADD_PLAYER;
 		} else {
@@ -206,10 +212,10 @@ public class TablistManager {
 		if (!p.isOnline())
 			return;
 		if (tab != null)
-			for (int b = 0; b < tab.length; b++) {
-				WrappedGameProfile gameProfile = tab[b];
+			for (int i = 0; i < tab.length; i++) {
+				WrappedGameProfile gameProfile = tab[i];
 				String msg = gameProfile.getName();
-				createAndBufferPacket(p, msg, b, gameProfile, false, DEFAULT_PING);
+				createAndBufferPacket(p, msg, tab[i].getName(), i, gameProfile, false, DEFAULT_PING);
 			}
 		sync(() -> flushPackets(p));
 	}

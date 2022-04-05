@@ -57,15 +57,17 @@ public class ViewReportCommand extends DragonsCommandExecutor {
 		if(report.getData().containsKey("permissionReq")) {
 			req = PermissionLevel.valueOf(report.getData().getString("permissionReq"));
 		}
-		boolean canEdit = hasPermission(sender, req) && (hasPermission(sender, PermissionLevel.ADMIN) || !report.getTargets().contains(user(sender)));
+		boolean partOfReport = report.getTargets().contains(user(sender)) || report.getFiledBy().contains(user(sender));
+		boolean canEdit = hasPermission(sender, req) && hasPermission(sender, PermissionLevel.ADMIN) && !partOfReport;
 		boolean closed = report.getStatus() != ReportStatus.OPEN;
 		
 		// Helpers can only view open chat reports, or chat reports that they've reviewed
 		// Moderators can only view open reports, or reports that they've reviewed
 		// Appeals team and admins can view all reports
 		boolean canView = hasPermission(sender, SystemProfileFlag.APPEALS_TEAM) || hasPermission(sender, PermissionLevel.ADMIN)
-				|| hasPermission(sender, SystemProfileFlag.MODERATION) && (!closed || report.getReviewedBy().equals(user(sender)))
-				|| hasPermission(sender, SystemProfileFlag.HELPER)&& report.getType() == ReportType.CHAT && (!closed || report.getReviewedBy().equals(user(sender)));
+				|| hasPermission(sender, SystemProfileFlag.MODERATION) && !partOfReport && (!closed || report.getReviewedBy().equals(user(sender)))
+				|| hasPermission(sender, SystemProfileFlag.HELPER) && !partOfReport && report.getType() == ReportType.CHAT && (!closed || report.getReviewedBy().equals(user(sender)));
+		
 		
 		TextComponent nextReport = StringUtil.clickableHoverableText(ChatColor.GRAY + " [Next Report]", "/modqueue", "Click to handle next report in queue");
 		

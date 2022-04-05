@@ -308,8 +308,8 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 		return report;
 	}
 	
-	private void reportNotify(int id, String message) {
-		Dragons.getInstance().getStaffAlertHandler().sendReportMessage(id, message);
+	private void reportNotify(int id, UUID by, List<UUID> targets, String message) {
+		Dragons.getInstance().getStaffAlertHandler().sendReportMessage(id, by, targets, message);
 	}
 	
 	public Report fileChatReport(User target, User by, MessageData message) {
@@ -322,7 +322,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 					.append("filedBy", List.of(by.getUUID().toString()))
 					.append("data", new Document("message", message.getMessage()).append("states", getStateTokens(List.of(target))));
 			Report report = fileReport(data);
-			reportNotify(report.getId(), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
+			reportNotify(report.getId(), by.getUUID(), List.of(target.getUUID()), target.getName() + " was chat reported: \"" + message.getMessage() + "\" (reported by " + by.getName() + ")");
 			return report;
 		}
 		else {
@@ -360,7 +360,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 						.append("permissionReq", permissionReq.toString())
 						.append("states", getStateTokens(targets)));
 		Report report = fileReport(data);
-		reportNotify(report.getId(), staff.getName() + " escalated an issue with " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + message);
+		reportNotify(report.getId(), staff.getUUID(), User.asUUIDs(targets), staff.getName() + " escalated an issue with " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + message);
 		return report;
 	}
 	
@@ -383,7 +383,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("filedBy", List.of(staff.getUUID().toString()))
 				.append("data", internalData.append("states", getStateTokens(targets)));
 		Report report = fileReport(data);
-		reportNotify(report.getId(), staff.getName() + " placed a hold on " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + reason);
+		reportNotify(report.getId(), staff.getUUID(), User.asUUIDs(targets), staff.getName() + " placed a hold on " + StringUtil.parseList(targets.stream().map(u -> u.getName()).collect(Collectors.toList())) + ": " + reason);
 		return report;
 	}
 	
@@ -394,7 +394,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 				.append("priority", 0)
 				.append("data", reportData.append("states", getStateTokens(List.of(target))));
 		Report report = fileReport(data);
-		reportNotify(report.getId(), target.getName() + " was reported internally.");
+		reportNotify(report.getId(), null, List.of(target.getUUID()), target.getName() + " was reported internally.");
 		return report;
 	}
 	
@@ -408,7 +408,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 					.append("filedBy", List.of(by.getUUID().toString()))
 					.append("data", new Document("reason", reason).append("states", getStateTokens(List.of(target))));
 			Report report = fileReport(data);
-			reportNotify(report.getId(), target.getName() + " was added to the watchlist.");
+			reportNotify(report.getId(), by.getUUID(), List.of(target.getUUID()), target.getName() + " was added to the watchlist.");
 			return report;
 		}
 		else {
@@ -428,7 +428,7 @@ public class ReportLoader extends AbstractLightweightLoader<Report> {
 					.append("filedBy", List.of(by.getUUID().toString()))
 					.append("data", new Document("reason", reason).append("states", getStateTokens(List.of(target))));
 			Report report = fileReport(data);
-			reportNotify(report.getId(), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
+			reportNotify(report.getId(), by.getUUID(), List.of(target.getUUID()), target.getName() + " was reported: " + reason + " (reported by " + by.getName() + ")");
 			return report;
 		}
 		else {

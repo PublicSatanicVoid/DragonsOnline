@@ -183,9 +183,10 @@ public class ItemLoader extends GameObjectLoader<Item> implements Singleton {
 	 * @return
 	 */
 	public Item makeFromVanilla(ItemStack itemStack) {
+		Material type = itemStack.getType();
 		Item item = registerNew(ItemConstants.VANILLA_ITEM_CLASS);
+		item.setMaterial(type);
 		item.setItemStack(itemStack);
-		item.setMaterial(itemStack.getType());
 		item.setName(itemStack.getType().toString());
 		item.setCustom(true);
 		item.updateItemStackData();

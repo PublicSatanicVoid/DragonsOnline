@@ -127,6 +127,10 @@ public class TaskCommands extends DragonsCommandExecutor {
 		}
 		String desc = StringUtil.concatArgs(args, 0);
 		long words = desc.chars().filter(i -> ((char) i) == ' ').count() + 1;
+		if(words == 1 && StringUtil.isIntegral(desc)) {
+			Bukkit.dispatchCommand(sender, "taskinfo " + desc);
+			return;
+		}
 		if(words < 4) {
 			sender.sendMessage(ChatColor.YELLOW + "That's a short task name! Please be more detailed.");
 			sender.sendMessage(ChatColor.RESET + "/taskhelp" + ChatColor.GRAY + " for help.");

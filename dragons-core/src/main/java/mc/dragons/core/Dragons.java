@@ -215,7 +215,6 @@ public class Dragons extends DragonsJavaPlugin {
 		sidebarManager = new SidebarManager(this);
 		chatMessageRegistry = new ChatMessageRegistry();
 		messageDispatcher = new MessageDispatcher(this);
-		tablistManager = new TablistManager(this);
 		setCustomLoggingProvider(new CustomLoggingProvider(this));
 		
 		autoSaveRunnable = new AutoSaveTask(this);
@@ -249,6 +248,7 @@ public class Dragons extends DragonsJavaPlugin {
 	public void onEnable() {
 		BukkitUtil.initRollingSync();
 		playerNPCRegistry = new PlayerNPCRegistry(this);
+		tablistManager = new TablistManager(this);
 		
 		// Game objects must be loaded from database in a particular sequence, to ensure
 		// all dependencies are ready.
@@ -325,7 +325,7 @@ public class Dragons extends DragonsJavaPlugin {
 		PluginManager pluginManager = getServer().getPluginManager();
 		pluginManager.registerEvents(new EntityDeathListener(this), this);
 		pluginManager.registerEvents(new EntityDamageListener(this), this);
-		pluginManager.registerEvents(new WorldEventListeners(this), this);
+		pluginManager.registerEvents(new WorldEventListeners(), this);
 		pluginManager.registerEvents(new EntityTargetEventListener(this), this);
 		pluginManager.registerEvents(new InventoryEventListeners(), this);
 		pluginManager.registerEvents(new PlayerEventListeners(this), this);

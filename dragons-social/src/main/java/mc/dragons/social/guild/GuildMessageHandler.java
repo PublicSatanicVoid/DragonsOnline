@@ -32,7 +32,7 @@ public class GuildMessageHandler extends MessageHandler {
 		guild.resync();
 		members.stream().map(uuid -> userLoader.loadObject(uuid)).filter(u -> u.getPlayer() != null).forEach(u -> {
 			u.updateListName();
-			u.updatePrimaryNameTag();
+			u.updatePrimaryNameTag(true);
 			if (message != null) {
 				u.getPlayer().sendMessage(message);
 			}
