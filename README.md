@@ -2,9 +2,7 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7514213e041246c08a7e69285f3dabef)](https://app.codacy.com/manual/adam.priebe.812/DragonsOnline?utm_source=github.com&utm_medium=referral&utm_content=UniverseCraft/DragonsOnline&utm_campaign=Badge_Grade_Dashboard)
 
-Dragons Online is a Minecraft-based MMORPG created by Adam Priebe (UniverseCraft) and licensed under the GNU GPL v2.
- 
-**If you'd like to redistribute all or part of this repository under a more restrictive license, please contact me privately via Discord and we may be able to come to an agreement: DragonRider747#8995**
+Dragons Online is a Minecraft-based MMORPG created by UniverseCraft and licensed under the GNU GPL v2.
  
 ## Where to dive in
 If you're new to the repository, here are the most important files to check out (in this order!)
